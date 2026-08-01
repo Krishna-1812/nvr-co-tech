@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "check:sql": "node scripts/check-sql.mjs",
     "check": "npm run lint && npm run check:sql && npm run test && next build",
-    "pdf:sample": "vite-node --config vitest.config.mts scripts/make-sample-pdf.tsx"
+    "pdf:sample": "vite-node --config vitest.config.mts scripts/make-sample-pdf.tsx",
+    "xlsx:sample": "vite-node --config vitest.config.mts scripts/make-sample-xlsx.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, Download } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { isAdmin, VOUCHER_STATUSES, STATUS_META } from '@/lib/domain/workflow';
+import { parseFilters, applyVoucherFilters, hasFilters } from '@/lib/domain/voucherQuery';
 import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, EmptyState } from '@/components/ui/primitives';
@@ -29,24 +30,17 @@ export default async function VouchersPage({
   const page = Math.max(1, Number(sp.page ?? 1) || 1);
   const from = (page - 1) * PAGE_SIZE;
 
-  let query = supabase
-    .from('vouchers')
-    .select('*, chapter:chapters!vouchers_chapter_id_fkey(name)', { count: 'exact' })
-    .is('deleted_at', null);
-
-  // Members only ever see their own; admins see everything.
-  if (!isAdmin(user.role)) query = query.eq('created_by', user.id);
-
-  // Look the value up rather than casting — an unknown ?status= is simply ignored.
-  const status = VOUCHER_STATUSES.find((s) => s === sp.status);
-  if (status) query = query.eq('status', status);
-  if (sp.chapter) query = query.eq('chapter_id', sp.chapter);
-  if (sp.q?.trim()) {
-    const term = `%${sp.q.trim()}%`;
-    query = query.or(
-      `voucher_no.ilike.${term},paid_to.ilike.${term},invoice_no.ilike.${term},event_name.ilike.${term}`,
-    );
-  }
+  // The same filter builder the Excel export uses, so the file you download
+  // always matches the rows you are looking at.
+  const filters = parseFilters(sp);
+  const query = applyVoucherFilters(
+    supabase
+      .from('vouchers')
+      .select('*, chapter:chapters!vouchers_chapter_id_fkey(name)', { count: 'exact' })
+      .is('deleted_at', null),
+    filters,
+    { id: user.id, role: user.role },
+  );
 
   const [{ data, count }, { data: chapters }] = await Promise.all([
     query.order('created_at', { ascending: false }).range(from, from + PAGE_SIZE - 1),
@@ -56,6 +50,13 @@ export default async function VouchersPage({
   const rows = (data ?? []) as unknown as VoucherListRow[];
   const total = count ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const hasActiveFilters = hasFilters(filters);
+  const exportQuery = new URLSearchParams(
+    Object.entries({ status: filters.status, chapter: filters.chapter, q: filters.q })
+      .filter(([, v]) => Boolean(v))
+      .map(([k, v]) => [k, v as string]),
+  ).toString();
 
   const pageHref = (n: number) => {
     const p = new URLSearchParams();
@@ -76,13 +77,27 @@ export default async function VouchersPage({
             {isAdmin(user.role) ? ' across all users' : ''}
           </p>
         </div>
-        <Link
-          href="/vouchers/new"
-          className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
-        >
-          <Plus className="size-4" aria-hidden />
-          New voucher
-        </Link>
+        <div className="flex gap-2">
+          {/*
+            The export carries the active filters, so it downloads exactly the
+            rows on screen. v1 had no filters and dumped everything.
+          */}
+          <a
+            href={`/vouchers/export${exportQuery ? `?${exportQuery}` : ''}`}
+            className="surface inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition hover:bg-[var(--surface-sunken)] aria-disabled:pointer-events-none aria-disabled:opacity-50"
+            aria-disabled={total === 0}
+          >
+            <Download className="size-4" aria-hidden />
+            Export{hasActiveFilters ? ' these' : ''}
+          </a>
+          <Link
+            href="/vouchers/new"
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
+          >
+            <Plus className="size-4" aria-hidden />
+            New voucher
+          </Link>
+        </div>
       </header>
 
       <VoucherFilters

@@ -46,7 +46,7 @@ Roles: `member` → `approver` → `admin` → `owner`. An owner may not demote 
 | Sheet sync failures swallowed by `.catch(() => {})` | `sheet_sync_log` — every attempt recorded and retryable |
 | No schema in the repo; RLS lived only in the dashboard | Four reviewable migrations |
 | No invoice attachment anywhere | Supabase Storage, access mirroring the voucher |
-| No tests | 82, covering the formulas, every segregation-of-duties rule, PDF output and attachment handling |
+| No tests | 100, covering the formulas, every segregation-of-duties rule, PDF output and attachment handling |
 
 ## Stack
 
@@ -91,7 +91,8 @@ Built:
 - **Voucher detail** — full record, amount ladder, approvals, and the immutable audit timeline
 - **Voucher list** — server-side search, status/chapter filters, pagination
 - **Vector PDF** — server-rendered, searchable, ~7 KB (v1 shipped a rasterised screenshot)
+- **Excel export** — 32-column v1 contract preserved, real numbers and dates, live totals, respects the active filters
 - **Invoice attachments** — direct-to-Storage upload, signed-URL viewing, and a "no invoice attached" warning in the approval queue
 
-Not yet built: Excel export, Google Sheets sync
+Not yet built: Google Sheets sync
 worker, admin screens (user roles, chapters, deleted-voucher bin).
