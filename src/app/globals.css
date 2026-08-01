@@ -1,0 +1,145 @@
+@import 'tailwindcss';
+
+/*
+ * NVR Voucher — design tokens.
+ *
+ * The brand ink (#3D52A0) is carried over from v1 so the printed voucher still
+ * looks like the firm's document. Everything around it is rebuilt: v1 was
+ * slate-on-white with no dark mode and no semantic colour for voucher state —
+ * and state is the most important thing to see at a glance here.
+ */
+
+@theme {
+  /* Brand — derived from the original voucher document's #3D52A0 */
+  --color-brand-50:  oklch(0.971 0.014 271);
+  --color-brand-100: oklch(0.936 0.032 271);
+  --color-brand-200: oklch(0.885 0.056 271);
+  --color-brand-300: oklch(0.811 0.089 271);
+  --color-brand-400: oklch(0.706 0.128 271);
+  --color-brand-500: oklch(0.606 0.155 271);
+  --color-brand-600: oklch(0.508 0.158 271);  /* ≈ #3D52A0 */
+  --color-brand-700: oklch(0.432 0.140 271);
+  --color-brand-800: oklch(0.372 0.115 271);
+  --color-brand-900: oklch(0.325 0.092 271);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', 'Cascadia Code', monospace;
+}
+
+/*
+ * Semantic surface tokens, defined for both themes. Components reference these
+ * rather than raw palette steps, so dark mode is one definition rather than a
+ * `dark:` variant on every element.
+ */
+:root {
+  --surface:        oklch(0.985 0.002 271);
+  --surface-raised: oklch(1 0 0);
+  --surface-sunken: oklch(0.96 0.004 271);
+  --border-c:       oklch(0.91 0.006 271);
+  --border-strong:  oklch(0.84 0.010 271);
+  --text-c:         oklch(0.24 0.020 271);
+  --text-muted:     oklch(0.52 0.016 271);
+  --text-subtle:    oklch(0.64 0.012 271);
+
+  --status-draft:    oklch(0.62 0.014 271);
+  --status-pending:  oklch(0.55 0.150 250);
+  --status-approved: oklch(0.55 0.140 155);
+  --status-rejected: oklch(0.55 0.180 25);
+  --status-paid:     oklch(0.50 0.130 175);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface:        oklch(0.19 0.012 271);
+    --surface-raised: oklch(0.23 0.014 271);
+    --surface-sunken: oklch(0.16 0.010 271);
+    --border-c:       oklch(0.31 0.016 271);
+    --border-strong:  oklch(0.40 0.020 271);
+    --text-c:         oklch(0.95 0.004 271);
+    --text-muted:     oklch(0.72 0.012 271);
+    --text-subtle:    oklch(0.58 0.014 271);
+
+    --status-draft:    oklch(0.66 0.016 271);
+    --status-pending:  oklch(0.75 0.130 250);
+    --status-approved: oklch(0.75 0.120 155);
+    --status-rejected: oklch(0.72 0.150 25);
+    --status-paid:     oklch(0.73 0.110 175);
+  }
+}
+
+/* Explicit toggle wins over the media query, in both directions. */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --surface:        oklch(0.985 0.002 271);
+  --surface-raised: oklch(1 0 0);
+  --surface-sunken: oklch(0.96 0.004 271);
+  --border-c:       oklch(0.91 0.006 271);
+  --border-strong:  oklch(0.84 0.010 271);
+  --text-c:         oklch(0.24 0.020 271);
+  --text-muted:     oklch(0.52 0.016 271);
+  --text-subtle:    oklch(0.64 0.012 271);
+  --status-pending:  oklch(0.55 0.150 250);
+  --status-approved: oklch(0.55 0.140 155);
+  --status-rejected: oklch(0.55 0.180 25);
+  --status-paid:     oklch(0.50 0.130 175);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --surface:        oklch(0.19 0.012 271);
+  --surface-raised: oklch(0.23 0.014 271);
+  --surface-sunken: oklch(0.16 0.010 271);
+  --border-c:       oklch(0.31 0.016 271);
+  --border-strong:  oklch(0.40 0.020 271);
+  --text-c:         oklch(0.95 0.004 271);
+  --text-muted:     oklch(0.72 0.012 271);
+  --text-subtle:    oklch(0.58 0.014 271);
+  --status-pending:  oklch(0.75 0.130 250);
+  --status-approved: oklch(0.75 0.120 155);
+  --status-rejected: oklch(0.72 0.150 25);
+  --status-paid:     oklch(0.73 0.110 175);
+}
+
+@layer base {
+  * {
+    border-color: var(--border-c);
+  }
+
+  body {
+    background: var(--surface);
+    color: var(--text-c);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Money and voucher numbers must line up in columns. */
+  .numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  /* Visible focus ring for keyboard users only. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .surface {
+    background: var(--surface-raised);
+    border: 1px solid var(--border-c);
+  }
+  .surface-sunken { background: var(--surface-sunken); }
+  .text-muted     { color: var(--text-muted); }
+  .text-subtle    { color: var(--text-subtle); }
+}
