@@ -150,12 +150,21 @@ export async function markVoucherPaid(input: {
 
 // ─── Soft delete / restore ───────────────────────────────────────────────────
 
-export async function softDeleteVoucher(id: string): Promise<ActionResult> {
+/**
+ * Deletion goes through `soft_delete_voucher` / `restore_voucher` rather than a
+ * direct UPDATE.
+ *
+ * A plain update cannot work: `vouchers_update` requires `deleted_at is null`,
+ * so a binned row is invisible to it and restore always failed. The functions
+ * also audit the transition and let an admin bin a voucher that has already
+ * entered the approval workflow, which the edit policy forbids by design.
+ */
+export async function softDeleteVoucher(id: string, reason?: string): Promise<ActionResult> {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from('vouchers')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id);
+  const { error } = await supabase.rpc('soft_delete_voucher', {
+    p_id: id,
+    p_reason: reason?.trim() || null,
+  });
 
   if (error) return { ok: false, error: toMessage(error, 'Could not delete this voucher.') };
   refresh(id);
@@ -164,7 +173,7 @@ export async function softDeleteVoucher(id: string): Promise<ActionResult> {
 
 export async function restoreVoucher(id: string): Promise<ActionResult> {
   const supabase = await createClient();
-  const { error } = await supabase.from('vouchers').update({ deleted_at: null }).eq('id', id);
+  const { error } = await supabase.rpc('restore_voucher', { p_id: id });
 
   if (error) return { ok: false, error: toMessage(error, 'Could not restore this voucher.') };
   refresh(id);

@@ -185,6 +185,16 @@ export type Database = {
         Returns: Voucher;
       };
       set_user_role: { Args: { p_user: string; p_role: UserRole }; Returns: Profile };
+
+      // 0005 — deletion is a transition like any other, so it goes through
+      // functions rather than a direct UPDATE (the edit policy cannot see a
+      // soft-deleted row, which is why restore never worked as a plain update).
+      soft_delete_voucher: { Args: { p_id: string; p_reason?: string | null }; Returns: Voucher };
+      restore_voucher: { Args: { p_id: string }; Returns: Voucher };
+      purge_voucher: { Args: { p_id: string }; Returns: void };
+
+      set_chapter_active: { Args: { p_id: string; p_active: boolean }; Returns: ChapterRow };
+      rename_chapter: { Args: { p_id: string; p_name: string }; Returns: ChapterRow };
     };
     Enums: {
       user_role: UserRole;
