@@ -1,10 +1,13 @@
 import Link from 'next/link';
-import { FileText, Inbox, AlertCircle, Wallet } from 'lucide-react';
+import { FileText, Inbox, AlertCircle, Wallet, Plus, Activity } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { canApprove } from '@/lib/domain/workflow';
 import { fmtRupees, fmtDate } from '@/lib/domain/voucher';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Card, EmptyState } from '@/components/ui/primitives';
+import { PageHeader } from '@/components/PageHeader';
+import { Card, CardBody, CardHeader, EmptyState } from '@/components/ui/primitives';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { VoucherPipeline } from '@/components/dashboard/VoucherPipeline';
 
 export const metadata = { title: 'Dashboard · NVR Voucher' };
 
@@ -41,22 +44,25 @@ export default async function DashboardPage() {
   const awaiting = rows.filter((v) => ['pending_first', 'pending_second'].includes(v.status));
   const settled = rows.filter((v) => ['approved', 'paid'].includes(v.status));
   const settledValue = settled.reduce((s, v) => s + Number(v.grand_total ?? 0), 0);
+  const pending = queue.count ?? 0;
 
   const stats = [
     ...(canApprove(user.role)
       ? [
           {
             label: 'Waiting on you',
-            value: String(queue.count ?? 0),
+            value: String(pending),
+            hint: pending === 0 ? 'Queue is clear' : 'Go to the queue',
             href: '/approvals',
             icon: Inbox,
-            urgent: (queue.count ?? 0) > 0,
+            urgent: pending > 0,
           },
         ]
       : []),
     {
       label: 'Sent back to you',
       value: String(sentBack.length),
+      hint: sentBack.length === 0 ? 'Nothing returned' : 'Correct and resubmit',
       href: '/vouchers?status=rejected',
       icon: AlertCircle,
       urgent: sentBack.length > 0,
@@ -64,53 +70,76 @@ export default async function DashboardPage() {
     {
       label: 'Your drafts',
       value: String(drafts.length),
+      hint: drafts.length === 0 ? 'None in progress' : 'Finish and submit',
       href: '/vouchers?status=draft',
       icon: FileText,
     },
     {
       label: 'Approved value',
       value: fmtRupees(settledValue),
+      hint: `${settled.length} voucher${settled.length === 1 ? '' : 's'} cleared`,
       href: '/vouchers?status=approved',
       icon: Wallet,
     },
   ];
 
+  const summary =
+    sentBack.length > 0
+      ? `${sentBack.length} voucher${sentBack.length === 1 ? '' : 's'} need${sentBack.length === 1 ? 's' : ''} your attention.`
+      : pending > 0
+        ? `${pending} voucher${pending === 1 ? '' : 's'} ${pending === 1 ? 'is' : 'are'} waiting for your approval.`
+        : awaiting.length > 0
+          ? `${awaiting.length} of your vouchers ${awaiting.length === 1 ? 'is' : 'are'} awaiting approval.`
+          : 'Nothing needs your attention right now.';
+
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {user.full_name ? `Hello, ${user.full_name.split(' ')[0]}` : 'Dashboard'}
-        </h1>
-        <p className="text-muted mt-1 text-sm">
-          {sentBack.length > 0
-            ? `${sentBack.length} voucher${sentBack.length === 1 ? '' : 's'} need${sentBack.length === 1 ? 's' : ''} your attention.`
-            : awaiting.length > 0
-              ? `${awaiting.length} of your vouchers ${awaiting.length === 1 ? 'is' : 'are'} awaiting approval.`
-              : 'Nothing needs your attention right now.'}
-        </p>
-      </header>
-
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Link key={s.label} href={s.href} className="group">
-            <Card className="p-4 transition group-hover:border-[var(--border-strong)] group-hover:shadow-md">
-              <div className="flex items-center justify-between">
-                <span className="text-muted text-xs font-medium">{s.label}</span>
-                <s.icon
-                  className={`size-4 ${s.urgent ? 'text-brand-600' : 'text-[var(--text-subtle)]'}`}
-                  aria-hidden
-                />
-              </div>
-              <p className="numeric mt-2 text-2xl font-bold">{s.value}</p>
-            </Card>
+      <PageHeader
+        title={user.full_name ? `Hello, ${user.full_name.split(' ')[0]}` : 'Dashboard'}
+        description={summary}
+        action={
+          <Link
+            href="/vouchers/new"
+            className="gradient-brand elev-brand group inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+          >
+            <Plus className="size-4 transition-transform group-hover:rotate-90" aria-hidden />
+            New voucher
           </Link>
+        }
+      />
+
+      <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((s) => (
+          <StatCard key={s.label} {...s} />
         ))}
       </div>
 
-      <section>
+      {rows.length > 0 && (
+        <Card className="animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards]">
+          <CardHeader>
+            <div className="flex items-center gap-2.5">
+              <Activity className="text-subtle size-4" aria-hidden />
+              <div>
+                <h2 className="font-semibold">Your pipeline</h2>
+                <p className="text-muted mt-0.5 text-sm">
+                  Where your {rows.length} most recent voucher{rows.length === 1 ? '' : 's'} sit.
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <VoucherPipeline rows={rows} />
+          </CardBody>
+        </Card>
+      )}
+
+      <section className="animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards]">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-semibold">Your recent vouchers</h2>
-          <Link href="/vouchers" className="text-sm font-medium text-brand-600 hover:underline">
+          <Link
+            href="/vouchers"
+            className="text-sm font-medium text-brand-600 transition hover:underline"
+          >
             View all
           </Link>
         </div>
@@ -118,14 +147,15 @@ export default async function DashboardPage() {
         <Card className="overflow-hidden">
           {rows.length === 0 ? (
             <EmptyState
-              icon={<FileText className="size-8" />}
+              icon={<FileText className="size-6" />}
               title="No vouchers yet"
-              description="Create your first payment voucher to get started."
+              description="Create your first payment voucher. It stays a private draft until you submit it for approval."
               action={
                 <Link
                   href="/vouchers/new"
-                  className="inline-flex h-10 items-center rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
+                  className="gradient-brand elev-brand inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-white transition hover:brightness-110"
                 >
+                  <Plus className="size-4" aria-hidden />
                   New voucher
                 </Link>
               }
@@ -144,11 +174,14 @@ export default async function DashboardPage() {
                 </thead>
                 <tbody className="divide-y">
                   {rows.slice(0, 8).map((v) => (
-                    <tr key={v.id} className="transition hover:bg-[var(--surface-sunken)]">
+                    <tr
+                      key={v.id}
+                      className="group transition hover:bg-[var(--surface-sunken)]"
+                    >
                       <td className="px-4 py-3">
                         <Link
                           href={`/vouchers/${v.id}`}
-                          className="numeric font-medium hover:text-brand-600 hover:underline"
+                          className="numeric font-medium transition group-hover:text-brand-600 group-hover:underline"
                         >
                           {v.voucher_no ?? 'Draft'}
                         </Link>

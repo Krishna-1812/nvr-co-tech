@@ -3,16 +3,9 @@
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { setUserRole } from '@/app/actions/admin';
-import { USER_ROLES, type UserRole } from '@/lib/domain/workflow';
+import { ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
 import { Select } from '@/components/ui/primitives';
 import type { AdminUser } from './page';
-
-const ROLE_HELP: Record<UserRole, string> = {
-  member: 'Raises vouchers. Sees only their own.',
-  approver: 'Can approve and send back. Sees the queue.',
-  admin: 'Sees everything, manages chapters, marks vouchers paid.',
-  owner: 'Everything, plus changing roles.',
-};
 
 const ROLE_STYLE: Record<UserRole, string> = {
   member: 'bg-[var(--surface-sunken)] text-[var(--text-muted)]',
@@ -93,7 +86,7 @@ export function UserRow({
             ))}
           </Select>
         )}
-        <p className="text-subtle mt-1 text-xs">{ROLE_HELP[role]}</p>
+        <p className="text-subtle mt-1 text-xs">{ROLE_META[role].grants}</p>
       </td>
 
       <td className="numeric text-muted px-4 py-3 text-right">{voucherCount || '—'}</td>

@@ -44,6 +44,8 @@ export function StatusBadge({
 }) {
   const meta = STATUS_META[status];
   const style = TONE_STYLE[status];
+  // Something is waiting on a person. The dot breathes to say so.
+  const waiting = status === 'pending_first' || status === 'pending_second';
 
   return (
     <span
@@ -55,7 +57,14 @@ export function StatusBadge({
         className,
       )}
     >
-      <span aria-hidden className={cn('size-1.5 shrink-0 rounded-full', style.dot)} />
+      <span aria-hidden className="relative grid size-1.5 shrink-0 place-items-center">
+        {waiting && (
+          <span
+            className={cn('absolute size-full animate-ping rounded-full opacity-75', style.dot)}
+          />
+        )}
+        <span className={cn('size-full rounded-full', style.dot)} />
+      </span>
       {meta.label}
     </span>
   );

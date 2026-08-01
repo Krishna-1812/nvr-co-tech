@@ -22,8 +22,24 @@
   --color-brand-800: oklch(0.372 0.115 271);
   --color-brand-900: oklch(0.325 0.092 271);
 
+  /*
+   * Accent — a warmer violet that sits one step round the wheel from the brand
+   * ink. Used only as the far end of gradients, never on its own, so the firm's
+   * colour stays the one you actually read.
+   */
+  --color-accent-400: oklch(0.706 0.148 306);
+  --color-accent-500: oklch(0.606 0.170 306);
+  --color-accent-600: oklch(0.516 0.172 306);
+
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'JetBrains Mono', 'Cascadia Code', monospace;
+
+  /* Entrance motion — see @keyframes below. */
+  --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-fade: fade 0.4s ease-out backwards;
+  --animate-pop: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+  --animate-drift: drift 22s ease-in-out infinite alternate;
 }
 
 /*
@@ -46,13 +62,40 @@
   --status-approved: oklch(0.55 0.140 155);
   --status-rejected: oklch(0.55 0.180 25);
   --status-paid:     oklch(0.50 0.130 175);
+
+  /*
+   * Elevation. Two stacked shadows per step — a tight contact shadow plus a
+   * wider ambient one — which reads as depth rather than as a grey halo. Tinted
+   * with the brand hue instead of pure black so it sits in the same colour
+   * world as everything else.
+   */
+  --elev-1: 0 1px 2px oklch(0.24 0.02 271 / 0.06), 0 1px 3px oklch(0.24 0.02 271 / 0.04);
+  --elev-2: 0 2px 4px oklch(0.24 0.02 271 / 0.06), 0 4px 12px oklch(0.24 0.02 271 / 0.06);
+  --elev-3: 0 4px 8px oklch(0.24 0.02 271 / 0.07), 0 12px 28px oklch(0.24 0.02 271 / 0.09);
+  --elev-4: 0 8px 16px oklch(0.24 0.02 271 / 0.08), 0 24px 56px oklch(0.24 0.02 271 / 0.12);
+  /* Coloured lift, for brand-filled surfaces only. */
+  --elev-brand: 0 4px 12px oklch(0.508 0.158 271 / 0.24), 0 12px 32px oklch(0.508 0.158 271 / 0.18);
+
+  --gradient-brand: linear-gradient(135deg, var(--color-brand-600), var(--color-accent-500));
+  --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.7), oklch(1 0 0 / 0));
+  /* Faint hairline along the top of raised surfaces — catches the "light". */
+  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.6);
 }
 
+/*
+ * The dark palette, written once and applied from two places: the OS preference
+ * (unless a light choice is pinned) and an explicit dark choice. Previously the
+ * light values were also repeated in a `[data-theme='light']` block; scoping the
+ * media query with `:not([data-theme='light'])` makes that block unnecessary,
+ * because the base `:root` light values simply stop being overridden.
+ */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --surface:        oklch(0.19 0.012 271);
-    --surface-raised: oklch(0.23 0.014 271);
-    --surface-sunken: oklch(0.16 0.010 271);
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --surface:        oklch(0.185 0.012 271);
+    --surface-raised: oklch(0.228 0.014 271);
+    --surface-sunken: oklch(0.155 0.010 271);
     --border-c:       oklch(0.31 0.016 271);
     --border-strong:  oklch(0.40 0.020 271);
     --text-c:         oklch(0.95 0.004 271);
@@ -64,40 +107,52 @@
     --status-approved: oklch(0.75 0.120 155);
     --status-rejected: oklch(0.72 0.150 25);
     --status-paid:     oklch(0.73 0.110 175);
+
+    /* Tinted shadows vanish on a dark ground, so these go to near-black. */
+    --elev-1: 0 1px 2px oklch(0 0 0 / 0.4), 0 1px 3px oklch(0 0 0 / 0.3);
+    --elev-2: 0 2px 4px oklch(0 0 0 / 0.4), 0 4px 12px oklch(0 0 0 / 0.36);
+    --elev-3: 0 4px 8px oklch(0 0 0 / 0.44), 0 12px 28px oklch(0 0 0 / 0.44);
+    --elev-4: 0 8px 16px oklch(0 0 0 / 0.5), 0 24px 56px oklch(0 0 0 / 0.55);
+    --elev-brand: 0 4px 12px oklch(0.508 0.158 271 / 0.4), 0 12px 32px oklch(0.508 0.158 271 / 0.3);
+
+    --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0));
+    --hairline: inset 0 1px 0 oklch(1 0 0 / 0.06);
   }
 }
 
-/* Explicit toggle wins over the media query, in both directions. */
-:root[data-theme='light'] {
-  color-scheme: light;
-  --surface:        oklch(0.985 0.002 271);
-  --surface-raised: oklch(1 0 0);
-  --surface-sunken: oklch(0.96 0.004 271);
-  --border-c:       oklch(0.91 0.006 271);
-  --border-strong:  oklch(0.84 0.010 271);
-  --text-c:         oklch(0.24 0.020 271);
-  --text-muted:     oklch(0.52 0.016 271);
-  --text-subtle:    oklch(0.64 0.012 271);
-  --status-pending:  oklch(0.55 0.150 250);
-  --status-approved: oklch(0.55 0.140 155);
-  --status-rejected: oklch(0.55 0.180 25);
-  --status-paid:     oklch(0.50 0.130 175);
-}
-
+/* An explicit dark choice wins regardless of what the OS reports. */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --surface:        oklch(0.19 0.012 271);
-  --surface-raised: oklch(0.23 0.014 271);
-  --surface-sunken: oklch(0.16 0.010 271);
+
+  --surface:        oklch(0.185 0.012 271);
+  --surface-raised: oklch(0.228 0.014 271);
+  --surface-sunken: oklch(0.155 0.010 271);
   --border-c:       oklch(0.31 0.016 271);
   --border-strong:  oklch(0.40 0.020 271);
   --text-c:         oklch(0.95 0.004 271);
   --text-muted:     oklch(0.72 0.012 271);
   --text-subtle:    oklch(0.58 0.014 271);
+
+  --status-draft:    oklch(0.66 0.016 271);
   --status-pending:  oklch(0.75 0.130 250);
   --status-approved: oklch(0.75 0.120 155);
   --status-rejected: oklch(0.72 0.150 25);
   --status-paid:     oklch(0.73 0.110 175);
+
+  --elev-1: 0 1px 2px oklch(0 0 0 / 0.4), 0 1px 3px oklch(0 0 0 / 0.3);
+  --elev-2: 0 2px 4px oklch(0 0 0 / 0.4), 0 4px 12px oklch(0 0 0 / 0.36);
+  --elev-3: 0 4px 8px oklch(0 0 0 / 0.44), 0 12px 28px oklch(0 0 0 / 0.44);
+  --elev-4: 0 8px 16px oklch(0 0 0 / 0.5), 0 24px 56px oklch(0 0 0 / 0.55);
+  --elev-brand: 0 4px 12px oklch(0.508 0.158 271 / 0.4), 0 12px 32px oklch(0.508 0.158 271 / 0.3);
+
+  --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0));
+  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.06);
+}
+
+/* Pinning light explicitly only needs to restore the colour scheme; the base
+   `:root` values above are already the light ones. */
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 @layer base {
@@ -124,14 +179,59 @@
     outline-offset: 2px;
   }
 
+  ::selection {
+    background: oklch(0.508 0.158 271 / 0.22);
+  }
+
+  /* The default scrollbar is a bright white gutter in dark mode. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--text-subtle); background-clip: content-box; }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/* ─── Motion ──────────────────────────────────────────────────────────────── */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
+}
+/* Slow parade of the auth-page gradient blobs. Deliberately long and small in
+   amplitude — it should register as "alive", not as an animation. */
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(3%, -4%, 0) scale(1.12); }
 }
 
 @layer utilities {
@@ -142,4 +242,56 @@
   .surface-sunken { background: var(--surface-sunken); }
   .text-muted     { color: var(--text-muted); }
   .text-subtle    { color: var(--text-subtle); }
+
+  /* Elevation, as utilities so components never hard-code a shadow. */
+  .elev-1 { box-shadow: var(--elev-1); }
+  .elev-2 { box-shadow: var(--elev-2); }
+  .elev-3 { box-shadow: var(--elev-3); }
+  .elev-4 { box-shadow: var(--elev-4); }
+  .elev-brand { box-shadow: var(--elev-brand); }
+
+  /* Raised surface with the light-catching top hairline. */
+  .surface-lit {
+    background: var(--surface-raised);
+    border: 1px solid var(--border-c);
+    box-shadow: var(--elev-2), var(--hairline);
+  }
+
+  .gradient-brand { background-image: var(--gradient-brand); }
+
+  .gradient-text {
+    background-image: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass {
+    background: color-mix(in oklab, var(--surface-raised) 72%, transparent);
+    backdrop-filter: saturate(1.6) blur(12px);
+    -webkit-backdrop-filter: saturate(1.6) blur(12px);
+  }
+
+  /* Lift on hover. Paired with a transition on the element itself. */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elev-3);
+  }
+
+  /*
+   * Stagger children of a list so they arrive in sequence. Capped at 8 —
+   * past that the last item waits long enough to read as lag rather than polish.
+   */
+  .stagger > * { animation: var(--animate-rise); }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 45ms; }
+  .stagger > *:nth-child(3) { animation-delay: 90ms; }
+  .stagger > *:nth-child(4) { animation-delay: 135ms; }
+  .stagger > *:nth-child(5) { animation-delay: 180ms; }
+  .stagger > *:nth-child(6) { animation-delay: 225ms; }
+  .stagger > *:nth-child(7) { animation-delay: 270ms; }
+  .stagger > *:nth-child(n + 8) { animation-delay: 315ms; }
 }

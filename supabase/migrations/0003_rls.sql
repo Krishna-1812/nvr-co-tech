@@ -32,8 +32,25 @@ create policy profiles_update_self on profiles
   for update using (id = auth.uid())
   with check (id = auth.uid());
 
--- Role changes go through set_user_role() only. No direct role UPDATE policy
--- exists, so a member cannot promote themselves even with a raw REST call.
+-- ---------------------------------------------------------------------------
+-- Privilege escalation guard.
+--
+-- RLS is row-level: `profiles_update_self` decides WHICH ROWS you may update,
+-- and it cannot say anything about WHICH COLUMNS. On its own it therefore
+-- permits
+--
+--     update profiles set role = 'owner' where id = auth.uid();
+--
+-- from any signed-in member via the REST API — and since current_role_of()
+-- reads exactly this column, that is a complete takeover of the authorisation
+-- model. Restricting columns needs a column-level GRANT, which is what this is.
+--
+-- Only full_name is self-writable. role and is_active move through
+-- set_user_role() (SECURITY DEFINER, so it is unaffected by these grants);
+-- email is owned by auth.users and mirrored in by handle_new_user().
+-- ---------------------------------------------------------------------------
+revoke update on profiles from authenticated;
+grant  update (full_name) on profiles to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- chapters / events — readable by all signed-in users, writable by admins.

@@ -35,6 +35,30 @@ export const isOwner = (role: UserRole): boolean => role === 'owner';
 
 // ─── Presentation ────────────────────────────────────────────────────────────
 
+/**
+ * How each role is named and described. One definition, because the account
+ * menu, the admin table and the settings screen all show this and had begun to
+ * word it differently.
+ */
+export const ROLE_META: Record<UserRole, { label: string; grants: string }> = {
+  member: {
+    label: 'Member',
+    grants: 'Raises vouchers. Sees only their own.',
+  },
+  approver: {
+    label: 'Approver',
+    grants: 'Can approve and send back. Sees the queue.',
+  },
+  admin: {
+    label: 'Admin',
+    grants: 'Sees everything, manages chapters, marks vouchers paid.',
+  },
+  owner: {
+    label: 'Owner',
+    grants: 'Everything, plus changing roles.',
+  },
+};
+
 export const STATUS_META: Record<
   VoucherStatus,
   { label: string; description: string; tone: 'neutral' | 'info' | 'warn' | 'success' | 'danger' }

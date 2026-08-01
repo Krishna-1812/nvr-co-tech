@@ -1,0 +1,52 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+
+/**
+ * Where Supabase sends the browser back after Google sign-in or an emailed
+ * confirmation link. It arrives with a one-time `code`, which is exchanged here
+ * for a session cookie.
+ *
+ * Without this route the "Continue with Google" button on /login sent people to
+ * a 404 and no session was ever established.
+ */
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = request.nextUrl;
+
+  const code = searchParams.get('code');
+  const next = safeNext(searchParams.get('next'));
+
+  /*
+   * Supabase reports a refused or expired link by redirecting here with an
+   * error instead of a code — e.g. the user dismissed Google's consent screen.
+   * Surface it on the login page rather than silently landing on the dashboard.
+   */
+  const error = searchParams.get('error_description') ?? searchParams.get('error');
+  if (error) {
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error)}`);
+  }
+
+  if (!code) {
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Sign-in link was incomplete.')}`);
+  }
+
+  const supabase = await createClient();
+  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (exchangeError) {
+    return NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent('That sign-in link has expired. Please try again.')}`,
+    );
+  }
+
+  return NextResponse.redirect(`${origin}${next}`);
+}
+
+/**
+ * `next` comes from the query string, so it is attacker-controllable. Only a
+ * path on this site is allowed — `//evil.com` and `https://evil.com` would both
+ * otherwise be honoured by the browser as an off-site redirect.
+ */
+function safeNext(value: string | null): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
+  return value;
+}

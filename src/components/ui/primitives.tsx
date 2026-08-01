@@ -10,13 +10,15 @@ type ButtonProps = ComponentProps<'button'> & {
 };
 
 const BUTTON_VARIANTS = {
+  // The gradient is the app's one signature. It belongs on the single most
+  // important control on a screen, which is what `primary` means.
   primary:
-    'bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300',
+    'gradient-brand text-white elev-brand hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:shadow-none',
   secondary:
-    'surface text-[var(--text-c)] shadow-sm hover:bg-[var(--surface-sunken)] border-[var(--border-strong)]',
+    'surface text-[var(--text-c)] elev-1 hover:bg-[var(--surface-sunken)] hover:border-[var(--border-strong)] border-[var(--border-strong)]',
   ghost: 'text-muted hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]',
-  danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800',
-  success: 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800',
+  danger: 'bg-red-600 text-white elev-1 hover:bg-red-700 active:bg-red-800',
+  success: 'bg-emerald-600 text-white elev-1 hover:bg-emerald-700 active:bg-emerald-800',
 } as const;
 
 const BUTTON_SIZES = {
@@ -39,8 +41,9 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex items-center justify-center rounded-lg font-semibold transition',
-        'disabled:cursor-not-allowed disabled:opacity-60',
+        'inline-flex items-center justify-center rounded-lg font-semibold',
+        'transition duration-150 active:scale-[0.98]',
+        'disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100',
         BUTTON_VARIANTS[variant],
         BUTTON_SIZES[size],
         className,
@@ -61,7 +64,7 @@ export function Button({
 // ─── Card ────────────────────────────────────────────────────────────────────
 
 export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('surface rounded-xl shadow-sm', className)} {...props} />;
+  return <div className={cn('surface-lit rounded-xl', className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
@@ -114,10 +117,12 @@ export function Field({ label, hint, error, required, children, htmlFor, classNa
 }
 
 const CONTROL =
-  'w-full rounded-lg border bg-[var(--surface-raised)] px-3 py-2 text-sm shadow-sm transition ' +
-  'placeholder:text-[var(--text-subtle)] ' +
-  'focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 ' +
-  'disabled:cursor-not-allowed disabled:bg-[var(--surface-sunken)] disabled:text-[var(--text-subtle)]';
+  'w-full rounded-lg border bg-[var(--surface-raised)] px-3 py-2 text-sm transition ' +
+  'shadow-[var(--elev-1)] placeholder:text-[var(--text-subtle)] ' +
+  'hover:border-[var(--border-strong)] ' +
+  'focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 ' +
+  'disabled:cursor-not-allowed disabled:bg-[var(--surface-sunken)] disabled:text-[var(--text-subtle)] ' +
+  'disabled:hover:border-[var(--border-c)]';
 
 export function Input({ className, ...props }: ComponentProps<'input'>) {
   return <input className={cn(CONTROL, className)} {...props} />;
@@ -200,11 +205,24 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-      {icon && <div className="text-subtle mb-3">{icon}</div>}
+    <div className="animate-[fade_0.4s_ease-out_backwards] flex flex-col items-center justify-center px-6 py-16 text-center">
+      {icon && (
+        <div className="text-subtle relative mb-4">
+          {/* Soft brand halo so an empty table reads as considered, not broken. */}
+          <span
+            aria-hidden
+            className="absolute inset-0 -z-10 m-auto size-20 rounded-full bg-[radial-gradient(circle,var(--color-brand-500),transparent_70%)] opacity-10 blur-xl"
+          />
+          <span className="surface-sunken grid size-14 place-items-center rounded-2xl border">
+            {icon}
+          </span>
+        </div>
+      )}
       <p className="font-semibold">{title}</p>
-      {description && <p className="text-muted mt-1 max-w-sm text-sm">{description}</p>}
-      {action && <div className="mt-5">{action}</div>}
+      {description && (
+        <p className="text-muted mt-1.5 max-w-sm text-sm leading-relaxed">{description}</p>
+      )}
+      {action && <div className="mt-6">{action}</div>}
     </div>
   );
 }

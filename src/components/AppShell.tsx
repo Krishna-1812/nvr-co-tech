@@ -23,18 +23,31 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
   ];
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b bg-[var(--surface-raised)]/85 backdrop-blur">
+    <div className="relative min-h-screen">
+      {/*
+        Page-wide wash. Fixed rather than scrolling, so long tables do not drag a
+        gradient up the screen with them.
+      */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(70%_50%_at_50%_-10%,var(--color-brand-500),transparent)] opacity-[0.07]"
+      />
+
+      <header className="glass sticky top-0 z-40 border-b">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2.5">
-            <span className="grid size-8 place-items-center rounded-lg bg-brand-600 text-xs font-bold text-white">
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
+            <span className="gradient-brand elev-brand grid size-8 place-items-center rounded-lg text-[10px] font-bold tracking-tight text-white transition group-hover:brightness-110">
               NVR
             </span>
-            <span className="hidden text-sm font-semibold sm:block">N V R &amp; Co</span>
+            <span className="hidden text-sm font-semibold tracking-tight sm:block">
+              N V R &amp; Co
+            </span>
           </Link>
 
+          <span aria-hidden className="hidden h-5 w-px bg-[var(--border-c)] md:block" />
+
           {/* Desktop nav */}
-          <nav className="ml-4 hidden items-center gap-0.5 md:flex">
+          <nav className="hidden items-center gap-0.5 md:flex">
             {nav.map((item) => (
               <NavLink key={item.href} href={item.href} badge={item.badge}>
                 <item.icon className="size-4" aria-hidden />
@@ -46,9 +59,9 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
           <div className="ml-auto flex items-center gap-2">
             <Link
               href="/vouchers/new"
-              className="hidden h-8 items-center gap-1.5 rounded-lg bg-brand-600 px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700 sm:inline-flex"
+              className="gradient-brand elev-brand group hidden h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-white transition hover:brightness-110 active:scale-[0.98] sm:inline-flex"
             >
-              <Plus className="size-4" aria-hidden />
+              <Plus className="size-4 transition-transform group-hover:rotate-90" aria-hidden />
               New voucher
             </Link>
             <UserMenu user={user} />
@@ -71,6 +84,15 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+
+      {/* Reachable on a phone, where the header's New voucher button is hidden. */}
+      <Link
+        href="/vouchers/new"
+        aria-label="New voucher"
+        className="gradient-brand elev-4 fixed right-5 bottom-5 z-30 grid size-13 place-items-center rounded-2xl text-white transition hover:brightness-110 active:scale-95 sm:hidden"
+      >
+        <Plus className="size-6" aria-hidden />
+      </Link>
     </div>
   );
 }

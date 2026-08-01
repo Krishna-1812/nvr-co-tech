@@ -48,6 +48,21 @@ Roles: `member` → `approver` → `admin` → `owner`. An owner may not demote 
 | No invoice attachment anywhere | Supabase Storage, access mirroring the voucher |
 | No tests | 115, covering the formulas, every segregation-of-duties rule, PDF output and attachment handling |
 
+### One more, found while building the settings screen
+
+`profiles_update_self` let anyone update their own profile row. RLS is *row*-level —
+it decides which rows an UPDATE may touch, never which columns — so on its own it
+also permitted:
+
+```sql
+update profiles set role = 'owner' where id = auth.uid();
+```
+
+Since `current_role_of()` reads exactly that column, any signed-in member could have
+taken over the authorisation model with one REST call. Restricting columns needs a
+column-level `GRANT`, which `0003_rls.sql` now does: only `full_name` is
+self-writable, and `role` moves solely through `set_user_role()`.
+
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · Supabase · Vitest
@@ -83,9 +98,11 @@ does a production build.
 
 Built:
 
-- Schema, workflow and RLS migrations (4 files, parse-checked)
+- Schema, workflow and RLS migrations (5 files, parse-checked)
 - Domain layer — formulas, payment rules, GST exclusivity, PAN/GSTIN validation — with 52 tests
-- Auth, route protection, role-aware app shell, dark mode
+- **Auth** — sign in, sign up, Google OAuth with its callback, route protection, role-aware shell
+- **Settings** — your name, the role ladder and what each rung grants, theme
+- Light and dark themes throughout, with the choice applied before first paint
 - Dashboard (role-aware), approval queue with ageing and blocked-reason explanations
 - **Voucher form** — autosaving drafts, live totals, dependent-field rules, inline validation
 - **Voucher detail** — full record, amount ladder, approvals, and the immutable audit timeline
@@ -94,5 +111,12 @@ Built:
 - **Admin screens** — roles, chapters, and a recycle bin that refuses to destroy approval records
 - **Excel export** — 32-column v1 contract preserved, real numbers and dates, live totals, respects the active filters
 - **Invoice attachments** — direct-to-Storage upload, signed-URL viewing, and a "no invoice attached" warning in the approval queue
+- Error, not-found and per-route loading states
 
 Not yet built: Google Sheets sync worker.
+
+> **Nothing here has run against a database yet.** The migrations are parse-checked
+> only, and every screen behind sign-in has been verified by typecheck, lint, tests
+> and a production build — not by looking at it. `/login` and `/signup` are the
+> exceptions; those render without a session and have been checked in both themes at
+> desktop and mobile widths.
