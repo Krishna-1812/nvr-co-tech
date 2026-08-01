@@ -90,6 +90,7 @@ Built:
 - **Voucher form** — autosaving drafts, live totals, dependent-field rules, inline validation
 - **Voucher detail** — full record, amount ladder, approvals, and the immutable audit timeline
 - **Voucher list** — server-side search, status/chapter filters, pagination
+- **Vector PDF** — server-rendered, searchable, ~7 KB (v1 shipped a rasterised screenshot)
 
-Not yet built: server-side vector PDF, Excel export, invoice attachments UI, Google Sheets sync
+Not yet built: Excel export, invoice attachments UI, Google Sheets sync
 worker, admin screens (user roles, chapters, deleted-voucher bin).

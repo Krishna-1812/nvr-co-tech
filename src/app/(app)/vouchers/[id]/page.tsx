@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download, Eye } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
 import { STATUS_META, type VoucherLike } from '@/lib/domain/workflow';
 import { StatusBadge, ApprovalProgress } from '@/components/StatusBadge';
 import { Card } from '@/components/ui/primitives';
 import { AuditTimeline } from '@/components/voucher/AuditTimeline';
+import { VOUCHER_DETAIL_SELECT } from '@/lib/domain/rows';
 import type { VoucherDetailRow, AuditRow, PersonRef } from '@/lib/domain/rows';
 import { VoucherActions } from '@/components/voucher/VoucherActions';
 
@@ -45,15 +46,7 @@ export default async function VoucherDetailPage({
 
   const { data: voucher } = await supabase
     .from('vouchers')
-    .select(
-      `*,
-       chapter:chapters!vouchers_chapter_id_fkey(name, code),
-       paid_by:chapters!vouchers_paid_by_chapter_id_fkey(name),
-       initiator:profiles!vouchers_initiated_by_fkey(full_name, email),
-       first_approver:profiles!vouchers_approver_1_fkey(full_name, email),
-       second_approver:profiles!vouchers_approver_2_fkey(full_name, email),
-       rejecter:profiles!vouchers_rejected_by_fkey(full_name, email)`,
-    )
+    .select(VOUCHER_DETAIL_SELECT)
     .eq('id', id)
     .is('deleted_at', null)
     .maybeSingle();
@@ -107,10 +100,32 @@ export default async function VoucherDetailPage({
         </div>
       )}
 
-      <VoucherActions
-        voucher={voucher as unknown as VoucherLike & { id: string; voucher_no: string | null }}
-        me={{ id: user.id, role: user.role }}
-      />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <VoucherActions
+          voucher={voucher as unknown as VoucherLike & { id: string; voucher_no: string | null }}
+          me={{ id: user.id, role: user.role }}
+        />
+
+        <div className="flex gap-2">
+          <a
+            href={`/vouchers/${id}/pdf`}
+            target="_blank"
+            rel="noopener"
+            className="surface inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition hover:bg-[var(--surface-sunken)]"
+          >
+            <Eye className="size-4" aria-hidden />
+            View PDF
+          </a>
+          <a
+            href={`/vouchers/${id}/pdf`}
+            download
+            className="surface inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition hover:bg-[var(--surface-sunken)]"
+          >
+            <Download className="size-4" aria-hidden />
+            Download
+          </a>
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
         <div className="space-y-6">

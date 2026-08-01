@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:sql": "node scripts/check-sql.mjs",
-    "check": "npm run lint && npm run check:sql && npm run test && next build"
+    "check": "npm run lint && npm run check:sql && npm run test && next build",
+    "pdf:sample": "vite-node --config vitest.config.mts scripts/make-sample-pdf.tsx"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",
@@ -39,11 +40,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "pgsql-parser": "^13.19.1",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vite-node": "^6.0.0",
     "vitest": "^4.1.10"
   }
 }

@@ -33,3 +33,17 @@ export type VoucherDetailRow = Voucher & {
 export type AuditRow = Pick<VoucherAudit, 'id' | 'action' | 'note' | 'created_at'> & {
   actor: PersonRef;
 };
+
+/**
+ * The select for a full voucher, shared by the detail page and the PDF route so
+ * the two can never drift. If the PDF needs a column the page stopped selecting,
+ * that column would silently render blank — which is exactly the class of bug
+ * that made v1's re-downloaded PDFs lose their event date.
+ */
+export const VOUCHER_DETAIL_SELECT = `*,
+  chapter:chapters!vouchers_chapter_id_fkey(name, code),
+  paid_by:chapters!vouchers_paid_by_chapter_id_fkey(name),
+  initiator:profiles!vouchers_initiated_by_fkey(full_name, email),
+  first_approver:profiles!vouchers_approver_1_fkey(full_name, email),
+  second_approver:profiles!vouchers_approver_2_fkey(full_name, email),
+  rejecter:profiles!vouchers_rejected_by_fkey(full_name, email)` as const;
