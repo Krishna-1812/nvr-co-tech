@@ -31,7 +31,8 @@ export default async function ApprovalsPage() {
       `*,
        chapter:chapters!vouchers_chapter_id_fkey(name, code),
        initiator:profiles!vouchers_initiated_by_fkey(full_name, email),
-       first_approver:profiles!vouchers_approver_1_fkey(full_name, email)`,
+       first_approver:profiles!vouchers_approver_1_fkey(full_name, email),
+       voucher_attachments(id)`,
     )
     .in('status', ['pending_first', 'pending_second'])
     .is('deleted_at', null)

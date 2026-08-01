@@ -6,6 +6,9 @@ import { canEdit } from '@/lib/domain/workflow';
 import type { Chapter } from '@/lib/domain/voucher';
 import { VoucherForm, type EventOption } from '@/components/voucher/VoucherForm';
 import { StatusBadge } from '@/components/StatusBadge';
+import { Attachments } from '@/components/voucher/Attachments';
+import { Card } from '@/components/ui/primitives';
+import type { AttachmentRow } from '@/app/actions/attachments';
 
 export const metadata = { title: 'Edit voucher · NVR Voucher' };
 
@@ -18,7 +21,7 @@ export default async function EditVoucherPage({
   const user = await requireUser();
   const supabase = await createClient();
 
-  const [{ data: voucher }, { data: chapters }, { data: events }] = await Promise.all([
+  const [{ data: voucher }, { data: chapters }, { data: events }, { data: attachments }] = await Promise.all([
     supabase.from('vouchers').select('*').eq('id', id).is('deleted_at', null).maybeSingle(),
     supabase.from('chapters').select('*').eq('is_active', true).is('deleted_at', null).order('name'),
     supabase
@@ -26,6 +29,11 @@ export default async function EditVoucherPage({
       .select('id, name, date_of_event, chapter_id')
       .is('deleted_at', null)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('voucher_attachments')
+      .select('id, voucher_id, storage_path, file_name, mime_type, size_bytes, created_at')
+      .eq('voucher_id', id)
+      .order('created_at', { ascending: true }),
   ]);
 
   if (!voucher) notFound();
@@ -71,6 +79,21 @@ export default async function EditVoucherPage({
         chapters={(chapters ?? []) as Chapter[]}
         events={(events ?? []) as EventOption[]}
       />
+
+      {/* Attaching the invoice is what lets an approver check the numbers. */}
+      <Card className="lg:max-w-[calc(100%-21.5rem)]">
+        <div className="border-b px-5 py-3.5">
+          <h2 className="font-semibold">Invoice &amp; supporting files</h2>
+          <p className="text-muted mt-0.5 text-sm">
+            Attach the invoice so approvers can check it against the amounts.
+          </p>
+        </div>
+        <Attachments
+          voucherId={id}
+          initial={(attachments ?? []) as AttachmentRow[]}
+          canEdit
+        />
+      </Card>
     </div>
   );
 }

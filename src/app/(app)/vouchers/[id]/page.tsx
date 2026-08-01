@@ -3,10 +3,12 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Download, Eye } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
-import { STATUS_META, type VoucherLike } from '@/lib/domain/workflow';
+import { STATUS_META, canEdit, type VoucherLike } from '@/lib/domain/workflow';
 import { StatusBadge, ApprovalProgress } from '@/components/StatusBadge';
 import { Card } from '@/components/ui/primitives';
 import { AuditTimeline } from '@/components/voucher/AuditTimeline';
+import { Attachments } from '@/components/voucher/Attachments';
+import type { AttachmentRow } from '@/app/actions/attachments';
 import { VOUCHER_DETAIL_SELECT } from '@/lib/domain/rows';
 import type { VoucherDetailRow, AuditRow, PersonRef } from '@/lib/domain/rows';
 import { VoucherActions } from '@/components/voucher/VoucherActions';
@@ -52,6 +54,12 @@ export default async function VoucherDetailPage({
     .maybeSingle();
 
   if (!voucher) notFound();
+
+  const { data: attachments } = await supabase
+    .from('voucher_attachments')
+    .select('id, voucher_id, storage_path, file_name, mime_type, size_bytes, created_at')
+    .eq('voucher_id', id)
+    .order('created_at', { ascending: true });
 
   const { data: audit } = await supabase
     .from('voucher_audit')
@@ -218,6 +226,17 @@ export default async function VoucherDetailPage({
                 <p className="text-subtle text-sm">No approvals yet.</p>
               )}
             </dl>
+          </Card>
+
+          <Card>
+            <div className="border-b px-5 py-3.5">
+              <h2 className="font-semibold">Invoice &amp; supporting files</h2>
+            </div>
+            <Attachments
+              voucherId={id}
+              initial={(attachments ?? []) as AttachmentRow[]}
+              canEdit={canEdit(voucher as unknown as VoucherLike, { id: user.id, role: user.role })}
+            />
           </Card>
 
           <Card>

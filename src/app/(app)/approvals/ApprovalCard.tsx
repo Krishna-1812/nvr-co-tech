@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { Check, X, Clock, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Check, X, Clock, AlertTriangle, ExternalLink, Paperclip, FileWarning } from 'lucide-react';
 import { toast } from 'sonner';
 import { approveVoucher, rejectVoucher } from '@/app/actions/workflow';
 import { fmtRupees, fmtDate } from '@/lib/domain/voucher';
@@ -29,6 +29,8 @@ export type ApprovalRow = {
   chapter?: { name: string; code: string } | null;
   initiator?: { full_name: string | null; email: string } | null;
   first_approver?: { full_name: string | null; email: string } | null;
+  /** Embedded as a rows array purely to count it. */
+  voucher_attachments?: { id: string }[] | null;
 };
 
 export function ApprovalCard({
@@ -44,6 +46,7 @@ export function ApprovalCard({
   const [reason, setReason] = useState('');
 
   const age = ageInDays(voucher.submitted_at);
+  const attachmentCount = voucher.voucher_attachments?.length ?? 0;
   const person = (p?: { full_name: string | null; email: string } | null) =>
     p?.full_name ?? p?.email ?? 'Unknown';
 
@@ -126,6 +129,24 @@ export function ApprovalCard({
               <span>
                 1st approval by{' '}
                 <span className="font-medium">{person(voucher.first_approver)}</span>
+              </span>
+            )}
+
+            {/*
+              Whether there is an invoice to check against is the first thing an
+              approver needs, and it belongs here rather than one click away.
+              Approving an amount with no supporting document is exactly what
+              this rebuild is meant to make visible.
+            */}
+            {attachmentCount > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <Paperclip className="size-3" aria-hidden />
+                {attachmentCount} file{attachmentCount === 1 ? '' : 's'}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400">
+                <FileWarning className="size-3" aria-hidden />
+                No invoice attached
               </span>
             )}
           </div>
