@@ -81,8 +81,15 @@ does a production build.
 
 ## Status
 
-Built: schema + workflow + RLS migrations, domain layer with tests, auth and route protection,
-app shell with dark mode, role-aware dashboard, approval queue.
+Built:
 
-Not yet built: voucher form with autosave, voucher detail + audit timeline, report table with
-filters, server-side vector PDF, attachments UI, Sheets sync worker, admin screens.
+- Schema, workflow and RLS migrations (4 files, parse-checked)
+- Domain layer — formulas, payment rules, GST exclusivity, PAN/GSTIN validation — with 52 tests
+- Auth, route protection, role-aware app shell, dark mode
+- Dashboard (role-aware), approval queue with ageing and blocked-reason explanations
+- **Voucher form** — autosaving drafts, live totals, dependent-field rules, inline validation
+- **Voucher detail** — full record, amount ladder, approvals, and the immutable audit timeline
+- **Voucher list** — server-side search, status/chapter filters, pagination
+
+Not yet built: server-side vector PDF, Excel export, invoice attachments UI, Google Sheets sync
+worker, admin screens (user roles, chapters, deleted-voucher bin).
