@@ -50,11 +50,31 @@ const SECTIONS = [
   { id: 'payment', label: 'Payment details' },
 ] as const;
 
+/** Amount fields default to 0 in Postgres; showing that as a pre-filled "0" just
+ *  invites the user to type next to it. Blank means the same thing to `money`. */
+const ZERO_AS_BLANK = new Set([
+  'basic_value',
+  'cgst',
+  'sgst',
+  'igst',
+  'vat',
+  'tds',
+  'advance',
+  'tips',
+  'discount',
+]);
+
 /** Turn a database row into flat string state — inputs are strings. */
 function toFormState(v: Record<string, unknown>): FormState {
   const s: FormState = {};
   for (const [k, val] of Object.entries(v)) {
-    s[k] = val === null || val === undefined ? '' : String(val);
+    if (val === null || val === undefined) {
+      s[k] = '';
+    } else if (ZERO_AS_BLANK.has(k) && Number(val) === 0) {
+      s[k] = '';
+    } else {
+      s[k] = String(val);
+    }
   }
   return s;
 }
