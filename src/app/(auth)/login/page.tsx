@@ -3,10 +3,11 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Lock, Mail } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Button, Field, Input } from '@/components/ui/primitives';
-import { AuthError, GoogleButton, OrDivider } from '@/components/auth/AuthBits';
+import { AuthError, AuthSubmit, GoogleButton, OrDivider } from '@/components/auth/AuthBits';
+import { AuthField, AuthInput, AuthPassword } from '@/components/auth/AuthField';
+import { AuthFormSkeleton } from '@/components/auth/AuthFormSkeleton';
 import { AFTER_LOGIN } from '@/lib/routes';
 
 function LoginForm() {
@@ -35,52 +36,61 @@ function LoginForm() {
   };
 
   return (
-    <div className="animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards]">
-      <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-      <p className="text-muted mt-1.5 text-sm">Sign in to raise and approve vouchers.</p>
+    <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_backwards]">
+      <h1 className="m-display text-[2.15rem]">
+        Welcome <span className="m-serif m-grad-text">back.</span>
+      </h1>
+      <p className="m-dim mt-2.5 text-[14px]">Sign in to raise and approve vouchers.</p>
 
-      <form onSubmit={signIn} className="mt-8 space-y-4">
-        <Field label="Email" htmlFor="email">
-          <Input
+      <form onSubmit={signIn} className="mt-9 space-y-4">
+        <AuthField label="Email" htmlFor="email">
+          <AuthInput
             id="email"
+            icon={Mail}
             type="email"
             autoComplete="email"
             placeholder="you@nvrco.in"
             required
+            autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-        </Field>
+        </AuthField>
 
-        <Field label="Password" htmlFor="password">
-          <Input
+        <AuthField label="Password" htmlFor="password">
+          <AuthPassword
             id="password"
-            type="password"
+            icon={Lock}
             autoComplete="current-password"
-            placeholder="••••••••"
+            placeholder="Your password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-        </Field>
+        </AuthField>
 
         <AuthError message={error} />
 
-        <Button type="submit" variant="primary" size="lg" loading={busy} className="group w-full">
-          Sign in
-          <ArrowRight
-            className="size-4 transition-transform group-hover:translate-x-0.5"
-            aria-hidden
-          />
-        </Button>
+        <div className="pt-1">
+          <AuthSubmit loading={busy}>
+            Sign in
+            <ArrowRight
+              className="size-4 transition-transform group-hover:translate-x-0.5"
+              aria-hidden
+            />
+          </AuthSubmit>
+        </div>
       </form>
 
       <OrDivider />
       <GoogleButton next={next} onError={setError} />
 
-      <p className="text-muted mt-8 text-center text-sm">
+      <p className="m-dim mt-8 text-center text-[13.5px]">
         No account?{' '}
-        <Link href="/signup" className="font-semibold text-brand-600 hover:underline">
+        <Link
+          href="/signup"
+          className="font-semibold text-[var(--m-ink)] underline-offset-4 transition hover:text-[var(--m-cyan)] hover:underline"
+        >
           Create one
         </Link>
       </p>
@@ -89,8 +99,14 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  /*
+   * useSearchParams opts this page out of prerendering, so what ships as static
+   * HTML is the fallback. It has to hold the form's shape — with `null` the
+   * whole right-hand column was empty until hydration, which on a slow
+   * connection reads as a half-broken page rather than a loading one.
+   */
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<AuthFormSkeleton fields={2} />}>
       <LoginForm />
     </Suspense>
   );

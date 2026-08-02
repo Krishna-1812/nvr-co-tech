@@ -20,8 +20,29 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div data-skin="night" className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       <BrandPanel />
 
-      <main className="relative flex items-center justify-center px-5 py-10 sm:px-8">
-        <div className="w-full max-w-sm">
+      <main className="relative flex items-center justify-center overflow-hidden px-5 py-12 sm:px-8">
+        {/*
+          The form half was a flat black rectangle against a lit brand panel,
+          which made the page read as two unrelated screens joined down the
+          middle. It gets its own, quieter light — enough to sit in the same
+          room, not enough to compete with the form.
+        */}
+        <Aurora
+          color="var(--m-violet)"
+          opacity={0.13}
+          className="-top-32 -right-24 size-[30rem]"
+        />
+        <Aurora
+          color="var(--m-indigo)"
+          opacity={0.1}
+          className="-bottom-40 -left-20 size-[26rem]"
+        />
+        <div
+          aria-hidden
+          className="m-grid pointer-events-none absolute inset-0 opacity-30 [mask-image:radial-gradient(70%_60%_at_50%_45%,#000,transparent)]"
+        />
+
+        <div className="relative w-full max-w-[23rem]">
           {/* The brand panel is hidden below lg, so the mark has to appear here. */}
           <Link href="/" className="mb-9 inline-flex lg:hidden">
             <Logo id="auth-mobile-mark" />
@@ -64,7 +85,20 @@ const POINTS = [
 
 function BrandPanel() {
   return (
-    <aside className="relative hidden overflow-hidden border-r border-[var(--m-line)] lg:flex lg:flex-col lg:justify-between lg:p-12">
+    <aside className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-12">
+      {/*
+        A hairline down the full height cut the page in half. This fades in at
+        the vertical centre and out at both ends, so the two halves read as one
+        surface with a seam rather than two panes bolted together.
+      */}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 right-0 w-px"
+        style={{
+          background:
+            'linear-gradient(to bottom, transparent, var(--m-line-2) 35%, var(--m-line-2) 65%, transparent)',
+        }}
+      />
       {/*
         Three oversized fields drifting on long, offset cycles rather than a
         static gradient — it keeps a large flat area from reading as a solid
@@ -97,11 +131,17 @@ function BrandPanel() {
 
       <div className="relative max-w-md">
         <p className="m-eyebrow">Voucher Desk</p>
-        <h1 className="m-display mt-4 text-[2.6rem]">
+        {/*
+          Not an <h1>, despite being the biggest text on the page. The heading
+          that describes what this page is for is "Welcome back" / "Create your
+          account" in the form; this is supporting copy, and two h1s would leave
+          a screen reader with no single answer to what the page is.
+        */}
+        <p className="m-display mt-4 text-[2.6rem]">
           Every voucher,
           <br />
           <span className="m-serif m-grad-text">properly approved.</span>
-        </h1>
+        </p>
         <p className="m-dim mt-5 text-[15px] leading-relaxed">
           Payment vouchers for the CIO Association — raised, reviewed and signed off through an
           approval chain the database itself enforces.

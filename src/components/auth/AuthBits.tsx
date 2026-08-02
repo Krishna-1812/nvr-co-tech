@@ -3,9 +3,15 @@
 import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/primitives';
+import { Loader2 } from 'lucide-react';
 
-/** Shared between /login and /signup so the two screens cannot drift apart. */
+/**
+ * Shared between /login and /signup so the two screens cannot drift apart.
+ *
+ * Styled against the marketing tokens rather than the app's, because these
+ * screens live in the night skin. The red here is a fixed pair rather than the
+ * app's `dark:` variants: there is only ever one background behind it.
+ */
 
 export function AuthError({ message }: { message: string }) {
   if (!message) return null;
@@ -13,9 +19,14 @@ export function AuthError({ message }: { message: string }) {
   return (
     <p
       role="alert"
-      className="animate-[pop_0.35s_cubic-bezier(0.34,1.56,0.64,1)_backwards] flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700 dark:border-red-900/70 dark:bg-red-950/50 dark:text-red-300"
+      className="flex animate-[pop_0.35s_cubic-bezier(0.34,1.56,0.64,1)_backwards] items-start gap-2.5 rounded-xl border px-3.5 py-3 text-[13px] leading-relaxed"
+      style={{
+        borderColor: 'color-mix(in oklab, var(--m-rose) 34%, transparent)',
+        background: 'color-mix(in oklab, var(--m-rose) 12%, transparent)',
+        color: 'color-mix(in oklab, var(--m-rose) 72%, white)',
+      }}
     >
-      <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <AlertCircle className="mt-px size-4 shrink-0" aria-hidden />
       {message}
     </p>
   );
@@ -24,10 +35,42 @@ export function AuthError({ message }: { message: string }) {
 export function OrDivider() {
   return (
     <div className="my-6 flex items-center gap-3">
-      <span className="h-px flex-1 bg-[var(--border-c)]" />
-      <span className="text-subtle text-xs font-medium">or</span>
-      <span className="h-px flex-1 bg-[var(--border-c)]" />
+      <span className="h-px flex-1 bg-[var(--m-line)]" />
+      <span className="m-mono m-dim-2 text-[10px] tracking-[0.16em] uppercase">or</span>
+      <span className="h-px flex-1 bg-[var(--m-line)]" />
     </div>
+  );
+}
+
+/** The primary action. Matches the marketing CTA, at full width and form height. */
+export function AuthSubmit({
+  children,
+  loading,
+  disabled,
+}: {
+  children: React.ReactNode;
+  loading?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="submit"
+      disabled={loading || disabled}
+      className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-[14px] font-semibold text-white transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--m-cyan)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--m-bg)] focus-visible:outline-none active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:brightness-100"
+      style={{
+        backgroundImage: 'var(--m-grad)',
+        boxShadow: '0 10px 30px oklch(0.64 0.18 274 / 0.35)',
+      }}
+    >
+      {loading ? (
+        <>
+          <Loader2 className="size-4 animate-spin" aria-hidden />
+          Working…
+        </>
+      ) : (
+        children
+      )}
+    </button>
   );
 }
 
@@ -59,10 +102,15 @@ export function GoogleButton({
   };
 
   return (
-    <Button onClick={go} size="lg" loading={busy} className="w-full">
-      {!busy && <GoogleMark />}
+    <button
+      type="button"
+      onClick={go}
+      disabled={busy}
+      className="inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-[var(--m-line-2)] bg-white/[0.03] text-[14px] font-semibold text-[var(--m-ink)] transition hover:border-[var(--m-ink)]/40 hover:bg-white/[0.07] focus-visible:ring-2 focus-visible:ring-[var(--m-indigo)] focus-visible:outline-none active:scale-[0.99] disabled:opacity-60"
+    >
+      {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <GoogleMark />}
       {label}
-    </Button>
+    </button>
   );
 }
 
