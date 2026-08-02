@@ -560,13 +560,6 @@ body:has([data-skin='night']) {
     border-color: color-mix(in oklab, var(--tone) 32%, var(--border-c));
     color: color-mix(in oklab, var(--tone) 82%, var(--text-c));
   }
-  /* Same tint sitting on a sunken row, where the 12% mix would disappear. */
-  .tinted-solid {
-    background: color-mix(in oklab, var(--tone) 16%, var(--surface));
-    border-color: color-mix(in oklab, var(--tone) 38%, var(--border-c));
-    color: color-mix(in oklab, var(--tone) 82%, var(--text-c));
-  }
-
   /*
    * Horizontal scroller that shades its own overflowing edges. The two `local`
    * layers travel with the content and cover the two `scroll` layers, so the
