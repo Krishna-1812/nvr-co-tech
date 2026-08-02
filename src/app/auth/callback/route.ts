@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { AFTER_LOGIN } from '@/lib/routes';
 
 /**
  * Where Supabase sends the browser back after Google sign-in or an emailed
@@ -47,6 +48,6 @@ export async function GET(request: NextRequest) {
  * otherwise be honoured by the browser as an off-site redirect.
  */
 function safeNext(value: string | null): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return AFTER_LOGIN;
   return value;
 }

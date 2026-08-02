@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { Check, X, Clock, AlertTriangle, ExternalLink, Paperclip, FileWarning } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,7 +8,7 @@ import { approveVoucher, rejectVoucher } from '@/app/actions/workflow';
 import { fmtRupees, fmtDate } from '@/lib/domain/voucher';
 import { StatusBadge, ApprovalProgress } from '@/components/StatusBadge';
 import type { VoucherStatus } from '@/lib/domain/workflow';
-import { Button, Card, Textarea } from '@/components/ui/primitives';
+import { Button, buttonClass, Card, Textarea } from '@/components/ui/primitives';
 import { relativeTime, ageInDays, cn } from '@/lib/utils';
 
 /**
@@ -78,14 +78,18 @@ export function ApprovalCard({
     });
 
   return (
-    <Card className={cn('overflow-hidden transition', blockedReason && 'opacity-60')}>
-      <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:gap-6">
-        {/* Identity + amount */}
+    <Card className={cn('overflow-hidden transition', blockedReason && 'opacity-70')}>
+      {/*
+        Identity and amount first, provenance and controls in a footer under a
+        rule. Splitting the card that way means the eye can run down a column of
+        payees and amounts without the buttons of each card interrupting it.
+      */}
+      <div className="flex items-start justify-between gap-4 p-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/vouchers/${voucher.id}`}
-              className="numeric font-semibold hover:text-brand-600 hover:underline"
+              className="numeric font-semibold transition hover:text-brand-600 hover:underline dark:hover:text-brand-300"
             >
               {voucher.voucher_no ?? 'Unnumbered'}
             </Link>
@@ -93,12 +97,12 @@ export function ApprovalCard({
             {/* Ageing: an approver needs to see what has been sitting too long. */}
             {age >= 3 && (
               <span
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-                  age >= 7
-                    ? 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300'
-                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
-                )}
+                style={
+                  {
+                    '--tone': age >= 7 ? 'var(--status-rejected)' : 'var(--status-warn)',
+                  } as CSSProperties
+                }
+                className="tinted inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
               >
                 <Clock className="size-3" aria-hidden />
                 {age}d waiting
@@ -106,8 +110,8 @@ export function ApprovalCard({
             )}
           </div>
 
-          <p className="mt-1.5 truncate text-sm font-medium">
-            {voucher.paid_to ?? <span className="text-subtle">No payee</span>}
+          <p className="mt-2 truncate text-base font-semibold">
+            {voucher.paid_to ?? <span className="text-subtle font-normal">No payee</span>}
           </p>
           <p className="text-muted mt-0.5 truncate text-xs">
             {[
@@ -119,59 +123,66 @@ export function ApprovalCard({
               .filter(Boolean)
               .join(' · ')}
           </p>
+        </div>
 
-          <div className="text-subtle mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-            <span>
-              Raised by <span className="font-medium">{person(voucher.initiator)}</span>{' '}
-              {relativeTime(voucher.submitted_at)}
-            </span>
-            {voucher.status === 'pending_second' && voucher.first_approver && (
-              <span>
-                1st approval by{' '}
-                <span className="font-medium">{person(voucher.first_approver)}</span>
-              </span>
-            )}
-
-            {/*
-              Whether there is an invoice to check against is the first thing an
-              approver needs, and it belongs here rather than one click away.
-              Approving an amount with no supporting document is exactly what
-              this rebuild is meant to make visible.
-            */}
-            {attachmentCount > 0 ? (
-              <span className="inline-flex items-center gap-1">
-                <Paperclip className="size-3" aria-hidden />
-                {attachmentCount} file{attachmentCount === 1 ? '' : 's'}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400">
-                <FileWarning className="size-3" aria-hidden />
-                No invoice attached
-              </span>
-            )}
+        <div className="shrink-0 text-right">
+          <div className="amount text-xl font-bold sm:text-2xl">
+            {fmtRupees(voucher.grand_total)}
+          </div>
+          <div className="mt-1.5 flex justify-end">
+            <ApprovalProgress status={voucher.status} />
           </div>
         </div>
+      </div>
 
-        {/* Amount + progress */}
-        <div className="flex shrink-0 items-center gap-6 sm:flex-col sm:items-end sm:gap-2">
-          <div className="numeric text-lg font-bold">{fmtRupees(voucher.grand_total)}</div>
-          <ApprovalProgress status={voucher.status} />
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t bg-[var(--surface-sunken)] px-4 py-2.5">
+        <div className="text-subtle flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+          <span>
+            Raised by <span className="font-medium">{person(voucher.initiator)}</span>{' '}
+            {relativeTime(voucher.submitted_at)}
+          </span>
+          {voucher.status === 'pending_second' && voucher.first_approver && (
+            <span>
+              1st approval by <span className="font-medium">{person(voucher.first_approver)}</span>
+            </span>
+          )}
+
+          {/*
+            Whether there is an invoice to check against is the first thing an
+            approver needs, and it belongs here rather than one click away.
+            Approving an amount with no supporting document is exactly what
+            this rebuild is meant to make visible.
+          */}
+          {attachmentCount > 0 ? (
+            <span className="inline-flex items-center gap-1">
+              <Paperclip className="size-3" aria-hidden />
+              {attachmentCount} file{attachmentCount === 1 ? '' : 's'}
+            </span>
+          ) : (
+            <span
+              style={{ '--tone': 'var(--status-warn)' } as CSSProperties}
+              className="inline-flex items-center gap-1 font-semibold text-[color-mix(in_oklab,var(--tone)_82%,var(--text-c))]"
+            >
+              <FileWarning className="size-3" aria-hidden />
+              No invoice attached
+            </span>
+          )}
         </div>
 
-        {/* Actions */}
         <div className="flex shrink-0 items-center gap-2">
           <Link
             href={`/vouchers/${voucher.id}`}
-            className="text-muted inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition hover:bg-[var(--surface-sunken)]"
+            className={buttonClass({ variant: 'ghost', size: 'sm' })}
           >
             <ExternalLink className="size-4" aria-hidden />
-            <span className="hidden sm:inline">Review</span>
+            Review
           </Link>
 
           {!blockedReason && (
             <>
               <Button
                 variant="danger"
+                size="sm"
                 onClick={() => setRejecting((v) => !v)}
                 disabled={pending}
                 aria-expanded={rejecting}
@@ -179,7 +190,7 @@ export function ApprovalCard({
                 <X className="size-4" aria-hidden />
                 <span className="hidden sm:inline">Send back</span>
               </Button>
-              <Button variant="success" onClick={onApprove} loading={pending}>
+              <Button variant="success" size="sm" onClick={onApprove} loading={pending}>
                 <Check className="size-4" aria-hidden />
                 Approve
               </Button>

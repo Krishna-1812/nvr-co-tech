@@ -9,6 +9,7 @@ import {
   Trash2,
   Pencil,
 } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import type { AuditAction } from '@/lib/supabase/types';
 import { relativeTime } from '@/lib/utils';
 import { fmtDate } from '@/lib/domain/voucher';
@@ -21,18 +22,27 @@ type Entry = {
   actor?: { full_name: string | null; email: string } | null;
 };
 
+/**
+ * Tones come from the same --status-* tokens the badges use, so an "approved"
+ * entry in the history is the identical green to the Approved chip above it —
+ * the timeline reads as the story of the status rather than a second palette.
+ */
 const ACTION_META: Record<AuditAction, { icon: typeof Check; label: string; tone: string }> = {
-  created: { icon: FilePlus, label: 'Created', tone: 'text-[var(--text-muted)]' },
-  updated: { icon: Pencil, label: 'Edited', tone: 'text-[var(--text-muted)]' },
-  submitted: { icon: Send, label: 'Submitted for approval', tone: 'text-blue-600 dark:text-blue-400' },
-  approved_first: { icon: Check, label: 'First approval given', tone: 'text-emerald-600 dark:text-emerald-400' },
-  approved_second: { icon: CheckCheck, label: 'Second approval given', tone: 'text-emerald-600 dark:text-emerald-400' },
-  rejected: { icon: X, label: 'Sent back', tone: 'text-red-600 dark:text-red-400' },
-  reopened: { icon: RotateCcw, label: 'Reopened', tone: 'text-amber-600 dark:text-amber-400' },
-  marked_paid: { icon: Wallet, label: 'Marked paid', tone: 'text-teal-600 dark:text-teal-400' },
-  deleted: { icon: Trash2, label: 'Deleted', tone: 'text-red-600 dark:text-red-400' },
-  restored: { icon: RotateCcw, label: 'Restored', tone: 'text-[var(--text-muted)]' },
-  purged: { icon: Trash2, label: 'Permanently deleted', tone: 'text-red-600 dark:text-red-400' },
+  created: { icon: FilePlus, label: 'Created', tone: 'var(--status-draft)' },
+  updated: { icon: Pencil, label: 'Edited', tone: 'var(--status-draft)' },
+  submitted: { icon: Send, label: 'Submitted for approval', tone: 'var(--status-pending)' },
+  approved_first: { icon: Check, label: 'First approval given', tone: 'var(--status-approved)' },
+  approved_second: {
+    icon: CheckCheck,
+    label: 'Second approval given',
+    tone: 'var(--status-approved)',
+  },
+  rejected: { icon: X, label: 'Sent back', tone: 'var(--status-rejected)' },
+  reopened: { icon: RotateCcw, label: 'Reopened', tone: 'var(--status-draft)' },
+  marked_paid: { icon: Wallet, label: 'Marked paid', tone: 'var(--status-paid)' },
+  deleted: { icon: Trash2, label: 'Deleted', tone: 'var(--status-rejected)' },
+  restored: { icon: RotateCcw, label: 'Restored', tone: 'var(--status-draft)' },
+  purged: { icon: Trash2, label: 'Permanently deleted', tone: 'var(--status-rejected)' },
 };
 
 /**
@@ -44,7 +54,11 @@ const ACTION_META: Record<AuditAction, { icon: typeof Check; label: string; tone
  */
 export function AuditTimeline({ entries }: { entries: Entry[] }) {
   if (entries.length === 0) {
-    return <p className="text-subtle p-5 text-sm">No history yet.</p>;
+    return (
+      <p className="text-subtle p-5 text-sm">
+        No history yet. Every submission, approval and edit will be recorded here.
+      </p>
+    );
   }
 
   return (
@@ -60,12 +74,13 @@ export function AuditTimeline({ entries }: { entries: Entry[] }) {
             {!last && (
               <span
                 aria-hidden
-                className="absolute top-7 bottom-0 left-3 w-px bg-[var(--border-c)]"
+                className="absolute top-7 bottom-0 left-3.5 w-px bg-[var(--border-c)]"
               />
             )}
 
             <span
-              className={`surface relative z-10 grid size-6 shrink-0 place-items-center rounded-full ${meta.tone}`}
+              style={{ '--tone': meta.tone } as CSSProperties}
+              className="tinted relative z-10 grid size-7 shrink-0 place-items-center rounded-full border"
             >
               <meta.icon className="size-3.5" aria-hidden />
             </span>
@@ -77,11 +92,12 @@ export function AuditTimeline({ entries }: { entries: Entry[] }) {
               </p>
               <p className="text-subtle text-xs">
                 <time dateTime={e.created_at} title={new Date(e.created_at).toLocaleString('en-IN')}>
-                  {fmtDate(e.created_at)} · {relativeTime(e.created_at)}
+                  <span className="numeric">{fmtDate(e.created_at)}</span> ·{' '}
+                  {relativeTime(e.created_at)}
                 </time>
               </p>
               {e.note && (
-                <p className="text-muted mt-1.5 rounded-lg border-l-2 border-[var(--border-strong)] bg-[var(--surface-sunken)] px-3 py-2 text-sm">
+                <p className="text-muted mt-2 rounded-lg border border-l-2 border-l-[var(--border-strong)] bg-[var(--surface-sunken)] px-3 py-2 text-sm text-pretty">
                   {e.note}
                 </p>
               )}

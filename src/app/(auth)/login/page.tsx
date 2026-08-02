@@ -7,11 +7,12 @@ import { ArrowRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Field, Input } from '@/components/ui/primitives';
 import { AuthError, GoogleButton, OrDivider } from '@/components/auth/AuthBits';
+import { AFTER_LOGIN } from '@/lib/routes';
 
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get('next') ?? '/';
+  const next = params.get('next') ?? AFTER_LOGIN;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

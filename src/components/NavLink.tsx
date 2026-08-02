@@ -34,11 +34,11 @@ export function NavLink({
             ? 'elev-1 bg-[var(--surface-raised)] text-brand-700 dark:text-brand-200'
             : 'text-muted hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]'),
         // A tab sits on the section's bottom border and marks itself with it.
-        variant === 'tab' && '-mb-px border-b-2 px-3 py-2.5',
+        variant === 'tab' && 'rounded-t-lg -mb-px border-b-2 px-3.5 py-2.5',
         variant === 'tab' &&
           (active
-            ? 'border-brand-600 text-brand-700 dark:text-brand-300'
-            : 'text-muted border-transparent hover:text-[var(--text-c)]'),
+            ? 'border-brand-600 text-brand-700 dark:border-brand-400 dark:text-brand-300'
+            : 'text-muted border-transparent hover:border-[var(--border-strong)] hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]'),
       )}
     >
       {/* Gradient underline on the active pill — the same accent as the logo. */}

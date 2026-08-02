@@ -1,10 +1,11 @@
-import { Users } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { AlertTriangle, Users } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { isOwner, type UserRole } from '@/lib/domain/workflow';
-import { Card, EmptyState } from '@/components/ui/primitives';
+import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
 import { UserRow } from './UserRow';
 
-export const metadata = { title: 'People · NVR Voucher' };
+export const metadata = { title: 'People' };
 
 export type AdminUser = {
   id: string;
@@ -53,51 +54,61 @@ export default async function AdminPeoplePage() {
         but can never clear.
       */}
       {approvers < 3 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900 dark:bg-amber-950/40">
-          <p className="font-semibold text-amber-900 dark:text-amber-200">
-            You need at least three people who can approve
-          </p>
-          <p className="mt-1 text-amber-800 dark:text-amber-300">
-            Every voucher needs two different approvers, and neither can be the person who raised
-            it. With {approvers} {approvers === 1 ? 'person' : 'people'} able to approve, some
-            vouchers will have nobody left to clear them.
-          </p>
+        <div
+          role="alert"
+          style={{ '--tone': 'var(--status-warn)' } as CSSProperties}
+          className="tinted flex gap-3 rounded-xl border p-4 text-sm"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+          <div>
+            <p className="font-semibold">You need at least three people who can approve</p>
+            <p className="mt-1 text-pretty opacity-90">
+              Every voucher needs two different approvers, and neither can be the person who raised
+              it. With {approvers} {approvers === 1 ? 'person' : 'people'} able to approve, some
+              vouchers will have nobody left to clear them.
+            </p>
+          </div>
         </div>
       )}
 
       <Card className="overflow-hidden">
+        <CardTitle
+          icon={<Users className="size-4" />}
+          title="People"
+          description={`${rows.length} account${rows.length === 1 ? '' : 's'} · ${approvers} able to approve`}
+        />
         {rows.length === 0 ? (
           <EmptyState
-            icon={<Users className="size-8" />}
+            icon={<Users className="size-6" />}
             title="No one has signed up yet"
             description="People appear here once they create an account."
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="surface-sunken text-subtle text-xs">
-                <tr>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Person</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Role</th>
-                  <th scope="col" className="px-4 py-2.5 text-right font-semibold">Vouchers</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {rows.map((u) => (
-                  <UserRow
-                    key={u.id}
-                    user={u}
-                    voucherCount={byUser.get(u.id) ?? 0}
-                    isSelf={u.id === me.id}
-                    viewerIsOwner={isOwner(me.role)}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable>
+            <Thead>
+              <tr>
+                <Th>Person</Th>
+                <Th>Role</Th>
+                <Th align="right" className="hidden sm:table-cell">
+                  Vouchers
+                </Th>
+                <Th className="hidden md:table-cell">
+                  <span className="sr-only">Why the role is locked</span>
+                </Th>
+              </tr>
+            </Thead>
+            <tbody className="divide-y">
+              {rows.map((u) => (
+                <UserRow
+                  key={u.id}
+                  user={u}
+                  voucherCount={byUser.get(u.id) ?? 0}
+                  isSelf={u.id === me.id}
+                  viewerIsOwner={isOwner(me.role)}
+                />
+              ))}
+            </tbody>
+          </DataTable>
         )}
       </Card>
 

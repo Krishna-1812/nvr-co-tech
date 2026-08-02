@@ -3,9 +3,12 @@ import type { ComponentProps, ReactNode } from 'react';
 
 // ─── Button ──────────────────────────────────────────────────────────────────
 
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+type ButtonSize = 'sm' | 'md' | 'lg';
+
 type ButtonProps = ComponentProps<'button'> & {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
 };
 
@@ -27,6 +30,30 @@ const BUTTON_SIZES = {
   lg: 'h-12 px-6 text-base gap-2',
 } as const;
 
+/**
+ * The button look, detached from the button element.
+ *
+ * Half the controls in this app are navigations — New voucher, Export, View PDF
+ * — and must stay anchors. They were each re-typing the gradient and the height
+ * by hand, which is how a 10px difference between two adjacent "buttons" gets
+ * in. A link and a button that look the same now say so in one place.
+ */
+export function buttonClass({
+  variant = 'secondary',
+  size = 'md',
+  className,
+}: { variant?: ButtonVariant; size?: ButtonSize; className?: string } = {}) {
+  return cn(
+    'inline-flex items-center justify-center rounded-lg font-semibold whitespace-nowrap',
+    'transition duration-150 active:scale-[0.98]',
+    'disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100',
+    'aria-disabled:pointer-events-none aria-disabled:opacity-50',
+    BUTTON_VARIANTS[variant],
+    BUTTON_SIZES[size],
+    className,
+  );
+}
+
 export function Button({
   variant = 'secondary',
   size = 'md',
@@ -40,14 +67,7 @@ export function Button({
     <button
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={cn(
-        'inline-flex items-center justify-center rounded-lg font-semibold',
-        'transition duration-150 active:scale-[0.98]',
-        'disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100',
-        BUTTON_VARIANTS[variant],
-        BUTTON_SIZES[size],
-        className,
-      )}
+      className={buttonClass({ variant, size, className })}
       {...props}
     >
       {loading && (
@@ -78,6 +98,112 @@ export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
 
 export function CardBody({ className, ...props }: ComponentProps<'div'>) {
   return <div className={cn('px-5 py-4', className)} {...props} />;
+}
+
+/**
+ * The heading row a card opens with. Every screen was assembling the same
+ * icon + title + sub-line by hand and landing on a slightly different type size
+ * each time, which is what made a stack of cards look like a stack of pages.
+ */
+export function CardTitle({
+  icon,
+  title,
+  description,
+  action,
+  className,
+}: {
+  icon?: ReactNode;
+  title: ReactNode;
+  description?: ReactNode;
+  action?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('flex items-start justify-between gap-4 border-b px-5 py-3.5', className)}>
+      <div className="flex min-w-0 items-start gap-2.5">
+        {icon && (
+          <span className="text-subtle mt-px shrink-0" aria-hidden>
+            {icon}
+          </span>
+        )}
+        <div className="min-w-0">
+          <h2 className="font-semibold tracking-tight">{title}</h2>
+          {description && <p className="text-muted mt-0.5 text-sm text-pretty">{description}</p>}
+        </div>
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
+  );
+}
+
+// ─── Table ───────────────────────────────────────────────────────────────────
+
+/**
+ * One table treatment, shared by the voucher list, the people list, chapters and
+ * the recycle bin. Those four had drifted apart on padding and header casing;
+ * the point of centralising it is that a financial system should look like it
+ * counts the same way everywhere.
+ */
+export function DataTable({ className, ...props }: ComponentProps<'table'>) {
+  return (
+    <div className="scroll-x-hint overflow-x-auto">
+      <table className={cn('w-full text-left text-sm', className)} {...props} />
+    </div>
+  );
+}
+
+export function Thead({ className, ...props }: ComponentProps<'thead'>) {
+  return <thead className={cn('surface-sunken text-subtle border-b', className)} {...props} />;
+}
+
+type Align = 'left' | 'right';
+
+/**
+ * Column headers are small, spaced and upper-case so they read as labels rather
+ * than as a first row of data.
+ */
+export function Th({
+  align = 'left',
+  className,
+  ...props
+}: Omit<ComponentProps<'th'>, 'align'> & { align?: Align }) {
+  return (
+    <th
+      scope="col"
+      className={cn(
+        'px-4 py-2.5 text-[11px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase',
+        align === 'right' && 'text-right',
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function Td({
+  align = 'left',
+  className,
+  ...props
+}: Omit<ComponentProps<'td'>, 'align'> & { align?: Align }) {
+  return (
+    <td
+      className={cn('px-4 py-3 align-middle', align === 'right' && 'text-right', className)}
+      {...props}
+    />
+  );
+}
+
+/** A body row. Hover is a reading aid on a wide table, not decoration. */
+export function Tr({ className, ...props }: ComponentProps<'tr'>) {
+  return (
+    <tr
+      className={cn(
+        'transition-colors hover:bg-[var(--surface-sunken)] focus-within:bg-[var(--surface-sunken)]',
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 // ─── Field ───────────────────────────────────────────────────────────────────

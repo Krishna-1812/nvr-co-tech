@@ -6,11 +6,14 @@ import {
   approvalBlockedReason,
   type VoucherLike,
 } from '@/lib/domain/workflow';
-import { EmptyState } from '@/components/ui/primitives';
+import { fmtRupees } from '@/lib/domain/voucher';
+import { ageInDays } from '@/lib/utils';
+import { PageHeader } from '@/components/PageHeader';
+import { Card, EmptyState } from '@/components/ui/primitives';
 import { ApprovalCard, type ApprovalRow } from './ApprovalCard';
 import { redirect } from 'next/navigation';
 
-export const metadata = { title: 'Approvals · NVR Voucher' };
+export const metadata = { title: 'Approvals' };
 
 /**
  * The approval queue — the screen v1 had no equivalent of.
@@ -21,7 +24,7 @@ export const metadata = { title: 'Approvals · NVR Voucher' };
  */
 export default async function ApprovalsPage() {
   const user = await requireUser();
-  if (!canApprove(user.role)) redirect('/');
+  if (!canApprove(user.role)) redirect('/dashboard');
 
   const supabase = await createClient();
 
@@ -52,27 +55,46 @@ export default async function ApprovalsPage() {
   const blocked = rows.filter((v) => !canApproveVoucher(v, me));
 
   const totalValue = actionable.reduce((sum, v) => sum + Number(v.grand_total ?? 0), 0);
+  // The queue is ordered oldest first, so the head of it is the one ageing.
+  const oldest = actionable[0]?.submitted_at ?? null;
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Approvals</h1>
-        <p className="text-muted mt-1 text-sm">
-          {actionable.length === 0
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Queue"
+        title="Approvals"
+        description={
+          actionable.length === 0
             ? 'Nothing is waiting on you.'
-            : `${actionable.length} voucher${actionable.length === 1 ? '' : 's'} waiting on you` +
-              ` · ₹${totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-        </p>
-      </header>
+            : 'Oldest first — the top of this list is what has been waiting longest.'
+        }
+      />
+
+      {/*
+        Depth, value and age, before any individual voucher. An approver's first
+        question is whether the queue needs an hour or five minutes, and that is
+        answered by these three numbers rather than by scrolling.
+      */}
+      {actionable.length > 0 && (
+        <dl className="stagger grid gap-3 sm:grid-cols-3">
+          <QueueStat label="Waiting on you" value={String(actionable.length)} />
+          <QueueStat label="Total value" value={fmtRupees(totalValue)} />
+          <QueueStat
+            label="Longest waiting"
+            value={oldest ? `${ageInDays(oldest)} days` : '—'}
+            tone={oldest && ageInDays(oldest) >= 7 ? 'var(--status-rejected)' : undefined}
+          />
+        </dl>
+      )}
 
       {actionable.length === 0 && blocked.length === 0 ? (
-        <div className="surface rounded-xl">
+        <Card>
           <EmptyState
-            icon={<Inbox className="size-8" />}
+            icon={<Inbox className="size-6" />}
             title="Queue is clear"
             description="Vouchers submitted for approval will appear here, oldest first."
           />
-        </div>
+        </Card>
       ) : (
         <div className="space-y-3">
           {actionable.map((v) => (
@@ -83,8 +105,9 @@ export default async function ApprovalsPage() {
 
       {blocked.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-subtle text-xs font-semibold tracking-wide uppercase">
+          <h2 className="text-subtle flex items-center gap-3 text-[11px] font-semibold tracking-[0.06em] uppercase">
             In the queue, but not yours to action ({blocked.length})
+            <span aria-hidden className="h-px flex-1 bg-[var(--border-c)]" />
           </h2>
           {blocked.map((v) => (
             <ApprovalCard
@@ -97,5 +120,17 @@ export default async function ApprovalsPage() {
         </section>
       )}
     </div>
+  );
+}
+
+/** One figure from the top of the queue. Tone marks a number that is a problem. */
+function QueueStat({ label, value, tone }: { label: string; value: string; tone?: string }) {
+  return (
+    <Card className="p-4">
+      <dt className="text-muted text-[11px] font-semibold tracking-[0.06em] uppercase">{label}</dt>
+      <dd className="amount mt-1.5 text-2xl font-bold" style={tone ? { color: tone } : undefined}>
+        {value}
+      </dd>
+    </Card>
   );
 }

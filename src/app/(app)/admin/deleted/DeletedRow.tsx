@@ -9,7 +9,7 @@ import { restoreVoucher } from '@/app/actions/workflow';
 import { purgeVoucher } from '@/app/actions/admin';
 import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Button } from '@/components/ui/primitives';
+import { Button, Td, Tr } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/Modal';
 import { relativeTime } from '@/lib/utils';
 import type { DeletedVoucher } from './page';
@@ -39,43 +39,56 @@ export function DeletedRow({ voucher }: { voucher: DeletedVoucher }) {
 
   return (
     <>
-      <tr className="transition hover:bg-[var(--surface-sunken)]">
-        <td className="px-4 py-3">
+      <Tr className="group">
+        <Td>
           <Link
             href={`/vouchers/${voucher.id}`}
-            className="numeric font-medium hover:text-brand-600 hover:underline"
+            className="numeric font-medium transition group-hover:text-brand-600 group-hover:underline dark:group-hover:text-brand-300"
           >
             {label}
           </Link>
-          <p className="text-subtle text-xs">{fmtDate(voucher.date)}</p>
-        </td>
+          <p className="text-subtle numeric text-xs">{fmtDate(voucher.date)}</p>
+          {/* Payee is the only way to recognise a draft with no number, so it
+              stays on the row even when its own column is gone. */}
+          <p className="text-subtle mt-0.5 max-w-36 truncate text-xs md:hidden">
+            {voucher.paid_to ?? '—'}
+          </p>
+          <div className="mt-1.5 sm:hidden">
+            <StatusBadge status={voucher.status} size="sm" />
+          </div>
+        </Td>
 
-        <td className="text-muted max-w-40 truncate px-4 py-3">{voucher.paid_to ?? '—'}</td>
+        <Td className="text-muted hidden max-w-40 truncate md:table-cell">
+          {voucher.paid_to ?? '—'}
+        </Td>
 
-        <td className="text-muted px-4 py-3">
+        <Td className="text-muted hidden max-w-40 truncate lg:table-cell">
           {voucher.creator?.full_name ?? voucher.creator?.email ?? '—'}
-        </td>
+        </Td>
 
-        <td className="text-muted px-4 py-3">
-          <time dateTime={voucher.deleted_at} title={new Date(voucher.deleted_at).toLocaleString('en-IN')}>
+        <Td className="text-muted hidden whitespace-nowrap sm:table-cell">
+          <time
+            dateTime={voucher.deleted_at}
+            title={new Date(voucher.deleted_at).toLocaleString('en-IN')}
+          >
             {relativeTime(voucher.deleted_at)}
           </time>
-        </td>
+        </Td>
 
-        <td className="px-4 py-3">
+        <Td className="hidden sm:table-cell">
           <StatusBadge status={voucher.status} size="sm" />
-        </td>
+        </Td>
 
-        <td className="numeric px-4 py-3 text-right font-semibold">
+        <Td align="right" className="amount font-semibold whitespace-nowrap">
           {fmtRupees(voucher.grand_total)}
-        </td>
+        </Td>
 
-        <td className="px-4 py-3 text-right">
-          <div className="inline-flex gap-1">
+        <Td align="right">
+          <div className="inline-flex items-center gap-1">
             <Button
+              size="sm"
               onClick={() => run(() => restoreVoucher(voucher.id), `${label} restored.`)}
               disabled={busy}
-              className="h-8 px-2.5 text-xs"
             >
               <RotateCcw className="size-3.5" aria-hidden />
               Restore
@@ -93,14 +106,14 @@ export function DeletedRow({ voucher }: { voucher: DeletedVoucher }) {
                 onClick={() => setConfirming(true)}
                 disabled={busy}
                 aria-label={`Permanently delete ${label}`}
-                className="text-muted rounded-lg p-1.5 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-40 dark:hover:bg-red-950/40"
+                className="text-muted rounded-lg p-1.5 transition hover:bg-[color-mix(in_oklab,var(--status-rejected)_14%,transparent)] hover:text-[var(--status-rejected)] disabled:opacity-40"
               >
                 <Trash2 className="size-4" aria-hidden />
               </button>
             )}
           </div>
-        </td>
-      </tr>
+        </Td>
+      </Tr>
 
       <Modal
         open={confirming}

@@ -1,13 +1,13 @@
 import { Palette, ShieldCheck, UserRound } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
-import { Card, CardBody, CardHeader } from '@/components/ui/primitives';
+import { Card, CardBody, CardTitle } from '@/components/ui/primitives';
 import { PageHeader } from '@/components/PageHeader';
 import { NameForm } from './NameForm';
 import { ThemeChoice } from './ThemeChoice';
 import { SignOutButton } from './SignOutButton';
 
-export const metadata = { title: 'Settings · NVR Voucher' };
+export const metadata = { title: 'Settings' };
 
 /**
  * Your own account. Role is shown but never editable here — it moves only
@@ -54,8 +54,11 @@ export default async function SettingsPage() {
               </p>
               <p className="text-muted truncate text-sm">{user.email}</p>
             </div>
-            <span className="text-subtle numeric ml-auto hidden shrink-0 pb-1 text-sm sm:block">
-              {count ?? 0} voucher{count === 1 ? '' : 's'} raised
+            <span className="ml-auto hidden shrink-0 pb-1 text-right sm:block">
+              <span className="amount block text-xl font-bold">{count ?? 0}</span>
+              <span className="text-subtle block text-[11px] font-semibold tracking-[0.06em] uppercase">
+                Raised
+              </span>
             </span>
           </div>
         </div>
@@ -66,19 +69,12 @@ export default async function SettingsPage() {
       </Card>
 
       <Card className="overflow-hidden">
-        <CardHeader>
-          <div className="flex items-center gap-2.5">
-            <ShieldCheck className="text-subtle size-4" aria-hidden />
-            <div>
-              <h2 className="font-semibold">Your access</h2>
-              <p className="text-muted mt-0.5 text-sm">
-                Granted by an owner. It cannot be changed from here.
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardBody className="space-y-2">
+        <CardTitle
+          icon={<ShieldCheck className="size-4" />}
+          title="Your access"
+          description="Granted by an owner. It cannot be changed from here."
+        />
+        <CardBody className="space-y-1.5">
           {USER_ROLES.map((role) => (
             <RoleRow key={role} role={role} current={user.role} />
           ))}
@@ -86,15 +82,11 @@ export default async function SettingsPage() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2.5">
-            <Palette className="text-subtle size-4" aria-hidden />
-            <div>
-              <h2 className="font-semibold">Appearance</h2>
-              <p className="text-muted mt-0.5 text-sm">Saved on this device.</p>
-            </div>
-          </div>
-        </CardHeader>
+        <CardTitle
+          icon={<Palette className="size-4" />}
+          title="Appearance"
+          description="Saved on this device."
+        />
         <CardBody>
           <ThemeChoice />
         </CardBody>
@@ -131,19 +123,24 @@ function RoleRow({ role, current }: { role: UserRole; current: UserRole }) {
       className={
         active
           ? 'flex items-start gap-3 rounded-xl border border-brand-500 bg-brand-50 px-3.5 py-3 ring-1 ring-brand-500 dark:bg-brand-900/30'
-          : 'flex items-start gap-3 rounded-xl border border-transparent px-3.5 py-3 opacity-60'
+          : 'flex items-start gap-3 rounded-xl border border-transparent px-3.5 py-3'
       }
     >
       <span
         aria-hidden
         className={
           active
-            ? 'gradient-brand mt-1 size-2 shrink-0 rounded-full'
-            : 'mt-1 size-2 shrink-0 rounded-full bg-[var(--border-strong)]'
+            ? 'gradient-brand mt-1.5 size-2 shrink-0 rounded-full'
+            : 'mt-1.5 size-2 shrink-0 rounded-full bg-[var(--border-strong)]'
         }
       />
       <div>
-        <p className="text-sm font-semibold">
+        {/*
+          The rungs you do not hold are dimmed by using the muted text colour
+          rather than by lowering the opacity of the whole row — half-opacity
+          text on a tinted card drops below a readable contrast ratio.
+        */}
+        <p className={active ? 'text-sm font-semibold' : 'text-muted text-sm font-semibold'}>
           {meta.label}
           {active && (
             <span className="ml-2 rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase">
@@ -151,7 +148,9 @@ function RoleRow({ role, current }: { role: UserRole; current: UserRole }) {
             </span>
           )}
         </p>
-        <p className="text-muted mt-0.5 text-sm">{meta.grants}</p>
+        <p className={active ? 'text-muted mt-0.5 text-sm' : 'text-subtle mt-0.5 text-sm'}>
+          {meta.grants}
+        </p>
       </div>
     </div>
   );

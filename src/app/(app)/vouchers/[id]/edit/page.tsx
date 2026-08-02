@@ -10,7 +10,7 @@ import { Attachments } from '@/components/voucher/Attachments';
 import { Card } from '@/components/ui/primitives';
 import type { AttachmentRow } from '@/app/actions/attachments';
 
-export const metadata = { title: 'Edit voucher · NVR Voucher' };
+export const metadata = { title: 'Edit voucher' };
 
 export default async function EditVoucherPage({
   params,

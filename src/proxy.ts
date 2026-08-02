@@ -1,8 +1,16 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { PREVIEW } from '@/lib/preview';
+import { AFTER_LOGIN, isProtectedPath } from '@/lib/routes';
 
-const PUBLIC_PATHS = ['/login', '/signup', '/auth'];
+/*
+ * Gating is a deny-list (see lib/routes.ts) rather than the allow-list it used
+ * to be, because the public surface is now the larger and faster-growing one:
+ * with an allow-list, every new marketing page needs a matching edit here, and
+ * forgetting one hides a public page behind a login wall. Erring in this
+ * direction is also the safer one — this is not the only gate. Every page under
+ * (app) goes through requireUser(), and RLS is what actually protects the data.
+ */
 
 /**
  * Refreshes the Supabase session on every request and gates protected routes.
@@ -21,7 +29,7 @@ export default async function proxy(request: NextRequest) {
   if (PREVIEW) {
     if (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')) {
       const url = request.nextUrl.clone();
-      url.pathname = '/';
+      url.pathname = AFTER_LOGIN;
       url.search = '';
       return NextResponse.redirect(url);
     }
@@ -51,19 +59,18 @@ export default async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  if (!user && !isPublic) {
+  if (!user && isProtectedPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     // Come back here after signing in.
-    if (pathname !== '/') url.searchParams.set('next', pathname);
+    url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);
   }
 
   if (user && (pathname === '/login' || pathname === '/signup')) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = AFTER_LOGIN;
     url.search = '';
     return NextResponse.redirect(url);
   }

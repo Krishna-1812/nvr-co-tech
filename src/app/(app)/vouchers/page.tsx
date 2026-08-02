@@ -1,15 +1,25 @@
 import Link from 'next/link';
-import { FileText, Plus, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, Plus, Download } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { isAdmin, VOUCHER_STATUSES, STATUS_META } from '@/lib/domain/workflow';
 import { parseFilters, applyVoucherFilters, hasFilters } from '@/lib/domain/voucherQuery';
 import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Card, EmptyState } from '@/components/ui/primitives';
+import { PageHeader } from '@/components/PageHeader';
+import {
+  buttonClass,
+  Card,
+  DataTable,
+  EmptyState,
+  Td,
+  Th,
+  Thead,
+  Tr,
+} from '@/components/ui/primitives';
 import { VoucherFilters } from './VoucherFilters';
 import type { VoucherListRow } from '@/lib/domain/rows';
 
-export const metadata = { title: 'Vouchers · NVR Voucher' };
+export const metadata = { title: 'Vouchers' };
 
 const PAGE_SIZE = 25;
 
@@ -69,36 +79,41 @@ export default async function VouchersPage({
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Vouchers</h1>
-          <p className="text-muted mt-1 text-sm">
-            {total} voucher{total === 1 ? '' : 's'}
+      <PageHeader
+        eyebrow="Register"
+        title="Vouchers"
+        description={
+          <>
+            <span className="numeric font-semibold text-[var(--text-c)]">{total}</span> voucher
+            {total === 1 ? '' : 's'}
             {isAdmin(user.role) ? ' across all users' : ''}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {/*
-            The export carries the active filters, so it downloads exactly the
-            rows on screen. v1 had no filters and dumped everything.
-          */}
-          <a
-            href={`/vouchers/export${exportQuery ? `?${exportQuery}` : ''}`}
-            className="surface inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition hover:bg-[var(--surface-sunken)] aria-disabled:pointer-events-none aria-disabled:opacity-50"
-            aria-disabled={total === 0}
-          >
-            <Download className="size-4" aria-hidden />
-            Export{hasActiveFilters ? ' these' : ''}
-          </a>
-          <Link
-            href="/vouchers/new"
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
-          >
-            <Plus className="size-4" aria-hidden />
-            New voucher
-          </Link>
-        </div>
-      </header>
+            {hasActiveFilters ? ' matching the current filters' : ''}.
+          </>
+        }
+        action={
+          <>
+            {/*
+              The export carries the active filters, so it downloads exactly the
+              rows on screen. v1 had no filters and dumped everything.
+            */}
+            <a
+              href={`/vouchers/export${exportQuery ? `?${exportQuery}` : ''}`}
+              className={buttonClass()}
+              aria-disabled={total === 0}
+            >
+              <Download className="size-4" aria-hidden />
+              Export{hasActiveFilters ? ' these' : ''}
+            </a>
+            <Link
+              href="/vouchers/new"
+              className={buttonClass({ variant: 'primary', className: 'group' })}
+            >
+              <Plus className="size-4 transition-transform group-hover:rotate-90" aria-hidden />
+              New voucher
+            </Link>
+          </>
+        }
+      />
 
       <VoucherFilters
         chapters={(chapters ?? []) as { id: string; name: string }[]}
@@ -108,77 +123,120 @@ export default async function VouchersPage({
       <Card className="overflow-hidden">
         {rows.length === 0 ? (
           <EmptyState
-            icon={<FileText className="size-8" />}
-            title={sp.q || sp.status ? 'Nothing matches those filters' : 'No vouchers yet'}
+            icon={<FileText className="size-6" />}
+            title={hasActiveFilters ? 'Nothing matches those filters' : 'No vouchers yet'}
             description={
-              sp.q || sp.status
+              hasActiveFilters
                 ? 'Try clearing the search or choosing a different status.'
                 : 'Create your first payment voucher to get started.'
             }
+            action={
+              hasActiveFilters ? (
+                <Link href="/vouchers" className={buttonClass()}>
+                  Clear filters
+                </Link>
+              ) : (
+                <Link href="/vouchers/new" className={buttonClass({ variant: 'primary' })}>
+                  <Plus className="size-4" aria-hidden />
+                  New voucher
+                </Link>
+              )
+            }
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="surface-sunken text-subtle text-xs">
-                <tr>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Voucher</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Payee</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Chapter</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Date</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Status</th>
-                  <th scope="col" className="px-4 py-2.5 text-right font-semibold">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {rows.map((v) => (
-                  <tr key={v.id} className="transition hover:bg-[var(--surface-sunken)]">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/vouchers/${v.id}`}
-                        className="numeric font-medium hover:text-brand-600 hover:underline"
-                      >
-                        {v.voucher_no ?? 'Draft'}
-                      </Link>
-                    </td>
-                    <td className="text-muted max-w-48 truncate px-4 py-3">{v.paid_to ?? '—'}</td>
-                    <td className="text-muted px-4 py-3">{v.chapter?.name ?? '—'}</td>
-                    <td className="text-muted px-4 py-3">{fmtDate(v.date) || '—'}</td>
-                    <td className="px-4 py-3">
+          <DataTable>
+            <caption className="sr-only">
+              Vouchers, newest first. Page {page} of {pages}.
+            </caption>
+            <Thead>
+              <tr>
+                <Th>Voucher</Th>
+                <Th className="hidden md:table-cell">Payee</Th>
+                <Th className="hidden lg:table-cell">Chapter</Th>
+                <Th className="hidden md:table-cell">Date</Th>
+                <Th className="hidden sm:table-cell">Status</Th>
+                <Th align="right">Amount</Th>
+              </tr>
+            </Thead>
+            <tbody className="divide-y">
+              {rows.map((v) => (
+                <Tr key={v.id} className="group">
+                  <Td>
+                    <Link
+                      href={`/vouchers/${v.id}`}
+                      className="numeric font-medium transition group-hover:text-brand-600 group-hover:underline dark:group-hover:text-brand-300"
+                    >
+                      {v.voucher_no ?? 'Draft'}
+                    </Link>
+                    {/*
+                      Payee, chapter, date and status each get a column once
+                      there is room. On a phone they fold into this cell, so the
+                      row is two columns wide and the amount — the reason anyone
+                      opens this list — is never the thing pushed off-screen.
+                    */}
+                    <p className="text-subtle mt-0.5 max-w-40 truncate text-xs md:hidden">
+                      {[v.paid_to, v.chapter?.name, fmtDate(v.date)].filter(Boolean).join(' · ') ||
+                        '—'}
+                    </p>
+                    <div className="mt-1.5 sm:hidden">
                       <StatusBadge status={v.status} size="sm" />
-                    </td>
-                    <td className="numeric px-4 py-3 text-right font-semibold">
-                      {fmtRupees(v.grand_total)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </Td>
+                  <Td className="text-muted hidden max-w-48 truncate md:table-cell">
+                    {v.paid_to ?? '—'}
+                  </Td>
+                  <Td className="text-muted hidden max-w-40 truncate lg:table-cell">
+                    {v.chapter?.name ?? '—'}
+                  </Td>
+                  <Td className="text-muted numeric hidden whitespace-nowrap md:table-cell">
+                    {fmtDate(v.date) || '—'}
+                  </Td>
+                  <Td className="hidden sm:table-cell">
+                    <StatusBadge status={v.status} size="sm" />
+                  </Td>
+                  <Td align="right" className="amount font-semibold whitespace-nowrap">
+                    {fmtRupees(v.grand_total)}
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </DataTable>
         )}
       </Card>
 
       {pages > 1 && (
-        <nav className="flex items-center justify-between" aria-label="Pagination">
+        <nav className="flex flex-wrap items-center justify-between gap-3" aria-label="Pagination">
+          {/*
+            The row range matters more than the page number: it tells you where
+            you are in the register, which "page 3 of 9" does not.
+          */}
           <p className="text-muted text-sm">
-            Page {page} of {pages}
+            Showing <span className="numeric font-medium">{from + 1}</span>–
+            <span className="numeric font-medium">{Math.min(from + PAGE_SIZE, total)}</span> of{' '}
+            <span className="numeric font-medium">{total}</span>
           </p>
-          <div className="flex gap-2">
-            {page > 1 && (
-              <Link
-                href={pageHref(page - 1)}
-                className="surface inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium transition hover:bg-[var(--surface-sunken)]"
-              >
-                Previous
-              </Link>
-            )}
-            {page < pages && (
-              <Link
-                href={pageHref(page + 1)}
-                className="surface inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium transition hover:bg-[var(--surface-sunken)]"
-              >
-                Next
-              </Link>
-            )}
+          <div className="flex items-center gap-2">
+            <Link
+              href={pageHref(page - 1)}
+              aria-disabled={page === 1}
+              tabIndex={page === 1 ? -1 : undefined}
+              className={buttonClass({ size: 'sm', className: 'h-9 px-3 text-sm' })}
+            >
+              <ChevronLeft className="size-4" aria-hidden />
+              Previous
+            </Link>
+            <span className="text-subtle numeric px-1 text-sm">
+              {page} / {pages}
+            </span>
+            <Link
+              href={pageHref(page + 1)}
+              aria-disabled={page === pages}
+              tabIndex={page === pages ? -1 : undefined}
+              className={buttonClass({ size: 'sm', className: 'h-9 px-3 text-sm' })}
+            >
+              Next
+              <ChevronRight className="size-4" aria-hidden />
+            </Link>
           </div>
         </nav>
       )}

@@ -1,10 +1,10 @@
 import { Trash2 } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { type VoucherStatus } from '@/lib/domain/workflow';
-import { Card, EmptyState } from '@/components/ui/primitives';
+import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
 import { DeletedRow } from './DeletedRow';
 
-export const metadata = { title: 'Deleted vouchers · NVR Voucher' };
+export const metadata = { title: 'Deleted vouchers' };
 
 export type DeletedVoucher = {
   id: string;
@@ -41,38 +41,45 @@ export default async function AdminDeletedPage() {
 
   return (
     <Card className="overflow-hidden">
+      <CardTitle
+        icon={<Trash2 className="size-4" />}
+        title="Recycle bin"
+        description={
+          rows.length === 0
+            ? 'Nothing is waiting to be restored.'
+            : `${rows.length} deleted voucher${rows.length === 1 ? '' : 's'}`
+        }
+      />
       {rows.length === 0 ? (
         <EmptyState
-          icon={<Trash2 className="size-8" />}
+          icon={<Trash2 className="size-6" />}
           title="Nothing has been deleted"
           description="Deleted vouchers land here, and can be restored until they are permanently removed."
         />
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="surface-sunken text-subtle text-xs">
-                <tr>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Voucher</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Payee</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Raised by</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Deleted</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Was</th>
-                  <th scope="col" className="px-4 py-2.5 text-right font-semibold">Amount</th>
-                  <th scope="col" className="px-4 py-2.5 text-right font-semibold">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {rows.map((v) => (
-                  <DeletedRow key={v.id} voucher={v} />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable>
+            <Thead>
+              <tr>
+                <Th>Voucher</Th>
+                <Th className="hidden md:table-cell">Payee</Th>
+                <Th className="hidden lg:table-cell">Raised by</Th>
+                <Th className="hidden sm:table-cell">Deleted</Th>
+                <Th className="hidden sm:table-cell">Was</Th>
+                <Th align="right">Amount</Th>
+                <Th align="right">
+                  <span className="sr-only">Actions</span>
+                </Th>
+              </tr>
+            </Thead>
+            <tbody className="divide-y">
+              {rows.map((v) => (
+                <DeletedRow key={v.id} voucher={v} />
+              ))}
+            </tbody>
+          </DataTable>
 
-          <p className="text-subtle border-t px-5 py-3 text-xs">
+          <p className="text-subtle border-t px-5 py-3 text-xs text-pretty">
             A voucher that was ever approved cannot be permanently deleted — removing it would erase
             the record of who approved it. Those stay here indefinitely.
           </p>

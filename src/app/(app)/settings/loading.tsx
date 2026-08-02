@@ -1,12 +1,40 @@
 import { Card } from '@/components/ui/primitives';
-import { HeaderSkeleton } from '@/components/ui/Skeletons';
+import { Bar, HeaderSkeleton } from '@/components/ui/Skeletons';
 
+/**
+ * Shaped rather than three grey blocks: the profile card opens with a brand band
+ * and an avatar, and the two below it are a heading over a list of rows.
+ */
 export default function SettingsLoading() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6" aria-busy="true" aria-label="Loading">
       <HeaderSkeleton withAction={false} />
-      {[0, 1, 2].map((i) => (
-        <Card key={i} className="h-40 animate-[shimmer_1.8s_ease-in-out_infinite]" />
+
+      <Card className="overflow-hidden">
+        <div aria-hidden className="gradient-brand h-20 w-full opacity-40" />
+        <div className="flex items-end gap-4 px-5 pb-4">
+          <span className="-mt-8 size-16 shrink-0 rounded-2xl border-4 border-[var(--surface-raised)] bg-[var(--surface-sunken)]" />
+          <div className="w-full max-w-xs space-y-2 pb-1">
+            <Bar className="h-4 w-40" />
+            <Bar className="h-3 w-52" />
+          </div>
+        </div>
+        <div className="border-t px-5 py-4">
+          <Bar className="h-10 w-full rounded-lg" />
+        </div>
+      </Card>
+
+      {[0, 1].map((i) => (
+        <Card key={i}>
+          <div className="border-b px-5 py-3.5">
+            <Bar className="h-4 w-32" delayMs={i * 70} />
+          </div>
+          <div className="space-y-2 px-5 py-4">
+            {[0, 1, 2].map((r) => (
+              <Bar key={r} className="h-11 w-full rounded-lg" delayMs={r * 70} />
+            ))}
+          </div>
+        </Card>
       ))}
     </div>
   );

@@ -2,7 +2,7 @@ import { requireUser, createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/primitives';
 import { ChaptersManager, type AdminChapter } from './ChaptersManager';
 
-export const metadata = { title: 'Chapters · NVR Voucher' };
+export const metadata = { title: 'Chapters' };
 
 /**
  * Chapters.

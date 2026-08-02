@@ -1,13 +1,34 @@
-# NVR Voucher v2
+# NVR Intelligence
 
-Payment voucher and **approval workflow** for the CIO Association, operated by N V R & Co.
+A platform of AI agents for finance work, operated by N V R & Co, Chartered Accountants.
 
-A rebuild of [`vivekgaggarnvr-crypto/NVR-Voucher`](https://github.com/vivekgaggarnvr-crypto/NVR-Voucher).
+**Voucher Desk** is the first and currently the only live agent: payment vouchers and a two-step
+**approval workflow** for the CIO Association. It is a rebuild of
+[`vivekgaggarnvr-crypto/NVR-Voucher`](https://github.com/vivekgaggarnvr-crypto/NVR-Voucher).
 All 32 business fields, the amount formulas and the printed voucher layout are preserved exactly —
 they encode a real accounting process. Everything around them is rebuilt.
 
 See [`docs/01-system-analysis.md`](docs/01-system-analysis.md) for the analysis of v1 and
 [`docs/03-rebuild-architecture.md`](docs/03-rebuild-architecture.md) for the design decisions.
+
+## Layout of the app
+
+```
+/                     public marketing site   src/app/(marketing)
+/login, /signup       auth                    src/app/(auth)
+/dashboard, /vouchers,
+/approvals, /admin,
+/settings             the signed-in product   src/app/(app)
+```
+
+`src/proxy.ts` gates the last group and nothing else — see the note there on why it is a deny-list.
+Everything the public site says about itself lives in
+[`src/lib/marketing/content.ts`](src/lib/marketing/content.ts), including the agent roster, so the
+product name and positioning are one file rather than a search-and-replace.
+
+The public site is dark always and the application follows the reader's system theme. Those are two
+separate token sets: `--m-*` under `[data-skin='night']` for marketing, and the `:root` tokens for
+the app. Neither can reach the other, which is deliberate.
 
 ---
 
@@ -123,11 +144,23 @@ Built:
 - **Excel export** — 32-column v1 contract preserved, real numbers and dates, live totals, respects the active filters
 - **Invoice attachments** — direct-to-Storage upload, signed-URL viewing, and a "no invoice attached" warning in the approval queue
 - Error, not-found and per-route loading states
+- **Public marketing site** — home, agent roster, per-agent pages, security, about, contact,
+  with a generated social card, sitemap and robots
 
-Not yet built: Google Sheets sync worker.
+Not yet built: Google Sheets sync worker. Five of the six agents on `/agents` are roadmap
+entries, and the pages say so — only Voucher Desk exists.
 
-> **Nothing here has run against a database yet.** The migrations are parse-checked
-> only, and every screen behind sign-in has been verified by typecheck, lint, tests
-> and a production build — not by looking at it. `/login` and `/signup` are the
-> exceptions; those render without a session and have been checked in both themes at
-> desktop and mobile widths.
+### Verified against a live database
+
+The migrations have been applied to a real Supabase project in Mumbai, and sign-up,
+Google OAuth, voucher creation and submission (including the generated
+`NVR/CIO/25-26/0001` number) have been exercised end to end.
+
+Still only exercised in preview mode, never against Postgres: approval and rejection —
+both need a second and third account, since the segregation-of-duties rules deliberately
+prevent one person from testing them — plus reopen, mark-paid, PDF, Excel export and
+attachment upload.
+
+> `hello@nvrco.in` and `security@nvrco.in` on `/contact` are **unverified**. They were
+> inferred from placeholder addresses in the test fixtures. Confirm both mailboxes exist
+> before sharing the site — see the note on `CONTACT` in `src/lib/marketing/content.ts`.

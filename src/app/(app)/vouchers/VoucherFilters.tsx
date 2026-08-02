@@ -42,63 +42,105 @@ export function VoucherFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  const active = params.get('status') || params.get('chapter') || params.get('q');
+  const status = params.get('status') ?? '';
+  const chapter = params.get('chapter') ?? '';
+  const query = params.get('q') ?? '';
+
+  /*
+   * What is currently narrowing the list, spelled out. Two selects sitting on
+   * "Approved" and "Indore" state that too, but only if you look at them; a row
+   * of chips is the thing you notice when a colleague sends you a filtered link
+   * and the register looks emptier than you expected.
+   */
+  const chips = [
+    // Emptying the box is enough — the debounce below turns it into a navigation,
+    // and clearing the URL here as well would push the same history entry twice.
+    query && { key: 'q', label: `“${query}”`, clear: () => setQ('') },
+    status && {
+      key: 'status',
+      label: statuses.find((s) => s.value === status)?.label ?? status,
+      clear: () => apply({ status: '' }),
+    },
+    chapter && {
+      key: 'chapter',
+      label: chapters.find((c) => c.id === chapter)?.name ?? 'Chapter',
+      clear: () => apply({ chapter: '' }),
+    },
+  ].filter(Boolean) as { key: string; label: string; clear: () => void }[];
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="relative min-w-56 flex-1">
-        <Search
-          className="text-subtle pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-          aria-hidden
-        />
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search voucher no., payee, invoice, event…"
-          className="pl-9"
-          aria-label="Search vouchers"
-        />
+    <div className="surface-lit rounded-xl p-3">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <div className="relative min-w-56 flex-1">
+          <Search
+            className="text-subtle pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+            aria-hidden
+          />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search voucher no., payee, invoice, event…"
+            className="pl-9"
+            type="search"
+            aria-label="Search vouchers"
+          />
+        </div>
+
+        <Select
+          value={status}
+          onChange={(e) => apply({ status: e.target.value })}
+          className="w-auto flex-1 sm:flex-none"
+          aria-label="Filter by status"
+        >
+          <option value="">All statuses</option>
+          {statuses.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          value={chapter}
+          onChange={(e) => apply({ chapter: e.target.value })}
+          className="w-auto flex-1 sm:flex-none"
+          aria-label="Filter by chapter"
+        >
+          <option value="">All chapters</option>
+          {chapters.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </Select>
       </div>
 
-      <Select
-        value={params.get('status') ?? ''}
-        onChange={(e) => apply({ status: e.target.value })}
-        className="w-auto"
-        aria-label="Filter by status"
-      >
-        <option value="">All statuses</option>
-        {statuses.map((s) => (
-          <option key={s.value} value={s.value}>
-            {s.label}
-          </option>
-        ))}
-      </Select>
-
-      <Select
-        value={params.get('chapter') ?? ''}
-        onChange={(e) => apply({ chapter: e.target.value })}
-        className="w-auto"
-        aria-label="Filter by chapter"
-      >
-        <option value="">All chapters</option>
-        {chapters.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </Select>
-
-      {active && (
-        <button
-          onClick={() => {
-            setQ('');
-            router.push('/vouchers');
-          }}
-          className="text-muted inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition hover:bg-[var(--surface-sunken)]"
-        >
-          <X className="size-4" aria-hidden />
-          Clear
-        </button>
+      {chips.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+          <span className="text-subtle text-[11px] font-semibold tracking-[0.06em] uppercase">
+            Filtered by
+          </span>
+          {chips.map((c) => (
+            <button
+              key={c.key}
+              onClick={c.clear}
+              className="surface-sunken text-muted inline-flex max-w-56 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+            >
+              <span className="truncate">{c.label}</span>
+              <X className="size-3 shrink-0" aria-hidden />
+              <span className="sr-only">Remove this filter</span>
+            </button>
+          ))}
+          <button
+            onClick={() => {
+              setQ('');
+              router.push('/vouchers');
+            }}
+            className="text-muted ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]"
+          >
+            Clear all
+          </button>
+        </div>
       )}
     </div>
   );

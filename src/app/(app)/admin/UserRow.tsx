@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type CSSProperties } from 'react';
 import { toast } from 'sonner';
 import { setUserRole } from '@/app/actions/admin';
 import { ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
-import { Select } from '@/components/ui/primitives';
+import { Select, Td, Tr } from '@/components/ui/primitives';
 import type { AdminUser } from './page';
 
-const ROLE_STYLE: Record<UserRole, string> = {
-  member: 'bg-[var(--surface-sunken)] text-[var(--text-muted)]',
-  approver: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
-  admin: 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300',
-  owner: 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200',
+/** The same token-mixed chips as StatusBadge, so a role reads like a status. */
+const ROLE_TONE: Record<UserRole, string> = {
+  member: 'var(--status-draft)',
+  approver: 'var(--status-approved)',
+  admin: 'var(--status-pending)',
+  owner: 'var(--color-brand-500)',
 };
 
 export function UserRow({
@@ -53,21 +54,44 @@ export function UserRow({
     });
   };
 
-  return (
-    <tr className="transition hover:bg-[var(--surface-sunken)]">
-      <td className="px-4 py-3">
-        <p className="font-medium">
-          {user.full_name ?? user.email.split('@')[0]}
-          {isSelf && <span className="text-subtle ml-1.5 text-xs font-normal">(you)</span>}
-        </p>
-        <p className="text-subtle truncate text-xs">{user.email}</p>
-      </td>
+  const initials =
+    (user.full_name ?? user.email)
+      .split(/[\s@.]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((s) => s[0]?.toUpperCase())
+      .join('') || '?';
 
-      <td className="px-4 py-3">
+  return (
+    <Tr>
+      <Td>
+        <div className="flex items-center gap-3">
+          {/*
+            An initials disc rather than a photo: there is no avatar upload, and
+            a column of plain names is much harder to find yourself in.
+          */}
+          <span
+            aria-hidden
+            className="surface-sunken text-muted grid size-8 shrink-0 place-items-center rounded-full border text-[11px] font-bold"
+          >
+            {initials}
+          </span>
+          <div className="min-w-0">
+            <p className="font-medium">
+              {user.full_name ?? user.email.split('@')[0]}
+              {isSelf && <span className="text-subtle ml-1.5 text-xs font-normal">(you)</span>}
+            </p>
+            <p className="text-subtle truncate text-xs">{user.email}</p>
+          </div>
+        </div>
+      </Td>
+
+      <Td>
         {locked ? (
           <span
             title={lockReason}
-            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${ROLE_STYLE[role]}`}
+            style={{ '--tone': ROLE_TONE[role] } as CSSProperties}
+            className="tinted inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold capitalize"
           >
             {role}
           </span>
@@ -86,14 +110,18 @@ export function UserRow({
             ))}
           </Select>
         )}
-        <p className="text-subtle mt-1 text-xs">{ROLE_META[role].grants}</p>
-      </td>
+        <p className="text-subtle mt-1 max-w-56 text-xs text-pretty">{ROLE_META[role].grants}</p>
+      </Td>
 
-      <td className="numeric text-muted px-4 py-3 text-right">{voucherCount || '—'}</td>
+      <Td align="right" className="numeric text-muted hidden sm:table-cell">
+        {voucherCount || '—'}
+      </Td>
 
-      <td className="px-4 py-3">
-        {locked && lockReason && <span className="text-subtle text-xs">{lockReason}</span>}
-      </td>
-    </tr>
+      <Td className="hidden md:table-cell">
+        {locked && lockReason && (
+          <span className="text-subtle max-w-40 text-xs text-pretty">{lockReason}</span>
+        )}
+      </Td>
+    </Tr>
   );
 }

@@ -77,7 +77,7 @@ export function VoucherPipeline({ rows }: { rows: PipelineRow[] }) {
   return (
     <div className="space-y-4">
       <div
-        className="flex h-2.5 gap-1 overflow-hidden"
+        className="flex h-3 gap-1 overflow-hidden"
         role="img"
         aria-label={present.map((s) => `${s.count} ${s.label}`).join(', ')}
       >
@@ -90,23 +90,30 @@ export function VoucherPipeline({ rows }: { rows: PipelineRow[] }) {
         ))}
       </div>
 
-      <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/*
+        Each stage is its own tile rather than a line in a list: the count and
+        the money at that stage are two different questions ("how much work is
+        stuck here" and "how much value is stuck here") and both get read.
+      */}
+      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {present.map((s) => (
           <li key={s.key}>
             <Link
               href={s.href}
-              className="group flex items-baseline gap-2.5 rounded-lg py-0.5 transition"
+              className="surface-sunken group flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 transition hover:border-[var(--border-c)] hover:bg-[var(--surface-raised)]"
             >
               <span
                 aria-hidden
-                className="size-2 shrink-0 translate-y-[-1px] rounded-full"
+                className="h-8 w-1 shrink-0 rounded-full"
                 style={{ background: s.color }}
               />
-              <span className="text-sm font-medium group-hover:text-brand-600 group-hover:underline">
-                {s.label}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-xs font-medium group-hover:text-brand-600">
+                  {s.label}
+                </span>
+                <span className="numeric text-subtle block text-xs">{fmtRupees(s.value)}</span>
               </span>
-              <span className="numeric text-sm font-semibold">{s.count}</span>
-              <span className="numeric text-subtle ml-auto text-xs">{fmtRupees(s.value)}</span>
+              <span className="numeric shrink-0 text-lg font-bold">{s.count}</span>
             </Link>
           </li>
         ))}
