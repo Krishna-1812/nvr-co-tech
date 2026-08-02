@@ -6,8 +6,8 @@ A rebuild of [`vivekgaggarnvr-crypto/NVR-Voucher`](https://github.com/vivekgagga
 All 32 business fields, the amount formulas and the printed voucher layout are preserved exactly —
 they encode a real accounting process. Everything around them is rebuilt.
 
-See [`../docs/01-system-analysis.md`](../docs/01-system-analysis.md) for the analysis of v1 and
-[`../docs/03-rebuild-architecture.md`](../docs/03-rebuild-architecture.md) for the design decisions.
+See [`docs/01-system-analysis.md`](docs/01-system-analysis.md) for the analysis of v1 and
+[`docs/03-rebuild-architecture.md`](docs/03-rebuild-architecture.md) for the design decisions.
 
 ---
 
@@ -71,9 +71,20 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · Supabase · 
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in your Supabase + Google values
+cp .env.example .env.local   # fill in your Supabase values
 npm run dev
 ```
+
+### Looking at it without a database
+
+Set `NEXT_PUBLIC_PREVIEW_MODE=1` in `.env.local` and run `npm run dev`. The app
+runs on fixtures with no Supabase at all, signed in as an owner, so every screen
+is reachable. An amber banner marks it throughout.
+
+It bypasses authentication, so it cannot be enabled on a deployed instance: it
+requires a non-production build as well as the flag, and `next build` / `next start`
+both set `NODE_ENV=production`. It also proves nothing — RLS, the triggers, the
+generated columns and the constraints are all absent. See `src/lib/preview/`.
 
 Apply the migrations in order (`supabase/migrations/0001` → `0005`) via the Supabase SQL editor or
 `supabase db push`, then promote your first account:
