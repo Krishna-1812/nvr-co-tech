@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { PREVIEW } from '@/lib/preview';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/auth'];
 
@@ -11,6 +12,22 @@ const PUBLIC_PATHS = ['/login', '/signup', '/auth'];
  * before redirecting. Here an unauthenticated request never reaches the page.
  */
 export default async function proxy(request: NextRequest) {
+  /*
+   * Preview mode has no session to refresh and no real user to gate on, so the
+   * whole check is skipped. This is an authentication bypass by definition —
+   * see lib/preview/index.ts for the two conditions that must both hold before
+   * PREVIEW can ever be true, one of which is "not a production build".
+   */
+  if (PREVIEW) {
+    if (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

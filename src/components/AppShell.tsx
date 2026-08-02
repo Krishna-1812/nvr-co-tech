@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { FileText, LayoutDashboard, Inbox, Settings, Users, Plus } from 'lucide-react';
+import { FileText, LayoutDashboard, Inbox, Settings, Users, Plus, FlaskConical } from 'lucide-react';
 import { canApprove, isAdmin, type UserRole } from '@/lib/domain/workflow';
+import { PREVIEW } from '@/lib/preview';
 import { NavLink } from './NavLink';
 import { UserMenu } from './UserMenu';
 
@@ -32,6 +33,16 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(70%_50%_at_50%_-10%,var(--color-brand-500),transparent)] opacity-[0.07]"
       />
+
+      {PREVIEW && (
+        <div className="flex items-center justify-center gap-2 bg-amber-400 px-4 py-1.5 text-center text-xs font-semibold text-amber-950">
+          <FlaskConical className="size-3.5 shrink-0" aria-hidden />
+          <span>
+            Preview — sample data, no database. Approvals here are checked by the browser, not by
+            Postgres.
+          </span>
+        </div>
+      )}
 
       <header className="glass sticky top-0 z-40 border-b">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">

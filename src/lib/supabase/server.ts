@@ -1,12 +1,19 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from './types';
+import { PREVIEW } from '@/lib/preview';
+import { createPreviewClient } from '@/lib/preview/client';
 
 /**
  * Supabase client for Server Components, Server Actions and Route Handlers.
  * Reads the session from cookies, so RLS applies as the signed-in user.
  */
 export async function createClient() {
+  // Preview mode: no database, no RLS, fixtures instead. Dev builds only.
+  if (PREVIEW) {
+    return createPreviewClient() as unknown as ReturnType<typeof createServerClient<Database>>;
+  }
+
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
