@@ -4,11 +4,19 @@
  * no longer that place — it is the marketing home page.
  */
 
-/** Where signing in goes when there is nothing specific to return to. */
-export const AFTER_LOGIN = '/dashboard';
+/**
+ * Where signing in goes when there is nothing specific to return to.
+ *
+ * The hub, not the voucher dashboard. Signing in gets you into the platform, and
+ * the platform is a growing set of tools of which Voucher Desk is one. Landing
+ * straight on the voucher dashboard made the whole of NVR Intelligence look like
+ * one application with an odd marketing site attached.
+ */
+export const AFTER_LOGIN = '/hub';
 
 /** The signed-in application. Everything not under one of these is public. */
 export const PROTECTED_PREFIXES = [
+  '/hub',
   '/dashboard',
   '/vouchers',
   '/approvals',

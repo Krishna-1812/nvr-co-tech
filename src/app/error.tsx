@@ -54,10 +54,10 @@ export default function AppError({
             Try again
           </Button>
           <Link
-            href="/"
+            href="/hub"
             className="surface elev-1 inline-flex h-10 items-center rounded-lg border-[var(--border-strong)] px-4 text-sm font-semibold transition hover:bg-[var(--surface-sunken)]"
           >
-            Back to dashboard
+            Your workspace
           </Link>
         </div>
       </div>

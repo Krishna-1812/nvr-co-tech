@@ -242,6 +242,37 @@
   --a-rail: 4.75rem;
 }
 
+/* ═══ Solution accents ══════════════════════════════════════════════════════
+ *
+ * One colour per tool on the hub, so eight cards in a grid are told apart before
+ * any of them is read. The marketing site has these already as --m-*, but those
+ * are scoped to [data-skin='night'] and the hub is inside the app, which follows
+ * the reader's theme.
+ *
+ * Written with light-dark() rather than as a fifth copy of the token block. Every
+ * root state in this file already declares the colour scheme it means — dark from
+ * the media query, dark from data-theme, light from data-theme, dark from the
+ * night skin, and the bare :root left at `normal`, which resolves light — so one
+ * declaration per accent is correct in all five. That is worth the modern-CSS
+ * dependency here (Baseline 2024, and this file already relies on color-mix,
+ * oklch and mask-composite).
+ *
+ * The light values are around L 0.55 because these are read as text and as 1px
+ * edges on white paper; the dark ones sit near L 0.78 for the same reason on
+ * near-black. Same hue, opposite ends, and neither is a tint of the other.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --h-indigo:  light-dark(oklch(0.508 0.158 274), oklch(0.700 0.170 274));
+  --h-violet:  light-dark(oklch(0.520 0.190 300), oklch(0.740 0.175 300));
+  --h-cyan:    light-dark(oklch(0.555 0.110 205), oklch(0.800 0.130 205));
+  --h-emerald: light-dark(oklch(0.530 0.130 165), oklch(0.790 0.140 165));
+  --h-amber:   light-dark(oklch(0.560 0.130 68),  oklch(0.820 0.150 68));
+  --h-rose:    light-dark(oklch(0.550 0.180 15),  oklch(0.745 0.160 15));
+  --h-lime:    light-dark(oklch(0.535 0.140 130), oklch(0.810 0.150 130));
+  --h-magenta: light-dark(oklch(0.540 0.200 330), oklch(0.745 0.180 330));
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --a-glow-1: oklch(0.640 0.180 274 / 0.34);

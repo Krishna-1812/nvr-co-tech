@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
   CornerDownLeft,
+  LayoutGrid,
   LogOut,
   Monitor,
   Moon,
@@ -101,6 +102,17 @@ export function CommandPalette({ role }: { role: UserRole }) {
         group: 'Go to',
         run: go(item.href),
       })),
+      // Out of Voucher Desk and back up to the platform. Last in the group on
+      // purpose: it is the one destination here that leaves this tool.
+      {
+        id: 'go-hub',
+        label: 'All solutions',
+        hint: 'Every tool the firm runs',
+        icon: LayoutGrid,
+        group: 'Go to',
+        keywords: 'hub workspace home agents platform switch',
+        run: go('/hub'),
+      },
       ...VOUCHER_STATUSES.map((status) => ({
         id: `filter-${status}`,
         label: STATUS_META[status].label,

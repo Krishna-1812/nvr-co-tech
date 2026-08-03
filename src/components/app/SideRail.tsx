@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
+import { LayoutGrid, Plus } from 'lucide-react';
 import type { NavItem } from '@/lib/nav';
 import type { Fiscal } from '@/lib/fiscal';
 import { BRAND } from '@/lib/marketing/content';
@@ -26,8 +26,8 @@ export function SideRail({ nav, fiscal }: { nav: NavItem[]; fiscal: Fiscal }) {
       aria-label="Sections"
       className="a-glass fixed inset-y-0 left-0 z-40 hidden w-[var(--a-rail)] flex-col border-r transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
     >
-      {/* ── Brand ── */}
-      <div className="a-rail-item flex h-16 shrink-0 items-center gap-2.5 border-b px-4">
+      {/* ── Brand, and the way back up to the workspace ── */}
+      <div className="a-rail-item flex h-16 shrink-0 items-center gap-2 border-b px-4">
         <Link href="/dashboard" className="group flex min-w-0 items-center gap-2.5">
           <LogoMark
             id="rail-mark"
@@ -39,6 +39,21 @@ export function SideRail({ nav, fiscal }: { nav: NavItem[]; fiscal: Fiscal }) {
             </span>
             <span className="text-subtle mt-1 block truncate text-[10px]">{BRAND.name}</span>
           </span>
+        </Link>
+
+        {/*
+          Voucher Desk is one tool inside the platform, so there has to be a door
+          back out of it. Wide only: at 4.75rem the mark itself is the only thing
+          that fits, and the account menu carries the same destination at every
+          width for that reason.
+        */}
+        <Link
+          href="/hub"
+          title="All solutions"
+          className="a-rail-wide text-subtle ml-auto grid size-7 shrink-0 place-items-center rounded-lg transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]"
+        >
+          <LayoutGrid className="size-[15px]" aria-hidden />
+          <span className="sr-only">All solutions</span>
         </Link>
       </div>
 

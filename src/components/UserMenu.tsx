@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { LogOut, Moon, Sun, Monitor, Settings } from 'lucide-react';
+import { LayoutGrid, LogOut, Moon, Sun, Monitor, Settings } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_META, type UserRole } from '@/lib/domain/workflow';
 import { setTheme, useTheme } from '@/lib/theme';
@@ -95,6 +95,22 @@ export function UserMenu({
               ))}
             </div>
           </div>
+
+          {/*
+            The workspace. This menu is the one piece of chrome both shells share,
+            which makes it the only place the door back up is guaranteed to be
+            reachable — the rail carries it too, but the rail is gone below `lg`
+            and hidden when collapsed.
+          */}
+          <DropdownMenu.Item asChild>
+            <Link
+              href="/hub"
+              className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--surface-sunken)]"
+            >
+              <LayoutGrid className="size-4" aria-hidden />
+              All solutions
+            </Link>
+          </DropdownMenu.Item>
 
           <DropdownMenu.Item asChild>
             <Link

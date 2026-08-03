@@ -1,4 +1,3 @@
-import { FlaskConical } from 'lucide-react';
 import type { UserRole } from '@/lib/domain/workflow';
 import { appNav } from '@/lib/nav';
 import { fiscalYear, istLongDate, istToday } from '@/lib/fiscal';
@@ -7,6 +6,7 @@ import { Backdrop } from './app/Backdrop';
 import { SideRail } from './app/SideRail';
 import { TopBar } from './app/TopBar';
 import { MobileDock } from './app/MobileDock';
+import { PreviewBanner } from './app/PreviewBanner';
 
 type Props = {
   user: { id: string; email: string; full_name: string | null; role: UserRole };
@@ -67,23 +67,6 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
       </div>
 
       <MobileDock nav={nav} />
-    </div>
-  );
-}
-
-/**
- * Sample-data warning. Loud on purpose: in preview mode the approval rules are
- * being checked by this browser rather than by Postgres, and anyone shown a demo
- * needs to know that nothing they see was actually enforced.
- */
-function PreviewBanner() {
-  return (
-    <div className="flex items-center justify-center gap-2 bg-amber-400 px-4 py-1.5 text-center text-xs font-semibold text-amber-950">
-      <FlaskConical className="size-3.5 shrink-0" aria-hidden />
-      <span>
-        Preview — sample data, no database. Approvals here are checked by the browser, not by
-        Postgres.
-      </span>
     </div>
   );
 }

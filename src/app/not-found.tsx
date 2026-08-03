@@ -27,11 +27,13 @@ export default function NotFound() {
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-2">
+          {/* The workspace, not `/`. This page talks about vouchers, so whoever is
+              reading it is signed in, and `/` is the public home page. */}
           <Link
-            href="/"
+            href="/hub"
             className="gradient-brand elev-brand inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-white transition hover:brightness-110"
           >
-            Back to dashboard
+            Your workspace
           </Link>
           <Link
             href="/vouchers"
