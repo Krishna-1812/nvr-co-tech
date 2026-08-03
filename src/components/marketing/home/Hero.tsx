@@ -42,9 +42,10 @@ export function Hero() {
 
             <Rise delay={380}>
               <p className="m-dim mt-7 max-w-lg text-[15px] leading-relaxed sm:text-[17px]">
-                Our tools fill in the forms, work out the tax and pass each job to the right person.
-                When it is time to approve something you get the whole picture, and you decide. Every
-                step is saved, so you can always see who did what.
+                One tool for each job your team repeats every month. Raising payments, matching GST,
+                working out TDS, agreeing the bank. They fill in the forms, do the arithmetic and
+                pass the work to the right person, then you decide. One is live today and the rest
+                are on the way.
               </p>
             </Rise>
 
@@ -69,6 +70,14 @@ export function Hero() {
             <Tilt>
               <VoucherPanel />
             </Tilt>
+            {/*
+              Names what the panel is. Without this line the page opens on a
+              voucher and reads as a voucher product, which is one sixth of
+              what it is.
+            */}
+            <p className="m-dim-2 mt-5 text-center text-[11.5px] leading-relaxed">
+              Above: Voucher Desk, the one you can use today. Five more are on the way.
+            </p>
           </Rise>
         </div>
 
@@ -79,7 +88,7 @@ export function Hero() {
               className="size-3 animate-[breathe_3.4s_ease-in-out_infinite] motion-reduce:animate-none"
               aria-hidden
             />
-            Follow one voucher through
+            See the whole month of work
           </p>
         </Rise>
       </Container>

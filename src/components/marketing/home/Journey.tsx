@@ -37,12 +37,16 @@ export function Journey() {
         <Reveal>
           <Eyebrow className="mb-4">How it works</Eyebrow>
           <h2 className="m-display max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
-            One voucher, <span className="m-serif m-grad-text">start to finish.</span>
+            One job, <span className="m-serif m-grad-text">start to finish.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
             Four steps. The software does the first two, because they are only rules. A person does
             the third, because it is a decision. The fourth is the record, and after that nobody can
             change it.
+          </p>
+          <p className="m-dim-2 mt-4 max-w-2xl text-[13.5px] leading-relaxed">
+            The example below is a payment going through Voucher Desk, since that is the tool you can
+            use today. Every one after it is built the same way, with different rules in step two.
           </p>
         </Reveal>
       </Container>

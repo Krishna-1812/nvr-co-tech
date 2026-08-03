@@ -126,7 +126,9 @@ export default function OpengraphImage() {
             paddingTop: 26,
           }}
         >
-          {['Two approvals, two people', 'Rules live in the database', 'Hosted in Mumbai'].map((t) => (
+          {/* The three chips carry the breadth, since the headline cannot. A
+              card that names only approvals reads as one product. */}
+          {['Payments, GST, TDS, bank', 'One set of records', 'Hosted in Mumbai'].map((t) => (
             <span
               key={t}
               style={{

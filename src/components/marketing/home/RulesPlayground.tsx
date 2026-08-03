@@ -66,9 +66,10 @@ export function RulesPlayground() {
             Move the numbers. <span className="m-serif m-grad-text">See what happens.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
-            The sums below are worked out by the same code the real voucher form uses, and the
-            database checks them again when you save. This is not a pretend calculator. It is the
-            actual working.
+            GST and TDS turn up in nearly every job on that list, so the working lives in one place
+            and every tool calls it. The sums below run that code, the same code the voucher form
+            uses, and the database checks the answer again when you save. This is not a pretend
+            calculator. It is the actual working.
           </p>
         </Reveal>
 

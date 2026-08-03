@@ -27,12 +27,12 @@ export function AgentGrid() {
             eyebrow="The agents"
             title={
               <>
-                One tool today.
+                Six jobs off your desk.
                 <br />
-                <span className="m-serif m-dim">More on the way.</span>
+                <span className="m-serif m-dim">One is live. Five are coming.</span>
               </>
             }
-            lead="Each one takes a job your team already does every month and handles it from start to finish. They all share the same records, the same permissions and the same history, so adding another does not mean another system to keep in step."
+            lead="Each one takes a job your team already does every month and carries it from the document arriving to the record closing. What goes in and what comes out is on every card, so you can tell straight away which one is worth a conversation."
             className="max-w-2xl"
           />
           <ArrowLink href="/agents" className="mb-2">
@@ -76,6 +76,13 @@ export function AgentGrid() {
                     {agent.summary}
                   </p>
 
+                  {/* What goes in and what comes out, so six cards read as six
+                      different jobs rather than six paragraphs of pitch. */}
+                  <dl className="relative mt-5 space-y-2 border-t border-[var(--m-line)] pt-4">
+                    <Flow label="In" value={agent.inputs} />
+                    <Flow label="Out" value={agent.outputs} accent={ACCENT[agent.accent]} />
+                  </dl>
+
                   <span
                     className="m-mono relative mt-6 inline-flex items-center gap-1.5 text-[10px] tracking-[0.14em] uppercase transition-colors"
                     style={{ color: 'inherit' }}
@@ -95,5 +102,20 @@ export function AgentGrid() {
         </div>
       </Container>
     </Section>
+  );
+}
+
+/** One side of an agent's job: what it is given, or what it hands back. */
+function Flow({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div className="flex gap-3">
+      <dt
+        className="m-mono w-7 shrink-0 pt-px text-[9px] tracking-[0.12em] uppercase"
+        style={{ color: accent ?? 'var(--m-dim-2)' }}
+      >
+        {label}
+      </dt>
+      <dd className="m-dim-2 min-w-0 text-[11.5px] leading-relaxed">{value}</dd>
+    </div>
   );
 }

@@ -82,7 +82,7 @@ export function ProductShowcase() {
     <Section id="product" className="overflow-hidden">
       <Container wide>
         <SectionHeading
-          eyebrow="Inside the product"
+          eyebrow="Inside Voucher Desk"
           title={
             <>
               No dashboard to work out.
@@ -90,6 +90,7 @@ export function ProductShowcase() {
               <span className="m-serif m-dim">Just a list you can get through.</span>
             </>
           }
+          lead="This is the tool that is live. The others will arrive in the same window, in the same list, so there is nothing new to learn each time one lands."
         />
 
         <Reveal delay={80} className="mt-14">

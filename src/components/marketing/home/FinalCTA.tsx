@@ -14,13 +14,14 @@ export function FinalCTA() {
       <Container className="relative text-center">
         <Reveal>
           <h2 className="m-display mx-auto max-w-3xl text-[clamp(2rem,5vw,3.5rem)]">
-            See it on <span className="m-serif m-grad-text">your</span> vouchers.
+            Start with the <span className="m-serif m-grad-text">worst</span> job on your desk.
           </h2>
         </Reveal>
         <Reveal delay={80}>
           <p className="m-dim mx-auto mt-6 max-w-xl text-[15px] leading-relaxed sm:text-base">
-            Give us half an hour. We will set it up with your own approval steps and tell you
-            honestly what it can take off your desk today, and what is still being built.
+            Tell us which one it is. Give us half an hour and we will show you the tool that covers
+            it, set up with your own people and your own approval steps. If it is not built yet we
+            will say so, and tell you what is.
           </p>
         </Reveal>
         <Reveal delay={140}>

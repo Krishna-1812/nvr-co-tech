@@ -249,6 +249,134 @@ export const STEPS = [
 ] as const;
 
 /**
+ * The finance month, and which tool takes each job.
+ *
+ * This is the roster told from the other side: instead of six products looking
+ * for a use, it is the work a finance team already repeats every month, with our
+ * name against the part we take on. It is also the honest way to show that five
+ * of the six are not built yet, because the job is real either way.
+ *
+ * `day` is the statutory date for a monthly filer, and only the three dates we
+ * are sure of are given one. Deposit TDS by the 7th of the following month,
+ * GSTR-2B is available on the 14th, GSTR-3B is due on the 20th. Anything with a
+ * date that moves with your filing frequency is left as a band instead, and the
+ * section says so under the ruler. Getting a compliance date wrong on a
+ * chartered accountant's own website is not a mistake we can afford, so nothing
+ * is stated here that is not the standard case.
+ *
+ * `agent` is a slug from AGENTS, so a tool's name and stage are never written
+ * down twice.
+ */
+export type Job = {
+  id: string;
+  /** Where it falls, in words. Shown as a chip. */
+  when: string;
+  /** 1 to 31, only for the three statutory dates. Positions it on the ruler. */
+  day?: number;
+  title: string;
+  /** How the job goes today, before any of this. */
+  now: string;
+  /** The part we take on. */
+  ours: string;
+  agent: string;
+};
+
+export const JOBS: readonly Job[] = [
+  {
+    id: 'intake',
+    when: 'All month',
+    title: 'Bills turn up from everywhere',
+    now: 'One by email, one on WhatsApp, one as a photo somebody took in a taxi. Each one gets typed into a form by hand, and the numbers get typed wrong often enough to matter.',
+    ours: 'The invoice is read for you. The supplier, the GSTIN, the invoice number and the values come back already filled in, with the original document attached to the record.',
+    agent: 'invoice-intake',
+  },
+  {
+    id: 'pay',
+    when: 'All month',
+    title: 'Payments have to be raised and signed off',
+    now: 'A form, a print, two signatures chased over WhatsApp, and a folder somebody has to keep in case anyone asks later.',
+    ours: 'The voucher is raised on screen, the tax is worked out for you, and two people approve it. Neither of them can be the person who raised it, and the record keeps its own history.',
+    agent: 'voucher-desk',
+  },
+  {
+    id: 'tds-deposit',
+    when: 'By the 7th',
+    day: 7,
+    title: 'Last month’s TDS has to be in the bank',
+    now: 'Somebody goes back through every payment working out which section applied to it, after the money has already gone out. Getting it wrong now costs interest.',
+    ours: 'The section and the rate are worked out while the voucher is still a draft. By the 7th the figure is already there, with the payments behind it listed.',
+    agent: 'tds-compliance',
+  },
+  {
+    id: 'gst-match',
+    when: 'From the 14th',
+    day: 14,
+    title: 'GSTR-2B lands and has to be matched',
+    now: 'Two spreadsheets side by side, sorted by amount, hoping the invoice numbers were typed the same way twice.',
+    ours: 'Every line of 2B matched to your purchase register on GSTIN, invoice number and value, with the near misses told apart from the real mismatches.',
+    agent: 'gst-reconciliation',
+  },
+  {
+    id: 'gst-claim',
+    when: 'By the 20th',
+    day: 20,
+    title: 'The credit you claim has to be the credit you have',
+    now: 'Settled in a rush the night before. Anything that would not match gets left for next month, and next month it is somebody else’s problem.',
+    ours: 'What you can claim, what is blocked and what is still missing, line by line and sorted by rupee value, so the follow up list starts with the biggest.',
+    agent: 'gst-reconciliation',
+  },
+  {
+    id: 'bank',
+    when: 'Month end',
+    title: 'The bank statement has to agree with the ledger',
+    now: 'A day of matching, then a difference column nobody can explain, then a suspense entry that quietly stays there.',
+    ours: 'The lines that clearly agree are cleared, including one payment that settles several invoices. What is left is a short list, and each line says why it is on it.',
+    agent: 'ledger-reconciliation',
+  },
+  {
+    id: 'quarter',
+    when: 'Quarter end',
+    title: 'The quarterly return has to be built',
+    now: 'Payments, challans and PANs pulled back together from three places, a quarter after the fact.',
+    ours: '26Q and 24Q put together from the payments already on record, with the challan details attached and the filing dates tracked.',
+    agent: 'tds-compliance',
+  },
+  {
+    id: 'audit',
+    when: 'Year end',
+    title: 'The auditor asks who approved what',
+    now: 'A week of pulling files, and an awkward gap wherever the person who signed has since left.',
+    ours: 'Ask the question in plain words and get the answer with the records behind it, so you can check it rather than take it on trust.',
+    agent: 'audit-copilot',
+  },
+];
+
+/**
+ * What the tools have in common, said plainly.
+ *
+ * The reason a finance team should want six tools from one place is not a
+ * bundle price, and this is the section that has to say what it actually is.
+ */
+export const SHARED = [
+  {
+    title: 'One sign-in',
+    body: 'The same account across every tool. Nobody keeps a second password, and nobody is left with access to something after they have moved on.',
+  },
+  {
+    title: 'One list of who can do what',
+    body: 'Four roles, set once. Being able to approve a payment means the same thing in every tool, and the database is what enforces it rather than each screen.',
+  },
+  {
+    title: 'One set of records',
+    body: 'The GST match, the TDS working and the payment all point at the same invoice and the same payee. Nothing has to be kept in step by hand.',
+  },
+  {
+    title: 'One history',
+    body: 'Every action anywhere lands in the same list, and nobody can edit or delete a line in it. One place to look when somebody asks what happened.',
+  },
+] as const;
+
+/**
  * The tax rules the interactive panel on the home page lets you drive.
  *
  * Rates only. The arithmetic is done by the application's own calcNetTotal and
