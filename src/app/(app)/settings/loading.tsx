@@ -11,13 +11,23 @@ export default function SettingsLoading() {
       <HeaderSkeleton withAction={false} />
 
       <Card className="overflow-hidden rounded-2xl">
-        <div aria-hidden className="gradient-brand h-28 w-full opacity-40" />
+        <div aria-hidden className="gradient-brand h-24 w-full opacity-40" />
         <div className="flex items-end gap-4 px-5 pb-4">
-          <span className="-mt-10 size-18 shrink-0 rounded-2xl border-4 border-[var(--surface-raised)] bg-[var(--surface-sunken)]" />
-          <div className="w-full max-w-xs space-y-2.5 pb-1">
+          <span className="-mt-9 size-18 shrink-0 rounded-2xl border-4 border-[var(--surface-raised)] bg-[var(--surface-sunken)]" />
+          <div className="w-full max-w-xs space-y-2.5 pb-0.5">
             <Bar className="h-5 w-40" />
             <Bar className="h-3.5 w-52" />
           </div>
+        </div>
+        {/* The facts strip. Three cells, because the middle one only exists for an
+            approver and guessing wrong is a visible jump either way. */}
+        <div className="grid grid-cols-3 divide-x border-t bg-[var(--surface-sunken)]">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="space-y-2 px-5 py-3.5">
+              <Bar className="h-2.5 w-16" delayMs={i * 80} />
+              <Bar className="h-6 w-12" delayMs={i * 80} />
+            </div>
+          ))}
         </div>
         <div className="border-t px-5 py-4">
           <Bar className="h-10 w-full rounded-lg" />
