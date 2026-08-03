@@ -205,7 +205,6 @@ export function agentBySlug(slug: string): Agent | undefined {
 /** Primary navigation for the public site. */
 export const NAV = [
   { href: '/agents', label: 'Agents' },
-  { href: '/security', label: 'Security' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ] as const;
@@ -249,76 +248,6 @@ export const STEPS = [
   },
 ] as const;
 
-/** Security posture, shown on the home page and expanded on /security. */
-export const CONTROLS = [
-  {
-    title: 'Permissions live in the database',
-    body: 'The database decides who can see and change each record. Even if something went wrong in the website, it could not hand out access it never had in the first place.',
-  },
-  {
-    title: 'Nobody approves their own work',
-    body: 'If you raised a voucher you cannot approve it. If you gave the first approval you cannot give the second. Both are rules inside the database, so there is no way round them.',
-  },
-  {
-    title: 'The history cannot be changed',
-    body: 'Every action is added to a list that has no way to edit or delete anything, for anyone, including us. Approved vouchers are locked. If something needs putting right, that gets added to the list too.',
-  },
-  {
-    title: 'Your data stays in India',
-    body: 'Everything runs on managed Postgres in Mumbai. Data is encrypted on the way in and while it sits there. The database structure is in our code repository if you want to read it.',
-  },
-] as const;
-
-/**
- * Three things the database will not let you do, with the message it returns.
- *
- * Every string in `error` is copied word for word from supabase/migrations. The
- * first two come from the approve_voucher() function and the third from the
- * immutability trigger. They are quoted rather than paraphrased on purpose: a
- * claim about enforcement that shows the enforcement can be checked, and a
- * paraphrase cannot. If a message changes in SQL it has to change here, which is
- * the point.
- */
-export const REFUSALS = [
-  {
-    id: 'self',
-    attempt: 'Approve a voucher you raised yourself',
-    error: 'You cannot approve a voucher you raised',
-    where: 'approve_voucher() · 0002_workflow.sql',
-    call: "select approve_voucher('a1f3…9c');",
-    why: 'The database checks who raised the voucher before it lets anyone approve it. We do not simply hide the button.',
-    /*
-     * Precise about the reach of each rule, because "enforced in the database"
-     * is two different guarantees here and running them together would be a
-     * claim we cannot stand behind. The approve_voucher() checks are unavoidable
-     * for anything coming through the API: row-level security lets a member
-     * update their own voucher only while it is draft or rejected, so the status
-     * and approver columns cannot be written directly and this function is the
-     * only route. The freeze trigger is stronger still, because a trigger fires
-     * for every writer.
-     */
-    holds: 'There is no way round this from the app. A voucher can only be edited while it is a draft or has been sent back, so the only route to approving one is through this function.',
-  },
-  {
-    id: 'twice',
-    attempt: 'Give the second approval after giving the first',
-    error: 'This voucher already has your first approval — a second person must approve it',
-    where: 'approve_voucher() · 0002_workflow.sql',
-    call: "select approve_voucher('a1f3…9c');",
-    why: 'Two approvals should mean two people. One person clicking twice is the exact thing this is here to stop.',
-    holds: 'It checks you against the name already saved as the first approver. A second browser, a second device or a repeated request all run into the same check.',
-  },
-  {
-    id: 'edit',
-    attempt: 'Change the amount on an approved voucher',
-    error: 'This voucher is approved and cannot be edited. Reopen it first.',
-    where: 'freeze trigger · 0002_workflow.sql',
-    call: "update vouchers set basic_value = 190000 where id = 'a1f3…9c';",
-    why: 'Once a voucher is approved the figures are locked. An admin can reopen it, but they have to give a reason, and the reopening shows up in the history.',
-    holds: 'This one is a trigger rather than a policy, so it runs for every writer at every level of access, including a connection that skips row-level security altogether.',
-  },
-] as const;
-
 /**
  * The tax rules the interactive panel on the home page lets you drive.
  *
@@ -334,97 +263,6 @@ export const TDS_SECTIONS = [
   { code: '194H', rate: 5, note: 'Commission or brokerage' },
   { code: '194J', rate: 10, note: 'Professional or technical services' },
 ] as const;
-
-/**
- * Who may do what, taken from the policies rather than from a design document.
- *
- * The four roles are the four values of the user_role enum, and the three
- * predicates behind every row here are the three helper functions in
- * 0002_workflow.sql:
- *
- *   can_approve()  →  approver, admin, owner
- *   is_admin()     →  admin, owner
- *   is_owner()     →  owner
- *
- * `sql` is the actual predicate or check that decides the row, so a reader can
- * go and find it in the repository. The last two rows are the point of the whole
- * table: every column is a refusal, including the owner's.
- */
-export const ROLES = ['member', 'approver', 'admin', 'owner'] as const;
-export type Role = (typeof ROLES)[number];
-
-export type Capability = {
-  action: string;
-  /** Which roles may do it. Empty means nobody, at any level. */
-  who: readonly Role[];
-  sql: string;
-  note?: string;
-};
-
-export const CAPABILITIES: readonly Capability[] = [
-  {
-    action: 'Raise a voucher',
-    who: ['member', 'approver', 'admin', 'owner'],
-    sql: "created_by = auth.uid() and status = 'draft'",
-  },
-  {
-    action: 'Edit it while it is a draft, or after it comes back',
-    who: ['member', 'approver', 'admin', 'owner'],
-    sql: "status in ('draft', 'rejected')",
-  },
-  {
-    action: 'See a voucher somebody else raised',
-    who: ['approver', 'admin', 'owner'],
-    sql: "can_approve() and status <> 'draft'",
-    note: 'Approvers see everything once it has been submitted. Only an admin can see someone else’s draft.',
-  },
-  {
-    action: 'Approve or reject',
-    who: ['approver', 'admin', 'owner'],
-    sql: 'can_approve()',
-  },
-  {
-    action: 'Edit a draft on somebody else’s behalf',
-    who: ['admin', 'owner'],
-    sql: 'is_admin()',
-  },
-  {
-    action: 'Reopen an approved voucher',
-    who: ['admin', 'owner'],
-    sql: 'is_admin()',
-    note: 'They have to give a reason, and reopening it shows up in the history.',
-  },
-  {
-    action: 'Mark a voucher paid',
-    who: ['admin', 'owner'],
-    sql: 'is_admin()',
-    note: 'You have to enter the UTR or reference number.',
-  },
-  {
-    action: 'Delete a voucher for good',
-    who: ['admin', 'owner'],
-    sql: 'is_admin()',
-    note: 'Only from the bin. Anything still going through approval has to be moved there first.',
-  },
-  {
-    action: 'Change somebody’s role',
-    who: ['owner'],
-    sql: 'is_owner() and target <> auth.uid()',
-    note: 'The owner cannot change their own role, or another owner’s.',
-  },
-  {
-    action: 'Approve a voucher you raised yourself',
-    who: [],
-    sql: 'v.created_by <> me',
-    note: 'There is no role that can do this, and no admin override.',
-  },
-  {
-    action: 'Edit or delete a line in the history',
-    who: [],
-    sql: 'no UPDATE or DELETE policy exists',
-    note: 'The table can only be read from and added to. There is nothing else to give anyone.',
-  },
-];
 
 /**
  * Said plainly on each agent's page, next to the pitch.

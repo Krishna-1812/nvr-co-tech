@@ -152,16 +152,6 @@ export default function AboutPage() {
                   and handed a determined person a valid login, could they approve their own voucher?
                   The answer has to be no, for a reason you can go and read in our code.
                 </p>
-                <p className="m-dim-2 pt-1 text-[13.5px]">
-                  There is more detail on the{' '}
-                  <Link
-                    href="/security"
-                    className="text-[var(--m-cyan)] underline underline-offset-4 transition hover:text-[var(--m-ink)]"
-                  >
-                    security page
-                  </Link>
-                  .
-                </p>
               </div>
             </Reveal>
           </div>

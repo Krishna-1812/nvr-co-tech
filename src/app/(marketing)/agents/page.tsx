@@ -143,8 +143,8 @@ export default function AgentsPage() {
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
                   <CTA href="/contact">Book a walkthrough</CTA>
-                  <CTA href="/security" variant="ghost">
-                    How the controls work
+                  <CTA href="/about" variant="ghost">
+                    How we build it
                   </CTA>
                 </div>
               </div>

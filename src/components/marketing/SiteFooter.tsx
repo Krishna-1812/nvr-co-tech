@@ -4,7 +4,6 @@ import { Container } from './bits';
 import { Logo } from './Logo';
 
 const RESOURCES = [
-  { href: '/security', label: 'Security & trust' },
   { href: '/agents', label: 'All agents' },
   { href: '/login', label: 'Sign in' },
   { href: '/signup', label: 'Create an account' },

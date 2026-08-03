@@ -144,7 +144,7 @@ Built:
 - **Excel export** — 32-column v1 contract preserved, real numbers and dates, live totals, respects the active filters
 - **Invoice attachments** — direct-to-Storage upload, signed-URL viewing, and a "no invoice attached" warning in the approval queue
 - Error, not-found and per-route loading states
-- **Public marketing site** — home, agent roster, per-agent pages, security, about, contact,
+- **Public marketing site** — home, agent roster, per-agent pages, about, contact,
   with a generated social card, sitemap and robots
 
 Not yet built: Google Sheets sync worker. Five of the six agents on `/agents` are roadmap
