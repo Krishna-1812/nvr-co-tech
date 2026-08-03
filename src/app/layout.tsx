@@ -93,12 +93,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         {/*
-          Apply the saved theme before first paint, otherwise a dark-mode user
-          gets a white flash on every navigation.
+          Apply the saved theme and rail width before first paint.
+
+          Both are read from localStorage, so React cannot know either of them
+          during server rendering. Without this, a dark-mode user gets a white
+          flash on every navigation, and anyone who collapsed the rail watches it
+          open and shut again once hydration lands.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('theme');if(t&&t!=='system')document.documentElement.setAttribute('data-theme',t)}catch(e){}`,
+            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(t&&t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}`,
           }}
         />
       </head>

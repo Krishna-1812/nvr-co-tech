@@ -12,9 +12,9 @@ import { Button, buttonClass, Card, Textarea } from '@/components/ui/primitives'
 import { relativeTime, ageInDays, cn } from '@/lib/utils';
 
 /**
- * Only the columns this card renders. The page selects the full row plus
- * embedded chapter/initiator/approver, but narrowing here keeps the component
- * honest about what it actually depends on.
+ * Only the columns this card renders. The page selects the full row plus embedded
+ * chapter/initiator/approver, but narrowing here keeps the component honest about
+ * what it actually depends on.
  */
 export type ApprovalRow = {
   id: string;
@@ -33,6 +33,9 @@ export type ApprovalRow = {
   voucher_attachments?: { id: string }[] | null;
 };
 
+/** A voucher waiting a fortnight is as bad as the rail can say. */
+const AGE_CEILING = 14;
+
 export function ApprovalCard({
   voucher,
   blockedReason,
@@ -49,6 +52,11 @@ export function ApprovalCard({
   const attachmentCount = voucher.voucher_attachments?.length ?? 0;
   const person = (p?: { full_name: string | null; email: string } | null) =>
     p?.full_name ?? p?.email ?? 'Unknown';
+
+  // Green until three days, amber to a week, red past it. The same thresholds the
+  // queue's own "longest waiting" figure uses.
+  const ageTone =
+    age >= 7 ? 'var(--status-rejected)' : age >= 3 ? 'var(--status-warn)' : 'var(--status-approved)';
 
   const onApprove = () =>
     startTransition(async () => {
@@ -78,42 +86,70 @@ export function ApprovalCard({
     });
 
   return (
-    <Card className={cn('overflow-hidden transition', blockedReason && 'opacity-70')}>
+    <Card
+      style={{ '--tone': ageTone } as CSSProperties}
+      className={cn(
+        'group relative overflow-hidden rounded-2xl transition',
+        blockedReason ? 'opacity-75' : 'hover:border-[var(--border-strong)]',
+      )}
+    >
+      {/*
+        The age rail.
+        A vertical gauge down the left edge, filling from the top as a voucher
+        ages and passing through amber into red. It means a column of these cards
+        can be triaged before a single word is read — which is the whole job of
+        this screen. Hatched instead of filled when the voucher is not yours to
+        action, because then its age is not your problem.
+      */}
+      <span aria-hidden className="a-track absolute inset-y-0 left-0 w-[3px]">
+        {blockedReason ? (
+          <span className="a-hatch block h-full w-full" />
+        ) : (
+          <span
+            className="a-fill-y block w-full origin-top rounded-b-full"
+            style={{
+              height: `${Math.min(100, Math.max(8, (age / AGE_CEILING) * 100))}%`,
+              background: `linear-gradient(180deg, var(--tone), color-mix(in oklab, var(--tone) 40%, transparent))`,
+            }}
+          />
+        )}
+      </span>
+
       {/*
         Identity and amount first, provenance and controls in a footer under a
         rule. Splitting the card that way means the eye can run down a column of
         payees and amounts without the buttons of each card interrupting it.
       */}
-      <div className="flex items-start justify-between gap-4 p-4">
-        <div className="min-w-0 flex-1">
+      {/*
+        A grid rather than a wrapping flex row.
+        With flex, the payee and the amount competed for one line and the payee lost
+        — "Lex Anand Associates" came out as "Lex Anand Associ…" on a phone, which is
+        the one thing on the card you have to be able to read. As a grid the amount
+        simply drops below the payee at narrow widths and both get the full width.
+      */}
+      <div className="grid gap-x-6 gap-y-3 p-4 pl-5 sm:grid-cols-[1fr_auto] sm:items-start">
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/vouchers/${voucher.id}`}
-              className="numeric font-semibold transition hover:text-brand-600 hover:underline dark:hover:text-brand-300"
+              className="numeric text-[13px] font-semibold transition hover:text-brand-600 hover:underline dark:hover:text-brand-300"
             >
               {voucher.voucher_no ?? 'Unnumbered'}
             </Link>
             <StatusBadge status={voucher.status} size="sm" />
             {/* Ageing: an approver needs to see what has been sitting too long. */}
             {age >= 3 && (
-              <span
-                style={
-                  {
-                    '--tone': age >= 7 ? 'var(--status-rejected)' : 'var(--status-warn)',
-                  } as CSSProperties
-                }
-                className="tinted inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
-              >
+              <span className="tinted inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium">
                 <Clock className="size-3" aria-hidden />
                 {age}d waiting
               </span>
             )}
           </div>
 
-          <p className="mt-2 truncate text-base font-semibold">
+          <p className="mt-2.5 truncate text-[17px] font-semibold tracking-tight">
             {voucher.paid_to ?? <span className="text-subtle font-normal">No payee</span>}
           </p>
-          <p className="text-muted mt-0.5 truncate text-xs">
+          <p className="text-muted mt-1 truncate text-xs">
             {[
               voucher.chapter?.name,
               voucher.event_name,
@@ -125,17 +161,18 @@ export function ApprovalCard({
           </p>
         </div>
 
-        <div className="shrink-0 text-right">
-          <div className="amount text-xl font-bold sm:text-2xl">
+        <div className="min-w-0 sm:text-right">
+          <p className="a-label">Grand total</p>
+          <div className="a-figure mt-1 text-2xl sm:text-[1.7rem]">
             {fmtRupees(voucher.grand_total)}
           </div>
-          <div className="mt-1.5 flex justify-end">
+          <div className="mt-2 flex sm:justify-end">
             <ApprovalProgress status={voucher.status} />
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t bg-[var(--surface-sunken)] px-4 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t bg-[var(--surface-sunken)] px-4 py-2.5 pl-5">
         <div className="text-subtle flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span>
             Raised by <span className="font-medium">{person(voucher.initiator)}</span>{' '}
@@ -150,8 +187,8 @@ export function ApprovalCard({
           {/*
             Whether there is an invoice to check against is the first thing an
             approver needs, and it belongs here rather than one click away.
-            Approving an amount with no supporting document is exactly what
-            this rebuild is meant to make visible.
+            Approving an amount with no supporting document is exactly what this
+            rebuild is meant to make visible.
           */}
           {attachmentCount > 0 ? (
             <span className="inline-flex items-center gap-1">
@@ -161,7 +198,7 @@ export function ApprovalCard({
           ) : (
             <span
               style={{ '--tone': 'var(--status-warn)' } as CSSProperties}
-              className="inline-flex items-center gap-1 font-semibold text-[color-mix(in_oklab,var(--tone)_82%,var(--text-c))]"
+              className="tinted inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-semibold"
             >
               <FileWarning className="size-3" aria-hidden />
               No invoice attached
@@ -201,7 +238,7 @@ export function ApprovalCard({
 
       {/* Why this one can't be actioned — explain rather than silently grey out. */}
       {blockedReason && (
-        <p className="text-muted flex items-center gap-2 border-t bg-[var(--surface-sunken)] px-4 py-2.5 text-xs">
+        <p className="text-muted flex items-center gap-2 border-t bg-[var(--surface-sunken)] px-4 py-2.5 pl-5 text-xs">
           <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
           {blockedReason}
         </p>
@@ -209,7 +246,7 @@ export function ApprovalCard({
 
       {/* Rejection needs a reason — that is the whole point of sending it back. */}
       {rejecting && (
-        <div className="space-y-3 border-t bg-[var(--surface-sunken)] p-4">
+        <div className="animate-[rise_0.3s_cubic-bezier(0.22,1,0.36,1)] space-y-3 border-t bg-[var(--surface-sunken)] p-4 pl-5">
           <label htmlFor={`reason-${voucher.id}`} className="block text-sm font-medium">
             What needs fixing?
           </label>

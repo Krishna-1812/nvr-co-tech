@@ -13,15 +13,23 @@ type ButtonProps = ComponentProps<'button'> & {
 };
 
 const BUTTON_VARIANTS = {
-  // The gradient is the app's one signature. It belongs on the single most
-  // important control on a screen, which is what `primary` means.
+  /*
+   * The gradient is the app's one signature. It belongs on the single most
+   * important control on a screen, which is what `primary` means.
+   *
+   * The inset white hairline along the top edge is what makes a filled button look
+   * like a physical key rather than a coloured rectangle — the same trick every
+   * raised surface in this app uses, at button scale.
+   */
   primary:
-    'gradient-brand text-white elev-brand hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:shadow-none',
+    'gradient-brand text-white elev-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22),var(--elev-brand)] hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:shadow-none',
   secondary:
     'surface text-[var(--text-c)] elev-1 hover:bg-[var(--surface-sunken)] hover:border-[var(--border-strong)] border-[var(--border-strong)]',
   ghost: 'text-muted hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]',
-  danger: 'bg-red-600 text-white elev-1 hover:bg-red-700 active:bg-red-800',
-  success: 'bg-emerald-600 text-white elev-1 hover:bg-emerald-700 active:bg-emerald-800',
+  danger:
+    'bg-red-600 text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.2),var(--elev-1)] hover:bg-red-700 active:bg-red-800',
+  success:
+    'bg-emerald-600 text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.2),var(--elev-1)] hover:bg-emerald-700 active:bg-emerald-800',
 } as const;
 
 const BUTTON_SIZES = {
@@ -83,8 +91,15 @@ export function Button({
 
 // ─── Card ────────────────────────────────────────────────────────────────────
 
+/**
+ * Every panel in the app.
+ *
+ * `.surface-lit` carries the material — a raised fill, a short top-lit sheen, a
+ * hairline and a two-part shadow — so changing what a card is made of is one line
+ * in globals.css rather than a sweep through forty components.
+ */
 export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('surface-lit rounded-xl', className)} {...props} />;
+  return <div className={cn('surface-lit rounded-2xl', className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
@@ -120,18 +135,26 @@ export function CardTitle({
 }) {
   return (
     <div className={cn('flex items-start justify-between gap-4 border-b px-5 py-3.5', className)}>
-      <div className="flex min-w-0 items-start gap-2.5">
+      <div className="flex min-w-0 items-start gap-3">
+        {/*
+          The icon sits in its own tile rather than loose beside the text. It is the
+          same tile the rail, the palette and the stat cards use, which is what makes
+          a stack of cards read as one system instead of as a stack of pages.
+        */}
         {icon && (
-          <span className="text-subtle mt-px shrink-0" aria-hidden>
+          <span
+            className="surface-sunken text-subtle grid size-7 shrink-0 place-items-center rounded-lg border"
+            aria-hidden
+          >
             {icon}
           </span>
         )}
-        <div className="min-w-0">
+        <div className="min-w-0 pt-0.5">
           <h2 className="font-semibold tracking-tight">{title}</h2>
-          {description && <p className="text-muted mt-0.5 text-sm text-pretty">{description}</p>}
+          {description && <p className="text-muted mt-1 text-sm text-pretty">{description}</p>}
         </div>
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="shrink-0 pt-0.5">{action}</div>}
     </div>
   );
 }
@@ -331,24 +354,31 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="animate-[fade_0.4s_ease-out_backwards] flex flex-col items-center justify-center px-6 py-16 text-center">
+    <div className="animate-[fade_0.4s_ease-out_backwards] relative flex flex-col items-center justify-center overflow-hidden px-6 py-20 text-center">
+      {/* An empty table should read as a considered state, not as a component that
+          failed to load. The grid and the halo are what do that. */}
+      <span
+        aria-hidden
+        className="a-grid pointer-events-none absolute inset-0 opacity-30 [mask-image:radial-gradient(45%_60%_at_50%_45%,#000,transparent)]"
+      />
       {icon && (
-        <div className="text-subtle relative mb-4">
-          {/* Soft brand halo so an empty table reads as considered, not broken. */}
+        <div className="text-subtle relative mb-5">
           <span
             aria-hidden
-            className="absolute inset-0 -z-10 m-auto size-20 rounded-full bg-[radial-gradient(circle,var(--color-brand-500),transparent_70%)] opacity-10 blur-xl"
+            className="absolute inset-0 -z-10 m-auto size-24 rounded-full bg-[radial-gradient(circle,var(--color-brand-500),transparent_70%)] opacity-15 blur-2xl"
           />
-          <span className="surface-sunken grid size-14 place-items-center rounded-2xl border">
+          <span className="a-ring surface-sunken grid size-14 place-items-center rounded-2xl border">
             {icon}
           </span>
         </div>
       )}
-      <p className="font-semibold">{title}</p>
+      <p className="relative font-semibold tracking-tight">{title}</p>
       {description && (
-        <p className="text-muted mt-1.5 max-w-sm text-sm leading-relaxed">{description}</p>
+        <p className="text-muted relative mt-2 max-w-sm text-sm leading-relaxed text-pretty">
+          {description}
+        </p>
       )}
-      {action && <div className="mt-6">{action}</div>}
+      {action && <div className="relative mt-6">{action}</div>}
     </div>
   );
 }

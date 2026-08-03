@@ -1,12 +1,12 @@
-import Link from 'next/link';
-import { FileText, LayoutDashboard, Inbox, Settings, Users, Plus, FlaskConical } from 'lucide-react';
-import { canApprove, isAdmin, type UserRole } from '@/lib/domain/workflow';
+import { FlaskConical } from 'lucide-react';
+import type { UserRole } from '@/lib/domain/workflow';
+import { appNav } from '@/lib/nav';
+import { fiscalYear, istLongDate, istToday } from '@/lib/fiscal';
 import { PREVIEW } from '@/lib/preview';
-import { BRAND } from '@/lib/marketing/content';
-import { LogoMark } from './marketing/Logo';
-import { buttonClass } from './ui/primitives';
-import { NavLink } from './NavLink';
-import { UserMenu } from './UserMenu';
+import { Backdrop } from './app/Backdrop';
+import { SideRail } from './app/SideRail';
+import { TopBar } from './app/TopBar';
+import { MobileDock } from './app/MobileDock';
 
 type Props = {
   user: { id: string; email: string; full_name: string | null; role: UserRole };
@@ -15,27 +15,24 @@ type Props = {
   children: React.ReactNode;
 };
 
+/**
+ * The frame every signed-in screen sits in.
+ *
+ * Three pieces of chrome and one atmosphere: a rail on the left from `lg` up, a
+ * dock along the bottom below it, a glass bar across the top at every width, and
+ * the Backdrop behind all of them.
+ *
+ * The rail's width is a CSS variable rather than a prop, which is what lets the
+ * content column follow it when it collapses without either of them holding
+ * state. See RailToggle for why that matters.
+ */
 export function AppShell({ user, pendingCount = 0, children }: Props) {
-  const nav = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/vouchers', label: 'Vouchers', icon: FileText },
-    ...(canApprove(user.role)
-      ? [{ href: '/approvals', label: 'Approvals', icon: Inbox, badge: pendingCount }]
-      : []),
-    ...(isAdmin(user.role) ? [{ href: '/admin', label: 'Admin', icon: Users }] : []),
-    { href: '/settings', label: 'Settings', icon: Settings },
-  ];
+  const nav = appNav({ role: user.role, pendingCount });
+  const fiscal = fiscalYear(istToday());
 
   return (
     <div className="relative min-h-screen">
-      {/*
-        Page-wide wash. Fixed rather than scrolling, so long tables do not drag a
-        gradient up the screen with them.
-      */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(70%_50%_at_50%_-10%,var(--color-brand-500),transparent)] opacity-[0.07]"
-      />
+      <Backdrop />
 
       {/* First stop for a keyboard user, past a nav that repeats on every page. */}
       <a
@@ -45,95 +42,48 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
         Skip to content
       </a>
 
-      {PREVIEW && (
-        <div className="flex items-center justify-center gap-2 bg-amber-400 px-4 py-1.5 text-center text-xs font-semibold text-amber-950">
-          <FlaskConical className="size-3.5 shrink-0" aria-hidden />
-          <span>
-            Preview — sample data, no database. Approvals here are checked by the browser, not by
-            Postgres.
-          </span>
-        </div>
-      )}
-
-      <header className="glass sticky top-0 z-40 border-b">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          {/*
-            The same mark as the public site. Someone who signed in from the
-            marketing pages should not feel handed off to a different product,
-            and "Voucher Desk" is what this app is now called out there.
-          */}
-          <Link href="/dashboard" className="group flex shrink-0 items-center gap-2.5">
-            <LogoMark id="app-mark" className="size-8 shrink-0 transition group-hover:brightness-110" />
-            <span className="hidden leading-none sm:block">
-              <span className="block text-sm font-semibold tracking-tight">Voucher Desk</span>
-              <span className="text-subtle mt-0.5 block text-[10px]">{BRAND.name}</span>
-            </span>
-          </Link>
-
-          <span aria-hidden className="hidden h-5 w-px bg-[var(--border-c)] md:block" />
-
-          {/* Desktop nav */}
-          <nav className="hidden items-center gap-0.5 md:flex">
-            {nav.map((item) => (
-              <NavLink key={item.href} href={item.href} badge={item.badge}>
-                <item.icon className="size-4" aria-hidden />
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="ml-auto flex items-center gap-2">
-            <Link
-              href="/vouchers/new"
-              className={buttonClass({
-                variant: 'primary',
-                size: 'sm',
-                className: 'group hidden sm:inline-flex',
-              })}
-            >
-              <Plus className="size-4 transition-transform group-hover:rotate-90" aria-hidden />
-              New voucher
-            </Link>
-            <UserMenu user={user} />
-          </div>
-        </div>
-
-        {/*
-          Mobile nav lives at the bottom of the header rather than in a hamburger:
-          approving on a phone is the common case for this app, so the queue must
-          be one tap away.
-        */}
-        <nav
-          aria-label="Sections"
-          className="flex snap-x snap-mandatory items-center gap-0.5 overflow-x-auto border-t px-2 py-1.5 md:hidden"
-        >
-          {nav.map((item) => (
-            <div key={item.href} className="shrink-0 snap-start">
-              <NavLink href={item.href} badge={item.badge}>
-                <item.icon className="size-4" aria-hidden />
-                {item.label}
-              </NavLink>
-            </div>
-          ))}
-        </nav>
-      </header>
+      <SideRail nav={nav} fiscal={fiscal} />
 
       {/*
-        pb-24 on small screens keeps the last row of any list clear of the
-        floating New voucher button.
+        The content column. `pl` tracks the rail through the same variable the
+        rail's own width uses, and transitions on the same curve, so the two move
+        as one object rather than as two things that happen to agree.
       */}
-      <main id="main" className="mx-auto max-w-7xl px-4 pt-6 pb-24 sm:px-6 sm:pt-8 sm:pb-12">
-        {children}
-      </main>
+      <div className="transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:pl-[var(--a-rail)]">
+        {PREVIEW && <PreviewBanner />}
 
-      {/* Reachable on a phone, where the header's New voucher button is hidden. */}
-      <Link
-        href="/vouchers/new"
-        aria-label="New voucher"
-        className="gradient-brand elev-4 fixed right-5 bottom-5 z-30 grid size-13 place-items-center rounded-2xl text-white transition hover:brightness-110 active:scale-95 sm:hidden"
-      >
-        <Plus className="size-6" aria-hidden />
-      </Link>
+        <TopBar user={user} fiscal={fiscal} today={istLongDate()} />
+
+        {/*
+          The bottom padding clears the dock. Nothing at the end of a long
+          register should end up hidden behind chrome.
+        */}
+        <main
+          id="main"
+          className="mx-auto max-w-[92rem] px-4 pt-6 pb-28 sm:px-6 sm:pt-8 lg:pb-14"
+        >
+          {children}
+        </main>
+      </div>
+
+      <MobileDock nav={nav} />
+    </div>
+  );
+}
+
+/**
+ * Sample-data warning. Loud on purpose: in preview mode the approval rules are
+ * being checked by this browser rather than by Postgres, and anyone shown a demo
+ * needs to know that nothing they see was actually enforced.
+ */
+function PreviewBanner() {
+  return (
+    <div className="flex items-center justify-center gap-2 bg-amber-400 px-4 py-1.5 text-center text-xs font-semibold text-amber-950">
+      <FlaskConical className="size-3.5 shrink-0" aria-hidden />
+      <span>
+        Preview — sample data, no database. Approvals here are checked by the browser, not by
+        Postgres.
+      </span>
     </div>
   );
 }

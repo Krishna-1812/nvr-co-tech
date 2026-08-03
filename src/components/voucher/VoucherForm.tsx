@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type CSSProperties,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Cloud, CloudOff, Loader2, Send, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -642,26 +650,52 @@ export function VoucherForm({
 
       {/* ── Sticky summary rail ── */}
       <aside className="lg:sticky lg:top-20">
-        <Card className="overflow-hidden">
-          <div className="border-b p-4">
+        <Card className="overflow-hidden rounded-2xl">
+          <div className="flex items-center justify-between gap-3 border-b p-4">
             <SaveIndicator state={saveState} />
+            {/*
+              How close this voucher is to being submittable, counted from the same
+              blocker list the button uses. On a thirty-two field form the useful
+              question is not "is it valid" but "how much is left", and a ring
+              answers that from the corner of your eye while you type.
+            */}
+            <ReadyRing blockers={blockers} />
           </div>
 
           <div className="space-y-3 p-4">
             <ComputedField label="Net total" value={fmtRupees(totals.net)} />
-            <ComputedField label="Grand total" value={fmtRupees(totals.grand)} emphasis />
-            <p className="text-subtle text-xs">Net − TDS − Advance + Tips − Discount</p>
+            <p className="text-subtle text-xs">
+              Grand total is Net − TDS − Advance + Tips − Discount
+            </p>
+          </div>
+
+          {/*
+            The figure that will be authorised, on the brand, with the app's one
+            travelling highlight over it. It is the same treatment the finished
+            voucher gets on its own page, so what you are building and what an
+            approver will see are visibly the same object.
+          */}
+          <div className="gradient-brand relative overflow-hidden">
+            <span aria-hidden className="a-shine absolute inset-0" />
+            <div className="relative flex items-baseline justify-between gap-3 px-4 py-3.5 text-white">
+              <span className="text-[10px] font-semibold tracking-[0.14em] uppercase opacity-85">
+                Grand total
+              </span>
+              <span className="a-figure text-xl">{fmtRupees(totals.grand)}</span>
+            </div>
           </div>
 
           {showErrors && blockers.length > 0 && (
-            <div className="border-t bg-red-50 p-4 dark:bg-red-950/30">
-              <p className="text-xs font-semibold text-red-700 dark:text-red-300">
-                Before submitting:
-              </p>
-              <ul className="mt-1.5 space-y-1">
+            <div
+              style={{ '--tone': 'var(--status-rejected)' } as CSSProperties}
+              className="tinted animate-[rise_0.3s_cubic-bezier(0.22,1,0.36,1)] border-t p-4"
+            >
+              <p className="text-xs font-semibold">Before submitting:</p>
+              <ul className="mt-2 space-y-1.5">
                 {blockers.map((b) => (
-                  <li key={b.path} className="text-xs text-red-700 dark:text-red-300">
-                    • {b.message}
+                  <li key={b.path} className="flex gap-2 text-xs opacity-90">
+                    <span aria-hidden className="mt-1.5 size-1 shrink-0 rounded-full bg-current" />
+                    {b.message}
                   </li>
                 ))}
               </ul>
@@ -691,9 +725,11 @@ export function VoucherForm({
             <a
               key={s.id}
               href={`#${s.id}`}
-              className="text-muted flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition hover:bg-[var(--surface-sunken)]"
+              className="text-muted group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]"
             >
-              <span className="text-subtle numeric text-xs">{i + 1}</span>
+              <span className="surface-sunken text-subtle a-label grid size-5 shrink-0 place-items-center rounded-md border !text-[9px] group-hover:text-[var(--text-c)]">
+                {i + 1}
+              </span>
               {s.label}
             </a>
           ))}
@@ -703,13 +739,70 @@ export function VoucherForm({
   );
 }
 
+/**
+ * The five things `submitReadiness` always checks, by the path it reports them on.
+ *
+ * Anything it returns that is not one of these came from `crossFieldIssues` — a
+ * contradiction between two fields rather than a missing one — and those are not a
+ * fixed list. So the ring counts these five as its denominator and adds one to both
+ * halves for each contradiction currently outstanding. That way it can read 5 of 6
+ * rather than claiming 5 of 5 while the submit button refuses.
+ */
+const BASE_CHECKS = [
+  'chapter_id',
+  'paid_to',
+  'type_of_supporting',
+  'type_of_payment',
+  'basic_value',
+] as const;
+
+/**
+ * A completion ring, drawn with a conic gradient rather than an SVG arc.
+ *
+ * One element and no path arithmetic: the conic sweep is masked to a ring by a
+ * second element sitting in the middle of it. Also means the sweep animates by
+ * changing one percentage, which is why it can move on every keystroke without
+ * costing anything.
+ */
+function ReadyRing({ blockers }: { blockers: { path: string }[] }) {
+  const contradictions = blockers.filter(
+    (b) => !BASE_CHECKS.includes(b.path as (typeof BASE_CHECKS)[number]),
+  ).length;
+  const total = BASE_CHECKS.length + contradictions;
+  const done = total - blockers.length;
+
+  const pct = Math.round((Math.max(0, Math.min(done, total)) / total) * 100);
+  const complete = pct === 100;
+
+  return (
+    <span
+      className="relative grid size-9 shrink-0 place-items-center rounded-full transition-[background]"
+      style={{
+        background: `conic-gradient(${complete ? 'var(--status-approved)' : 'var(--color-brand-500)'} ${pct}%, var(--a-track) 0)`,
+      }}
+      title={`${done} of ${total} things needed before this can be submitted`}
+    >
+      <span className="grid size-[26px] place-items-center rounded-full bg-[var(--surface-raised)]">
+        {complete ? (
+          <Check className="size-3.5" style={{ color: 'var(--status-approved)' }} aria-hidden />
+        ) : (
+          <span className="numeric text-[10px] font-bold">{done}</span>
+        )}
+      </span>
+      <span className="sr-only">
+        {done} of {total} requirements met
+      </span>
+    </span>
+  );
+}
+
 function SectionHead({ step, title }: { step: number; title: string }) {
   return (
     <div className="flex items-center gap-3 border-b px-5 py-3.5">
-      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white">
+      <span className="gradient-brand elev-brand grid size-6 shrink-0 place-items-center rounded-lg text-[11px] font-bold text-white">
         {step}
       </span>
-      <h2 className="font-semibold">{title}</h2>
+      <h2 className="font-semibold tracking-tight">{title}</h2>
     </div>
   );
 }

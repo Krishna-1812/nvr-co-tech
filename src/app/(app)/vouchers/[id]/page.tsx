@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Banknote,
   Calculator,
-  Check,
   Download,
   Eye,
   FileText,
@@ -16,10 +15,12 @@ import {
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
 import { STATUS_META, canEdit, type VoucherLike } from '@/lib/domain/workflow';
-import { StatusBadge, ApprovalProgress } from '@/components/StatusBadge';
+import { StatusBadge, STATUS_TONE } from '@/components/StatusBadge';
 import { buttonClass, Card, CardTitle } from '@/components/ui/primitives';
 import { AuditTimeline } from '@/components/voucher/AuditTimeline';
 import { Attachments } from '@/components/voucher/Attachments';
+import { ApprovalChain } from '@/components/voucher/ApprovalChain';
+import { AmountLadder, type Line } from '@/components/voucher/AmountLadder';
 import type { AttachmentRow } from '@/app/actions/attachments';
 import { VOUCHER_DETAIL_SELECT } from '@/lib/domain/rows';
 import type { VoucherDetailRow, AuditRow, PersonRef } from '@/lib/domain/rows';
@@ -32,43 +33,8 @@ function Detail({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === null || value === undefined || value === '') return null;
   return (
     <div className="min-w-0">
-      <dt className="text-subtle text-[11px] font-semibold tracking-[0.06em] uppercase">{label}</dt>
-      <dd className="mt-1 text-sm font-medium break-words">{value}</dd>
-    </div>
-  );
-}
-
-/**
- * One rung of the amount ladder. The sign lives in its own fixed-width column so
- * the additions and the deductions line up as two visible groups — on a printed
- * voucher that is the difference between checking the arithmetic and taking it
- * on trust.
- */
-function Money({
-  label,
-  value,
-  sign,
-  strong,
-}: {
-  label: string;
-  value: number;
-  sign?: '+' | '−';
-  strong?: boolean;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 py-1.5">
-      <span className="flex min-w-0 items-baseline gap-1.5">
-        <span
-          aria-hidden
-          className="text-subtle numeric w-2 shrink-0 text-center text-xs font-semibold"
-        >
-          {sign}
-        </span>
-        <span className={strong ? 'text-sm font-semibold' : 'text-muted text-sm'}>{label}</span>
-      </span>
-      <span className={strong ? 'amount text-base font-bold' : 'numeric text-sm'}>
-        {fmtRupees(value)}
-      </span>
+      <dt className="a-label">{label}</dt>
+      <dd className="mt-1.5 text-sm font-medium break-words">{value}</dd>
     </div>
   );
 }
@@ -103,74 +69,125 @@ export default async function VoucherDetailPage({
     .eq('voucher_id', id)
     .order('created_at', { ascending: true });
 
-  // Hand-written Database types carry no Relationships, so embedded joins need
-  // an assertion. Regenerating types from the live schema removes this.
+  // Hand-written Database types carry no Relationships, so embedded joins need an
+  // assertion. Regenerating types from the live schema removes this.
   const v = voucher as unknown as VoucherDetailRow;
   const person = (p: PersonRef) => p?.full_name ?? p?.email ?? null;
+  const tone = STATUS_TONE[v.status];
+
+  // Only the components that are actually present. A ladder rung of zero is not a
+  // fact about this voucher, it is a field nobody filled in.
+  const additions: Line[] = [
+    { label: 'Basic value', value: Number(v.basic_value) },
+    ...(Number(v.cgst) > 0 ? [{ label: 'CGST', value: Number(v.cgst), sign: '+' as const }] : []),
+    ...(Number(v.sgst) > 0 ? [{ label: 'SGST', value: Number(v.sgst), sign: '+' as const }] : []),
+    ...(Number(v.igst) > 0 ? [{ label: 'IGST', value: Number(v.igst), sign: '+' as const }] : []),
+    ...(Number(v.vat) > 0 ? [{ label: 'VAT / other', value: Number(v.vat), sign: '+' as const }] : []),
+  ];
+
+  const deductions: Line[] = [
+    ...(Number(v.tds) > 0 ? [{ label: 'TDS', value: Number(v.tds), sign: '−' as const }] : []),
+    ...(Number(v.advance) > 0
+      ? [{ label: 'Advance already paid', value: Number(v.advance), sign: '−' as const }]
+      : []),
+    ...(Number(v.tips) > 0 ? [{ label: 'Tips', value: Number(v.tips), sign: '+' as const }] : []),
+    ...(Number(v.discount) > 0
+      ? [{ label: 'Discount', value: Number(v.discount), sign: '−' as const }]
+      : []),
+  ];
 
   return (
     <div className="space-y-6">
       <Link
         href="/vouchers"
-        className="text-muted -ml-1 inline-flex items-center gap-1.5 rounded-lg px-1 text-sm font-medium transition hover:text-[var(--text-c)]"
+        className="text-muted group -ml-1 inline-flex items-center gap-1.5 rounded-lg px-1 text-sm font-medium transition hover:text-[var(--text-c)]"
       >
-        <ArrowLeft className="size-4" aria-hidden />
+        <ArrowLeft
+          className="size-4 transition-transform group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Back to vouchers
       </Link>
 
       {/*
-        The identity of the voucher and the sum being authorised are one object,
-        so they share one card: nobody should have to look in two places to know
-        which number they are about to approve.
+        Identity, the sum being authorised, and the chain of custody are one object,
+        so they share one panel. Nobody should have to look in two places to know
+        which number they are about to approve or who has already signed for it.
       */}
-      <Card className="animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] overflow-hidden">
-        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 p-5">
+      <section className="surface-lit a-ring animate-[rise_0.55s_cubic-bezier(0.22,1,0.36,1)_backwards] relative overflow-hidden rounded-3xl">
+        {/* The status colour, as the light behind the whole header. */}
+        <span
+          aria-hidden
+          className="a-orb -top-40 -right-24 size-96 opacity-60"
+          style={{
+            background: `radial-gradient(circle, color-mix(in oklab, ${tone} 30%, transparent), transparent 70%)`,
+            animation: 'aurora 38s ease-in-out infinite',
+          }}
+        />
+        <span
+          aria-hidden
+          className="a-grid pointer-events-none absolute inset-0 opacity-35 [mask-image:radial-gradient(60%_70%_at_15%_0%,#000,transparent)]"
+        />
+
+        <div className="relative flex flex-wrap items-start justify-between gap-x-8 gap-y-5 p-6 sm:p-8">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="numeric text-2xl font-bold tracking-tight">
+              <h1 className="numeric text-lg font-semibold tracking-tight sm:text-xl">
                 {v.voucher_no ?? 'Draft voucher'}
               </h1>
               <StatusBadge status={v.status} />
             </div>
-            <p className="text-muted mt-1.5 text-sm text-pretty">
+            <p className="text-muted mt-2 max-w-md text-sm text-pretty">
               {STATUS_META[v.status].description}
             </p>
             {v.paid_to && (
-              <p className="mt-2.5 text-sm">
-                <span className="text-subtle">Payable to </span>
-                <span className="font-semibold">{v.paid_to}</span>
+              <p className="mt-4">
+                <span className="a-label">Payable to</span>
+                <span className="m-display mt-1.5 block text-[clamp(1.35rem,3vw,1.9rem)]">
+                  {v.paid_to}
+                </span>
               </p>
             )}
           </div>
 
           <div className="sm:text-right">
-            <p className="text-subtle text-[11px] font-semibold tracking-[0.06em] uppercase">
-              Grand total
-            </p>
-            <p className="amount mt-0.5 text-3xl font-bold sm:text-4xl">
+            <p className="a-label">Grand total</p>
+            <p className="a-figure mt-2 text-[clamp(2rem,6vw,2.9rem)]">
               {fmtRupees(v.grand_total)}
             </p>
-            {['pending_first', 'pending_second', 'approved', 'paid'].includes(v.status) && (
-              <div className="mt-2 flex sm:justify-end">
-                <ApprovalProgress status={v.status} />
-              </div>
+            {v.date && (
+              <p className="text-subtle numeric mt-2 text-xs">Voucher dated {fmtDate(v.date)}</p>
             )}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-start justify-between gap-3 border-t bg-[var(--surface-sunken)] p-4">
+        <div className="relative border-t px-6 py-6 sm:px-8">
+          <p className="a-label mb-5 flex items-center gap-2">
+            <ShieldCheck className="size-3.5" aria-hidden />
+            Chain of custody
+          </p>
+          <ApprovalChain
+            status={v.status}
+            raisedBy={person(v.initiator)}
+            raisedAt={v.submitted_at ?? v.created_at}
+            firstApprover={person(v.first_approver)}
+            firstAt={v.approved_1_at}
+            secondApprover={person(v.second_approver)}
+            secondAt={v.approved_2_at}
+            paidAt={v.payment_date ?? null}
+            utr={v.utr_ref}
+            rejectedBy={person(v.rejecter)}
+          />
+        </div>
+
+        <div className="relative flex flex-wrap items-start justify-between gap-3 border-t bg-[var(--surface-sunken)] p-4 sm:px-6">
           <VoucherActions
             voucher={voucher as unknown as VoucherLike & { id: string; voucher_no: string | null }}
             me={{ id: user.id, role: user.role }}
           />
 
           <div className="flex gap-2">
-            <a
-              href={`/vouchers/${id}/pdf`}
-              target="_blank"
-              rel="noopener"
-              className={buttonClass()}
-            >
+            <a href={`/vouchers/${id}/pdf`} target="_blank" rel="noopener" className={buttonClass()}>
               <Eye className="size-4" aria-hidden />
               View PDF
             </a>
@@ -180,13 +197,13 @@ export default async function VoucherDetailPage({
             </a>
           </div>
         </div>
-      </Card>
+      </section>
 
       {v.status === 'rejected' && v.rejection_reason && (
         <div
           role="alert"
           style={{ '--tone': 'var(--status-rejected)' } as React.CSSProperties}
-          className="tinted flex gap-3 rounded-xl border p-4"
+          className="tinted flex gap-3 rounded-2xl border p-4"
         >
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
           <div className="min-w-0">
@@ -198,9 +215,9 @@ export default async function VoucherDetailPage({
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_23rem] lg:items-start">
+      <div className="grid gap-6 xl:grid-cols-[1fr_24rem] xl:items-start">
         <div className="space-y-6">
-          <Card>
+          <Card className="overflow-hidden">
             <CardTitle icon={<FileText className="size-4" />} title="Voucher details" />
             <dl className="grid gap-x-6 gap-y-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
               <Detail label="Date" value={fmtDate(v.date)} />
@@ -217,7 +234,7 @@ export default async function VoucherDetailPage({
             </dl>
           </Card>
 
-          <Card>
+          <Card className="overflow-hidden">
             <CardTitle icon={<Banknote className="size-4" />} title="Payment" />
             <dl className="grid gap-x-6 gap-y-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
               <Detail label="Paid to" value={v.paid_to} />
@@ -230,7 +247,7 @@ export default async function VoucherDetailPage({
             </dl>
           </Card>
 
-          <Card>
+          <Card className="overflow-hidden">
             <CardTitle icon={<History className="size-4" />} title="History" />
             <AuditTimeline entries={(audit ?? []) as unknown as AuditRow[]} />
           </Card>
@@ -238,69 +255,20 @@ export default async function VoucherDetailPage({
 
         <div className="space-y-6">
           <Card className="overflow-hidden">
-            <CardTitle icon={<Calculator className="size-4" />} title="Amounts" />
-            <div className="divide-y px-5 py-2">
-              <div className="py-1">
-                <Money label="Basic value" value={Number(v.basic_value)} />
-                {Number(v.cgst) > 0 && <Money label="CGST" sign="+" value={Number(v.cgst)} />}
-                {Number(v.sgst) > 0 && <Money label="SGST" sign="+" value={Number(v.sgst)} />}
-                {Number(v.igst) > 0 && <Money label="IGST" sign="+" value={Number(v.igst)} />}
-                {Number(v.vat) > 0 && (
-                  <Money label="VAT / other" sign="+" value={Number(v.vat)} />
-                )}
-              </div>
-              <div className="py-1">
-                <Money label="Net total" value={Number(v.net_total)} strong />
-              </div>
-              <div className="py-1">
-                {Number(v.tds) > 0 && <Money label="TDS" sign="−" value={Number(v.tds)} />}
-                {Number(v.advance) > 0 && (
-                  <Money label="Advance" sign="−" value={Number(v.advance)} />
-                )}
-                {Number(v.tips) > 0 && <Money label="Tips" sign="+" value={Number(v.tips)} />}
-                {Number(v.discount) > 0 && (
-                  <Money label="Discount" sign="−" value={Number(v.discount)} />
-                )}
-              </div>
-            </div>
-            {/*
-              The grand total leaves the ladder and sits on the brand, because it
-              is the figure being authorised — every other row on this card only
-              explains how it was reached.
-            */}
-            <div className="gradient-brand flex items-baseline justify-between gap-4 px-5 py-3.5 text-white">
-              <span className="text-xs font-semibold tracking-[0.06em] uppercase opacity-90">
-                Grand total
-              </span>
-              <span className="amount text-xl font-bold">{fmtRupees(v.grand_total)}</span>
-            </div>
+            <CardTitle
+              icon={<Calculator className="size-4" />}
+              title="Amounts"
+              description="Bars are relative to the largest component."
+            />
+            <AmountLadder
+              additions={additions}
+              deductions={deductions}
+              netTotal={Number(v.net_total)}
+              grandTotal={Number(v.grand_total)}
+            />
           </Card>
 
-          <Card>
-            <CardTitle icon={<ShieldCheck className="size-4" />} title="Approvals" />
-            <div className="space-y-3 p-5">
-              <ApprovalStep
-                label="Raised by"
-                who={person(v.initiator)}
-                when={fmtDate(v.submitted_at ?? v.created_at)}
-                done={Boolean(person(v.initiator))}
-              />
-              <ApprovalStep
-                label="First approval"
-                who={person(v.first_approver)}
-                when={fmtDate(v.approved_1_at)}
-                done={Boolean(person(v.first_approver))}
-              />
-              <ApprovalStep
-                label="Second approval"
-                who={person(v.second_approver)}
-                when={fmtDate(v.approved_2_at)}
-                done={Boolean(person(v.second_approver))}
-              />
-            </div>
-          </Card>
-
-          <Card>
+          <Card className="overflow-hidden">
             <CardTitle icon={<Paperclip className="size-4" />} title="Invoice & supporting files" />
             <Attachments
               voucherId={id}
@@ -309,49 +277,6 @@ export default async function VoucherDetailPage({
             />
           </Card>
         </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * One rung of the approval chain, shown whether or not it has happened yet. An
- * outstanding approval is the most useful thing on this card, so an empty rung
- * has to be visible rather than omitted the way the plain definition list did.
- */
-function ApprovalStep({
-  label,
-  who,
-  when,
-  done,
-}: {
-  label: string;
-  who: string | null;
-  when: string;
-  done: boolean;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <span
-        aria-hidden
-        className={
-          done
-            ? 'mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[var(--status-approved)] text-white'
-            : 'mt-0.5 size-5 shrink-0 rounded-full border-2 border-dashed border-[var(--border-strong)]'
-        }
-      >
-        {done && <Check className="size-3" />}
-      </span>
-      <div className="min-w-0">
-        <p className="text-subtle text-[11px] font-semibold tracking-[0.06em] uppercase">{label}</p>
-        {done ? (
-          <p className="text-sm font-medium">
-            {who}
-            {when && <span className="text-muted numeric font-normal"> · {when}</span>}
-          </p>
-        ) : (
-          <p className="text-subtle text-sm">Not yet given</p>
-        )}
       </div>
     </div>
   );

@@ -10,13 +10,13 @@ export default function SettingsLoading() {
     <div className="mx-auto max-w-3xl space-y-6" aria-busy="true" aria-label="Loading">
       <HeaderSkeleton withAction={false} />
 
-      <Card className="overflow-hidden">
-        <div aria-hidden className="gradient-brand h-20 w-full opacity-40" />
+      <Card className="overflow-hidden rounded-2xl">
+        <div aria-hidden className="gradient-brand h-28 w-full opacity-40" />
         <div className="flex items-end gap-4 px-5 pb-4">
-          <span className="-mt-8 size-16 shrink-0 rounded-2xl border-4 border-[var(--surface-raised)] bg-[var(--surface-sunken)]" />
-          <div className="w-full max-w-xs space-y-2 pb-1">
-            <Bar className="h-4 w-40" />
-            <Bar className="h-3 w-52" />
+          <span className="-mt-10 size-18 shrink-0 rounded-2xl border-4 border-[var(--surface-raised)] bg-[var(--surface-sunken)]" />
+          <div className="w-full max-w-xs space-y-2.5 pb-1">
+            <Bar className="h-5 w-40" />
+            <Bar className="h-3.5 w-52" />
           </div>
         </div>
         <div className="border-t px-5 py-4">

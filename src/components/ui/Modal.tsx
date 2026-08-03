@@ -24,28 +24,33 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
+        <Dialog.Overlay className="animate-[fade_0.18s_ease-out] fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px]" />
         <Dialog.Content
-          className="surface fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl p-5 shadow-xl"
+          className="a-ring elev-4 animate-[pop_0.2s_cubic-bezier(0.34,1.56,0.64,1)] fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border bg-[var(--surface-raised)]"
           aria-describedby={description ? undefined : ''}
         >
-          <div className="mb-4 flex items-start justify-between gap-4">
-            <div>
-              <Dialog.Title className="font-semibold">{title}</Dialog.Title>
-              {description && (
-                <Dialog.Description className="text-muted mt-1 text-sm">
-                  {description}
-                </Dialog.Description>
-              )}
+          {/* Every modal in this app is a decision about a voucher, so each one
+              carries the brand hairline that marks a consequential surface. */}
+          <span aria-hidden className="gradient-brand block h-[3px]" />
+          <div className="p-5">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <Dialog.Title className="font-semibold tracking-tight">{title}</Dialog.Title>
+                {description && (
+                  <Dialog.Description className="text-muted mt-1.5 text-sm text-pretty">
+                    {description}
+                  </Dialog.Description>
+                )}
+              </div>
+              <Dialog.Close
+                className="text-muted -m-1 rounded-lg p-1 transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]"
+                aria-label="Close"
+              >
+                <X className="size-4" aria-hidden />
+              </Dialog.Close>
             </div>
-            <Dialog.Close
-              className="text-muted -m-1 rounded-lg p-1 transition hover:bg-[var(--surface-sunken)]"
-              aria-label="Close"
-            >
-              <X className="size-4" aria-hidden />
-            </Dialog.Close>
+            {children}
           </div>
-          {children}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

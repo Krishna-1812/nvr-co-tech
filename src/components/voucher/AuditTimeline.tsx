@@ -70,11 +70,18 @@ export function AuditTimeline({ entries }: { entries: Entry[] }) {
 
         return (
           <li key={e.id} className="relative flex gap-3 pb-5 last:pb-0">
-            {/* Connector */}
+            {/*
+              The spine. A gradient from this entry's own tone into the next one's
+              rather than a flat grey line, so the timeline reads as one continuous
+              thing that changes colour as the voucher changes state.
+            */}
             {!last && (
               <span
                 aria-hidden
-                className="absolute top-7 bottom-0 left-3.5 w-px bg-[var(--border-c)]"
+                className="absolute top-7 bottom-0 left-3.5 w-px"
+                style={{
+                  background: `linear-gradient(180deg, color-mix(in oklab, ${meta.tone} 55%, transparent), var(--border-c))`,
+                }}
               />
             )}
 
@@ -96,8 +103,15 @@ export function AuditTimeline({ entries }: { entries: Entry[] }) {
                   {relativeTime(e.created_at)}
                 </time>
               </p>
+              {/* A note is somebody's words, so it is set as a quotation with the
+                  entry's own colour on its edge rather than as more body text. */}
               {e.note && (
-                <p className="text-muted mt-2 rounded-lg border border-l-2 border-l-[var(--border-strong)] bg-[var(--surface-sunken)] px-3 py-2 text-sm text-pretty">
+                <p
+                  // The edge colour comes from the entry's own tone, which is a
+                  // runtime value and so cannot be a Tailwind class.
+                  style={{ borderLeftColor: `color-mix(in oklab, ${meta.tone} 60%, transparent)` }}
+                  className="text-muted mt-2.5 rounded-r-lg border-l-2 bg-[var(--surface-sunken)] px-3 py-2 text-sm text-pretty"
+                >
                   {e.note}
                 </p>
               )}

@@ -30,8 +30,25 @@ import {
  */
 
 type Row = Record<string, unknown>;
+type Tables = Record<string, Row[]>;
 
-const TABLES: Record<string, Row[]> = {
+/**
+ * The tables, hung off globalThis rather than held in a module-level const.
+ *
+ * Turbopack compiles Route Handlers and Pages into separate server module graphs,
+ * so a module-scoped `const TABLES` is instantiated once per graph. That silently
+ * broke New voucher in preview: /vouchers/new is a Route Handler, it inserted the
+ * draft into its own copy of the data, and the editor page it redirects to then
+ * looked in a different copy and rendered a 404. Nothing was wrong with the
+ * insert — the two halves of the flow were simply not looking at the same object.
+ *
+ * globalThis is shared by every graph in the process, which is the same reason the
+ * Prisma docs tell you to cache a client there in development. Preview mode cannot
+ * run in a production build (see ./index.ts), so this never ships.
+ */
+const globalForPreview = globalThis as typeof globalThis & { __nvrPreviewTables?: Tables };
+
+const TABLES: Tables = (globalForPreview.__nvrPreviewTables ??= {
   profiles: fixtures.profiles as unknown as Row[],
   chapters: fixtures.chapters as unknown as Row[],
   events: fixtures.events as unknown as Row[],
@@ -40,7 +57,7 @@ const TABLES: Record<string, Row[]> = {
   voucher_audit: fixtures.voucher_audit as unknown as Row[],
   user_settings: fixtures.user_settings as Row[],
   sheet_sync_log: fixtures.sheet_sync_log as Row[],
-};
+});
 
 const me = () => TABLES.profiles.find((p) => p.id === PREVIEW_USER_ID)!;
 const person = (id: unknown) => {

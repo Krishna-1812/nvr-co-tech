@@ -3,19 +3,10 @@ import { ChevronLeft, ChevronRight, FileText, Plus, Download } from 'lucide-reac
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { isAdmin, VOUCHER_STATUSES, STATUS_META } from '@/lib/domain/workflow';
 import { parseFilters, applyVoucherFilters, hasFilters } from '@/lib/domain/voucherQuery';
-import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
-import { StatusBadge } from '@/components/StatusBadge';
+import { fmtRupees } from '@/lib/domain/voucher';
 import { PageHeader } from '@/components/PageHeader';
-import {
-  buttonClass,
-  Card,
-  DataTable,
-  EmptyState,
-  Td,
-  Th,
-  Thead,
-  Tr,
-} from '@/components/ui/primitives';
+import { buttonClass, Card, EmptyState } from '@/components/ui/primitives';
+import { VoucherTable } from '@/components/voucher/VoucherTable';
 import { VoucherFilters } from './VoucherFilters';
 import type { VoucherListRow } from '@/lib/domain/rows';
 
@@ -60,6 +51,7 @@ export default async function VouchersPage({
   const rows = (data ?? []) as unknown as VoucherListRow[];
   const total = count ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const pageValue = rows.reduce((sum, v) => sum + Number(v.grand_total ?? 0), 0);
 
   const hasActiveFilters = hasFilters(filters);
   const exportQuery = new URLSearchParams(
@@ -87,7 +79,17 @@ export default async function VouchersPage({
             <span className="numeric font-semibold text-[var(--text-c)]">{total}</span> voucher
             {total === 1 ? '' : 's'}
             {isAdmin(user.role) ? ' across all users' : ''}
-            {hasActiveFilters ? ' matching the current filters' : ''}.
+            {hasActiveFilters ? ' matching the current filters' : ''}
+            {rows.length > 0 && (
+              <>
+                {' · '}
+                <span className="numeric font-semibold text-[var(--text-c)]">
+                  {fmtRupees(pageValue)}
+                </span>{' '}
+                on this page
+              </>
+            )}
+            .
           </>
         }
         action={
@@ -144,97 +146,63 @@ export default async function VouchersPage({
             }
           />
         ) : (
-          <DataTable>
-            <caption className="sr-only">
-              Vouchers, newest first. Page {page} of {pages}.
-            </caption>
-            <Thead>
-              <tr>
-                <Th>Voucher</Th>
-                <Th className="hidden md:table-cell">Payee</Th>
-                <Th className="hidden lg:table-cell">Chapter</Th>
-                <Th className="hidden md:table-cell">Date</Th>
-                <Th className="hidden sm:table-cell">Status</Th>
-                <Th align="right">Amount</Th>
-              </tr>
-            </Thead>
-            <tbody className="divide-y">
-              {rows.map((v) => (
-                <Tr key={v.id} className="group">
-                  <Td>
-                    <Link
-                      href={`/vouchers/${v.id}`}
-                      className="numeric font-medium transition group-hover:text-brand-600 group-hover:underline dark:group-hover:text-brand-300"
-                    >
-                      {v.voucher_no ?? 'Draft'}
-                    </Link>
-                    {/*
-                      Payee, chapter, date and status each get a column once
-                      there is room. On a phone they fold into this cell, so the
-                      row is two columns wide and the amount — the reason anyone
-                      opens this list — is never the thing pushed off-screen.
-                    */}
-                    <p className="text-subtle mt-0.5 max-w-40 truncate text-xs md:hidden">
-                      {[v.paid_to, v.chapter?.name, fmtDate(v.date)].filter(Boolean).join(' · ') ||
-                        '—'}
-                    </p>
-                    <div className="mt-1.5 sm:hidden">
-                      <StatusBadge status={v.status} size="sm" />
-                    </div>
-                  </Td>
-                  <Td className="text-muted hidden max-w-48 truncate md:table-cell">
-                    {v.paid_to ?? '—'}
-                  </Td>
-                  <Td className="text-muted hidden max-w-40 truncate lg:table-cell">
-                    {v.chapter?.name ?? '—'}
-                  </Td>
-                  <Td className="text-muted numeric hidden whitespace-nowrap md:table-cell">
-                    {fmtDate(v.date) || '—'}
-                  </Td>
-                  <Td className="hidden sm:table-cell">
-                    <StatusBadge status={v.status} size="sm" />
-                  </Td>
-                  <Td align="right" className="amount font-semibold whitespace-nowrap">
-                    {fmtRupees(v.grand_total)}
-                  </Td>
-                </Tr>
-              ))}
-            </tbody>
-          </DataTable>
+          <VoucherTable
+            rows={rows}
+            showChapter
+            caption={`Vouchers, newest first. Page ${page} of ${pages}.`}
+          />
         )}
       </Card>
 
       {pages > 1 && (
         <nav className="flex flex-wrap items-center justify-between gap-3" aria-label="Pagination">
           {/*
-            The row range matters more than the page number: it tells you where
-            you are in the register, which "page 3 of 9" does not.
+            The row range matters more than the page number: it tells you where you
+            are in the register, which "page 3 of 9" does not.
           */}
           <p className="text-muted text-sm">
             Showing <span className="numeric font-medium">{from + 1}</span>–
             <span className="numeric font-medium">{Math.min(from + PAGE_SIZE, total)}</span> of{' '}
             <span className="numeric font-medium">{total}</span>
           </p>
-          <div className="flex items-center gap-2">
+          <div className="surface-lit flex items-center gap-1 rounded-xl p-1">
             <Link
               href={pageHref(page - 1)}
               aria-disabled={page === 1}
               tabIndex={page === 1 ? -1 : undefined}
-              className={buttonClass({ size: 'sm', className: 'h-9 px-3 text-sm' })}
+              className={buttonClass({
+                variant: 'ghost',
+                size: 'sm',
+                className: 'h-8 px-2.5 text-sm',
+              })}
             >
               <ChevronLeft className="size-4" aria-hidden />
-              Previous
+              <span className="hidden sm:inline">Previous</span>
             </Link>
-            <span className="text-subtle numeric px-1 text-sm">
-              {page} / {pages}
+            {/* A gauge rather than "3 / 9". Where you are in a register is a
+                position, and a position is easier to see than to read. */}
+            <span className="flex items-center gap-2 px-2">
+              <span className="a-track relative h-1 w-16 overflow-hidden rounded-full">
+                <span
+                  className="gradient-brand absolute inset-y-0 rounded-full transition-[left,width] duration-300"
+                  style={{ left: `${((page - 1) / pages) * 100}%`, width: `${100 / pages}%` }}
+                />
+              </span>
+              <span className="text-subtle numeric text-xs whitespace-nowrap">
+                {page} / {pages}
+              </span>
             </span>
             <Link
               href={pageHref(page + 1)}
               aria-disabled={page === pages}
               tabIndex={page === pages ? -1 : undefined}
-              className={buttonClass({ size: 'sm', className: 'h-9 px-3 text-sm' })}
+              className={buttonClass({
+                variant: 'ghost',
+                size: 'sm',
+                className: 'h-8 px-2.5 text-sm',
+              })}
             >
-              Next
+              <span className="hidden sm:inline">Next</span>
               <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>

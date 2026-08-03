@@ -1,13 +1,15 @@
+import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Paperclip } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { canEdit } from '@/lib/domain/workflow';
 import type { Chapter } from '@/lib/domain/voucher';
 import { VoucherForm, type EventOption } from '@/components/voucher/VoucherForm';
 import { StatusBadge } from '@/components/StatusBadge';
+import { PageHeader } from '@/components/PageHeader';
 import { Attachments } from '@/components/voucher/Attachments';
-import { Card } from '@/components/ui/primitives';
+import { Card, CardTitle } from '@/components/ui/primitives';
 import type { AttachmentRow } from '@/app/actions/attachments';
 
 export const metadata = { title: 'Edit voucher' };
@@ -46,30 +48,40 @@ export default async function EditVoucherPage({
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="space-y-4">
         <Link
           href="/vouchers"
-          className="text-muted inline-flex items-center gap-1.5 text-sm font-medium transition hover:text-[var(--text-c)]"
+          className="text-muted group -ml-1 inline-flex items-center gap-1.5 rounded-lg px-1 text-sm font-medium transition hover:text-[var(--text-c)]"
         >
-          <ArrowLeft className="size-4" aria-hidden />
+          <ArrowLeft
+            className="size-4 transition-transform group-hover:-translate-x-0.5"
+            aria-hidden
+          />
           Back to vouchers
         </Link>
 
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight">
-            {voucher.voucher_no ?? 'New payment voucher'}
-          </h1>
-          <StatusBadge status={voucher.status} />
-        </div>
+        <PageHeader
+          eyebrow={voucher.voucher_no ?? 'Not yet numbered'}
+          title={
+            <span className="flex flex-wrap items-center gap-3">
+              {voucher.status === 'rejected' ? 'Correct and resubmit' : 'New payment voucher'}
+              <StatusBadge status={voucher.status} />
+            </span>
+          }
+          description="Everything here saves as you type. It stays a private draft until you submit it."
+        />
 
         {voucher.status === 'rejected' && voucher.rejection_reason && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/40">
-            <p className="text-sm font-semibold text-red-800 dark:text-red-200">
-              Sent back for correction
-            </p>
-            <p className="mt-1 text-sm text-red-700 dark:text-red-300">
-              {voucher.rejection_reason}
-            </p>
+          <div
+            role="alert"
+            style={{ '--tone': 'var(--status-rejected)' } as CSSProperties}
+            className="tinted flex gap-3 rounded-2xl border p-4"
+          >
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Sent back for correction</p>
+              <p className="mt-1 text-sm text-pretty opacity-90">{voucher.rejection_reason}</p>
+            </div>
           </div>
         )}
       </div>
@@ -81,18 +93,13 @@ export default async function EditVoucherPage({
       />
 
       {/* Attaching the invoice is what lets an approver check the numbers. */}
-      <Card className="lg:max-w-[calc(100%-21.5rem)]">
-        <div className="border-b px-5 py-3.5">
-          <h2 className="font-semibold">Invoice &amp; supporting files</h2>
-          <p className="text-muted mt-0.5 text-sm">
-            Attach the invoice so approvers can check it against the amounts.
-          </p>
-        </div>
-        <Attachments
-          voucherId={id}
-          initial={(attachments ?? []) as AttachmentRow[]}
-          canEdit
+      <Card className="overflow-hidden lg:max-w-[calc(100%-21.5rem)]">
+        <CardTitle
+          icon={<Paperclip className="size-4" />}
+          title="Invoice & supporting files"
+          description="Attach the invoice so approvers can check it against the amounts."
         />
+        <Attachments voucherId={id} initial={(attachments ?? []) as AttachmentRow[]} canEdit />
       </Card>
     </div>
   );
