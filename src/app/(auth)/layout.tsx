@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, FileCheck2, History, ShieldCheck } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Logo } from '@/components/marketing/Logo';
 import { Aurora } from '@/components/marketing/bits';
 import { BRAND } from '@/lib/marketing/content';
@@ -7,188 +7,116 @@ import { BRAND } from '@/lib/marketing/content';
 /**
  * Shell for /login and /signup.
  *
- * Skinned as part of the public site rather than the application. Signing in is
- * the last step of the marketing journey, not the first step of the product, and
- * arriving at a white form from a dark site reads as leaving one company's
- * website for another's.
+ * One canvas, one column, one light source. The previous version put a brand
+ * panel on the left and the form on the right; two lit surfaces meeting at a
+ * hairline never stopped reading as two screens bolted together, and the panel
+ * spent half a page explaining database internals to someone who only wanted to
+ * type a password.
  *
- * The forms inside are the app's own primitives, unchanged — the night skin
- * redefines the tokens they read, so they come out dark without being forked.
+ * So the argument is gone from here — it belongs on the marketing pages, which
+ * is where the reader has just come from. What is left is the mark, a greeting,
+ * and the form, sitting in the middle of a single continuous field of light.
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div data-skin="night" className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
-      <BrandPanel />
+    <div
+      data-skin="night"
+      className="relative grid min-h-dvh place-items-center px-5 py-14 sm:px-6"
+    >
+      <Backdrop />
 
-      <main className="relative flex items-center justify-center overflow-hidden px-5 py-12 sm:px-8">
-        {/*
-          The form half was a flat black rectangle against a lit brand panel,
-          which made the page read as two unrelated screens joined down the
-          middle. It gets its own, quieter light — enough to sit in the same
-          room, not enough to compete with the form.
-        */}
-        <Aurora
-          color="var(--m-violet)"
-          opacity={0.13}
-          className="-top-32 -right-24 size-[30rem]"
-        />
-        <Aurora
-          color="var(--m-indigo)"
-          opacity={0.1}
-          className="-bottom-40 -left-20 size-[26rem]"
-        />
-        <div
-          aria-hidden
-          className="m-grid pointer-events-none absolute inset-0 opacity-30 [mask-image:radial-gradient(70%_60%_at_50%_45%,#000,transparent)]"
-        />
+      <div className="relative w-full max-w-[26.5rem]">
+        <Link
+          href="/"
+          className="mx-auto mb-9 flex w-fit rounded-lg transition hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[var(--m-indigo)] focus-visible:outline-none"
+        >
+          <Logo id="auth-mark" />
+        </Link>
 
-        <div className="relative w-full max-w-[23rem]">
-          {/* The brand panel is hidden below lg, so the mark has to appear here. */}
-          <Link href="/" className="mb-9 inline-flex lg:hidden">
-            <Logo id="auth-mobile-mark" />
+        {children}
+
+        <p className="mt-8 text-center">
+          <Link
+            href="/"
+            className="m-dim-2 inline-flex items-center gap-1.5 text-xs transition hover:text-[var(--m-ink)]"
+          >
+            <ArrowLeft className="size-3" aria-hidden />
+            Back to {BRAND.name}
           </Link>
-
-          {children}
-
-          <p className="mt-10 text-center">
-            <Link
-              href="/"
-              className="m-dim-2 inline-flex items-center gap-1.5 text-xs transition hover:text-[var(--m-ink)]"
-            >
-              <ArrowLeft className="size-3" aria-hidden />
-              Back to {BRAND.name}
-            </Link>
-          </p>
-        </div>
-      </main>
+        </p>
+      </div>
     </div>
   );
 }
 
-const POINTS = [
-  {
-    icon: ShieldCheck,
-    title: 'Two approvals, two people',
-    body: 'Postgres refuses to let anyone approve a voucher they raised, or give the second approval after giving the first.',
-  },
-  {
-    icon: FileCheck2,
-    title: 'Numbered on submission',
-    body: 'Voucher numbers are issued by the database, unique per chapter per financial year. Never hand-typed, never duplicated.',
-  },
-  {
-    icon: History,
-    title: 'History that cannot be rewritten',
-    body: 'Every transition is appended to an audit trail with no update or delete path — not even for an owner.',
-  },
-];
+/**
+ * Everything behind the card.
+ *
+ * `fixed` rather than absolute, and clipped here rather than on the content
+ * wrapper: the blurred fields are far larger than the viewport, and clipping
+ * them on an ancestor of the form would make that ancestor the scroll container
+ * instead of the viewport. A decorative layer that scrolls nothing is the safe
+ * place to put an overflow rule.
+ */
+function Backdrop() {
+  const hairline =
+    'linear-gradient(to bottom, transparent, var(--m-line) 22%, var(--m-line) 78%, transparent)';
 
-function BrandPanel() {
   return (
-    <aside className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-12">
+    <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
       {/*
-        A hairline down the full height cut the page in half. This fades in at
-        the vertical centre and out at both ends, so the two halves read as one
-        surface with a seam rather than two panes bolted together.
+        One primary source, sitting behind the top of the card. Everything else
+        is falloff. The first attempt used four large fields at once, which lit
+        the whole viewport to an even purple — the card then read as a hole in a
+        flat panel rather than an object with light behind it.
       */}
       <span
-        aria-hidden
-        className="absolute inset-y-0 right-0 w-px"
-        style={{
-          background:
-            'linear-gradient(to bottom, transparent, var(--m-line-2) 35%, var(--m-line-2) 65%, transparent)',
-        }}
+        className="absolute top-[-14rem] left-1/2 h-[34rem] w-[46rem] -translate-x-1/2 rounded-[50%] blur-[100px]"
+        style={{ backgroundImage: 'var(--m-grad)', opacity: 0.38 }}
       />
-      {/*
-        Three oversized fields drifting on long, offset cycles rather than a
-        static gradient — it keeps a large flat area from reading as a solid
-        block without ever pulling focus from the form.
-      */}
-      <Aurora
-        color="var(--m-indigo)"
-        opacity={0.34}
-        className="animate-[drift_22s_ease-in-out_infinite_alternate] -top-1/4 -left-1/4 size-[70%]"
-      />
+
+      {/* Colour at the far edges only, so the corners are not simply black. */}
       <Aurora
         color="var(--m-violet)"
-        opacity={0.26}
-        className="animate-[drift_28s_ease-in-out_infinite_alternate-reverse] top-1/3 -right-1/4 size-[65%]"
+        opacity={0.16}
+        className="top-[-6rem] right-[-14rem] size-[30rem] animate-[drift_28s_ease-in-out_infinite_alternate-reverse] motion-reduce:animate-none"
       />
       <Aurora
         color="var(--m-cyan)"
-        opacity={0.14}
-        className="animate-[drift_34s_ease-in-out_infinite_alternate] -bottom-1/4 left-1/4 size-[60%]"
+        opacity={0.1}
+        className="bottom-[-16rem] left-[-10rem] size-[30rem] animate-[drift_36s_ease-in-out_infinite_alternate] motion-reduce:animate-none"
       />
 
-      <div
-        aria-hidden
-        className="m-grid pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(80%_80%_at_30%_20%,#000,transparent)]"
+      <div className="m-grid absolute inset-0 opacity-70 [mask-image:radial-gradient(62%_55%_at_50%_42%,#000,transparent)]" />
+
+      {/*
+        Two hairlines on the card's own edges, running the full height. They are
+        what stops the card reading as a rectangle dropped onto a background —
+        the page and the card share the same two lines. Offset from the centre by
+        half the column width (26.5rem ÷ 2 = 212px), and hidden below sm, where
+        the gutters make the column narrower than that.
+      */}
+      <span
+        className="absolute inset-y-0 left-1/2 hidden w-px -translate-x-[212px] sm:block"
+        style={{ background: hairline }}
+      />
+      <span
+        className="absolute inset-y-0 left-1/2 hidden w-px translate-x-[212px] sm:block"
+        style={{ background: hairline }}
       />
 
-      <Link href="/" className="relative transition hover:opacity-85">
-        <Logo id="auth-mark" />
-      </Link>
-
-      <div className="relative max-w-md">
-        <p className="m-eyebrow">Voucher Desk</p>
-        {/*
-          Not an <h1>, despite being the biggest text on the page. The heading
-          that describes what this page is for is "Welcome back" / "Create your
-          account" in the form; this is supporting copy, and two h1s would leave
-          a screen reader with no single answer to what the page is.
-        */}
-        <p className="m-display mt-4 text-[2.6rem]">
-          Every voucher,
-          <br />
-          <span className="m-serif m-grad-text">properly approved.</span>
-        </p>
-        <p className="m-dim mt-5 text-[15px] leading-relaxed">
-          Payment vouchers for the CIO Association — raised, reviewed and signed off through an
-          approval chain the database itself enforces.
-        </p>
-
-        <ul className="mt-10 space-y-5">
-          {POINTS.map((p) => (
-            <li key={p.title} className="flex gap-3.5">
-              <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg border border-[var(--m-line)] bg-white/[0.04]">
-                <p.icon className="size-4 text-[var(--m-cyan)]" aria-hidden />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">{p.title}</p>
-                <p className="m-dim-2 mt-1 text-[13px] leading-relaxed">{p.body}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <WorkflowRail />
-    </aside>
-  );
-}
-
-/** The state machine, drawn small. It is the shape of the whole product. */
-function WorkflowRail() {
-  const steps = ['Draft', '1st approval', '2nd approval', 'Approved'];
-
-  return (
-    <div className="relative flex items-center gap-2">
-      {steps.map((label, i) => {
-        const last = i === steps.length - 1;
-        return (
-          <div key={label} className="flex items-center gap-2">
-            <div className="flex items-center gap-2 rounded-full border border-[var(--m-line)] bg-white/[0.04] py-1.5 pr-3.5 pl-2.5 backdrop-blur">
-              <span
-                aria-hidden
-                className="size-1.5 rounded-full"
-                style={{ background: last ? 'var(--m-emerald)' : 'var(--m-dim-2)' }}
-              />
-              <span className="m-dim text-[11px] font-medium whitespace-nowrap">{label}</span>
-            </div>
-            {!last && <span aria-hidden className="h-px w-4 bg-[var(--m-line-2)]" />}
-          </div>
-        );
-      })}
+      {/*
+        Vignette, last so it sits over every light source. This is what turns an
+        evenly lit rectangle into a pool of light: it starts closing in just
+        outside the card and reaches near-opaque at the edges of the viewport.
+      */}
+      <span
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(86% 68% at 50% 34%, transparent 12%, oklch(0.128 0.019 274 / 0.62) 52%, oklch(0.105 0.014 274 / 0.94) 100%)',
+        }}
+      />
     </div>
   );
 }
