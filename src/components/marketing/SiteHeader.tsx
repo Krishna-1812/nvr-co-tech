@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { NAV } from '@/lib/marketing/content';
 import { Container } from './bits';
 import { Logo } from './Logo';
+import { ScrollProgressBar } from './motion';
 
 /**
  * The public site's header.
@@ -52,6 +53,13 @@ export function SiteHeader() {
           : 'border-b border-transparent',
       )}
     >
+      {/*
+        How far through the page the reader is, drawn on the header's own bottom
+        edge rather than as a separate bar above it. It only appears once the
+        page has moved, because at the top it would be a 0-width line under a
+        transparent header — visual noise reporting nothing.
+      */}
+      {scrolled && <ScrollProgressBar />}
       <Container wide>
         <div className="flex h-[68px] items-center gap-6">
           <Link href="/" className="shrink-0 transition hover:opacity-85">

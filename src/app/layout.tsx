@@ -1,26 +1,34 @@
 import type { Metadata } from 'next';
-import { Inter, Instrument_Serif, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
+import { Bricolage_Grotesque, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { BRAND, SITE_URL } from '@/lib/marketing/content';
 import './globals.css';
 
 /*
- * Four families, each doing one job.
+ * One voice, two supporting roles.
  *
- * Inter carries the application — it is the one you read for an hour, and it
- * disappears, which is the whole point. The other three exist for the public
- * site: Space Grotesk gives headlines a shape Inter does not have, Instrument
- * Serif italic is the accent inside them, and JetBrains Mono carries the
- * eyebrows and any figure that has to line up in a column.
+ * Bricolage Grotesque carries everything — headlines and body, marketing and
+ * application. It replaced a pairing of Inter and Space Grotesk, and one family
+ * doing both jobs is only possible because of its axes: `opsz` retunes the
+ * letterforms for the size they are set at, so a 6rem headline gets tight
+ * apertures and high contrast while 13px body text gets open, sturdy ones. That
+ * is a different design at each end, not the same outlines scaled.
  *
- * All four are self-hosted by next/font, so there is no render-blocking request
- * to Google and no layout shift when they land.
+ * `wdth` comes along for the ride and is used on the display utilities, where a
+ * slight narrowing buys a few more characters per line at hero sizes.
+ *
+ * Instrument Serif stays for one job: the italic accent inside headlines.
+ * Bricolage ships no italic, so the alternative is a browser-synthesised slant,
+ * which is a sheared roman rather than an italic and looks it. JetBrains Mono
+ * stays for eyebrows and any figure that has to line up in a column.
+ *
+ * All three are self-hosted by next/font — no render-blocking request to
+ * Google, and no layout shift when they land.
  */
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
-
-const spaceGrotesk = Space_Grotesk({
+const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
-  variable: '--font-display-stack',
+  axes: ['opsz', 'wdth'],
+  variable: '--font-bricolage',
   display: 'swap',
 });
 
@@ -81,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en-IN"
       suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+      className={`${bricolage.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         {/*

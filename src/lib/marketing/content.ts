@@ -54,7 +54,7 @@ export type Agent = {
   outputs: string;
   /** Only set for the live agent — where signing in takes you. */
   href?: string;
-  accent: 'indigo' | 'cyan' | 'emerald' | 'amber' | 'violet' | 'rose';
+  accent: 'indigo' | 'cyan' | 'emerald' | 'amber' | 'violet' | 'rose' | 'lime' | 'magenta';
 };
 
 export const STAGE_LABEL: Record<AgentStage, string> = {
@@ -156,7 +156,7 @@ export const AGENTS: Agent[] = [
     name: 'Invoice Intake',
     stage: 'planned',
     category: 'Document capture',
-    accent: 'violet',
+    accent: 'magenta',
     summary:
       'Reads an invoice — emailed, photographed or scanned — pulls out the fields, and starts the voucher already filled in.',
     pitch:
@@ -244,6 +244,71 @@ export const STEPS = [
     title: 'The record closes',
     body: 'Numbered, frozen, exported, and appended to an audit trail that has no edit path — so what happened stays what happened.',
   },
+] as const;
+
+/**
+ * Three things the database will not let you do, with the message it actually
+ * returns.
+ *
+ * Every string in `error` is copied verbatim from supabase/migrations — the first
+ * two from the approve() function, the third from the immutability trigger. They
+ * are quoted rather than paraphrased on purpose: a claim about enforcement that
+ * shows the enforcement is checkable, and a paraphrase is not. If a message
+ * changes in SQL it has to change here, which is the point.
+ */
+export const REFUSALS = [
+  {
+    id: 'self',
+    attempt: 'Approve a voucher you raised yourself',
+    error: 'You cannot approve a voucher you raised',
+    where: 'approve_voucher() · 0002_workflow.sql',
+    call: "select approve_voucher('a1f3…9c');",
+    why: 'Segregation of duties, checked against the row’s created_by inside the transaction rather than by hiding a button.',
+    /*
+     * Precise about the reach of each rule, because "enforced in the database"
+     * is two different guarantees here and conflating them would be a claim we
+     * cannot stand behind. The approve() checks are unavoidable for anything
+     * coming through the API: row-level security lets a member update their own
+     * voucher only while it is draft or rejected, so the status and approver
+     * columns cannot be written directly and this function is the only route.
+     * The freeze trigger is stronger still — a trigger fires for every writer.
+     */
+    holds: 'Unavoidable from the application. Row-level security permits an update only while the voucher is a draft or rejected, so the status column cannot be written directly and this function is the only way in.',
+  },
+  {
+    id: 'twice',
+    attempt: 'Give the second approval after giving the first',
+    error: 'This voucher already has your first approval — a second person must approve it',
+    where: 'approve_voucher() · 0002_workflow.sql',
+    call: "select approve_voucher('a1f3…9c');",
+    why: 'Two approvals must be two people. One person clicking twice is the exact failure this workflow exists to prevent.',
+    holds: 'Compares the caller against the recorded first approver on the row itself, so it cannot be defeated by a second session, a second device or a replayed request.',
+  },
+  {
+    id: 'edit',
+    attempt: 'Change the amount on an approved voucher',
+    error: 'This voucher is approved and cannot be edited. Reopen it first.',
+    where: 'freeze trigger · 0002_workflow.sql',
+    call: "update vouchers set basic_value = 190000 where id = 'a1f3…9c';",
+    why: 'Approved records are frozen field by field. Reopening is allowed, is an admin action, needs a reason, and leaves a row in the audit trail.',
+    holds: 'A trigger rather than a policy, so it fires for every writer at every privilege level — including a connection that bypasses row-level security entirely.',
+  },
+] as const;
+
+/**
+ * The tax rules the interactive panel on the home page lets you drive.
+ *
+ * Rates only — the arithmetic is done by the application's own calcNetTotal and
+ * calcGrandTotal, so the figures on the marketing page and the figures on a real
+ * voucher come from the same two functions.
+ */
+export const GST_RATES = [5, 12, 18, 28] as const;
+
+export const TDS_SECTIONS = [
+  { code: 'None', rate: 0, note: 'No deduction at source' },
+  { code: '194C', rate: 2, note: 'Contractors — 2% for a company' },
+  { code: '194H', rate: 5, note: 'Commission or brokerage' },
+  { code: '194J', rate: 10, note: 'Professional or technical services' },
 ] as const;
 
 /** Security posture, shown on the home page and expanded on /security. */

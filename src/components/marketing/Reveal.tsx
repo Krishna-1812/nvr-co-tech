@@ -1,54 +1,21 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { useInView } from './scroll';
 
 /**
  * Releases its children when they scroll into view.
  *
  * The displaced state lives in CSS (`.reveal`) rather than in React state, so
  * the first paint already has it — no flash of finished layout followed by a
- * jump back.
+ * jump back. Without scripting the class is overridden outright in the marketing
+ * layout, because this wraps most of the page and a reveal that never fires
+ * would leave a blank site rather than a missing animation.
  *
- * Deliberately NOT built on IntersectionObserver. The failure mode here is
- * unusually harsh: this wraps most of the page, so anything that stops the
- * reveal firing leaves a blank site rather than a missing animation. An
- * observer only delivers callbacks while the page is actually being composited,
- * which is not guaranteed in every embedded, throttled or headless context —
- * and when it silently never fires there is nothing to recover from. A shared
- * scroll listener has no such dependency, and one rect measurement per element
- * per frame is cheap at this page's size.
+ * The scroll plumbing lives in ./scroll — see the note there on why this is a
+ * shared listener rather than an IntersectionObserver.
  */
-
-/** One listener for the whole page, not one per element. */
-const watchers = new Set<() => void>();
-let frame = 0;
-
-function flush() {
-  frame = 0;
-  for (const check of watchers) check();
-}
-
-function schedule() {
-  if (!frame) frame = requestAnimationFrame(flush);
-}
-
-function subscribe(check: () => void): () => void {
-  if (watchers.size === 0) {
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule, { passive: true });
-  }
-  watchers.add(check);
-
-  return () => {
-    watchers.delete(check);
-    if (watchers.size === 0) {
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-    }
-  };
-}
-
 export function Reveal({
   children,
   delay = 0,
@@ -59,38 +26,10 @@ export function Reveal({
   /** Milliseconds to stagger this element behind its siblings. */
   delay?: number;
   className?: string;
-  as?: 'div' | 'section' | 'li' | 'article' | 'header';
+  as?: 'div' | 'section' | 'li' | 'article' | 'header' | 'tr';
 }) {
   const ref = useRef<HTMLElement>(null);
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    let unsubscribe: (() => void) | undefined;
-
-    const check = () => {
-      const rect = el.getBoundingClientRect();
-      // Trip a little before the top edge arrives, so the motion is finishing
-      // as the element reaches comfortable reading position rather than starting.
-      const inView = rect.top < window.innerHeight * 0.88 && rect.bottom > 0;
-      if (!inView) return;
-
-      setShown(true);
-      // Reveals once. Content that re-animates every time it passes the
-      // viewport reads as a broken page, not a lively one.
-      unsubscribe?.();
-      unsubscribe = undefined;
-    };
-
-    unsubscribe = subscribe(check);
-    // Run immediately: everything above the fold is already in view at mount
-    // and should not wait for the first scroll event that may never come.
-    check();
-
-    return () => unsubscribe?.();
-  }, []);
+  const shown = useInView(ref);
 
   return (
     <Tag

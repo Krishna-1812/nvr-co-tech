@@ -31,10 +31,15 @@
   --color-accent-500: oklch(0.606 0.170 306);
   --color-accent-600: oklch(0.516 0.172 306);
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /*
+   * One family for everything. --font-display is the same stack as --font-sans;
+   * what separates a headline from body text is the `opsz` and `wdth` axes, set
+   * by the .m-display utility, not a different typeface.
+   */
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-sans);
   --font-mono: var(--font-mono-stack), ui-monospace, 'Cascadia Code', monospace;
-  /* Marketing only — see the [data-skin='night'] block further down. */
-  --font-display: var(--font-display-stack), var(--font-sans);
+  /* Italic accents inside headlines only — Bricolage ships no italic. */
   --font-serif: var(--font-serif-stack), Georgia, 'Times New Roman', serif;
 
   /* Entrance motion — see @keyframes below. */
@@ -200,6 +205,13 @@
     color: var(--text-c);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    /*
+     * Bricolage Grotesque carries an `opsz` axis, so the browser retunes the
+     * letterforms to whatever size each element is set at — open and sturdy in a
+     * 13px table cell, tight and high-contrast in a heading. This one line is
+     * why the site needs a single family rather than a display/text pairing.
+     */
+    font-optical-sizing: auto;
   }
 
   /* Money and voucher numbers must line up in columns. */
@@ -299,6 +311,34 @@
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: none; }
 }
+/*
+ * A line of type rising into a clipped box. Used for hero headlines, where the
+ * reveal has to be pure CSS: JavaScript-driven entrances above the fold mean a
+ * blank first paint while the bundle lands.
+ */
+@keyframes lift {
+  from { transform: translateY(105%); }
+  to   { transform: none; }
+}
+/* Slow rotation for the conic rings behind the hero panel. */
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* An expanding ring leaving a live node. */
+@keyframes halo {
+  from { transform: scale(0.6); opacity: 0.55; }
+  to   { transform: scale(2.4); opacity: 0; }
+}
+/* A dash travelling along a path — the flow lines in the pinned stages. */
+@keyframes flow {
+  to { stroke-dashoffset: -1000; }
+}
+/* A value counting into place: the digits blur very slightly as they settle. */
+@keyframes settle {
+  from { opacity: 0; filter: blur(6px); transform: translateY(6px); }
+  to   { opacity: 1; filter: none; transform: none; }
+}
 
 /* ═══ Marketing skin ═══════════════════════════════════════════════════════
  *
@@ -315,10 +355,10 @@
 [data-skin='night'] {
   color-scheme: dark;
 
-  --m-bg:      oklch(0.145 0.021 274);
-  --m-bg-2:    oklch(0.185 0.026 274);
-  --m-bg-3:    oklch(0.225 0.030 274);
-  --m-ink:     oklch(0.965 0.008 274);
+  --m-bg:      oklch(0.132 0.018 268);
+  --m-bg-2:    oklch(0.175 0.024 270);
+  --m-bg-3:    oklch(0.218 0.028 272);
+  --m-ink:     oklch(0.968 0.008 274);
   --m-dim:     oklch(0.760 0.028 274);
   --m-dim-2:   oklch(0.620 0.030 274);
 
@@ -329,10 +369,23 @@
   --m-violet:  oklch(0.680 0.190 300);
   --m-cyan:    oklch(0.790 0.140 205);
   --m-emerald: oklch(0.780 0.150 165);
-  --m-amber:   oklch(0.820 0.150 85);
+  --m-amber:   oklch(0.810 0.165 68);
   --m-rose:    oklch(0.720 0.170 15);
+  /*
+   * Two colours that are not on the indigo→cyan arc, added because everything
+   * else here is: six accents spread over 120° of hue all read as "the purple
+   * one" at a glance, which is no use when six agent tiles have to be told
+   * apart. Lime is the loudest thing on the site and is rationed accordingly —
+   * live signals, and the one figure per section that matters.
+   */
+  --m-lime:    oklch(0.885 0.195 128);
+  --m-magenta: oklch(0.700 0.230 340);
 
-  --m-grad: linear-gradient(100deg, var(--m-indigo), var(--m-violet) 55%, var(--m-cyan));
+  --m-grad:     linear-gradient(100deg, var(--m-indigo), var(--m-violet) 55%, var(--m-cyan));
+  /* Cool→acid, for anything live or measured. */
+  --m-grad-2:   linear-gradient(100deg, var(--m-cyan), var(--m-lime));
+  /* The hot end, used once or twice a page at most. */
+  --m-grad-hot: linear-gradient(100deg, var(--m-magenta), var(--m-violet) 52%, var(--m-indigo));
 
   color: var(--m-ink);
   background: var(--m-bg);
@@ -341,7 +394,7 @@
 
 /* Overscroll and any gap below a short page must not flash the app's surface. */
 body:has([data-skin='night']) {
-  background: oklch(0.145 0.021 274);
+  background: oklch(0.132 0.018 268);
   /*
    * The blurred aurora fields deliberately sit outside their sections, so
    * something has to stop them widening the page. It has to be <body>: overflow
@@ -367,9 +420,9 @@ body:has([data-skin='night']) {
  * legible on white, and on near-black it is close to invisible.
  */
 [data-skin='night'] {
-  --surface:        oklch(0.145 0.021 274);
-  --surface-raised: oklch(0.205 0.026 274);
-  --surface-sunken: oklch(0.125 0.020 274);
+  --surface:        oklch(0.132 0.018 268);
+  --surface-raised: oklch(0.198 0.025 270);
+  --surface-sunken: oklch(0.114 0.016 268);
   --border-c:       oklch(0.72 0.05 274 / 0.16);
   --border-strong:  oklch(0.72 0.05 274 / 0.32);
   --text-c:         var(--m-ink);
@@ -393,11 +446,31 @@ body:has([data-skin='night']) {
 
 @layer utilities {
   /* ── Type ── */
+  /*
+   * Headline setting. Same family as body text — what makes it a headline is the
+   * variable axes: opsz 72 asks the font for its display cut (tighter apertures,
+   * more stroke contrast) and wdth 94 narrows it just enough to buy a couple of
+   * characters per line at hero sizes without reading as condensed.
+   *
+   * wght is listed explicitly rather than left to font-weight, because Safari
+   * has shipped versions that reset unlisted axes to their default the moment
+   * font-variation-settings appears — which would silently un-bold every
+   * headline on the site.
+   */
   .m-display {
     font-family: var(--font-display);
     font-weight: 700;
-    letter-spacing: -0.028em;
-    line-height: 0.96;
+    font-variation-settings: 'opsz' 72, 'wdth' 94, 'wght' 700;
+    letter-spacing: -0.03em;
+    line-height: 0.94;
+  }
+  /* For the two or three places that want the display cut at body weight. */
+  .m-display-light {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-variation-settings: 'opsz' 72, 'wdth' 96, 'wght' 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
   }
   .m-serif {
     font-family: var(--font-serif);
@@ -493,6 +566,115 @@ body:has([data-skin='night']) {
 
   @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; }
+  }
+
+  /* A dotted field, softer than the grid. Used where the grid would be busy. */
+  .m-dots {
+    background-image: radial-gradient(var(--m-line-2) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  /*
+   * A 1px gradient outline. Doing this with a real border needs a wrapper and a
+   * background-clip trick; as a mask on a padding box it is one element, and it
+   * follows any border-radius the caller sets.
+   */
+  .m-ring {
+    position: relative;
+  }
+  .m-ring::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(150deg, oklch(0.92 0.04 274 / 0.4), oklch(0.72 0.05 274 / 0.06) 55%);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Numbers that change in place, e.g. the interactive calculator's totals. */
+  .m-tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  /*
+   * A range input worth dragging.
+   *
+   * The filled portion of the track is a gradient cut off at --fill, which the
+   * component sets from its own state. `accent-color` alone would colour the
+   * fill but leaves the platform's own track and thumb, and those look nothing
+   * like the rest of this page.
+   *
+   * Every rule is duplicated for WebKit and Gecko because the two pseudo-elements
+   * cannot be combined in one selector list — one unknown pseudo-element
+   * invalidates the whole rule, so a shared block would apply to neither.
+   */
+  .m-range {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: grab;
+    height: 1.5rem;
+  }
+  .m-range:active { cursor: grabbing; }
+
+  .m-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 99px;
+    background:
+      linear-gradient(90deg, var(--m-indigo), var(--m-violet) 55%, var(--m-cyan)) no-repeat
+      left / var(--fill, 50%) 100%,
+      var(--m-line-2);
+  }
+  .m-range::-moz-range-track {
+    height: 4px;
+    border-radius: 99px;
+    background:
+      linear-gradient(90deg, var(--m-indigo), var(--m-violet) 55%, var(--m-cyan)) no-repeat
+      left / var(--fill, 50%) 100%,
+      var(--m-line-2);
+  }
+
+  .m-range::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -7px;
+    border-radius: 99px;
+    background: var(--m-ink);
+    border: 3px solid var(--m-bg);
+    box-shadow: 0 2px 10px oklch(0 0 0 / 0.55);
+    transition: transform 0.15s ease;
+  }
+  .m-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 99px;
+    background: var(--m-ink);
+    border: 3px solid var(--m-bg);
+    box-shadow: 0 2px 10px oklch(0 0 0 / 0.55);
+    transition: transform 0.15s ease;
+  }
+
+  .m-range:hover::-webkit-slider-thumb { transform: scale(1.12); }
+  .m-range:hover::-moz-range-thumb     { transform: scale(1.12); }
+
+  .m-range:focus-visible { outline: none; }
+  .m-range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--m-cyan) 45%, transparent);
+  }
+  .m-range:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--m-cyan) 45%, transparent);
   }
 
   .m-marquee { animation: var(--animate-marquee); }

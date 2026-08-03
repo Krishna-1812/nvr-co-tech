@@ -17,7 +17,40 @@ export const ACCENT: Record<Agent['accent'], string> = {
   emerald: 'var(--m-emerald)',
   amber: 'var(--m-amber)',
   rose: 'var(--m-rose)',
+  lime: 'var(--m-lime)',
+  magenta: 'var(--m-magenta)',
 };
+
+/**
+ * A headline line that rises into place from behind a clip.
+ *
+ * Pure CSS and therefore not waiting on hydration, which is the whole point
+ * above the fold — see the note on Rise. Each line is its own clipping box, so
+ * the type appears to be revealed by the layout rather than faded in.
+ *
+ * `overflow-hidden` on the outer span would clip descenders, so the box is given
+ * a little vertical breathing room and pulled back with a negative margin.
+ */
+export function LineRise({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  return (
+    <span className={cn('-mb-[0.18em] block overflow-hidden pb-[0.18em]', className)}>
+      <span
+        className="block animate-[lift_0.95s_cubic-bezier(0.16,1,0.3,1)_backwards] motion-reduce:animate-none"
+        style={delay ? { animationDelay: `${delay}ms` } : undefined}
+      >
+        {children}
+      </span>
+    </span>
+  );
+}
 
 export function Container({
   children,
