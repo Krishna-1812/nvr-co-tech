@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight, Mail } from 'lucide-react';
 import { AGENTS, BRAND, CONTACT, STAGE_LABEL } from '@/lib/marketing/content';
-import { Aurora, Container, Eyebrow, Section } from '@/components/marketing/bits';
+import { Aurora, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
 import { Reveal } from '@/components/marketing/Reveal';
 
 export const metadata: Metadata = {
@@ -42,23 +42,23 @@ export default function ContactPage() {
         />
 
         <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-16">
-          <Reveal>
+          <Rise>
             <Eyebrow>Contact</Eyebrow>
-          </Reveal>
+          </Rise>
 
-          <Reveal delay={60}>
+          <Rise delay={60}>
             <h1 className="m-display mt-5 max-w-3xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
               Book a <span className="m-serif m-grad-text pr-1">walkthrough.</span>
             </h1>
-          </Reveal>
+          </Rise>
 
-          <Reveal delay={120}>
+          <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
               Half an hour with the people who built it, on the agent that is actually running.
               Tell us which part of your month hurts and we will show you whether there is
               something here for it yet.
             </p>
-          </Reveal>
+          </Rise>
         </Container>
       </section>
 

@@ -6,10 +6,12 @@ import {
   CTA,
   Container,
   Eyebrow,
+  Rise,
   Section,
   SectionHeading,
 } from '@/components/marketing/bits';
 import { Reveal } from '@/components/marketing/Reveal';
+import { PermissionMatrix } from '@/components/marketing/security/PermissionMatrix';
 
 export const metadata: Metadata = {
   title: 'Security',
@@ -107,26 +109,26 @@ export default function SecurityPage() {
         />
 
         <Container wide className="relative pt-16 pb-16 sm:pt-24 sm:pb-24">
-          <Reveal>
+          <Rise>
             <Eyebrow>Security &amp; trust</Eyebrow>
-          </Reveal>
+          </Rise>
 
-          <Reveal delay={60}>
+          <Rise delay={60}>
             <h1 className="m-display mt-5 max-w-4xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
               Controls you can{' '}
               <span className="m-serif m-grad-text pr-1">read for yourself.</span>
             </h1>
-          </Reveal>
+          </Rise>
 
-          <Reveal delay={120}>
+          <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
               Most security pages describe intentions. This one describes where the rules live,
               which is inside Postgres, in policies and functions your own database person can
               read. If a control is not written down as SQL, we do not count it as a control.
             </p>
-          </Reveal>
+          </Rise>
 
-          <Reveal delay={180}>
+          <Rise delay={180}>
             <p className="m-dim-2 mt-8 flex max-w-2xl items-start gap-2.5 text-[13px] leading-relaxed">
               <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[var(--m-emerald)]" aria-hidden />
               <span>
@@ -134,7 +136,7 @@ export default function SecurityPage() {
                 verifiable by reading the migrations or by asking us to walk you through them.
               </span>
             </p>
-          </Reveal>
+          </Rise>
         </Container>
       </section>
 
@@ -166,6 +168,13 @@ export default function SecurityPage() {
           </ul>
         </Container>
       </Section>
+
+      {/*
+        The role-level view, ahead of the table-level MATRIX further down. They
+        answer different questions — "what can I do" versus "what is each table
+        exposed for" — and a reader arriving from the home page has the first one.
+      */}
+      <PermissionMatrix />
 
       <Section>
         <Container wide>

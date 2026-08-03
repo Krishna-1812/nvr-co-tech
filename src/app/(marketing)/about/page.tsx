@@ -8,6 +8,7 @@ import {
   CTA,
   Container,
   Eyebrow,
+  Rise,
   Section,
   SectionHeading,
   StageBadge,
@@ -52,25 +53,25 @@ export default function AboutPage() {
         />
 
         <Container wide className="relative pt-16 pb-16 sm:pt-24 sm:pb-24">
-          <Reveal>
+          <Rise>
             <Eyebrow>About</Eyebrow>
-          </Reveal>
+          </Rise>
 
-          <Reveal delay={60}>
+          <Rise delay={60}>
             <h1 className="m-display mt-5 max-w-4xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
               An accounting firm{' '}
               <span className="m-serif m-grad-text pr-1">building its own tools.</span>
             </h1>
-          </Reveal>
+          </Rise>
 
-          <Reveal delay={120}>
+          <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
               {BRAND.name} is the software arm of {BRAND.firmLong}. Everything here started as work
               the firm was doing by hand, for clients, on deadlines. The agents exist because the
               same people who were doing that work wrote down which parts of it never actually
               needed a person.
             </p>
-          </Reveal>
+          </Rise>
         </Container>
       </section>
 

@@ -79,6 +79,11 @@ export function ScrollStage({
   return (
     <div
       ref={track}
+      // data-stage is the hook the marketing layout's <noscript> block uses to
+      // hide this and reveal the stacked fallback. Without scripting the step
+      // never advances, and a frozen first scene holding four viewport-heights
+      // of scroll is a worse failure than simply not pinning.
+      data-stage="pinned"
       className={cn('relative hidden lg:block', className)}
       style={{ height: `${100 + steps * pace * 100}vh` }}
     >
@@ -101,7 +106,11 @@ export function StageFallback({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn('lg:hidden', className)}>{children}</div>;
+  return (
+    <div data-stage="stacked" className={cn('lg:hidden', className)}>
+      {children}
+    </div>
+  );
 }
 
 /* ── Counting figures ────────────────────────────────────────────────────── */

@@ -20,6 +20,7 @@ import {
   StageBadge,
 } from '@/components/marketing/bits';
 import { Reveal } from '@/components/marketing/Reveal';
+import { FlowDiagram } from '@/components/marketing/agents/FlowDiagram';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -168,16 +169,8 @@ export default async function AgentPage({ params }: Params) {
           </Reveal>
 
           <Reveal delay={70}>
-            <div className="mt-8 flex flex-col items-stretch gap-4 md:flex-row md:items-center">
-              <Panel label="Inputs" body={agent.inputs} />
-              <span
-                aria-hidden
-                className="mx-auto grid size-9 shrink-0 place-items-center rounded-full border border-[var(--m-line)]"
-                style={{ background: `color-mix(in oklab, ${accent} 12%, transparent)` }}
-              >
-                <ArrowRight className="size-4 rotate-90 md:rotate-0" style={{ color: accent }} />
-              </span>
-              <Panel label="Outputs" body={agent.outputs} accent={accent} />
+            <div className="mt-8">
+              <FlowDiagram agent={agent} />
             </div>
           </Reveal>
 
@@ -298,16 +291,5 @@ function StageNote({ agent, className }: { agent: Agent; className?: string }) {
       <Icon className="mt-0.5 size-3.5 shrink-0" style={{ color: tone }} aria-hidden />
       <span>{STAGE_NOTE[agent.stage]}</span>
     </p>
-  );
-}
-
-function Panel({ label, body, accent }: { label: string; body: string; accent?: string }) {
-  return (
-    <div className="m-card flex-1 px-6 py-7">
-      <p className="m-eyebrow" style={accent ? { color: accent } : undefined}>
-        {label}
-      </p>
-      <p className="mt-3 text-[15px] leading-relaxed text-[var(--m-ink)]">{body}</p>
-    </div>
   );
 }

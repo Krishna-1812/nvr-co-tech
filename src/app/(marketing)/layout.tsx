@@ -25,8 +25,20 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         With scripting off that release never happens, so the whole site would
         be a blank dark page — undo the hidden state outright in that case.
       */}
+      {/*
+        Two things need undoing when scripting is off.
+
+        Scroll reveal starts elements at opacity 0 and JavaScript releases them;
+        with no JavaScript that release never happens, and since Reveal wraps most
+        of the site the whole page would be blank.
+
+        The pinned stages advance their step from the scroll position, so without
+        scripting they hold their first scene for four viewport-heights of empty
+        scrolling. Hiding the pin and showing the stacked variant at every width
+        gives the same content in a form that needs nothing to work.
+      */}
       <noscript>
-        <style>{`.reveal{opacity:1 !important;transform:none !important}`}</style>
+        <style>{`.reveal{opacity:1 !important;transform:none !important}[data-stage='pinned']{display:none !important}[data-stage='stacked']{display:block !important}`}</style>
       </noscript>
 
       <SiteHeader />

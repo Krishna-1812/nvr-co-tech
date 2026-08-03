@@ -332,6 +332,97 @@ export const CONTROLS = [
 ] as const;
 
 /**
+ * Who may do what, taken from the policies rather than from a design document.
+ *
+ * The four roles are the four values of the user_role enum, and the three
+ * predicates behind every row here are the three helper functions in
+ * 0002_workflow.sql:
+ *
+ *   can_approve()  →  approver, admin, owner
+ *   is_admin()     →  admin, owner
+ *   is_owner()     →  owner
+ *
+ * `sql` is the actual predicate or check that decides the row, so a reader can
+ * find it in the repository. The last two rows are the point of the whole table:
+ * every column is a refusal, including the owner's.
+ */
+export const ROLES = ['member', 'approver', 'admin', 'owner'] as const;
+export type Role = (typeof ROLES)[number];
+
+export type Capability = {
+  action: string;
+  /** Which roles may do it. Empty means nobody, at any level. */
+  who: readonly Role[];
+  sql: string;
+  note?: string;
+};
+
+export const CAPABILITIES: readonly Capability[] = [
+  {
+    action: 'Raise a voucher',
+    who: ['member', 'approver', 'admin', 'owner'],
+    sql: 'created_by = auth.uid() and status = \'draft\'',
+  },
+  {
+    action: 'Edit it while it is a draft, or after it comes back',
+    who: ['member', 'approver', 'admin', 'owner'],
+    sql: "status in ('draft', 'rejected')",
+  },
+  {
+    action: 'See a voucher somebody else raised',
+    who: ['approver', 'admin', 'owner'],
+    sql: 'can_approve() and status <> \'draft\'',
+    note: 'Approvers see everything from submission onwards. Nobody but an admin sees another person’s draft.',
+  },
+  {
+    action: 'Approve or reject',
+    who: ['approver', 'admin', 'owner'],
+    sql: 'can_approve()',
+  },
+  {
+    action: 'Edit a draft on somebody else’s behalf',
+    who: ['admin', 'owner'],
+    sql: 'is_admin()',
+  },
+  {
+    action: 'Reopen an approved voucher',
+    who: ['admin', 'owner'],
+    sql: 'is_admin()',
+    note: 'Needs a reason, and the reopening itself is appended to the trail.',
+  },
+  {
+    action: 'Mark a voucher paid',
+    who: ['admin', 'owner'],
+    sql: 'is_admin()',
+    note: 'A UTR or reference number is required.',
+  },
+  {
+    action: 'Delete a voucher permanently',
+    who: ['admin', 'owner'],
+    sql: 'is_admin()',
+    note: 'Only from the bin. A voucher in the workflow has to be moved there first.',
+  },
+  {
+    action: 'Change somebody’s role',
+    who: ['owner'],
+    sql: 'is_owner() and target <> auth.uid()',
+    note: 'Not even the owner can change their own role, or another owner’s.',
+  },
+  {
+    action: 'Approve a voucher you raised yourself',
+    who: [],
+    sql: 'v.created_by <> me',
+    note: 'No role, no exception, no admin override.',
+  },
+  {
+    action: 'Edit or delete a row in the audit trail',
+    who: [],
+    sql: 'no UPDATE or DELETE policy exists',
+    note: 'The table has an append policy and a read policy. There is nothing to grant.',
+  },
+];
+
+/**
  * Said plainly on each agent's page, next to the pitch.
  *
  * The first question a finance buyer has about a roadmap tile is whether they

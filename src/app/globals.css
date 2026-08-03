@@ -330,9 +330,16 @@
   from { transform: scale(0.6); opacity: 0.55; }
   to   { transform: scale(2.4); opacity: 0; }
 }
-/* A dash travelling along a path — the flow lines in the pinned stages. */
+/*
+ * A dash travelling along a path — the flow connectors on the agent pages.
+ *
+ * Exactly one dash period (-100), so the loop is seamless. Any other distance
+ * leaves the dash mid-gap when the animation restarts and the whole line visibly
+ * jumps once a cycle. Users of this must set a dasharray summing to 100 on a
+ * path 100 units long.
+ */
 @keyframes flow {
-  to { stroke-dashoffset: -1000; }
+  to { stroke-dashoffset: -100; }
 }
 /* A value counting into place: the digits blur very slightly as they settle. */
 @keyframes settle {
