@@ -8,9 +8,9 @@ const ICONS = [Database, UserRoundX, FileLock2, MapPin];
 /**
  * The controls section.
  *
- * Every one of these is a claim about where enforcement lives, which is the
- * only security claim worth making to an accountant: not "we take security
- * seriously" but "here is the layer that would have to be defeated".
+ * Every one of these is a claim about where enforcement lives, which is the only
+ * security claim worth making to an accountant. Not "we take security seriously"
+ * but "here is the layer that would have to be defeated".
  */
 export function Controls() {
   return (
@@ -22,12 +22,12 @@ export function Controls() {
               eyebrow="Controls"
               title={
                 <>
-                  Enforced by the database,
+                  The database says no,
                   <br />
-                  <span className="m-serif m-dim">not promised by the app.</span>
+                  <span className="m-serif m-dim">so the app does not have to.</span>
                 </>
               }
-              lead="An approval rule that lives in the interface is a suggestion. Anyone with the API key can step around it. Ours live in Postgres, which means they hold whatever is calling and whatever the front end believes about the user."
+              lead="An approval rule that only exists in the app is a suggestion. Anyone with the API key can walk around it. Ours sit in the database instead, so they hold whoever is asking and whatever the app happens to believe."
             />
             <ArrowLink href="/security" className="mt-8">
               Security &amp; trust

@@ -11,10 +11,10 @@ import { Reveal } from '../Reveal';
 /**
  * The roster as a sequence rather than a grid.
  *
- * The grid below answers "what is there"; this answers "in what order", which is
+ * The grid below answers "what is there". This answers "in what order", which is
  * the question a buyer looking at five unbuilt agents actually has. The rail is
- * solid up to the last shipped agent and dashed after it — the same distinction
- * the badges make, drawn once at the scale of the whole roadmap.
+ * solid up to the last shipped agent and dashed after it, which is the same
+ * distinction the badges make, drawn once at the scale of the whole roadmap.
  *
  * Selection is by click, not hover. Hover-only disclosure is unreachable by
  * keyboard and unusable on touch, and the panel underneath is the substance.
@@ -37,8 +37,8 @@ export function RoadmapRail() {
               </h2>
             </div>
             <p className="m-dim-2 max-w-sm text-[12.5px] leading-relaxed">
-              Each agent starts when the one before it is genuinely finished. Pick any of them to
-              read what it does.
+              Each one starts when the one before it is properly finished. Pick any of them to see
+              what it does.
             </p>
           </div>
         </Reveal>
@@ -153,7 +153,7 @@ export function RoadmapRail() {
                   href={`/agents/${agent.slug}`}
                   className="m-mono mt-7 inline-flex items-center gap-2 text-[10px] tracking-[0.14em] uppercase transition-colors hover:text-[var(--m-cyan)]"
                 >
-                  Read the detail
+                  Read more about it
                   <ArrowRight className="size-3" aria-hidden />
                 </Link>
               </div>

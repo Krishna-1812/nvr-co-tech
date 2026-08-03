@@ -50,7 +50,7 @@ function SignupForm() {
       setBusy(false);
       setError(
         error.message.toLowerCase().includes('already')
-          ? 'An account with that email already exists. Try signing in instead.'
+          ? 'There is already an account with that email. Try signing in instead.'
           : error.message,
       );
       return;
@@ -102,13 +102,13 @@ function SignupForm() {
               <MailCheck className="size-7" aria-hidden />
             </span>
             <p className="m-dim mt-6 text-[14px] leading-relaxed">
-              We sent a link to{' '}
-              <span className="font-semibold text-[var(--m-ink)]">{email}</span>. Open it to
-              activate your account.
+              We have sent a link to{' '}
+              <span className="font-semibold text-[var(--m-ink)]">{email}</span>. Open it and your
+              account is ready.
             </p>
             <p className="m-dim-2 mt-5 text-[12px] leading-relaxed">
-              You will start as a <span className="font-semibold text-[var(--m-ink)]">Member</span>{' '}
-              and can raise vouchers right away.
+              You start off as a <span className="font-semibold text-[var(--m-ink)]">Member</span>,
+              so you can raise vouchers right away.
             </p>
           </div>
         </AuthCard>
@@ -124,7 +124,7 @@ function SignupForm() {
             Create your <span className="m-serif m-grad-text">account.</span>
           </>
         }
-        lead="A minute to set up, and you can raise your first voucher straight after."
+        lead="It takes about a minute, and you can raise your first voucher straight after."
       />
 
       <AuthCard
@@ -141,7 +141,11 @@ function SignupForm() {
         }
       >
         <form onSubmit={submit} className="space-y-4">
-          <AuthField label="Full name" htmlFor="full_name" hint="Printed on vouchers you raise.">
+          <AuthField
+            label="Full name"
+            htmlFor="full_name"
+            hint="This is the name that appears on vouchers you raise."
+          >
             <AuthInput
               id="full_name"
               icon={User}
@@ -167,7 +171,11 @@ function SignupForm() {
             />
           </AuthField>
 
-          <AuthField label="Password" htmlFor="password" hint={`At least ${MIN_PASSWORD} characters.`}>
+          <AuthField
+            label="Password"
+            htmlFor="password"
+            hint={`Use at least ${MIN_PASSWORD} characters.`}
+          >
             <AuthPassword
               id="password"
               icon={Lock}
@@ -198,8 +206,9 @@ function SignupForm() {
 
         {/* What a new account can do before anyone has to grant it anything. */}
         <p className="m-dim-2 mt-6 text-center text-[12px] leading-relaxed">
-          New accounts start as a <span className="font-semibold text-[var(--m-ink)]">Member</span>{' '}
-          and can raise vouchers immediately. Approval rights are granted by an administrator.
+          New accounts start as a <span className="font-semibold text-[var(--m-ink)]">Member</span>,
+          so you can raise vouchers straight away. Being able to approve them is something an
+          administrator gives you.
         </p>
       </AuthCard>
     </div>

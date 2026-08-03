@@ -61,15 +61,14 @@ export function RulesPlayground() {
 
       <Container className="relative">
         <Reveal>
-          <Eyebrow className="mb-4">Try the rules</Eyebrow>
+          <Eyebrow className="mb-4">Have a go</Eyebrow>
           <h2 className="m-display max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
-            Move the numbers. <span className="m-serif m-grad-text">Watch the rules run.</span>
+            Move the numbers. <span className="m-serif m-grad-text">See what happens.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
-            This panel calls the product&apos;s own <code className="m-mono text-[13px]">calcNetTotal</code>{' '}
-            and <code className="m-mono text-[13px]">calcGrandTotal</code> — the same two functions
-            the voucher form uses, and the same arithmetic the database recomputes as generated
-            columns. Nothing here is a mock-up of the maths.
+            The sums below are worked out by the same code the real voucher form uses, and the
+            database checks them again when you save. This is not a pretend calculator. It is the
+            actual working.
           </p>
         </Reveal>
 
@@ -175,8 +174,8 @@ export function RulesPlayground() {
                 <Info className="mt-px size-3.5 shrink-0 text-[var(--m-cyan)]" aria-hidden />
                 <span>
                   {interState
-                    ? 'Inter-state supply: IGST only. A voucher carrying IGST alongside CGST or SGST is refused before it can be submitted.'
-                    : 'Intra-state supply: CGST and SGST at half the rate each. IGST must be empty.'}
+                    ? 'Between two states, only IGST applies. A voucher with IGST and CGST or SGST on it together is refused before you can submit it.'
+                    : 'Inside one state, CGST and SGST take half the rate each, and IGST stays empty.'}
                 </span>
               </p>
             </div>

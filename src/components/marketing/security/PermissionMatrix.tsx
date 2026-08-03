@@ -36,14 +36,14 @@ export function PermissionMatrix() {
 
       <Container className="relative">
         <Reveal>
-          <Eyebrow className="mb-4">The permission model</Eyebrow>
+          <Eyebrow className="mb-4">Who can do what</Eyebrow>
           <h2 className="m-display max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
-            Pick a role. <span className="m-serif m-grad-text">See exactly what it can do.</span>
+            Pick a role. <span className="m-serif m-grad-text">See what it can do.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
-            Four roles, eleven capabilities, and the predicate that decides each one. Every rule
-            below is a policy or a function in the migrations, not a convention the interface
-            follows.
+            Four roles, eleven things they might want to do, and the bit of code that decides each
+            one. Every rule below lives in the database. None of it is a habit the app is trusted to
+            keep.
           </p>
         </Reveal>
 
@@ -169,9 +169,10 @@ export function PermissionMatrix() {
 
         <Reveal delay={200}>
           <p className="m-dim-2 mt-6 text-[12px] leading-relaxed">
-            The two shaded rows have no owner column worth reading, because there is no role that
-            satisfies them. Segregation of duties is a check inside the approval function; the audit
-            table simply has no UPDATE or DELETE policy for anyone to fall under.
+            The last two rows are empty all the way across, owner included, because there is no role
+            that can do either of them. Approving your own work is blocked inside the approval
+            function itself. The history table has no rule allowing an edit or a delete, so there is
+            nothing for anyone to fall under.
           </p>
         </Reveal>
       </Container>

@@ -4,10 +4,10 @@ import { Container } from '../bits';
 /**
  * The formats a finance team in India already works in.
  *
- * The point of this strip is recognition, not information — someone should
- * scan it and think "these people know what my week looks like" before they
- * read a single feature. The list is doubled and translated exactly -50% so
- * the loop has no seam.
+ * The point of this strip is recognition rather than information. Someone should
+ * scan it and think "these people know what my week looks like" before they read
+ * a single feature. The list is doubled and translated exactly -50% so the loop
+ * has no seam.
  */
 export function FormatStrip() {
   const doubled = [...FORMATS, ...FORMATS];
@@ -15,7 +15,7 @@ export function FormatStrip() {
   return (
     <section className="border-y border-[var(--m-line)] bg-white/[0.015] py-8">
       <Container wide>
-        <p className="m-eyebrow text-center">Speaks the formats your team already lives in</p>
+        <p className="m-eyebrow text-center">Works with what your team already uses</p>
       </Container>
 
       <div className="m-marquee-mask relative mt-7 overflow-hidden">

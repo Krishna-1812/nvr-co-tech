@@ -35,13 +35,14 @@ export function Journey() {
     <section id="how" className="relative border-t border-[var(--m-line)]">
       <Container wide className="relative pt-20 sm:pt-28">
         <Reveal>
-          <Eyebrow className="mb-4">How the work moves</Eyebrow>
+          <Eyebrow className="mb-4">How it works</Eyebrow>
           <h2 className="m-display max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
-            One voucher, <span className="m-serif m-grad-text">end to end.</span>
+            One voucher, <span className="m-serif m-grad-text">start to finish.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
-            Four stages. The first two are rules and belong to the machine; the third is a judgement
-            and belongs to a person; the fourth is a record, and belongs to nobody.
+            Four steps. The software does the first two, because they are only rules. A person does
+            the third, because it is a decision. The fourth is the record, and after that nobody can
+            change it.
           </p>
         </Reveal>
       </Container>
@@ -214,7 +215,7 @@ function Line({
 
 function ArriveScene() {
   return (
-    <Panel title="Invoice intake" meta="read from the document" accent="var(--m-magenta)">
+    <Panel title="Invoice intake" meta="read from the invoice" accent="var(--m-magenta)">
       <div className="grid gap-4 px-5 py-5 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-5">
         {/* The document, abstracted to the shape of one. */}
         <div className="relative mx-auto w-[7.5rem] shrink-0 rounded-lg border border-[var(--m-line-2)] bg-white/[0.03] p-3">
@@ -252,8 +253,8 @@ function ArriveScene() {
             style={{ animationDelay: '420ms' }}
           >
             <Check className="mt-px size-3 shrink-0 text-[var(--m-emerald)]" aria-hidden />
-            GSTIN checksum valid, and its embedded PAN agrees with the one on file — both checked
-            before anyone sees the draft.
+            The GSTIN is valid and the PAN inside it matches the one on file. Both checked before you
+            see the draft.
           </p>
         </div>
       </div>
@@ -265,23 +266,23 @@ function ArriveScene() {
 
 function RulesScene() {
   return (
-    <Panel title="Rules applied" meta="before a human looks" accent="var(--m-cyan)">
+    <Panel title="Rules applied" meta="before anyone looks" accent="var(--m-cyan)">
       <div className="space-y-3 px-5 py-5">
         <Rule
           input="Supplier in Karnataka · chapter in Maharashtra"
-          decision="Inter-state → IGST only"
-          detail="CGST and SGST left empty. Both together with IGST is rejected before submit."
+          decision="Between states, so IGST"
+          detail="CGST and SGST stay empty. A voucher with both is refused before you can submit it."
         />
         <Rule
-          input="Nature of payment: event contractor, payee is a company"
+          input="Payment to an event contractor, and the payee is a company"
           decision="TDS 194C at 2%"
-          detail={`Deducted at source: ${fmtRupees(TDS)}. Warned while the voucher is still a draft, not a quarter later.`}
+          detail={`That is ${fmtRupees(TDS)} deducted. You are told now, while the voucher is still a draft, not next quarter.`}
           delay={110}
         />
         <Rule
           input="Chapter CIO · date 14 Aug 2025"
-          decision="FY 25-26, sequence 0042"
-          detail="Numbered by the database on submit — unique per chapter per year, never hand-typed."
+          decision="FY 25-26, number 0042"
+          detail="The database hands out the number when you submit. One run per chapter per year, and nobody types it by hand."
           delay={220}
         />
 
@@ -329,7 +330,7 @@ function Rule({
 
 function DecideScene() {
   return (
-    <Panel title="Approval chain" meta="two people, enforced" accent="var(--m-indigo)">
+    <Panel title="Approvals" meta="two people needed" accent="var(--m-indigo)">
       <div className="px-5 py-5">
         <div className="space-y-2.5">
           <Line label="Net total (A + B + C)" value={fmtRupees(NET)} delay={60} />
@@ -345,7 +346,7 @@ function DecideScene() {
           <Connector filled />
           <Node name="A. Shah" caption="1st approval" state="done" />
           <Connector />
-          <Node name="—" caption="2nd approval" state="waiting" />
+          <Node name="Waiting" caption="2nd approval" state="waiting" />
         </div>
 
         <p
@@ -354,9 +355,9 @@ function DecideScene() {
         >
           <Ban className="mt-px size-3.5 shrink-0 text-[var(--m-rose)]" aria-hidden />
           <span>
-            R. Menon raised this, so Postgres will not accept their approval. A. Shah has given the
-            first, so it will not accept theirs a second time. The third signature has to be someone
-            else&apos;s.
+            R. Menon raised this one, so the database will not take their approval. A. Shah has
+            already given the first, so it will not take theirs again. The second approval has to come
+            from somebody else.
           </span>
         </p>
       </div>
@@ -428,21 +429,21 @@ function Connector({ filled }: { filled?: boolean }) {
 
 const TRAIL = [
   { at: '14 Aug · 10:12', who: 'R. Menon', what: 'Raised the voucher' },
-  { at: '14 Aug · 10:14', who: 'R. Menon', what: 'Submitted · NVR/CIO/25-26/0042 issued' },
+  { at: '14 Aug · 10:14', who: 'R. Menon', what: 'Submitted. Given number NVR/CIO/25-26/0042' },
   { at: '14 Aug · 11:40', who: 'A. Shah', what: 'First approval' },
-  { at: '15 Aug · 09:05', who: 'P. Iyer', what: 'Second approval · record frozen' },
+  { at: '15 Aug · 09:05', who: 'P. Iyer', what: 'Second approval. Record locked' },
 ] as const;
 
 function CloseScene() {
   return (
-    <Panel title="Audit trail" meta="append only" accent="var(--m-emerald)">
+    <Panel title="The history" meta="nothing can be edited" accent="var(--m-emerald)">
       <div className="px-5 py-5">
         <div className="flex items-center gap-3 rounded-xl border border-[color-mix(in_oklab,var(--m-emerald)_28%,transparent)] bg-[color-mix(in_oklab,var(--m-emerald)_9%,transparent)] px-4 py-3">
           <Lock className="size-4 shrink-0 text-[var(--m-emerald)]" aria-hidden />
           <div className="min-w-0">
-            <p className="text-[12.5px] font-semibold">Approved and frozen</p>
+            <p className="text-[12.5px] font-semibold">Approved and locked</p>
             <p className="m-dim-2 mt-0.5 text-[11px]">
-              Amounts, payee and voucher number can no longer be changed by anyone.
+              The amounts, the payee and the voucher number cannot be changed by anyone now.
             </p>
           </div>
         </div>
@@ -466,8 +467,8 @@ function CloseScene() {
         <p className="m-dim-2 mt-4 flex items-start gap-2 border-t border-[var(--m-line)] pt-3.5 text-[11px] leading-relaxed">
           <ShieldCheck className="mt-px size-3.5 shrink-0 text-[var(--m-emerald)]" aria-hidden />
           <span>
-            This table has no UPDATE and no DELETE policy, for any role, including the owner. A
-            correction is a new row, never an edit to an old one.
+            Nobody can edit or delete a line here, whatever their role, including the owner of the
+            account. Putting something right adds a new line. It never changes an old one.
           </span>
         </p>
       </div>

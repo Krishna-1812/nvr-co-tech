@@ -23,7 +23,7 @@ export function Hero() {
             <Rise>
               <span className="m-mono m-ring inline-flex items-center gap-2 rounded-full bg-white/[0.03] px-3.5 py-1.5 text-[10px] font-medium tracking-[0.16em] uppercase">
                 <Sparkles className="size-3 text-[var(--m-lime)]" aria-hidden />
-                Agentic AI for finance teams
+                AI tools for finance teams
               </span>
             </Rise>
 
@@ -33,18 +33,18 @@ export function Hero() {
               it is being uncovered rather than fading in.
             */}
             <h1 className="m-display mt-7 text-[clamp(2.6rem,6.6vw,5rem)]">
-              <LineRise delay={60}>The parts of finance</LineRise>
+              <LineRise delay={60}>We handle the</LineRise>
               <LineRise delay={150}>
-                that are <span className="m-serif m-grad-text pr-1">rules,</span>
+                <span className="m-serif m-grad-text pr-1">repetitive</span> work.
               </LineRise>
-              <LineRise delay={240}>not judgement.</LineRise>
+              <LineRise delay={240}>You make the calls.</LineRise>
             </h1>
 
             <Rise delay={380}>
               <p className="m-dim mt-7 max-w-lg text-[15px] leading-relaxed sm:text-[17px]">
-                Agents that raise, check and route the routine work — then hand a person the
-                decision, with the reasoning attached. Every approval recorded, attributable, and
-                enforced by the database rather than promised by the interface.
+                Our tools fill in the forms, work out the tax and pass each job to the right person.
+                When it is time to approve something you get the whole picture, and you decide. Every
+                step is saved, so you can always see who did what.
               </p>
             </Rise>
 
@@ -52,7 +52,7 @@ export function Hero() {
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <CTA href="/contact">Book a walkthrough</CTA>
                 <CTA href="/agents" variant="ghost">
-                  See the agents
+                  See what we build
                 </CTA>
               </div>
             </Rise>
@@ -60,7 +60,7 @@ export function Hero() {
             <Rise delay={520}>
               <p className="m-dim-2 mt-8 flex items-center gap-2 text-xs">
                 <ShieldCheck className="size-3.5 shrink-0 text-[var(--m-emerald)]" aria-hidden />
-                Built and operated by N V R &amp; Co, Chartered Accountants · Hosted in Mumbai
+                Built and run by N V R &amp; Co, Chartered Accountants. Your data stays in Mumbai.
               </p>
             </Rise>
           </div>
@@ -79,7 +79,7 @@ export function Hero() {
               className="size-3 animate-[breathe_3.4s_ease-in-out_infinite] motion-reduce:animate-none"
               aria-hidden
             />
-            One voucher, end to end
+            Follow one voucher through
           </p>
         </Rise>
       </Container>

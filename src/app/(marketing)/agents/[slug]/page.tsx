@@ -130,11 +130,11 @@ export default async function AgentPage({ params }: Params) {
               <div className="lg:sticky lg:top-28">
                 <Eyebrow>What it does</Eyebrow>
                 <h2 className="m-display mt-4 text-[clamp(1.8rem,3.6vw,2.7rem)]">
-                  In specifics, not adjectives.
+                  The specifics.
                 </h2>
                 <p className="m-dim mt-5 max-w-sm text-sm leading-relaxed">
-                  Every line here is a thing the agent either does today or is being built to do.
-                  Nothing on this list is a category we intend to look at.
+                  Every line here is something it either does today or is being built to do. None of
+                  it is a vague area we are thinking about looking at.
                 </p>
               </div>
             </Reveal>
@@ -164,7 +164,7 @@ export default async function AgentPage({ params }: Params) {
           <Reveal>
             <Eyebrow>Where it fits</Eyebrow>
             <h2 className="m-display mt-4 text-[clamp(1.8rem,3.6vw,2.7rem)]">
-              What goes in, what comes out.
+              What goes in, and what you get back.
             </h2>
           </Reveal>
 
@@ -176,9 +176,8 @@ export default async function AgentPage({ params }: Params) {
 
           <Reveal delay={130}>
             <p className="m-dim-2 mt-6 max-w-2xl text-[13px] leading-relaxed">
-              Whatever the agent produces lands as a record with an audit trail attached, not as a
-              message in a chat window. The output is the thing your reviewer already knows how to
-              check.
+              Whatever it produces ends up as a proper record with its history attached, not as a
+              message in a chat window. You get something your reviewer already knows how to check.
             </p>
           </Reveal>
         </Container>
@@ -203,8 +202,8 @@ export default async function AgentPage({ params }: Params) {
                   </h2>
                   <p className="m-dim mt-5 text-[15px] leading-relaxed">
                     {agent.stage === 'live'
-                      ? 'Sign in and raise a voucher. If you would rather be walked through it first, we will do that instead.'
-                      : 'A walkthrough covers what is live today, what this agent will do, and where it sits in the queue. No date gets promised on the call that is not already true.'}
+                      ? 'Sign in and raise a voucher. If you would rather someone showed you round first, we are happy to do that instead.'
+                      : 'A walkthrough covers what you can use today, what this one will do, and where it sits in the queue. We will not give you a date on the call that we are not sure of.'}
                   </p>
                   <div className="mt-8 flex flex-wrap gap-3">
                     <StageActions agent={agent} />

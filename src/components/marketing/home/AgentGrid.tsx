@@ -27,12 +27,12 @@ export function AgentGrid() {
             eyebrow="The agents"
             title={
               <>
-                One desk today.
+                One tool today.
                 <br />
-                <span className="m-serif m-dim">A department in time.</span>
+                <span className="m-serif m-dim">More on the way.</span>
               </>
             }
-            lead="Each agent takes one recurring piece of finance work end to end. They share a record, a permission model and an audit trail, so adding the next one does not mean another system to reconcile."
+            lead="Each one takes a job your team already does every month and handles it from start to finish. They all share the same records, the same permissions and the same history, so adding another does not mean another system to keep in step."
             className="max-w-2xl"
           />
           <ArrowLink href="/agents" className="mb-2">

@@ -19,8 +19,8 @@ export function FinalCTA() {
         </Reveal>
         <Reveal delay={80}>
           <p className="m-dim mx-auto mt-6 max-w-xl text-[15px] leading-relaxed sm:text-base">
-            Half an hour, your own approval chain, and an honest answer about which parts of your
-            month this can take off your desk today and which parts are still on the roadmap.
+            Give us half an hour. We will set it up with your own approval steps and tell you
+            honestly what it can take off your desk today, and what is still being built.
           </p>
         </Reveal>
         <Reveal delay={140}>

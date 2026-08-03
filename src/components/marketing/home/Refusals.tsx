@@ -36,13 +36,13 @@ export function Refusals() {
 
       <Container className="relative">
         <Reveal>
-          <Eyebrow className="mb-4">Enforcement, not convention</Eyebrow>
+          <Eyebrow className="mb-4">See for yourself</Eyebrow>
           <h2 className="m-display max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
-            Try to break it. <span className="m-serif m-grad-text">It answers back.</span>
+            Try to break it. <span className="m-serif m-grad-text">Read what it says.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
-            A workflow drawn on a slide is a promise. A workflow inside the database is a refusal.
-            Pick something you should not be able to do and read exactly what comes back.
+            Rules written in a document are a promise. Rules written into the database are a refusal.
+            Pick something you should not be able to do, and see what comes back.
           </p>
         </Reveal>
 
@@ -51,7 +51,7 @@ export function Refusals() {
           <Reveal>
             <div
               role="tablist"
-              aria-label="Attempts the database refuses"
+              aria-label="Things the database refuses"
               className="flex flex-col gap-3"
             >
               {REFUSALS.map((r, i) => {

@@ -3,7 +3,7 @@ import { Aurora, CTA, Container } from '@/components/marketing/bits';
 /**
  * A 404 inside the public site.
  *
- * Without this, notFound() — which /agents/[slug] calls for an unknown slug —
+ * Without this, notFound() (which /agents/[slug] calls for an unknown slug)
  * walks up to the root not-found, which sits outside this route group and so
  * renders in the application's light theme. Landing on a white page from a dark
  * site reads as a broken deployment rather than a missing page.
@@ -23,13 +23,13 @@ export default function MarketingNotFound() {
           Nothing filed <span className="m-serif m-grad-text">here.</span>
         </h1>
         <p className="m-dim mx-auto mt-6 max-w-md text-[15px] leading-relaxed">
-          The page you asked for does not exist. It may have been renamed, or the link that brought
-          you here may be out of date.
+          This page does not exist. It may have been renamed, or the link that brought you here may
+          be an old one.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <CTA href="/">Back to the home page</CTA>
           <CTA href="/agents" variant="ghost">
-            See the agents
+            See what we build
           </CTA>
         </div>
       </Container>

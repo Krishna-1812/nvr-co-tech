@@ -19,7 +19,7 @@ import { RoadmapRail } from '@/components/marketing/agents/RoadmapRail';
 export const metadata: Metadata = {
   title: 'Agents',
   description:
-    'Six agents for finance teams: payments and approvals, closing, indirect and direct tax, document capture and assurance. One is live today, and the page says which.',
+    'Six tools for finance teams: payments and approvals, closing the books, GST, TDS, reading invoices and answering audit questions. One is live today, and the page tells you which.',
 };
 
 /**
@@ -30,15 +30,15 @@ export const metadata: Metadata = {
 const GROUPS: { stage: AgentStage; lead: string }[] = [
   {
     stage: 'live',
-    lead: 'Deployed, with the approval chain enforced in the database. You can sign in and raise a voucher today.',
+    lead: 'Up and running, with the approval steps built into the database. Sign in and you can raise a voucher today.',
   },
   {
     stage: 'building',
-    lead: 'Under active development, ahead of a first pilot. Not something you can switch on yet.',
+    lead: 'Being built now, ahead of a first trial. Not something you can switch on yet.',
   },
   {
     stage: 'planned',
-    lead: 'Specified and ordered. Listed so you can hold us to the sequence rather than the ambition.',
+    lead: 'Written up and in the queue. Listed here so you can hold us to the order rather than the ambition.',
   },
 ];
 
@@ -65,16 +65,16 @@ export default function AgentsPage() {
 
           <Rise delay={60}>
             <h1 className="m-display mt-5 max-w-4xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
-              Agents for the work that{' '}
+              Tools for the work that{' '}
               <span className="m-serif m-grad-text pr-1">follows rules.</span>
             </h1>
           </Rise>
 
           <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
-              Payments and approvals, closing, indirect tax, direct tax, document capture,
-              assurance. Each one takes a job a finance team already does by hand and runs the
-              mechanical part of it, then puts the judgement in front of a person.
+              Payments and approvals, closing the books, GST, TDS, reading invoices, and answering
+              questions about the record. Each one takes a job your team already does by hand, does
+              the mechanical part of it, and then puts the decision in front of a person.
             </p>
           </Rise>
 
@@ -138,8 +138,8 @@ export default function AgentsPage() {
                   One of these is already costing you a day a month.
                 </h2>
                 <p className="m-dim mt-5 text-[15px] leading-relaxed">
-                  Tell us which job hurts most and we will show you the agent that covers it, or
-                  say honestly that it is not built yet and when it will be.
+                  Tell us which job is the worst one and we will show you the tool that covers it. If
+                  it is not built yet, we will say so, and tell you when it should be.
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
                   <CTA href="/contact">Book a walkthrough</CTA>

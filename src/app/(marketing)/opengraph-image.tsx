@@ -13,7 +13,7 @@ import { BRAND } from '@/lib/marketing/content';
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-export const alt = `${BRAND.name} — ${BRAND.tagline}`;
+export const alt = `${BRAND.name}. ${BRAND.tagline}.`;
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -114,7 +114,7 @@ export default function OpengraphImage() {
               maxWidth: 900,
             }}
           >
-            The parts of finance that are rules, not judgement.
+            We handle the repetitive work. You make the calls.
           </span>
         </div>
 
@@ -126,7 +126,7 @@ export default function OpengraphImage() {
             paddingTop: 26,
           }}
         >
-          {['Two approvals, two people', 'Enforced in Postgres', 'Hosted in Mumbai'].map((t) => (
+          {['Two approvals, two people', 'Rules live in the database', 'Hosted in Mumbai'].map((t) => (
             <span
               key={t}
               style={{

@@ -24,10 +24,10 @@ export const metadata: Metadata = {
 const MAILTO = `mailto:${CONTACT.email}?subject=${encodeURIComponent('Walkthrough request')}`;
 
 const NEXT_STEPS = [
-  'We reply within one working day, from a person rather than a queue.',
-  'Thirty minutes, screen shared, on the live agent with real vouchers.',
-  'You bring the case that broke your last system. We answer it or say we cannot.',
-  'No pilot fee, and nothing to install before the call.',
+  'A person writes back within one working day. Not a ticket number.',
+  'Half an hour on a shared screen, using the tool that is actually running.',
+  'Bring the case that broke your last system. We will answer it, or say we cannot.',
+  'Nothing to pay for a trial, and nothing to install before the call.',
 ];
 
 export default function ContactPage() {
@@ -54,9 +54,9 @@ export default function ContactPage() {
 
           <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
-              Half an hour with the people who built it, on the agent that is actually running.
-              Tell us which part of your month hurts and we will show you whether there is
-              something here for it yet.
+              Half an hour with the people who built it, using the tool that is actually running.
+              Tell us which part of your month is the worst and we will show you whether we have
+              anything for it yet.
             </p>
           </Rise>
         </Container>
@@ -75,11 +75,10 @@ export default function ContactPage() {
               >
                 <h2 className="m-display text-xl">Your details</h2>
                 <p id="mailto-note" className="m-dim mt-3 text-[13.5px] leading-relaxed">
-                  Sending opens your own email client with these answers written into a message
-                  addressed to{' '}
-                  <span className="m-mono text-[var(--m-ink)]">{CONTACT.email}</span>. Nothing
-                  reaches us until you press send there. If your browser does not open a mail
-                  client, write to us at that address directly.
+                  This opens your own email app with your answers already written out, addressed to{' '}
+                  <span className="m-mono text-[var(--m-ink)]">{CONTACT.email}</span>. Nothing comes
+                  to us until you press send there. If nothing opens, just write to that address
+                  yourself.
                 </p>
 
                 <div className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -112,7 +111,7 @@ export default function ContactPage() {
 
                   <div className="sm:col-span-2">
                     <label htmlFor="contact-agent" className="m-eyebrow block">
-                      Which agent interests you
+                      Which one are you interested in
                     </label>
                     <select
                       id="contact-agent"
@@ -126,7 +125,7 @@ export default function ContactPage() {
                       <option value="Not sure yet">Not sure yet</option>
                       {AGENTS.map((agent) => (
                         <option key={agent.slug} value={`${agent.name} (${STAGE_LABEL[agent.stage]})`}>
-                          {agent.name} — {STAGE_LABEL[agent.stage].toLowerCase()}
+                          {agent.name} ({STAGE_LABEL[agent.stage].toLowerCase()})
                         </option>
                       ))}
                     </select>
@@ -134,13 +133,13 @@ export default function ContactPage() {
 
                   <div className="sm:col-span-2">
                     <label htmlFor="contact-message" className="m-eyebrow block">
-                      What would you like to cover
+                      What would you like us to cover
                     </label>
                     <textarea
                       id="contact-message"
                       name="Message"
                       rows={5}
-                      placeholder="How many vouchers a month, who approves them today, and what currently goes wrong."
+                      placeholder="How many vouchers you do in a month, who approves them at the moment, and what tends to go wrong."
                       className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-[15px] leading-relaxed text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
                     />
                   </div>
@@ -194,8 +193,8 @@ export default function ContactPage() {
                 <div className="m-card p-6 sm:p-7">
                   <h2 className="m-eyebrow">Already using it</h2>
                   <p className="m-dim mt-4 text-[13.5px] leading-relaxed">
-                    If your firm is already on {BRAND.name}, you do not need a call. Sign in, or
-                    create an account and ask your administrator to place you on a chapter.
+                    If your firm is already on {BRAND.name} you do not need a call. Sign in, or create
+                    an account and ask your administrator to add you to a chapter.
                   </p>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link

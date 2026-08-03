@@ -16,7 +16,7 @@ import { PermissionMatrix } from '@/components/marketing/security/PermissionMatr
 export const metadata: Metadata = {
   title: 'Security',
   description:
-    'How authorisation, the audit trail and data residency actually work: row-level security in Postgres, an append-only history with no update or delete path, and hosting in Mumbai.',
+    'How permissions, the history and data location actually work. Row-level security in Postgres, a history nobody can edit or delete, and hosting in Mumbai.',
 };
 
 /**
@@ -54,46 +54,46 @@ const MATRIX = [
 const RESIDENCY = [
   {
     term: 'Region',
-    def: 'Mumbai, ap-south-1. Database, storage and backups all sit in the same region, and nothing is replicated out of it.',
+    def: 'Mumbai, ap-south-1. The database, the files and the backups all sit in the same place, and none of it is copied out of the country.',
   },
   {
-    term: 'In transit',
-    def: 'TLS on every connection, including the one between the application and the database. No plaintext hop anywhere in the path.',
+    term: 'On the way in',
+    def: 'Every connection is encrypted, including the one between the app and the database. Nothing travels in plain text at any point.',
   },
   {
-    term: 'At rest',
-    def: 'Volume-level encryption on the database and on object storage, where the invoice scans and generated PDFs live.',
+    term: 'While it sits there',
+    def: 'The database and the file storage are both encrypted. That is where your invoice scans and the PDFs we generate live.',
   },
   {
-    term: 'Access',
-    def: 'Least privilege for people as well as for code. The application connects as a role that cannot bypass row-level security.',
+    term: 'Who can get at it',
+    def: 'People and code both get the least access they need to do the job. The app connects using an account that cannot skip the row-level security rules.',
   },
 ];
 
 const NOT_DOING = [
   {
-    title: 'We do not claim certifications we do not hold',
-    body: 'There is no SOC 2 report and no ISO 27001 certificate. Nothing here has been through a third-party audit yet. What we can offer instead is the schema, the policies and a walkthrough of both.',
+    title: 'We do not claim certificates we do not have',
+    body: 'There is no SOC 2 report and no ISO 27001 certificate. None of this has been through an outside audit yet. What we can give you instead is the database structure, the rules, and someone to walk you through both.',
   },
   {
     title: 'We do not train models on your data',
-    body: 'Your vouchers, invoices and ledgers are not used to train or fine-tune anything, ours or anyone else’s.',
+    body: 'Your vouchers, invoices and ledgers are not used to train or tune anything, ours or anybody else’s.',
   },
   {
-    title: 'We do not let an agent be the last word',
-    body: 'No agent approves a voucher, posts a journal or releases a payment. It prepares, checks and explains. A named person decides.',
+    title: 'We do not let software have the last word',
+    body: 'Nothing here approves a voucher, posts a journal or releases a payment on its own. It gets things ready, checks them and explains them. A named person decides.',
   },
   {
     title: 'We do not use shared logins',
-    body: 'Every write carries the identity of one person, so “the system did it” is never an available answer during a review.',
+    body: 'Every change is saved against one person’s name, so “the system did it” is never an answer anyone can give during a review.',
   },
   {
-    title: 'We do not hard-delete your records',
-    body: 'Deletion is a flag with a reason and an author, visible to an admin and reversible. The audit rows behind it stay exactly where they were.',
+    title: 'We do not really delete your records',
+    body: 'Deleting is a flag with a reason and a name against it. An admin can see it and put it back. The history behind it stays exactly where it was.',
   },
   {
-    title: 'We do not move your data to another country to process it',
-    body: 'Processing happens in the same region as storage. There is no overnight batch that leaves the country and comes back.',
+    title: 'We do not send your data abroad to process it',
+    body: 'The processing happens in the same place as the storage. There is no overnight job that leaves the country and comes back.',
   },
 ];
 
@@ -115,16 +115,16 @@ export default function SecurityPage() {
 
           <Rise delay={60}>
             <h1 className="m-display mt-5 max-w-4xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
-              Controls you can{' '}
+              Rules you can{' '}
               <span className="m-serif m-grad-text pr-1">read for yourself.</span>
             </h1>
           </Rise>
 
           <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
-              Most security pages describe intentions. This one describes where the rules live,
-              which is inside Postgres, in policies and functions your own database person can
-              read. If a control is not written down as SQL, we do not count it as a control.
+              Most security pages tell you what a company intends to do. This one tells you where the
+              rules actually live, which is inside the database, written in SQL your own technical
+              person can read. If a rule is not written down there, we do not count it.
             </p>
           </Rise>
 
@@ -132,8 +132,8 @@ export default function SecurityPage() {
             <p className="m-dim-2 mt-8 flex max-w-2xl items-start gap-2.5 text-[13px] leading-relaxed">
               <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[var(--m-emerald)]" aria-hidden />
               <span>
-                We hold no third-party certification and do not imply one. Everything below is
-                verifiable by reading the migrations or by asking us to walk you through them.
+                We have no outside certification and we are not going to imply that we do. You can
+                check everything below by reading the code, or by asking us to talk you through it.
               </span>
             </p>
           </Rise>
@@ -145,8 +145,8 @@ export default function SecurityPage() {
           <Reveal>
             <SectionHeading
               eyebrow="The four that matter"
-              title="What holds, and what is holding it."
-              lead="Four controls carry most of the weight. Each one is a property of the database rather than a habit of the team, which is what makes it survive a busy quarter."
+              title="The four that matter most."
+              lead="These four carry most of the weight. Each one is built into the database rather than being a habit the team has to keep up, which is why they still work in a busy quarter."
             />
           </Reveal>
 
@@ -183,19 +183,20 @@ export default function SecurityPage() {
               <div className="lg:sticky lg:top-28">
                 <Eyebrow>Authorisation</Eyebrow>
                 <h2 className="m-display mt-4 text-[clamp(1.8rem,3.6vw,2.7rem)]">
-                  The front end is not the gate.
+                  The website is not the lock.
                 </h2>
                 <p className="m-dim mt-5 text-[15px] leading-relaxed">
-                  A browser holds a token, not a permission. Every read and write arrives at
-                  Postgres with that identity attached, and Postgres decides what it is allowed to
-                  see and change. Row-level security is on for every table that carries your data.
+                  Your browser holds proof of who you are. It does not hold permission to do
+                  anything. Every read and every change goes to the database with that identity
+                  attached, and the database decides what you are allowed to see and touch. This is
+                  switched on for every table that holds your data.
                 </p>
                 <p className="m-dim mt-4 text-[15px] leading-relaxed">
-                  The state transitions — submit, approve, reject, reopen, mark paid — are
-                  SECURITY DEFINER functions. They are the only way to move a voucher, they take a
-                  row lock while they work, and they re-check the rules against the row as it
-                  stands rather than as the client last saw it. Someone calling the API directly
-                  with a valid token meets exactly the same checks as someone clicking the button.
+                  Moving a voucher along, whether that is submitting, approving, rejecting, reopening
+                  or marking it paid, only happens through one set of database functions. They lock
+                  the row while they work and check the rules against the record as it stands right
+                  now, not as the browser last saw it. Somebody calling the API directly with a valid
+                  login hits exactly the same checks as somebody clicking the button.
                 </p>
               </div>
             </Reveal>
@@ -203,24 +204,24 @@ export default function SecurityPage() {
             <div className="space-y-4">
               <Reveal delay={70}>
                 <div className="m-card p-6 sm:p-7">
-                  <p className="m-eyebrow">Refused inside the transaction</p>
+                  <p className="m-eyebrow">What the database refuses</p>
                   <ul className="mt-5 space-y-4">
                     <Refusal
                       quote="You cannot approve a voucher you raised"
-                      note="Checked against initiated_by and created_by before any status changes."
+                      note="Checked against who raised it, before the status can change at all."
                     />
                     <Refusal
                       quote="This voucher already has your first approval — a second person must approve it"
-                      note="The second approver is compared to the first, on the locked row."
+                      note="The second approver is compared with the first, on the locked record."
                     />
                     <Refusal
                       quote="This voucher is approved and cannot be edited. Reopen it first."
-                      note="A trigger freezes the amounts, payee, invoice number and voucher number once approved."
+                      note="Once approved, the amounts, the payee, the invoice number and the voucher number are all locked."
                     />
                   </ul>
                   <p className="m-dim-2 mt-6 text-[12.5px] leading-relaxed">
-                    These are database exceptions, quoted as they are raised. The interface shows
-                    them because they happened, not instead of them happening.
+                    These are the database&apos;s own messages, quoted as they come back. The app
+                    shows them to you because they happened, not in place of them happening.
                   </p>
                 </div>
               </Reveal>
@@ -255,9 +256,9 @@ create policy audit_append on voucher_audit
         <Container wide>
           <Reveal>
             <SectionHeading
-              eyebrow="The audit trail"
-              title="History that has no edit path."
-              lead="Under row-level security, a table with no policy for an operation cannot have that operation performed on it. The audit table has no UPDATE policy and no DELETE policy for any role, so there is nothing to misconfigure and nobody to trust."
+              eyebrow="The history"
+              title="A history with no way to edit it."
+              lead="With row-level security, if a table has no rule allowing something, that thing simply cannot be done. The history table has no rule allowing an edit and no rule allowing a delete, for any role. There is nothing to set up wrongly, and nobody you have to take on trust."
             />
           </Reveal>
 
@@ -267,7 +268,7 @@ create policy audit_append on voucher_audit
             <div className="m-card mt-12 overflow-x-auto">
               <table className="w-full min-w-[46rem] border-collapse text-left">
                 <caption className="m-dim-2 px-6 pt-5 text-left text-[12.5px]">
-                  Row-level security policies, by table and operation.
+                  What each table allows, and who it allows it for.
                 </caption>
                 <thead>
                   <tr className="border-b border-[var(--m-line)]">
@@ -310,11 +311,11 @@ create policy audit_append on voucher_audit
 
           <Reveal delay={140}>
             <p className="m-dim mt-8 max-w-2xl text-[14px] leading-relaxed">
-              Every transition appends a row: who acted, what the status was before and after, when
-              it happened, and any note they left. A correction is therefore a new event with an
-              author, never a quiet overwrite. Even the profile table is narrowed to a single
-              column of self-service — a person can change their own display name and nothing else,
-              because the grant is on the column rather than the table.
+              Every step adds a line: who did it, what the status was before and after, when it
+              happened, and any note they left. So putting something right is a new entry with a name
+              against it, never a quiet overwrite. Even your own profile is locked down to one field.
+              You can change the name that shows up next to you and nothing else, because the
+              permission is on that single column rather than the whole table.
             </p>
           </Reveal>
         </Container>
@@ -330,9 +331,9 @@ create policy audit_append on voucher_audit
                   Your books stay in India.
                 </h2>
                 <p className="m-dim mt-5 max-w-md text-[15px] leading-relaxed">
-                  Managed Postgres in Mumbai, with object storage and backups in the same region.
-                  For a firm whose records may be called for by a regulator, knowing which
-                  jurisdiction holds them is not a detail.
+                  Managed Postgres in Mumbai, with the files and the backups in the same place. If a
+                  regulator can ask to see your records, knowing which country holds them is not a
+                  small detail.
                 </p>
                 <p className="m-mono m-dim-2 mt-7 inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] px-3.5 py-2 text-[11px] tracking-[0.1em] uppercase">
                   <ServerCog className="size-3.5 text-[var(--m-cyan)]" aria-hidden />
@@ -366,7 +367,7 @@ create policy audit_append on voucher_audit
             <SectionHeading
               eyebrow="Plainly"
               title="What we do not do."
-              lead="A trust page is only worth reading if it is willing to be unflattering. These are the limits, stated before you ask."
+              lead="A page like this is only worth reading if it says the awkward things too. Here are the limits, before you have to ask."
             />
           </Reveal>
 
@@ -402,9 +403,9 @@ create policy audit_append on voucher_audit
                     Bring your own security questions.
                   </h2>
                   <p className="m-dim mt-5 text-[15px] leading-relaxed">
-                    We will go through the policies with your team, table by table, and answer what
-                    we cannot answer with a straight no. If your review needs evidence we do not
-                    have yet, you will hear that on the call rather than after the contract.
+                    We will go through the rules with your team, table by table. Where the answer is
+                    no, we will say no. If your review needs paperwork we do not have yet, you will
+                    hear that on the call and not after you have signed something.
                   </p>
                   <div className="mt-8 flex flex-wrap gap-3">
                     <CTA href="/contact">Book a walkthrough</CTA>
@@ -420,8 +421,8 @@ create policy audit_append on voucher_audit
                     Reporting a problem
                   </h3>
                   <p className="m-dim mt-4 text-[13.5px] leading-relaxed">
-                    If you believe you have found a vulnerability, write to us directly. We will
-                    acknowledge within two working days and tell you what we intend to do about it.
+                    If you think you have found a security hole, write to us directly. We will reply
+                    within two working days and tell you what we plan to do about it.
                   </p>
                   <a
                     href={`mailto:${CONTACT.security}`}

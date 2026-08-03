@@ -8,9 +8,9 @@ import { fmtRupees } from '@/lib/domain/voucher';
  * `fmtRupees`, and the ladder is the real one (A + B + C, then the deductions),
  * so this cannot quietly drift out of step with what the app actually shows.
  *
- * It also earns its space by demonstrating the rule that is hardest to explain
- * in prose: the person who raised the voucher is blocked from approving it, and
- * the interface says so plainly rather than just greying a button out.
+ * It also earns its space by showing the rule that is hardest to explain in
+ * prose: the person who raised the voucher is blocked from approving it, and the
+ * interface says so in words rather than just greying a button out.
  */
 
 const BASIC = 184_000;
@@ -67,15 +67,15 @@ export function VoucherPanel() {
             <Connector filled />
             <Node name="A. Shah" caption="1st approval" state="done" />
             <Connector />
-            <Node name="—" caption="2nd approval" state="waiting" />
+            <Node name="Waiting" caption="2nd approval" state="waiting" />
           </div>
 
           {/* The rule, stated rather than implied. */}
           <p className="m-dim-2 mt-4 flex items-start gap-2 text-[11px] leading-relaxed">
             <Ban className="mt-px size-3.5 shrink-0 text-[var(--m-rose)]" aria-hidden />
             <span>
-              R. Menon raised this voucher, so they cannot approve it — and A. Shah has already
-              given the first approval. The second has to come from someone else.
+              R. Menon raised this voucher, so they cannot approve it. A. Shah has already given the
+              first approval. The second has to come from somebody else.
             </span>
           </p>
         </div>

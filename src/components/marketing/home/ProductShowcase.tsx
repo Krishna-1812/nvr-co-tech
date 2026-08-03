@@ -57,23 +57,23 @@ const PIPELINE = [
 const ANNOTATIONS = [
   {
     n: '01',
-    title: 'The queue is only what you can act on',
-    body: 'Vouchers you raised never appear in your own approval queue, so the count on the badge is work you can actually clear.',
+    title: 'Your queue is only your work',
+    body: 'Vouchers you raised yourself never turn up in your own approval list, so the number on the badge is work you can actually get through.',
   },
   {
     n: '02',
-    title: 'State is the loudest thing on screen',
-    body: 'Where every voucher sits in the chain, in one bar. Bottlenecks are visible before anyone has to ask about them.',
+    title: 'You can see where everything is',
+    body: 'One bar shows how far along every voucher is. If something is stuck, you spot it before anyone has to come and ask.',
   },
   {
     n: '03',
-    title: 'Numbers you can reconcile against',
-    body: 'Totals are generated columns in Postgres, not arithmetic in the browser, so the figure on screen is the figure on record.',
+    title: 'Numbers you can rely on',
+    body: 'The database works out the totals, not the browser, so the figure you see on screen is the figure that is saved.',
   },
   {
     n: '04',
-    title: 'Every row carries its history',
-    body: 'Open any voucher and the full trail is there — who did what, when, and why it was sent back. Append-only, for everyone.',
+    title: 'Every row keeps its history',
+    body: 'Open any voucher and the whole story is there. Who did what, when, and why it was sent back. Nothing can be edited out.',
   },
 ];
 
@@ -85,9 +85,9 @@ export function ProductShowcase() {
           eyebrow="Inside the product"
           title={
             <>
-              Not a dashboard to decode.
+              No dashboard to work out.
               <br />
-              <span className="m-serif m-dim">A worklist you can clear.</span>
+              <span className="m-serif m-dim">Just a list you can get through.</span>
             </>
           }
         />

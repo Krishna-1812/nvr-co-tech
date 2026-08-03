@@ -97,7 +97,7 @@ export function GoogleButton({
     // On success the browser leaves for Google, so `busy` is only reset on failure.
     if (error) {
       setBusy(false);
-      onError('Google sign-in could not be started. Please try again.');
+      onError('We could not start Google sign-in. Please try again.');
     }
   };
 

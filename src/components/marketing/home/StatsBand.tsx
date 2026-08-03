@@ -14,18 +14,18 @@ import { Reveal } from '../Reveal';
 const FIGURES = [
   {
     to: 2,
-    label: 'Approvals required',
-    hint: 'From two different people, neither the initiator',
+    label: 'Approvals needed',
+    hint: 'From two different people, and not the one who raised it',
   },
   {
     to: 0,
-    label: 'Ways to alter history',
-    hint: 'The audit table has no update or delete path',
+    label: 'Ways to change the history',
+    hint: 'Nobody can edit or delete a line, at any level',
   },
   {
     to: 32,
-    label: 'Fields preserved',
-    hint: "The firm's original voucher, unchanged",
+    label: 'Fields kept',
+    hint: 'Every one from the voucher your team already uses',
   },
   {
     text: 'ap-south-1',

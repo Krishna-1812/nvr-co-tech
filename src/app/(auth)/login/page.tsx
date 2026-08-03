@@ -29,7 +29,7 @@ function LoginForm() {
     const { error } = await createClient().auth.signInWithPassword({ email, password });
     if (error) {
       setBusy(false);
-      setError('That email and password combination did not work.');
+      setError('That email and password did not work. Please try again.');
       return;
     }
     router.push(next);
@@ -44,7 +44,7 @@ function LoginForm() {
             Welcome <span className="m-serif m-grad-text">back.</span>
           </>
         }
-        lead="Sign in to raise a voucher, or clear the ones waiting on you."
+        lead="Sign in to raise a voucher, or to clear the ones waiting on you."
       />
 
       <AuthCard

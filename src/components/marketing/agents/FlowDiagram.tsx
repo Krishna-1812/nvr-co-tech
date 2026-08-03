@@ -5,9 +5,9 @@ import { ACCENT } from '../bits';
 /**
  * What goes in, what the agent does with it, what comes out, and where it lands.
  *
- * Four stages rather than the two the copy used to show, because "inputs →
+ * Four stages rather than the two the copy used to show, because "inputs to
  * outputs" leaves out the part that matters to a finance reader: the output is
- * not a message, it is a record with a trail attached. The fourth node is the
+ * not a message, it is a record with its history attached. The fourth node is the
  * whole argument of the site, drawn.
  *
  * No JavaScript. The travelling dashes are a CSS animation on an SVG line, and
@@ -23,8 +23,8 @@ export function FlowDiagram({ agent }: { agent: Agent }) {
     { icon: FileCheck2, label: 'Gives back', body: agent.outputs, tone: undefined },
     {
       icon: ScrollText,
-      label: 'Lands as',
-      body: 'A record with its audit trail',
+      label: 'Ends up as',
+      body: 'A record with its full history',
       tone: 'var(--m-emerald)',
     },
   ];
