@@ -30,8 +30,18 @@ function toMessage(error: { message?: string } | null, fallback: string): string
   return raw.split('\nCONTEXT:')[0].replace(/^ERROR:\s*/, '').trim() || fallback;
 }
 
+/*
+ * Every screen whose figures a workflow step can change.
+ *
+ * `/` was in this list from when `/` was the dashboard. It has been the public
+ * home page for a while and is now doubly wrong, so the two screens that actually
+ * count vouchers are named instead: the dashboard's pipeline and stat cards, and
+ * the hub's live card. Getting this list right matters more than it used to, since
+ * the router now holds a page for thirty seconds unless something invalidates it.
+ */
 function refresh(id?: string) {
-  revalidatePath('/');
+  revalidatePath('/hub');
+  revalidatePath('/dashboard');
   revalidatePath('/vouchers');
   revalidatePath('/approvals');
   if (id) revalidatePath(`/vouchers/${id}`);

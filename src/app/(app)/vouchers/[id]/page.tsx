@@ -48,26 +48,41 @@ export default async function VoucherDetailPage({
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data: voucher } = await supabase
-    .from('vouchers')
-    .select(VOUCHER_DETAIL_SELECT)
-    .eq('id', id)
-    .is('deleted_at', null)
-    .maybeSingle();
+  /*
+   * All three at once.
+   *
+   * They ran one after another, and since each is a round-trip to Supabase this
+   * page waited out three of them in a row before it could render. Nothing here
+   * needed that: the attachments and the history are keyed by the id in the URL,
+   * not by anything in the voucher row, so none of them was waiting on an answer
+   * from the one before.
+   *
+   * The cost of doing it this way is two wasted queries when the voucher does not
+   * exist or RLS will not show it to you. Both are scoped by the same policies, so
+   * they come back empty, and a 404 is not the case worth optimising for.
+   */
+  const [{ data: voucher }, { data: attachments }, { data: audit }] = await Promise.all([
+    supabase
+      .from('vouchers')
+      .select(VOUCHER_DETAIL_SELECT)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .maybeSingle(),
+    supabase
+      .from('voucher_attachments')
+      .select('id, voucher_id, storage_path, file_name, mime_type, size_bytes, created_at')
+      .eq('voucher_id', id)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('voucher_audit')
+      .select(
+        'id, action, note, created_at, actor:profiles!voucher_audit_actor_id_fkey(full_name, email)',
+      )
+      .eq('voucher_id', id)
+      .order('created_at', { ascending: true }),
+  ]);
 
   if (!voucher) notFound();
-
-  const { data: attachments } = await supabase
-    .from('voucher_attachments')
-    .select('id, voucher_id, storage_path, file_name, mime_type, size_bytes, created_at')
-    .eq('voucher_id', id)
-    .order('created_at', { ascending: true });
-
-  const { data: audit } = await supabase
-    .from('voucher_audit')
-    .select('id, action, note, created_at, actor:profiles!voucher_audit_actor_id_fkey(full_name, email)')
-    .eq('voucher_id', id)
-    .order('created_at', { ascending: true });
 
   // Hand-written Database types carry no Relationships, so embedded joins need an
   // assertion. Regenerating types from the live schema removes this.

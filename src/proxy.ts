@@ -36,6 +36,34 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  const { pathname } = request.nextUrl;
+
+  /*
+   * No session cookie, no reason to ask Supabase anything.
+   *
+   * `getUser()` below is a network round-trip to the auth server on every single
+   * request this matcher sees — and for a visitor who has never signed in there is
+   * nothing for it to validate and no token for it to refresh. Skipping it takes
+   * that round-trip off every page of the public site, which is most of the
+   * traffic and the part where first impressions are formed.
+   *
+   * Safe by construction: the session lives in these cookies, so their absence is
+   * the same answer `getUser()` would have come back with, only without the wait.
+   */
+  const hasSession = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'));
+
+  if (!hasSession) {
+    if (isProtectedPath(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.searchParams.set('next', pathname);
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -58,8 +86,6 @@ export default async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-
   if (!user && isProtectedPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -78,6 +104,16 @@ export default async function proxy(request: NextRequest) {
   return response;
 }
 
+/*
+ * Everything that is not a page.
+ *
+ * The route files (robots.txt, sitemap.xml, the OG image) and font and icon
+ * requests were all running this proxy, and none of them has a session to refresh
+ * or a route to gate. Fonts already sat under _next/static; the rest are named
+ * here by extension.
+ */
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|otf|txt|xml|webmanifest)$).*)',
+  ],
 };

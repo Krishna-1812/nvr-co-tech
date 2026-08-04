@@ -35,7 +35,10 @@ const bricolage = Bricolage_Grotesque({
 const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
   weight: '400',
-  style: ['normal', 'italic'],
+  // Italic only. `.m-serif` sets `font-style: italic` itself and is the only thing
+  // that uses this family, so the roman was a file every page in the app
+  // downloaded and preloaded at high priority and never painted a glyph from.
+  style: ['italic'],
   variable: '--font-serif-stack',
   display: 'swap',
 });
