@@ -1,5 +1,6 @@
 import { Trash2 } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
+import { personCols, tolerateMissingColumns } from '@/lib/supabase/columns';
 import { type VoucherStatus } from '@/lib/domain/workflow';
 import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
 import { DeletedRow } from './DeletedRow';
@@ -27,15 +28,17 @@ export default async function AdminDeletedPage() {
   await requireUser();
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from('vouchers')
-    .select(
-      `id, voucher_no, status, date, paid_to, grand_total, deleted_at,
-       chapter:chapters!vouchers_chapter_id_fkey(name),
-       creator:profiles!vouchers_created_by_fkey(full_name, email, avatar_url)`,
-    )
-    .not('deleted_at', 'is', null)
-    .order('deleted_at', { ascending: false });
+  const { data } = await tolerateMissingColumns(() =>
+    supabase
+      .from('vouchers')
+      .select(
+        `id, voucher_no, status, date, paid_to, grand_total, deleted_at,
+         chapter:chapters!vouchers_chapter_id_fkey(name),
+         creator:profiles!vouchers_created_by_fkey(${personCols()})`,
+      )
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false }),
+  );
 
   const rows = (data ?? []) as unknown as DeletedVoucher[];
 

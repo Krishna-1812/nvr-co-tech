@@ -1,3 +1,4 @@
+import { personCols } from '@/lib/supabase/columns';
 import type { Voucher, VoucherAudit } from '@/lib/supabase/types';
 
 /**
@@ -46,12 +47,19 @@ export type AuditRow = Pick<VoucherAudit, 'id' | 'action' | 'note' | 'created_at
  * the two can never drift. If the PDF needs a column the page stopped selecting,
  * that column would silently render blank — which is exactly the class of bug
  * that made v1's re-downloaded PDFs lose their event date.
+ *
+ * A function rather than a constant because the person columns depend on what the
+ * database has: see lib/supabase/columns.ts. Both call sites wrap the query in
+ * tolerateMissingColumns, which needs to be able to build it a second time.
  */
-export const VOUCHER_DETAIL_SELECT = `*,
+export function voucherDetailSelect(): string {
+  const who = personCols();
+  return `*,
   chapter:chapters!vouchers_chapter_id_fkey(name, code),
   paid_by:chapters!vouchers_paid_by_chapter_id_fkey(name),
-  initiator:profiles!vouchers_initiated_by_fkey(full_name, email, avatar_url),
-  first_approver:profiles!vouchers_approver_1_fkey(full_name, email, avatar_url),
-  second_approver:profiles!vouchers_approver_2_fkey(full_name, email, avatar_url),
-  rejecter:profiles!vouchers_rejected_by_fkey(full_name, email, avatar_url),
-  payer:profiles!vouchers_paid_marked_by_fkey(full_name, email, avatar_url)` as const;
+  initiator:profiles!vouchers_initiated_by_fkey(${who}),
+  first_approver:profiles!vouchers_approver_1_fkey(${who}),
+  second_approver:profiles!vouchers_approver_2_fkey(${who}),
+  rejecter:profiles!vouchers_rejected_by_fkey(${who}),
+  payer:profiles!vouchers_paid_marked_by_fkey(${who})`;
+}

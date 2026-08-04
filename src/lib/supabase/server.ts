@@ -1,7 +1,8 @@
 import { cache } from 'react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { Database } from './types';
+import type { Database, Profile } from './types';
+import { tolerateMissingColumns, withAvatar } from './columns';
 import { safeAvatarUrl } from '@/lib/avatar';
 import { PREVIEW } from '@/lib/preview';
 import { createPreviewClient } from '@/lib/preview/client';
@@ -44,6 +45,15 @@ export const createClient = cache(async () => {
 });
 
 /**
+ * The profile columns a signed-in session needs. avatar_url is optional because
+ * the select drops it on a database that has not got the column yet — a face is
+ * the one thing here the app can render without.
+ */
+type SessionProfile = Pick<Profile, 'id' | 'email' | 'full_name' | 'role' | 'is_active'> & {
+  avatar_url?: string | null;
+};
+
+/**
  * The signed-in user together with their profile (role, name).
  * Returns null when there is no session.
  *
@@ -69,11 +79,37 @@ export const getCurrentUser = cache(async () => {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, email, full_name, role, is_active, avatar_url')
-    .eq('id', user.id)
-    .single();
+  const { data, error } = await tolerateMissingColumns(() =>
+    supabase
+      .from('profiles')
+      .select(withAvatar('id, email, full_name, role, is_active'))
+      .eq('id', user.id)
+      .single(),
+  );
+
+  /*
+   * supabase-js infers the row from the select string as a literal type, and this
+   * one is built at runtime, so the inference has nothing to work from. Naming the
+   * shape here is what the rest of the app types itself against, so it earns the
+   * assertion — everything from the role on the rail to the account menu is this.
+   */
+  const profile = data as unknown as SessionProfile | null;
+
+  /*
+   * A session that cannot be resolved to a profile is not the same thing as no
+   * session, and returning null said the second. requireUser() then redirected to
+   * /login, where the proxy found the valid session and redirected back here, and
+   * the browser bounced between the two until it gave up — which is how a single
+   * failing query became "the site will not open after signing in".
+   *
+   * PGRST116 is the one error that genuinely means no row, and it keeps the old
+   * behaviour: RLS can legitimately hide a profile, and /login is the right answer
+   * to that. Anything else is a fault, and a fault should say so once rather than
+   * impersonate a signed-out user forever.
+   */
+  if (error && error.code !== 'PGRST116') {
+    throw new Error(`Could not read your profile: ${error.message}`);
+  }
 
   if (!profile) return null;
 

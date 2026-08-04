@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { renderVoucherPdf, pdfFilename } from '@/lib/pdf/render';
-import { VOUCHER_DETAIL_SELECT } from '@/lib/domain/rows';
+import { voucherDetailSelect } from '@/lib/domain/rows';
+import { tolerateMissingColumns } from '@/lib/supabase/columns';
 import type { VoucherDetailRow } from '@/lib/domain/rows';
 
 /**
@@ -26,12 +27,14 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   } = await supabase.auth.getUser();
   if (!user) return new NextResponse('Not signed in', { status: 401 });
 
-  const { data } = await supabase
-    .from('vouchers')
-    .select(VOUCHER_DETAIL_SELECT)
-    .eq('id', id)
-    .is('deleted_at', null)
-    .maybeSingle();
+  const { data } = await tolerateMissingColumns(() =>
+    supabase
+      .from('vouchers')
+      .select(voucherDetailSelect())
+      .eq('id', id)
+      .is('deleted_at', null)
+      .maybeSingle(),
+  );
 
   if (!data) return new NextResponse('Voucher not found', { status: 404 });
 

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { AlertTriangle, Users } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
+import { tolerateMissingColumns, withAvatar } from '@/lib/supabase/columns';
 import { isOwner, type UserRole } from '@/lib/domain/workflow';
 import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
 import { UserRow } from './UserRow';
@@ -14,7 +15,8 @@ export type AdminUser = {
   role: UserRole;
   is_active: boolean;
   created_at: string;
-  avatar_url: string | null;
+  /** Optional: the select drops it on a database that has not got the column yet. */
+  avatar_url?: string | null;
 };
 
 /**
@@ -29,14 +31,18 @@ export default async function AdminPeoplePage() {
   const supabase = await createClient();
 
   const [{ data: users }, { data: counts }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id, email, full_name, role, is_active, created_at, avatar_url')
-      .order('created_at', { ascending: true }),
+    tolerateMissingColumns(() =>
+      supabase
+        .from('profiles')
+        .select(withAvatar('id, email, full_name, role, is_active, created_at'))
+        .order('created_at', { ascending: true }),
+    ),
     supabase.from('vouchers').select('created_by').is('deleted_at', null),
   ]);
 
-  const rows = (users ?? []) as AdminUser[];
+  // The select string is built at runtime (see lib/supabase/columns.ts), so
+  // supabase-js has no literal to infer the row from.
+  const rows = (users ?? []) as unknown as AdminUser[];
 
   // Voucher counts per person, so an admin can see who is actually using this.
   const byUser = new Map<string, number>();

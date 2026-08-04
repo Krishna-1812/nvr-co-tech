@@ -22,7 +22,8 @@ import { Attachments } from '@/components/voucher/Attachments';
 import { ApprovalChain } from '@/components/voucher/ApprovalChain';
 import { AmountLadder, type Line } from '@/components/voucher/AmountLadder';
 import type { AttachmentRow } from '@/app/actions/attachments';
-import { VOUCHER_DETAIL_SELECT } from '@/lib/domain/rows';
+import { voucherDetailSelect } from '@/lib/domain/rows';
+import { personCols, tolerateMissingColumns } from '@/lib/supabase/columns';
 import type { VoucherDetailRow, AuditRow, PersonRef } from '@/lib/domain/rows';
 import { VoucherActions } from '@/components/voucher/VoucherActions';
 
@@ -62,24 +63,26 @@ export default async function VoucherDetailPage({
    * they come back empty, and a 404 is not the case worth optimising for.
    */
   const [{ data: voucher }, { data: attachments }, { data: audit }] = await Promise.all([
-    supabase
-      .from('vouchers')
-      .select(VOUCHER_DETAIL_SELECT)
-      .eq('id', id)
-      .is('deleted_at', null)
-      .maybeSingle(),
+    tolerateMissingColumns(() =>
+      supabase
+        .from('vouchers')
+        .select(voucherDetailSelect())
+        .eq('id', id)
+        .is('deleted_at', null)
+        .maybeSingle(),
+    ),
     supabase
       .from('voucher_attachments')
       .select('id, voucher_id, storage_path, file_name, mime_type, size_bytes, created_at')
       .eq('voucher_id', id)
       .order('created_at', { ascending: true }),
-    supabase
-      .from('voucher_audit')
-      .select(
-        'id, action, note, created_at, actor:profiles!voucher_audit_actor_id_fkey(full_name, email, avatar_url)',
-      )
-      .eq('voucher_id', id)
-      .order('created_at', { ascending: true }),
+    tolerateMissingColumns(() =>
+      supabase
+        .from('voucher_audit')
+        .select(`id, action, note, created_at, actor:profiles!voucher_audit_actor_id_fkey(${personCols()})`)
+        .eq('voucher_id', id)
+        .order('created_at', { ascending: true }),
+    ),
   ]);
 
   if (!voucher) notFound();
