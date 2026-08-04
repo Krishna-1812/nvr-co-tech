@@ -9,7 +9,14 @@ import { MobileDock } from './app/MobileDock';
 import { PreviewBanner } from './app/PreviewBanner';
 
 type Props = {
-  user: { id: string; email: string; full_name: string | null; role: UserRole };
+  user: {
+    id: string;
+    email: string;
+    full_name: string | null;
+    role: UserRole;
+    /** Their Google picture, if they signed in with Google. Passed to UserMenu. */
+    avatarUrl?: string | null;
+  };
   /** Number of vouchers waiting on this person — drives the queue badge. */
   pendingCount?: number;
   children: React.ReactNode;

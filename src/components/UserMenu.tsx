@@ -8,11 +8,18 @@ import { createClient } from '@/lib/supabase/client';
 import { ROLE_META, type UserRole } from '@/lib/domain/workflow';
 import { setTheme, useTheme } from '@/lib/theme';
 import { cn } from '@/lib/utils';
+import { Avatar } from './Avatar';
 
 export function UserMenu({
   user,
 }: {
-  user: { email: string; full_name: string | null; role: UserRole };
+  user: {
+    email: string;
+    full_name: string | null;
+    role: UserRole;
+    /** Their Google picture, if they signed in with Google. */
+    avatarUrl?: string | null;
+  };
 }) {
   const router = useRouter();
   const theme = useTheme();
@@ -23,22 +30,20 @@ export function UserMenu({
     router.refresh();
   };
 
-  const initials =
-    (user.full_name ?? user.email)
-      .split(/[\s@.]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((s) => s[0]?.toUpperCase())
-      .join('') || '?';
-
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
         <button
-          className="gradient-brand elev-1 grid size-8 place-items-center rounded-full text-[11px] font-bold text-white transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-raised)]"
+          className="elev-1 grid size-8 shrink-0 place-items-center rounded-full transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-raised)]"
           aria-label="Account menu"
         >
-          {initials}
+          <Avatar
+            name={user.full_name}
+            email={user.email}
+            url={user.avatarUrl}
+            px={64}
+            className="size-8 rounded-full text-[11px]"
+          />
         </button>
       </DropdownMenu.Trigger>
 
@@ -49,9 +54,13 @@ export function UserMenu({
           className="surface elev-4 animate-[pop_0.15s_ease-out] z-50 min-w-60 rounded-xl p-1.5"
         >
           <div className="flex items-center gap-2.5 border-b px-3 py-2.5">
-            <span className="gradient-brand grid size-9 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white">
-              {initials}
-            </span>
+            <Avatar
+              name={user.full_name}
+              email={user.email}
+              url={user.avatarUrl}
+              px={72}
+              className="size-9 rounded-full text-[11px]"
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{user.full_name ?? user.email}</p>
               <p className="text-subtle truncate text-xs">{user.email}</p>

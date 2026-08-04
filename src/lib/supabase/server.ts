@@ -75,7 +75,28 @@ export const getCurrentUser = cache(async () => {
     .single();
 
   if (!profile) return null;
-  return { ...profile, authEmail: user.email ?? profile.email };
+
+  /*
+   * The Google profile picture.
+   *
+   * It arrives in the identity token under the default `profile` scope, and
+   * Supabase copies it into user_metadata as both `avatar_url` and `picture`
+   * depending on the provider, so both are checked. Nothing is stored: it is read
+   * off the session we already have, which costs no extra query and means a
+   * picture changed in a Google account is right here the next time the page
+   * loads. Somebody who signed in with a password simply has none, and gets their
+   * initials as before.
+   *
+   * Validated rather than trusted. A user can write to their own user_metadata
+   * through the auth API, so this string is user input on its way to an `src`
+   * attribute; anything that is not an https URL does not get rendered.
+   */
+  const meta = user.user_metadata as { avatar_url?: unknown; picture?: unknown } | null;
+  const claimed = meta?.avatar_url ?? meta?.picture;
+  const avatarUrl =
+    typeof claimed === 'string' && claimed.startsWith('https://') ? claimed : null;
+
+  return { ...profile, authEmail: user.email ?? profile.email, avatarUrl };
 });
 
 /** Same, but redirects to /login instead of returning null. Use in protected pages. */

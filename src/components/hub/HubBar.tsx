@@ -21,7 +21,14 @@ export function HubBar({
   fiscal,
   today,
 }: {
-  user: { id: string; email: string; full_name: string | null; role: UserRole };
+  user: {
+    id: string;
+    email: string;
+    full_name: string | null;
+    role: UserRole;
+    /** Their Google picture, if they signed in with Google. Passed to UserMenu. */
+    avatarUrl?: string | null;
+  };
   fiscal: Fiscal;
   today: string;
 }) {

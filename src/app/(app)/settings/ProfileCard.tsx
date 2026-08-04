@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { ROLE_META, type UserRole } from '@/lib/domain/workflow';
+import { Avatar } from '@/components/Avatar';
 import { Figure } from '@/components/app/Figure';
 import { Card, CardBody } from '@/components/ui/primitives';
 import { NameForm } from './NameForm';
@@ -25,7 +26,13 @@ export function ProfileCard({
   approved,
   memberSince,
 }: {
-  user: { email: string; full_name: string | null; role: UserRole };
+  user: {
+    email: string;
+    full_name: string | null;
+    role: UserRole;
+    /** Their Google picture, if they signed in with Google. */
+    avatarUrl?: string | null;
+  };
   /** Vouchers you have raised. */
   raised: number;
   /** Vouchers you have approved. Null for someone who cannot approve. */
@@ -33,14 +40,6 @@ export function ProfileCard({
   /** "Aug 2025", already in Asia/Kolkata. */
   memberSince: string;
 }) {
-  const initials =
-    (user.full_name ?? user.email)
-      .split(/[\s@.]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((s) => s[0]?.toUpperCase())
-      .join('') || '?';
-
   const facts = [
     { label: 'Raised', value: raised },
     ...(approved === null ? [] : [{ label: 'Approved', value: approved }]),
@@ -67,17 +66,20 @@ export function ProfileCard({
       {/* ── Who you are ── */}
       <div className="relative flex items-start gap-4 p-5 sm:gap-5 sm:p-6">
         {/*
-          The same gradient mark as the account menu's avatar, so one person is drawn
-          one way wherever they appear. The inset hairline along its top edge is what
-          every raised object in this app has, and it is what makes this read as a
-          tile sitting on the card rather than a coloured square printed on it.
+          The same mark as the account menu's, so one person is drawn one way
+          wherever they appear: their Google picture if they signed in with Google,
+          their initials on the brand gradient if they did not. The inset hairline
+          along the top edge is what every raised object in this app has, and it is
+          what makes this read as a tile sitting on the card rather than a coloured
+          square printed on it.
         */}
-        <span
-          aria-hidden
-          className="gradient-brand grid size-16 shrink-0 place-items-center rounded-2xl text-lg font-bold text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.28),var(--elev-brand)]"
-        >
-          {initials}
-        </span>
+        <Avatar
+          name={user.full_name}
+          email={user.email}
+          url={user.avatarUrl}
+          px={128}
+          className="size-16 rounded-2xl text-lg shadow-[inset_0_1px_0_oklch(1_0_0_/_0.28),var(--elev-brand)]"
+        />
 
         {/* Spans to the card's right edge, which is what gives the role pill's
             `ml-auto` somewhere to go. Shrink-wrapped, it had no free space to
