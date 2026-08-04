@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import type { AuditAction } from '@/lib/supabase/types';
+import { Avatar } from '@/components/Avatar';
 import { relativeTime } from '@/lib/utils';
 import { fmtDate } from '@/lib/domain/voucher';
 
@@ -19,7 +20,7 @@ type Entry = {
   action: AuditAction;
   note: string | null;
   created_at: string;
-  actor?: { full_name: string | null; email: string } | null;
+  actor?: { full_name: string | null; email: string; avatar_url?: string | null } | null;
 };
 
 /**
@@ -93,9 +94,25 @@ export function AuditTimeline({ entries }: { entries: Entry[] }) {
             </span>
 
             <div className="min-w-0 flex-1 pt-0.5">
-              <p className="text-sm">
+              {/*
+                The actor's face sits inside the sentence rather than out at the
+                margin. This list is read as "who did what": at the margin the
+                pictures would form a column of their own that the eye scans
+                separately from the actions they belong to.
+              */}
+              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
                 <span className="font-medium">{meta.label}</span>
-                <span className="text-muted"> by {who}</span>
+                <span className="text-muted">by</span>
+                {e.actor && (
+                  <Avatar
+                    name={e.actor.full_name}
+                    email={e.actor.email}
+                    url={e.actor.avatar_url}
+                    px={36}
+                    className="size-[18px] rounded-full text-[8px]"
+                  />
+                )}
+                <span className="text-muted">{who}</span>
               </p>
               <p className="text-subtle text-xs">
                 <time dateTime={e.created_at} title={new Date(e.created_at).toLocaleString('en-IN')}>

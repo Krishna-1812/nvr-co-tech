@@ -14,6 +14,7 @@ export type AdminUser = {
   role: UserRole;
   is_active: boolean;
   created_at: string;
+  avatar_url: string | null;
 };
 
 /**
@@ -30,7 +31,7 @@ export default async function AdminPeoplePage() {
   const [{ data: users }, { data: counts }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('id, email, full_name, role, is_active, created_at')
+      .select('id, email, full_name, role, is_active, created_at, avatar_url')
       .order('created_at', { ascending: true }),
     supabase.from('vouchers').select('created_by').is('deleted_at', null),
   ]);

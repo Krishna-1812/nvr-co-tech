@@ -96,16 +96,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         {/*
-          Apply the saved theme and rail width before first paint.
+          Apply the theme and rail width before first paint.
 
           Both are read from localStorage, so React cannot know either of them
           during server rendering. Without this, a dark-mode user gets a white
           flash on every navigation, and anyone who collapsed the rail watches it
           open and shut again once hydration lands.
+
+          Dark is the default: with nothing stored, `data-theme` is set to dark
+          rather than left off. Leaving it off means following the operating system,
+          which is a fine default for an app in general but not for this one — the
+          public site is dark always, so a new person arriving from it on a
+          light-set machine watched the product turn white at the moment they
+          signed in. A stored choice always wins, including an explicit 'system'.
+
+          It has to be decided here rather than in CSS, because "no preference
+          recorded" and "recorded as system" are different states and a media query
+          cannot tell them apart. lib/theme.ts reads the same rule.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(t&&t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}`,
+            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(!t)d.setAttribute('data-theme','dark');else if(t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}`,
           }}
         />
       </head>

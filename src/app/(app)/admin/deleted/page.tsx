@@ -15,7 +15,7 @@ export type DeletedVoucher = {
   grand_total: string | number;
   deleted_at: string;
   chapter: { name: string } | null;
-  creator: { full_name: string | null; email: string } | null;
+  creator: { full_name: string | null; email: string; avatar_url?: string | null } | null;
 };
 
 /**
@@ -32,7 +32,7 @@ export default async function AdminDeletedPage() {
     .select(
       `id, voucher_no, status, date, paid_to, grand_total, deleted_at,
        chapter:chapters!vouchers_chapter_id_fkey(name),
-       creator:profiles!vouchers_created_by_fkey(full_name, email)`,
+       creator:profiles!vouchers_created_by_fkey(full_name, email, avatar_url)`,
     )
     .not('deleted_at', 'is', null)
     .order('deleted_at', { ascending: false });

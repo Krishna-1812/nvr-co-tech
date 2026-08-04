@@ -76,7 +76,7 @@ export default async function VoucherDetailPage({
     supabase
       .from('voucher_audit')
       .select(
-        'id, action, note, created_at, actor:profiles!voucher_audit_actor_id_fkey(full_name, email)',
+        'id, action, note, created_at, actor:profiles!voucher_audit_actor_id_fkey(full_name, email, avatar_url)',
       )
       .eq('voucher_id', id)
       .order('created_at', { ascending: true }),

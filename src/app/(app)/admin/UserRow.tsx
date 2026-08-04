@@ -4,6 +4,7 @@ import { useState, useTransition, type CSSProperties } from 'react';
 import { toast } from 'sonner';
 import { setUserRole } from '@/app/actions/admin';
 import { ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
+import { Avatar } from '@/components/Avatar';
 import { Select, Td, Tr } from '@/components/ui/primitives';
 import type { AdminUser } from './page';
 
@@ -54,28 +55,23 @@ export function UserRow({
     });
   };
 
-  const initials =
-    (user.full_name ?? user.email)
-      .split(/[\s@.]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((s) => s[0]?.toUpperCase())
-      .join('') || '?';
-
   return (
     <Tr>
       <Td>
         <div className="flex items-center gap-3">
           {/*
-            An initials disc rather than a photo: there is no avatar upload, and
-            a column of plain names is much harder to find yourself in.
+            Their picture where there is one, initials where there is not. A column
+            of plain names is much harder to find yourself in, and on the screen
+            where roles are handed out, knowing you are looking at the right person
+            is the whole job.
           */}
-          <span
-            aria-hidden
-            className="surface-sunken text-muted grid size-8 shrink-0 place-items-center rounded-full border text-[11px] font-bold"
-          >
-            {initials}
-          </span>
+          <Avatar
+            name={user.full_name}
+            email={user.email}
+            url={user.avatar_url}
+            px={64}
+            className="size-8 rounded-full text-[11px]"
+          />
           <div className="min-w-0">
             <p className="font-medium">
               {user.full_name ?? user.email.split('@')[0]}

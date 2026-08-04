@@ -39,6 +39,24 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  /*
+   * Copy the identity provider's picture onto the profile row.
+   *
+   * This is the only moment we know it may have changed, and the row is what lets
+   * a face appear beside this person's name on somebody else's screen — a session
+   * only ever contains one user, so reading it from the session could never do
+   * that. The function takes no arguments and reads auth.users itself, so nothing
+   * here can choose what URL other people's browsers will fetch.
+   *
+   * Failure is ignored on purpose. A picture is not worth blocking a sign-in for,
+   * and this call also does not exist on a project where 0006 has not been applied.
+   */
+  try {
+    await supabase.rpc('sync_own_avatar');
+  } catch {
+    // Deliberately swallowed. See above.
+  }
+
   return NextResponse.redirect(`${origin}${next}`);
 }
 

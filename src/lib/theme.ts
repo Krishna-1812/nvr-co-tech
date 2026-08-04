@@ -7,6 +7,16 @@ export type Theme = 'light' | 'dark' | 'system';
 export const THEMES: readonly Theme[] = ['light', 'dark', 'system'];
 
 /**
+ * What a new account gets before anybody has chosen.
+ *
+ * Dark rather than 'system'. The public site is dark always, so somebody arriving
+ * from it on a light-set machine used to watch the product turn white at the moment
+ * they signed in, which reads as two different products. Whoever wants their machine
+ * followed can say so in the account menu, and that choice then wins for good.
+ */
+export const DEFAULT_THEME: Theme = 'dark';
+
+/**
  * Theme preference lives in localStorage, which is external to React. Reading it
  * with useSyncExternalStore (rather than setState in an effect) gives a correct
  * server snapshot, so there is no hydration mismatch and no cascading render.
@@ -28,9 +38,15 @@ const store = {
       window.removeEventListener('storage', cb);
     };
   },
-  getSnapshot: (): Theme => (localStorage.getItem('theme') as Theme) ?? 'system',
-  // The server cannot know the preference; 'system' is the safe default.
-  getServerSnapshot: (): Theme => 'system',
+  /*
+   * Dark until told otherwise. This has to be the same rule the pre-paint script
+   * in the root layout applies, or the account menu would show Dark ticked while
+   * the page was light, or the other way round.
+   */
+  getSnapshot: (): Theme => (localStorage.getItem('theme') as Theme | null) ?? DEFAULT_THEME,
+  // The server cannot read localStorage, so it assumes the default. Anyone who has
+  // pinned something else sees it corrected on hydration, before paint.
+  getServerSnapshot: (): Theme => DEFAULT_THEME,
 };
 
 export function setTheme(t: Theme) {

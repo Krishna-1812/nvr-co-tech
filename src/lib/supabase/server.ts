@@ -2,6 +2,7 @@ import { cache } from 'react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from './types';
+import { safeAvatarUrl } from '@/lib/avatar';
 import { PREVIEW } from '@/lib/preview';
 import { createPreviewClient } from '@/lib/preview/client';
 
@@ -70,31 +71,27 @@ export const getCurrentUser = cache(async () => {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, email, full_name, role, is_active')
+    .select('id, email, full_name, role, is_active, avatar_url')
     .eq('id', user.id)
     .single();
 
   if (!profile) return null;
 
   /*
-   * The Google profile picture.
+   * Your own picture, preferring the stored column and falling back to the
+   * session.
    *
-   * It arrives in the identity token under the default `profile` scope, and
-   * Supabase copies it into user_metadata as both `avatar_url` and `picture`
-   * depending on the provider, so both are checked. Nothing is stored: it is read
-   * off the session we already have, which costs no extra query and means a
-   * picture changed in a Google account is right here the next time the page
-   * loads. Somebody who signed in with a password simply has none, and gets their
-   * initials as before.
-   *
-   * Validated rather than trusted. A user can write to their own user_metadata
-   * through the auth API, so this string is user input on its way to an `src`
-   * attribute; anything that is not an https URL does not get rendered.
+   * The column is what lets a face appear next to your name on somebody else's
+   * screen, and it is written at sign-up and refreshed by sync_own_avatar() on
+   * each OAuth sign-in. The session metadata is the fallback for the moment
+   * between signing in for the first time and that sync landing, and for a project
+   * where 0006 has not been applied yet.
    */
   const meta = user.user_metadata as { avatar_url?: unknown; picture?: unknown } | null;
-  const claimed = meta?.avatar_url ?? meta?.picture;
   const avatarUrl =
-    typeof claimed === 'string' && claimed.startsWith('https://') ? claimed : null;
+    safeAvatarUrl(profile.avatar_url) ??
+    safeAvatarUrl(meta?.avatar_url) ??
+    safeAvatarUrl(meta?.picture);
 
   return { ...profile, authEmail: user.email ?? profile.email, avatarUrl };
 });

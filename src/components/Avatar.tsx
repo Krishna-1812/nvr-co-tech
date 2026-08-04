@@ -1,4 +1,4 @@
-import { avatarAtSize, initialsFrom } from '@/lib/avatar';
+import { avatarAtSize, initialsFrom, safeAvatarUrl } from '@/lib/avatar';
 import { cn } from '@/lib/utils';
 
 /**
@@ -37,6 +37,15 @@ export function Avatar({
   /** The box: size, radius and the type size of the initials. */
   className?: string;
 }) {
+  /*
+   * Checked here rather than at each call site, because most of these now come out
+   * of the database and are rendered next to somebody else's name. The database
+   * only ever stores what the identity provider issued, so this should never
+   * reject anything — which is the point of putting it where it cannot be
+   * forgotten.
+   */
+  const src = safeAvatarUrl(url);
+
   return (
     <span
       aria-hidden
@@ -46,10 +55,10 @@ export function Avatar({
       )}
     >
       {initialsFrom(name, email)}
-      {url && (
+      {src && (
         // eslint-disable-next-line @next/next/no-img-element -- see below
         <img
-          src={avatarAtSize(url, px)}
+          src={avatarAtSize(src, px)}
           alt=""
           width={px}
           height={px}

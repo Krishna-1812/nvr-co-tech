@@ -25,6 +25,22 @@ export function initialsFrom(name: string | null | undefined, email: string): st
 }
 
 /**
+ * Whether a stored or claimed picture URL may be rendered.
+ *
+ * One definition, enforced in two places: where the URL is read off the session,
+ * and inside Avatar itself, which is what every other call site goes through.
+ *
+ * The rule is worth stating even though the database only ever writes values it
+ * read from the identity provider. This string reaches an `src` attribute in other
+ * people's browsers, so the difference between "we believe it is https" and "we
+ * checked" is the difference between a profile picture and an arbitrary outbound
+ * request from every colleague who opens the audit trail.
+ */
+export function safeAvatarUrl(value: unknown): string | null {
+  return typeof value === 'string' && value.startsWith('https://') ? value : null;
+}
+
+/**
  * Ask Google for the size we are actually going to draw.
  *
  * Their avatar URLs carry the size in a `=s96-c` suffix and will serve any square

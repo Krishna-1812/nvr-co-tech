@@ -9,6 +9,7 @@ import { restoreVoucher } from '@/app/actions/workflow';
 import { purgeVoucher } from '@/app/actions/admin';
 import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
 import { StatusBadge } from '@/components/StatusBadge';
+import { Avatar } from '@/components/Avatar';
 import { Button, Td, Tr } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/Modal';
 import { relativeTime } from '@/lib/utils';
@@ -62,8 +63,23 @@ export function DeletedRow({ voucher }: { voucher: DeletedVoucher }) {
           {voucher.paid_to ?? '—'}
         </Td>
 
-        <Td className="text-muted hidden max-w-40 truncate lg:table-cell">
-          {voucher.creator?.full_name ?? voucher.creator?.email ?? '—'}
+        <Td className="text-muted hidden lg:table-cell">
+          {voucher.creator ? (
+            <span className="flex items-center gap-2">
+              <Avatar
+                name={voucher.creator.full_name}
+                email={voucher.creator.email}
+                url={voucher.creator.avatar_url}
+                px={44}
+                className="size-[22px] rounded-full text-[9px]"
+              />
+              <span className="max-w-32 truncate">
+                {voucher.creator.full_name ?? voucher.creator.email}
+              </span>
+            </span>
+          ) : (
+            '—'
+          )}
         </Td>
 
         <Td className="text-muted hidden whitespace-nowrap sm:table-cell">

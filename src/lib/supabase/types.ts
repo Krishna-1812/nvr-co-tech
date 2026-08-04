@@ -14,6 +14,8 @@ export type Profile = {
   id: string;
   email: string;
   full_name: string | null;
+  /** From the identity provider. Written only by handle_new_user and sync_own_avatar. */
+  avatar_url: string | null;
   role: UserRole;
   is_active: boolean;
   created_at: string;
@@ -195,6 +197,11 @@ export type Database = {
 
       set_chapter_active: { Args: { p_id: string; p_active: boolean }; Returns: ChapterRow };
       rename_chapter: { Args: { p_id: string; p_name: string }; Returns: ChapterRow };
+
+      // 0006 — copies the identity provider's picture onto your own profile row.
+      // No arguments on purpose: it reads auth.users itself, so a caller cannot
+      // choose the URL that other people's browsers will end up fetching.
+      sync_own_avatar: { Args: Record<string, never>; Returns: string | null };
     };
     Enums: {
       user_role: UserRole;

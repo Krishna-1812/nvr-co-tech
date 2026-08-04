@@ -1,5 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { avatarAtSize, initialsFrom } from './avatar';
+import { avatarAtSize, initialsFrom, safeAvatarUrl } from './avatar';
+
+describe('safeAvatarUrl', () => {
+  it('accepts an https URL', () => {
+    expect(safeAvatarUrl('https://lh3.googleusercontent.com/a/x=s96-c')).toBe(
+      'https://lh3.googleusercontent.com/a/x=s96-c',
+    );
+  });
+
+  it('rejects everything that is not https', () => {
+    // This value reaches an img src in other people's browsers. http would leak
+    // the request in clear, and the two script schemes are the reason this
+    // function exists rather than a truthiness check.
+    expect(safeAvatarUrl('http://example.com/a.png')).toBeNull();
+    expect(safeAvatarUrl('javascript:alert(1)')).toBeNull();
+    expect(safeAvatarUrl('data:image/svg+xml,<svg onload="alert(1)"/>')).toBeNull();
+    expect(safeAvatarUrl('//example.com/a.png')).toBeNull();
+  });
+
+  it('rejects anything that is not a string', () => {
+    // It is fed straight out of JSON metadata and a nullable database column.
+    expect(safeAvatarUrl(null)).toBeNull();
+    expect(safeAvatarUrl(undefined)).toBeNull();
+    expect(safeAvatarUrl(42)).toBeNull();
+    expect(safeAvatarUrl({ toString: () => 'https://evil.example' })).toBeNull();
+  });
+});
 
 describe('initialsFrom', () => {
   it('takes the first letter of the first two words of a name', () => {

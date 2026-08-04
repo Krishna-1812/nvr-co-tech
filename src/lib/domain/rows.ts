@@ -11,7 +11,12 @@ import type { Voucher, VoucherAudit } from '@/lib/supabase/types';
  *   npx supabase gen types typescript --project-id <ref> > src/lib/supabase/types.ts
  */
 
-export type PersonRef = { full_name: string | null; email: string } | null;
+export type PersonRef = {
+  full_name: string | null;
+  email: string;
+  /** Their profile picture, when the select asked for it. */
+  avatar_url?: string | null;
+} | null;
 export type ChapterRef = { name: string; code?: string } | null;
 
 /** Voucher row as selected by the list page. */
@@ -43,7 +48,7 @@ export type AuditRow = Pick<VoucherAudit, 'id' | 'action' | 'note' | 'created_at
 export const VOUCHER_DETAIL_SELECT = `*,
   chapter:chapters!vouchers_chapter_id_fkey(name, code),
   paid_by:chapters!vouchers_paid_by_chapter_id_fkey(name),
-  initiator:profiles!vouchers_initiated_by_fkey(full_name, email),
-  first_approver:profiles!vouchers_approver_1_fkey(full_name, email),
-  second_approver:profiles!vouchers_approver_2_fkey(full_name, email),
-  rejecter:profiles!vouchers_rejected_by_fkey(full_name, email)` as const;
+  initiator:profiles!vouchers_initiated_by_fkey(full_name, email, avatar_url),
+  first_approver:profiles!vouchers_approver_1_fkey(full_name, email, avatar_url),
+  second_approver:profiles!vouchers_approver_2_fkey(full_name, email, avatar_url),
+  rejecter:profiles!vouchers_rejected_by_fkey(full_name, email, avatar_url)` as const;

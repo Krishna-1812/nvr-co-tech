@@ -6,6 +6,7 @@ import { Check, X, Clock, AlertTriangle, ExternalLink, Paperclip, FileWarning } 
 import { toast } from 'sonner';
 import { approveVoucher, rejectVoucher } from '@/app/actions/workflow';
 import { fmtRupees, fmtDate } from '@/lib/domain/voucher';
+import { Avatar } from '@/components/Avatar';
 import { StatusBadge, ApprovalProgress } from '@/components/StatusBadge';
 import type { VoucherStatus } from '@/lib/domain/workflow';
 import { Button, buttonClass, Card, Textarea } from '@/components/ui/primitives';
@@ -27,8 +28,8 @@ export type ApprovalRow = {
   invoice_no: string | null;
   submitted_at: string | null;
   chapter?: { name: string; code: string } | null;
-  initiator?: { full_name: string | null; email: string } | null;
-  first_approver?: { full_name: string | null; email: string } | null;
+  initiator?: { full_name: string | null; email: string; avatar_url?: string | null } | null;
+  first_approver?: { full_name: string | null; email: string; avatar_url?: string | null } | null;
   /** Embedded as a rows array purely to count it. */
   voucher_attachments?: { id: string }[] | null;
 };
@@ -174,13 +175,34 @@ export function ApprovalCard({
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t bg-[var(--surface-sunken)] px-4 py-2.5 pl-5">
         <div className="text-subtle flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-          <span>
-            Raised by <span className="font-medium">{person(voucher.initiator)}</span>{' '}
+          {/* Who is asking, with their face. An approver working down a queue is
+              deciding partly on who raised it, and a name is slower to place than
+              a name and a face together. */}
+          <span className="inline-flex items-center gap-1.5">
+            Raised by
+            {voucher.initiator && (
+              <Avatar
+                name={voucher.initiator.full_name}
+                email={voucher.initiator.email}
+                url={voucher.initiator.avatar_url}
+                px={36}
+                className="size-[18px] rounded-full text-[8px]"
+              />
+            )}
+            <span className="font-medium">{person(voucher.initiator)}</span>{' '}
             {relativeTime(voucher.submitted_at)}
           </span>
           {voucher.status === 'pending_second' && voucher.first_approver && (
-            <span>
-              1st approval by <span className="font-medium">{person(voucher.first_approver)}</span>
+            <span className="inline-flex items-center gap-1.5">
+              1st approval by
+              <Avatar
+                name={voucher.first_approver.full_name}
+                email={voucher.first_approver.email}
+                url={voucher.first_approver.avatar_url}
+                px={36}
+                className="size-[18px] rounded-full text-[8px]"
+              />
+              <span className="font-medium">{person(voucher.first_approver)}</span>
             </span>
           )}
 

@@ -62,7 +62,11 @@ const TABLES: Tables = (globalForPreview.__nvrPreviewTables ??= {
 const me = () => TABLES.profiles.find((p) => p.id === PREVIEW_USER_ID)!;
 const person = (id: unknown) => {
   const p = TABLES.profiles.find((r) => r.id === id);
-  return p ? { full_name: p.full_name, email: p.email } : null;
+  // The same three columns every embedded profile join in the app asks for. A
+  // field missing here shows up as a preview-only blank — avatar_url did exactly
+  // that: the pictures appeared on the people list, which reads the table
+  // directly, and nowhere that reads a person through a join.
+  return p ? { full_name: p.full_name, email: p.email, avatar_url: p.avatar_url } : null;
 };
 const chapterRef = (id: unknown) => {
   const c = TABLES.chapters.find((r) => r.id === id);
