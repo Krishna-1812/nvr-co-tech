@@ -11,11 +11,10 @@ export default function SettingsLoading() {
       <HeaderSkeleton withAction={false} />
 
       <Card className="overflow-hidden rounded-2xl">
-        <div aria-hidden className="gradient-brand h-24 w-full opacity-40" />
-        <div className="flex items-end gap-4 px-5 pb-4">
-          <span className="-mt-9 size-18 shrink-0 rounded-2xl border-4 border-[var(--surface-raised)] bg-[var(--surface-sunken)]" />
-          <div className="w-full max-w-xs space-y-2.5 pb-0.5">
-            <Bar className="h-5 w-40" />
+        <div className="flex items-start gap-4 p-5 sm:gap-5 sm:p-6">
+          <Bar className="size-16 shrink-0 rounded-2xl" />
+          <div className="w-full max-w-xs space-y-3 pt-0.5">
+            <Bar className="h-6 w-44" />
             <Bar className="h-3.5 w-52" />
           </div>
         </div>
