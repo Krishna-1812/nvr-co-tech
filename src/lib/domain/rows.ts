@@ -32,6 +32,8 @@ export type VoucherDetailRow = Voucher & {
   first_approver: PersonRef;
   second_approver: PersonRef;
   rejecter: PersonRef;
+  /** Who marked it paid. The last link in the chain of custody. */
+  payer: PersonRef;
 };
 
 /** Audit row with its actor resolved. */
@@ -51,4 +53,5 @@ export const VOUCHER_DETAIL_SELECT = `*,
   initiator:profiles!vouchers_initiated_by_fkey(full_name, email, avatar_url),
   first_approver:profiles!vouchers_approver_1_fkey(full_name, email, avatar_url),
   second_approver:profiles!vouchers_approver_2_fkey(full_name, email, avatar_url),
-  rejecter:profiles!vouchers_rejected_by_fkey(full_name, email, avatar_url)` as const;
+  rejecter:profiles!vouchers_rejected_by_fkey(full_name, email, avatar_url),
+  payer:profiles!vouchers_paid_marked_by_fkey(full_name, email, avatar_url)` as const;

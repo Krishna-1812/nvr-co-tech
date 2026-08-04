@@ -88,6 +88,7 @@ function enrich(table: string, row: Row): Row {
       first_approver: person(row.approver_1),
       second_approver: person(row.approver_2),
       rejecter: person(row.rejected_by),
+      payer: person(row.paid_marked_by),
       voucher_attachments: TABLES.voucher_attachments
         .filter((a) => a.voucher_id === row.id)
         .map((a) => ({ ...a })),

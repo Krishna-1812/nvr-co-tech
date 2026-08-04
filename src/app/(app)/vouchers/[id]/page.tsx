@@ -181,17 +181,20 @@ export default async function VoucherDetailPage({
             <ShieldCheck className="size-3.5" aria-hidden />
             Chain of custody
           </p>
+          {/* People, not names: the chain draws each completed rung as the face of
+              whoever signed for it. */}
           <ApprovalChain
             status={v.status}
-            raisedBy={person(v.initiator)}
+            raisedBy={v.initiator}
             raisedAt={v.submitted_at ?? v.created_at}
-            firstApprover={person(v.first_approver)}
+            firstApprover={v.first_approver}
             firstAt={v.approved_1_at}
-            secondApprover={person(v.second_approver)}
+            secondApprover={v.second_approver}
             secondAt={v.approved_2_at}
+            paidBy={v.payer}
             paidAt={v.payment_date ?? null}
             utr={v.utr_ref}
-            rejectedBy={person(v.rejecter)}
+            rejectedBy={v.rejecter}
           />
         </div>
 

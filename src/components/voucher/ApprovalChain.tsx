@@ -1,7 +1,9 @@
 import type { CSSProperties } from 'react';
 import { Check, PenLine, Undo2, Wallet } from 'lucide-react';
 import { fmtDate } from '@/lib/domain/voucher';
+import type { PersonRef } from '@/lib/domain/rows';
 import type { VoucherStatus } from '@/lib/domain/workflow';
+import { Avatar } from '@/components/Avatar';
 import { cn } from '@/lib/utils';
 
 /**
@@ -25,10 +27,16 @@ type Step = {
   key: string;
   label: string;
   icon: typeof Check;
+  /** Whose act this was. Drawn as their face on the rung. */
+  person: PersonRef;
+  /** The caption under the rung: a name, or for the payment, its reference. */
   who: string | null;
   when: string;
   done: boolean;
 };
+
+/** The name to print for somebody, when their picture is not enough. */
+const nameOf = (p: PersonRef) => p?.full_name ?? p?.email ?? null;
 
 export function ApprovalChain({
   status,
@@ -38,20 +46,22 @@ export function ApprovalChain({
   firstAt,
   secondApprover,
   secondAt,
+  paidBy,
   paidAt,
   utr,
   rejectedBy,
 }: {
   status: VoucherStatus;
-  raisedBy: string | null;
+  raisedBy: PersonRef;
   raisedAt: string | null;
-  firstApprover: string | null;
+  firstApprover: PersonRef;
   firstAt: string | null;
-  secondApprover: string | null;
+  secondApprover: PersonRef;
   secondAt: string | null;
+  paidBy: PersonRef;
   paidAt: string | null;
   utr: string | null;
-  rejectedBy: string | null;
+  rejectedBy: PersonRef;
 }) {
   const rejected = status === 'rejected';
 
@@ -60,7 +70,8 @@ export function ApprovalChain({
       key: 'raised',
       label: 'Raised',
       icon: PenLine,
-      who: raisedBy,
+      person: raisedBy,
+      who: nameOf(raisedBy),
       when: fmtDate(raisedAt),
       done: Boolean(raisedBy),
     },
@@ -68,7 +79,8 @@ export function ApprovalChain({
       key: 'first',
       label: 'First approval',
       icon: Check,
-      who: firstApprover,
+      person: firstApprover,
+      who: nameOf(firstApprover),
       when: fmtDate(firstAt),
       done: Boolean(firstApprover),
     },
@@ -76,14 +88,21 @@ export function ApprovalChain({
       key: 'second',
       label: 'Second approval',
       icon: Check,
-      who: secondApprover,
+      person: secondApprover,
+      who: nameOf(secondApprover),
       when: fmtDate(secondAt),
       done: Boolean(secondApprover),
     },
     {
       key: 'paid',
+      /*
+       * The one rung whose caption is not a name. Who released the money is on the
+       * rung as their face; the reference is the fact somebody reading this
+       * actually needs, and it is the only place on the page it appears.
+       */
       label: 'Paid',
       icon: Wallet,
+      person: paidBy,
       who: status === 'paid' ? (utr ? `UTR ${utr}` : 'Recorded') : null,
       when: fmtDate(paidAt),
       done: status === 'paid',
@@ -136,7 +155,7 @@ export function ApprovalChain({
                     className="mt-1 truncate text-[13px] font-semibold"
                     style={{ color: 'var(--status-rejected)' }}
                   >
-                    Sent back{rejectedBy ? ` by ${rejectedBy}` : ''}
+                    Sent back{rejectedBy ? ` by ${nameOf(rejectedBy)}` : ''}
                   </p>
                 ) : (
                   <p className="text-subtle mt-1 text-[13px]">
@@ -156,6 +175,18 @@ export function ApprovalChain({
  * One rung. Three states worth distinguishing: done, being waited on, and not yet
  * — plus the broken rung on a sent-back voucher. The waiting rung gets a soft halo
  * so it is findable in a glance at the row.
+ *
+ * A completed rung is the person who completed it.
+ *
+ * The face replaces the tick rather than joining it, which is the only way this
+ * works: every rung here is a circle whose appearance carries the state, so a face
+ * beside one would be a second circle competing with the thing the reader is meant
+ * to be scanning. Instead the state moves to the ring and the small badge, and the
+ * middle of the circle — previously a tick, which told you nothing you could not
+ * see from its colour — carries who signed for it.
+ *
+ * The empty rungs are untouched, so the shape of the row still answers "what is
+ * outstanding" before any face is looked at: faces behind you, circles ahead.
  */
 function Node({
   step,
@@ -174,6 +205,42 @@ function Node({
         className="tinted grid size-7 shrink-0 place-items-center rounded-full border"
       >
         <Undo2 className="size-3.5" />
+      </span>
+    );
+  }
+
+  if (step.done && step.person) {
+    return (
+      <span aria-hidden className="relative shrink-0">
+        {/* The ring is the green that the tick used to be, so a completed rung is
+            still green at a glance and still matches its lit connector. */}
+        <span
+          className="block rounded-full"
+          style={{
+            boxShadow:
+              '0 0 0 2px var(--status-approved), 0 4px 12px color-mix(in oklab, var(--status-approved) 32%, transparent)',
+          }}
+        >
+          <Avatar
+            name={step.person.full_name}
+            email={step.person.email}
+            url={step.person.avatar_url}
+            px={56}
+            className="size-7 rounded-full text-[10px]"
+          />
+        </span>
+
+        {/* The act, as a badge. Small on purpose: the ring already says done, and
+            this says which kind of done — signed, or paid. */}
+        <span
+          className="absolute -right-1 -bottom-1 grid size-3.5 place-items-center rounded-full border-2 text-white"
+          style={{
+            background: 'var(--status-approved)',
+            borderColor: 'var(--surface-raised)',
+          }}
+        >
+          <step.icon className="size-2" strokeWidth={4} />
+        </span>
       </span>
     );
   }
