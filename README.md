@@ -107,12 +107,31 @@ requires a non-production build as well as the flag, and `next build` / `next st
 both set `NODE_ENV=production`. It also proves nothing — RLS, the triggers, the
 generated columns and the constraints are all absent. See `src/lib/preview/`.
 
-Apply the migrations in order (`supabase/migrations/0001` → `0005`) via the Supabase SQL editor or
+Apply the migrations in order (`supabase/migrations/0001` → `0006`) via the Supabase SQL editor or
 `supabase db push`, then promote your first account:
 
 ```sql
 update profiles set role = 'owner' where email = 'you@example.com';
 ```
+
+Migrations are applied by hand while a push to `main` deploys itself, so **apply the
+migration before merging the code that needs it**. Code that reaches production ahead
+of its schema is the normal case here, not an accident.
+
+## Where this runs
+
+`vercel.json` pins the functions to `bom1` (Mumbai). This is not a preference, it is
+the difference between a page that answers in 200 ms and one that takes over a second.
+
+Vercel's default function region is `iad1` (Virginia), and the Supabase project is in
+`ap-south-1` (Mumbai). Every signed-in page makes four round trips to Supabase before
+it can send a byte — the proxy validates the session, then `getCurrentUser()` validates
+it again and reads the profile, then the page runs its own queries — and on the default
+region each of those crossed the planet, at roughly 220 ms a turn. The request itself
+did the same: Mumbai edge, Virginia function, back again.
+
+Both ends now sit in the same city. If the Supabase project is ever moved, move this
+with it; a mismatch is invisible in the code and costs about a second a page.
 
 ## Verification
 
