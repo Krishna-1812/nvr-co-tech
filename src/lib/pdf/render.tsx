@@ -62,10 +62,10 @@ export async function renderVoucherPdf(v: VoucherDetailRow): Promise<Buffer> {
 }
 
 /**
- * A filename that sorts and reads well: NVR-Voucher-NVR-HYD-25-26-0001.pdf.
+ * A filename that sorts and reads well: FI-Voucher-FI-HYD-25-26-0001.pdf.
  * Slashes in the voucher number would break the Content-Disposition header.
  */
 export function pdfFilename(voucherNo: string | null): string {
   const safe = (voucherNo ?? 'draft').replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-|-$/g, '');
-  return `NVR-Voucher-${safe}.pdf`;
+  return `FI-Voucher-${safe}.pdf`;
 }

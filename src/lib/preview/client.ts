@@ -46,9 +46,9 @@ type Tables = Record<string, Row[]>;
  * Prisma docs tell you to cache a client there in development. Preview mode cannot
  * run in a production build (see ./index.ts), so this never ships.
  */
-const globalForPreview = globalThis as typeof globalThis & { __nvrPreviewTables?: Tables };
+const globalForPreview = globalThis as typeof globalThis & { __fiPreviewTables?: Tables };
 
-const TABLES: Tables = (globalForPreview.__nvrPreviewTables ??= {
+const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   profiles: fixtures.profiles as unknown as Row[],
   chapters: fixtures.chapters as unknown as Row[],
   events: fixtures.events as unknown as Row[],
@@ -326,12 +326,16 @@ function findVoucher(id: string) {
 function nextVoucherNo(v: Row): string {
   const code = String(chapterRef(v.chapter_id)?.code ?? 'HO');
   const fy = financialYear(v.date ? new Date(String(v.date)) : new Date());
+  // Matches 0007: the run of numbers is per chapter per financial year, and the
+  // prefix is not part of what identifies the run. Anything issued before the
+  // rename still counts, so the series does not restart at 0001.
+  const tail = `/${code}/${fy}/`;
   const used = TABLES.vouchers
     .map((r) => String(r.voucher_no ?? ''))
-    .filter((n) => n.startsWith(`NVR/${code}/${fy}/`))
+    .filter((n) => n.includes(tail))
     .map((n) => Number(n.split('/').pop()));
   const next = (used.length ? Math.max(...used) : 0) + 1;
-  return `NVR/${code}/${fy}/${String(next).padStart(4, '0')}`;
+  return `FI${tail}${String(next).padStart(4, '0')}`;
 }
 
 /** The actor, as the domain permission helpers expect them. */

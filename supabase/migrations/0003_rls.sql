@@ -1,5 +1,5 @@
 -- ============================================================================
--- NVR Voucher v2 — Row Level Security
+-- Voucher Desk — Row Level Security
 --
 -- v1 had no migrations at all: the schema and every policy lived only in the
 -- Supabase dashboard, unreviewable and unreproducible. Everything is explicit here.

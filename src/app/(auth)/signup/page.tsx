@@ -164,7 +164,7 @@ function SignupForm() {
               icon={Mail}
               type="email"
               autoComplete="email"
-              placeholder="you@nvrco.in"
+              placeholder="you@financeintelligence.in"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

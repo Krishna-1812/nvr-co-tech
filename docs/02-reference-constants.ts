@@ -1,6 +1,6 @@
 /**
  * Business rules, constants and formulas — verified against the real source at
- * github.com/vivekgaggarnvr-crypto/NVR-Voucher (src/lib/constants.js, helpers.js,
+ * the v1 repository (src/lib/constants.js, helpers.js,
  * excel.js, sheets.js). Typed up for reuse in the rebuild.
  *
  * These encode a real accounting process. Do not "improve" the formulas or the
@@ -186,7 +186,7 @@ export const canToggleAdmin = (
 // ─── Legacy brand palette (reference — the rebuild should improve on it) ─────
 export const LEGACY_BRAND = {
   ink:         '#3D52A0', // borders, headings, the "V" container
-  accentMid:   '#7091E6', // the V in the NVR wordmark
+  accentMid:   '#7091E6', // the middle letter of the v1 wordmark
   accentSoft:  '#8697C4',
   accentPale:  '#ADBBDA',
   bodyText:    '#1F2937',

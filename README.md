@@ -1,10 +1,10 @@
-# NVR Intelligence
+# Finance Intelligence
 
-A platform of AI agents for finance work, operated by N V R & Co, Chartered Accountants.
+A platform of AI agents for finance work, built by chartered accountants.
 
 **Voucher Desk** is the first and currently the only live agent: payment vouchers and a two-step
-**approval workflow** for the CIO Association. It is a rebuild of
-[`vivekgaggarnvr-crypto/NVR-Voucher`](https://github.com/vivekgaggarnvr-crypto/NVR-Voucher).
+**approval workflow** for the CIO Association. It is a rebuild of the v1 voucher portal, whose
+repository is recorded outside this file because its name carries the old brand.
 All 32 business fields, the amount formulas and the printed voucher layout are preserved exactly —
 they encode a real accounting process. Everything around them is rebuilt.
 
@@ -61,7 +61,7 @@ Roles: `member` → `approver` → `admin` → `owner`. An owner may not demote 
 | v1 problem | v2 |
 |---|---|
 | `event_id`/`event_date` silently dropped on insert — re-downloaded PDFs showed a blank Event Date | Both persisted; `event_id` is a real FK |
-| Voucher numbers hand-typed, duplicates possible | Generated `NVR/<CHAPTER>/<FY>/0001`, unique, assigned on submit |
+| Voucher numbers hand-typed, duplicates possible | Generated `FI/<CHAPTER>/<FY>/0001`, unique, assigned on submit |
 | `net_total`/`grand_total` computed in JS and trusted | Postgres **generated columns** — cannot drift |
 | Events/chapters per-user, so staff kept diverging lists | Org-level |
 | Sheet sync failures swallowed by `.catch(() => {})` | `sheet_sync_log` — every attempt recorded and retryable |
@@ -107,7 +107,7 @@ requires a non-production build as well as the flag, and `next build` / `next st
 both set `NODE_ENV=production`. It also proves nothing — RLS, the triggers, the
 generated columns and the constraints are all absent. See `src/lib/preview/`.
 
-Apply the migrations in order (`supabase/migrations/0001` → `0006`) via the Supabase SQL editor or
+Apply the migrations in order (`supabase/migrations/0001` → `0007`) via the Supabase SQL editor or
 `supabase db push`, then promote your first account:
 
 ```sql
@@ -173,13 +173,14 @@ entries, and the pages say so — only Voucher Desk exists.
 
 The migrations have been applied to a real Supabase project in Mumbai, and sign-up,
 Google OAuth, voucher creation and submission (including the generated
-`NVR/CIO/25-26/0001` number) have been exercised end to end.
+voucher number) have been exercised end to end.
 
 Still only exercised in preview mode, never against Postgres: approval and rejection —
 both need a second and third account, since the segregation-of-duties rules deliberately
 prevent one person from testing them — plus reopen, mark-paid, PDF, Excel export and
 attachment upload.
 
-> `hello@nvrco.in` and `security@nvrco.in` on `/contact` are **unverified**. They were
-> inferred from placeholder addresses in the test fixtures. Confirm both mailboxes exist
-> before sharing the site — see the note on `CONTACT` in `src/lib/marketing/content.ts`.
+> `hello@financeintelligence.in` and `security@financeintelligence.in` on `/contact` are
+> **unverified**: the domain is not registered yet, so neither mailbox exists. Register it
+> and create both before sharing the site — see the note on `CONTACT` in
+> `src/lib/marketing/content.ts`.

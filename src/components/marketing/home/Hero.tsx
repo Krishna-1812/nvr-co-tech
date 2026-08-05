@@ -61,7 +61,7 @@ export function Hero() {
             <Rise delay={520}>
               <p className="m-dim-2 mt-8 flex items-center gap-2 text-xs">
                 <ShieldCheck className="size-3.5 shrink-0 text-[var(--m-emerald)]" aria-hidden />
-                Built and run by N V R &amp; Co, Chartered Accountants. Your data stays in Mumbai.
+                Built and run by chartered accountants. Your data stays in Mumbai.
               </p>
             </Rise>
           </div>

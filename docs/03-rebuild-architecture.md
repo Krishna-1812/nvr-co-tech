@@ -1,4 +1,4 @@
-# NVR Voucher v2 — Architecture & Approval Workflow
+# Voucher Desk — Architecture & Approval Workflow
 
 Decisions for the rebuild. Client: **CIO Association** (same client — chapters stay as org data,
 not multi-tenant config).
@@ -99,7 +99,7 @@ the payment rules, the GST xor, Paid-By-Chapter constraint, ₹ `en-IN`, dd/mm/y
 - `event_id` and `event_date` are **actually persisted** (v1's insert dropped both — see
   [01-system-analysis.md](01-system-analysis.md) §12.1). `event_id` becomes a real FK.
 - `voucher_no` is **auto-generated and unique per chapter per financial year**
-  (`NVR/<CHAPTER>/25-26/0001`), replacing hand-typed numbers.
+  (`FI/<CHAPTER>/25-26/0001`), replacing hand-typed numbers.
 - `type_of_payment` becomes a plain enum column, not a one-element array.
 - Events and chapters become **org-level**, not per-user — v1 gave each user a diverging private list
   of the same real events.
@@ -158,7 +158,7 @@ states, toast system, full dark mode, and a mobile layout that actually works fo
 
 ## 7. Open items (not blocking — sensible defaults taken)
 
-- **Voucher number format** — defaulting to `NVR/<CHAPTER-CODE>/<FY>/<0001>`. Easy to change; tell me
+- **Voucher number format** — defaulting to `FI/<CHAPTER-CODE>/<FY>/<0001>`. Easy to change; tell me
   if the firm has an existing convention that must be matched.
 - **Financial year** — assuming India, 1 April – 31 March.
 - **Notifications** — building in-app first; email on submit/approve/reject is a small addition once

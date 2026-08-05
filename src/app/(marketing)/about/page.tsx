@@ -19,7 +19,7 @@ import { Reveal } from '@/components/marketing/Reveal';
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'Why a firm of chartered accountants is building software for finance teams, why the rules sit in the database, and how we go from one working tool to several.',
+    'Why a team of chartered accountants is building software for finance teams, why the rules sit in the database, and how we go from one working tool to several.',
 };
 
 const HOW_WE_BUILD = [
@@ -59,17 +59,17 @@ export default function AboutPage() {
 
           <Rise delay={60}>
             <h1 className="m-display mt-5 max-w-4xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
-              An accounting firm{' '}
-              <span className="m-serif m-grad-text pr-1">building its own tools.</span>
+              Accountants{' '}
+              <span className="m-serif m-grad-text pr-1">building their own tools.</span>
             </h1>
           </Rise>
 
           <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
-              {BRAND.name} is the software side of {BRAND.firmLong}. Everything here started out as
-              work the firm was doing by hand, for clients, against deadlines. These tools exist
-              because the people doing that work sat down and wrote out which parts of it never
-              really needed a person.
+              {BRAND.name} is built by chartered accountants. Everything here started out as work we
+              were doing by hand, for clients, against deadlines. These tools exist because the
+              people doing that work sat down and wrote out which parts of it never really needed a
+              person.
             </p>
           </Rise>
         </Container>

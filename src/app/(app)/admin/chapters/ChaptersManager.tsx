@@ -207,7 +207,7 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
             label="Code"
             htmlFor="ch-code"
             required
-            hint="2–6 letters or numbers. Used in voucher numbers: NVR/CODE/25-26/0001"
+            hint="2–6 letters or numbers. Used in voucher numbers: FI/CODE/25-26/0001"
           >
             <Input
               id="ch-code"
@@ -223,7 +223,7 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
             <Building2 className="text-subtle size-4 shrink-0" aria-hidden />
             <p className="text-muted text-xs">
               Vouchers will be numbered{' '}
-              <span className="numeric font-semibold">NVR/{code || 'CODE'}/25-26/0001</span>
+              <span className="numeric font-semibold">FI/{code || 'CODE'}/25-26/0001</span>
             </p>
           </div>
 

@@ -9,7 +9,7 @@
  *
  * The hub, not the voucher dashboard. Signing in gets you into the platform, and
  * the platform is a growing set of tools of which Voucher Desk is one. Landing
- * straight on the voucher dashboard made the whole of NVR Intelligence look like
+ * straight on the voucher dashboard made the whole of Finance Intelligence look like
  * one application with an odd marketing site attached.
  */
 export const AFTER_LOGIN = '/hub';

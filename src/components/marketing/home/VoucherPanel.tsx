@@ -39,7 +39,7 @@ export function VoucherPanel() {
             <FileText className="size-4 text-[var(--m-indigo)]" aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="m-mono truncate text-[12px] tracking-[0.06em]">NVR/CIO/25-26/0042</p>
+            <p className="m-mono truncate text-[12px] tracking-[0.06em]">FI/CIO/25-26/0042</p>
             <p className="m-dim-2 mt-0.5 text-[11px]">Bengaluru Chapter · Annual Summit</p>
           </div>
           <span className="m-mono ml-auto shrink-0 rounded-full border border-[color-mix(in_oklab,var(--m-amber)_32%,transparent)] bg-[color-mix(in_oklab,var(--m-amber)_10%,transparent)] px-2.5 py-1 text-[10px] tracking-[0.1em] uppercase text-[var(--m-amber)]">

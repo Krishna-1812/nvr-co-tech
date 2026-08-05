@@ -41,7 +41,7 @@ describe('initialsFrom', () => {
     // The case that made this worth sharing: on `.` alone this would be K, and on
     // whitespace alone it would be the whole address.
     expect(initialsFrom(null, 'krishna.ladha18@gmail.com')).toBe('KL');
-    expect(initialsFrom(undefined, 'vivek@nvrco.in')).toBe('VN');
+    expect(initialsFrom(undefined, 'vivek@financeintelligence.in')).toBe('VF');
   });
 
   it('gives a single initial when there is only one word to take it from', () => {

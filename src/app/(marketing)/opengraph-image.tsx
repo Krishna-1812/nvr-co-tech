@@ -88,7 +88,7 @@ export default function OpengraphImage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ color: '#eef1fb', fontSize: 30, fontWeight: 700 }}>{BRAND.name}</span>
-            <span style={{ color: '#8b95bd', fontSize: 17, marginTop: 4 }}>by {BRAND.firm}</span>
+            <span style={{ color: '#8b95bd', fontSize: 17, marginTop: 4 }}>{BRAND.tagline}</span>
           </div>
         </div>
 

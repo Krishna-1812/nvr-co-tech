@@ -1,6 +1,6 @@
 -- ============================================================================
--- NVR Voucher v2 — core schema
--- Client: CIO Association. Operated by N V R & Co.
+-- Voucher Desk — core schema
+-- Client: CIO Association.
 --
 -- Design notes vs v1:
 --   * event_id / event_date are actually persisted (v1's insert silently dropped

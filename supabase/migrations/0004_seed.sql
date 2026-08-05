@@ -1,9 +1,9 @@
 -- ============================================================================
--- NVR Voucher v2 — seed data
+-- Voucher Desk — seed data
 -- The 15 CIO Association chapters, carried over from v1's hard-coded constant
 -- (src/lib/constants.js) into real rows so HO can manage them without a deploy.
 --
--- Codes are used in voucher numbers: NVR/<CODE>/25-26/0001
+-- Codes are used in voucher numbers: FI/<CODE>/25-26/0001
 -- ============================================================================
 
 insert into chapters (name, code, is_head_office) values

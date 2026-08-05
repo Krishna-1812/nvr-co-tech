@@ -153,9 +153,9 @@ export const NUMBER_FORMATS: Record<ColumnKind, string | undefined> = {
 
 export const SHEET_NAME = 'Vouchers';
 
-/** `NVR-Vouchers-2026-08-01.xlsx` — sorts chronologically in a downloads folder. */
+/** `FI-Vouchers-2026-08-01.xlsx` — sorts chronologically in a downloads folder. */
 export function exportFilename(today: Date, suffix?: string): string {
   const stamp = today.toISOString().slice(0, 10);
   const tail = suffix ? `-${suffix.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')}` : '';
-  return `NVR-Vouchers${tail}-${stamp}.xlsx`;
+  return `FI-Vouchers${tail}-${stamp}.xlsx`;
 }

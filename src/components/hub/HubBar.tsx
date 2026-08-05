@@ -13,7 +13,7 @@ import { UserMenu } from '../UserMenu';
  * one job should not arrive wearing the chrome of the tool you have not opened yet.
  *
  * The name here is the platform, not the product. That is the whole point of the
- * screen: you have signed in to NVR Intelligence, and Voucher Desk is something
+ * screen: you have signed in to Finance Intelligence, and Voucher Desk is something
  * inside it.
  */
 export function HubBar({
@@ -45,7 +45,7 @@ export function HubBar({
               {BRAND.name}
             </span>
             <span className="text-subtle mt-1 hidden truncate text-[10px] sm:block">
-              {BRAND.firmLong}
+              {BRAND.tagline}
             </span>
           </span>
         </Link>

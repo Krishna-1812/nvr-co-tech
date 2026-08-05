@@ -90,10 +90,9 @@ export function SideRail({ nav, fiscal }: { nav: NavItem[]; fiscal: Fiscal }) {
       {/* ── Where we are in the year ── */}
       <div className="shrink-0 border-t p-3">
         <FiscalMeter fiscal={fiscal} />
-        <div className="a-rail-item mt-2 flex items-center justify-between gap-2">
-          <p className="a-rail-wide text-subtle truncate text-[10px]">
-            {BRAND.firm}
-          </p>
+        {/* The platform name is already on the mark at the top of the rail, so the
+            foot of it is just the collapse control. */}
+        <div className="a-rail-item mt-2 flex items-center justify-end gap-2">
           <RailToggle />
         </div>
       </div>

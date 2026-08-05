@@ -23,7 +23,7 @@ export const PREVIEW_USER_ID = 'p-owner';
 export const profiles = [
   {
     id: PREVIEW_USER_ID,
-    email: 'vivek@nvrco.in',
+    email: 'vivek@financeintelligence.in',
     full_name: 'Vivek Gaggar',
     role: 'owner' as const,
     is_active: true,
@@ -33,7 +33,7 @@ export const profiles = [
   },
   {
     id: 'p-admin',
-    email: 'anjali@nvrco.in',
+    email: 'anjali@financeintelligence.in',
     full_name: 'Anjali Mehta',
     role: 'admin' as const,
     is_active: true,
@@ -43,7 +43,7 @@ export const profiles = [
   },
   {
     id: 'p-appr1',
-    email: 'rohit@nvrco.in',
+    email: 'rohit@financeintelligence.in',
     full_name: 'Rohit Sharma',
     role: 'approver' as const,
     is_active: true,
@@ -53,7 +53,7 @@ export const profiles = [
   },
   {
     id: 'p-appr2',
-    email: 'priya@nvrco.in',
+    email: 'priya@financeintelligence.in',
     full_name: 'Priya Nair',
     role: 'approver' as const,
     is_active: true,
@@ -63,7 +63,7 @@ export const profiles = [
   },
   {
     id: 'p-mem1',
-    email: 'karthik@nvrco.in',
+    email: 'karthik@financeintelligence.in',
     full_name: 'Karthik Rao',
     role: 'member' as const,
     is_active: true,
@@ -73,7 +73,7 @@ export const profiles = [
   },
   {
     id: 'p-mem2',
-    email: 'sneha@nvrco.in',
+    email: 'sneha@financeintelligence.in',
     full_name: 'Sneha Iyer',
     role: 'member' as const,
     is_active: true,
@@ -151,7 +151,7 @@ export const vouchers: Voucher[] = [
   // ── Raised by the preview user (drive the dashboard and its pipeline) ──
   voucher({
     id: 'v-01', status: 'paid', created_by: PREVIEW_USER_ID,
-    voucher_no: 'NVR/BLR/26-27/0001', date: dateOnly(34), chapter_id: 'c-blr', sponsored: 'Sponsored',
+    voucher_no: 'FI/BLR/26-27/0001', date: dateOnly(34), chapter_id: 'c-blr', sponsored: 'Sponsored',
     event_id: 'e-1', event_name: 'CIO Summit 2026', event_date: dateOnly(30),
     event_narration: 'Venue hire and AV for the two-day summit.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
@@ -166,21 +166,21 @@ export const vouchers: Voucher[] = [
   }),
   voucher({
     id: 'v-02', status: 'approved', created_by: PREVIEW_USER_ID,
-    voucher_no: 'NVR/HO/26-27/0004', date: dateOnly(12), chapter_id: 'c-ho', sponsored: 'Non-Sponsored',
+    voucher_no: 'FI/HO/26-27/0004', date: dateOnly(12), chapter_id: 'c-ho', sponsored: 'Non-Sponsored',
     event_id: 'e-3', event_name: 'Annual General Meeting', event_date: dateOnly(9),
     event_narration: 'Statutory audit fee for FY 25-26.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
-    invoice_no: 'NVR/AUD/0042', invoice_date: dateOnly(14), invoice_received_date: dateOnly(13),
+    invoice_no: 'DA/AUD/0042', invoice_date: dateOnly(14), invoice_received_date: dateOnly(13),
     basic_value: 250000, igst: 45000, tds: 25000,
-    paid_to: 'N V R & Co', paid_by_chapter_id: 'c-ho',
-    beneficiary_name: 'N V R & Co', pan_number: 'AAAFN4521K', gst_number: '27AAAFN4521K1Z8',
+    paid_to: 'Deshpande & Associates', paid_by_chapter_id: 'c-ho',
+    beneficiary_name: 'Deshpande & Associates', pan_number: 'AAAFN4521K', gst_number: '27AAAFN4521K1Z8',
     initiated_by: PREVIEW_USER_ID, initiated_at: ago(12), submitted_at: ago(11),
     approver_1: 'p-appr2', approved_1_at: ago(9), approver_2: 'p-admin', approved_2_at: ago(8),
     created_at: ago(12), updated_at: ago(8),
   }),
   voucher({
     id: 'v-03', status: 'pending_second', created_by: PREVIEW_USER_ID,
-    voucher_no: 'NVR/BOM/26-27/0009', date: dateOnly(6), chapter_id: 'c-bom', sponsored: 'Sponsored',
+    voucher_no: 'FI/BOM/26-27/0009', date: dateOnly(6), chapter_id: 'c-bom', sponsored: 'Sponsored',
     event_id: 'e-2', event_name: 'CISO Round Table', event_date: dateOnly(18),
     event_narration: 'Catering for 120 delegates.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
@@ -224,7 +224,7 @@ export const vouchers: Voucher[] = [
   }),
   voucher({
     id: 'v-07', status: 'paid', created_by: PREVIEW_USER_ID,
-    voucher_no: 'NVR/PNQ/26-27/0002', date: dateOnly(58), chapter_id: 'c-pnq', sponsored: 'Sponsored',
+    voucher_no: 'FI/PNQ/26-27/0002', date: dateOnly(58), chapter_id: 'c-pnq', sponsored: 'Sponsored',
     event_narration: 'Digital campaign for member drive.',
     type_of_supporting: 'Contract', type_of_payment: 'Advance',
     invoice_no: 'CTR/AGY/118', invoice_date: dateOnly(60), invoice_received_date: dateOnly(59),
@@ -240,7 +240,7 @@ export const vouchers: Voucher[] = [
   // ── Raised by others: these populate the approval queue ──
   voucher({
     id: 'v-08', status: 'pending_first', created_by: 'p-mem1',
-    voucher_no: 'NVR/DEL/26-27/0011', date: dateOnly(9), chapter_id: 'c-del', sponsored: 'Sponsored',
+    voucher_no: 'FI/DEL/26-27/0011', date: dateOnly(9), chapter_id: 'c-del', sponsored: 'Sponsored',
     event_id: 'e-4', event_name: 'Cloud Leadership Forum', event_date: dateOnly(3),
     event_narration: 'Stage design and branding collateral.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
@@ -253,7 +253,7 @@ export const vouchers: Voucher[] = [
   }),
   voucher({
     id: 'v-09', status: 'pending_first', created_by: 'p-mem2',
-    voucher_no: 'NVR/BLR/26-27/0012', date: dateOnly(2), chapter_id: 'c-blr', sponsored: 'Non-Sponsored',
+    voucher_no: 'FI/BLR/26-27/0012', date: dateOnly(2), chapter_id: 'c-blr', sponsored: 'Non-Sponsored',
     event_narration: 'Quarterly subscription — member CRM.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
     invoice_no: 'SFDC/IN/88214', invoice_date: dateOnly(3), invoice_received_date: dateOnly(2),
@@ -266,7 +266,7 @@ export const vouchers: Voucher[] = [
   }),
   voucher({
     id: 'v-10', status: 'pending_second', created_by: 'p-mem1',
-    voucher_no: 'NVR/MAA/26-27/0007', date: dateOnly(16), chapter_id: 'c-maa', sponsored: 'Sponsored',
+    voucher_no: 'FI/MAA/26-27/0007', date: dateOnly(16), chapter_id: 'c-maa', sponsored: 'Sponsored',
     event_narration: 'Printing of annual report, 500 copies.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
     invoice_no: 'SPH/2026/774', invoice_date: dateOnly(18), invoice_received_date: dateOnly(17),
@@ -279,7 +279,7 @@ export const vouchers: Voucher[] = [
   }),
   voucher({
     id: 'v-11', status: 'pending_first', created_by: 'p-appr1',
-    voucher_no: 'NVR/HYD/26-27/0005', date: dateOnly(21), chapter_id: 'c-hyd', sponsored: 'Non-Sponsored',
+    voucher_no: 'FI/HYD/26-27/0005', date: dateOnly(21), chapter_id: 'c-hyd', sponsored: 'Non-Sponsored',
     event_narration: 'Legal opinion on the sponsorship agreement.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
     invoice_no: 'LEX/0311', invoice_date: dateOnly(23), invoice_received_date: dateOnly(22),
@@ -291,7 +291,7 @@ export const vouchers: Voucher[] = [
   }),
   voucher({
     id: 'v-12', status: 'approved', created_by: 'p-mem2',
-    voucher_no: 'NVR/BOM/26-27/0008', date: dateOnly(26), chapter_id: 'c-bom', sponsored: 'Sponsored',
+    voucher_no: 'FI/BOM/26-27/0008', date: dateOnly(26), chapter_id: 'c-bom', sponsored: 'Sponsored',
     event_id: 'e-2', event_name: 'CISO Round Table', event_date: dateOnly(18),
     event_narration: 'Delegate kits and lanyards.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
@@ -314,7 +314,7 @@ export const vouchers: Voucher[] = [
   }),
   voucher({
     id: 'v-14', status: 'approved', created_by: 'p-mem2',
-    voucher_no: 'NVR/GOA/26-27/0003', date: dateOnly(90), chapter_id: 'c-goa', sponsored: 'Sponsored',
+    voucher_no: 'FI/GOA/26-27/0003', date: dateOnly(90), chapter_id: 'c-goa', sponsored: 'Sponsored',
     event_narration: 'Offsite venue advance — chapter later retired.',
     type_of_supporting: 'Proforma Invoice', type_of_payment: 'Advance',
     invoice_no: 'PF/GOA/019', invoice_date: dateOnly(92),

@@ -1,13 +1,12 @@
 /**
  * The voucher domain: business rules ported verbatim from the v1 app.
  *
- * These encode a real accounting process used by N V R & Co for the CIO
- * Association. Do not "improve" the formulas or relabel the fields without
- * checking with the client — the labels mirror a physical form, and the PDF is
- * the artefact people sign.
+ * These encode a real accounting process run for the CIO Association. Do not
+ * "improve" the formulas or relabel the fields without checking with the client
+ * — the labels mirror a physical form, and the PDF is the artefact people sign.
  *
  * Source of truth for the original behaviour:
- *   NVR-Voucher/src/lib/{constants,helpers,excel}.js
+ *   the v1 app's src/lib/{constants,helpers,excel}.js
  */
 
 // ─── Chapters ────────────────────────────────────────────────────────────────

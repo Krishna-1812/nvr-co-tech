@@ -9,7 +9,7 @@ import { BRAND } from '@/lib/marketing/content';
  * `id` has to be unique per instance — two gradients sharing an id on one page
  * makes the second one silently inherit the first.
  */
-export function LogoMark({ className, id = 'nvr-mark' }: { className?: string; id?: string }) {
+export function LogoMark({ className, id = 'fi-mark' }: { className?: string; id?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden focusable="false">
       <defs>
@@ -45,13 +45,13 @@ export function LogoMark({ className, id = 'nvr-mark' }: { className?: string; i
 export function Logo({
   className,
   markClassName,
-  showFirm = true,
+  showTagline = true,
   id,
 }: {
   className?: string;
   markClassName?: string;
-  /** Show "by N V R & Co" underneath. Off in tight places like the mobile nav. */
-  showFirm?: boolean;
+  /** Show the tagline underneath. Off in tight places like the mobile nav. */
+  showTagline?: boolean;
   id?: string;
 }) {
   return (
@@ -59,8 +59,8 @@ export function Logo({
       <LogoMark id={id} className={cn('size-8 shrink-0', markClassName)} />
       <span className="leading-none">
         <span className="m-display block text-[15px] tracking-[-0.02em]">{BRAND.name}</span>
-        {showFirm && (
-          <span className="m-dim-2 mt-1 block text-[10px] tracking-[0.06em]">by {BRAND.firm}</span>
+        {showTagline && (
+          <span className="m-dim-2 mt-1 block text-[10px] tracking-[0.06em]">{BRAND.tagline}</span>
         )}
       </span>
     </span>

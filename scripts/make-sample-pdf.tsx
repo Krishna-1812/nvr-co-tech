@@ -10,7 +10,7 @@ import { VoucherDocument, type PdfVoucher } from '../src/lib/pdf/VoucherDocument
  */
 
 const sample: PdfVoucher = {
-  voucher_no: 'NVR/HYD/25-26/0042',
+  voucher_no: 'FI/HYD/25-26/0042',
   status: 'approved',
   date: '2026-02-14',
   chapter_name: 'CIO Association Hyderabad',
@@ -46,9 +46,9 @@ const sample: PdfVoucher = {
   pan_number: 'AAPFU0939F',
   gst_number: '27AAPFU0939F1ZV',
 
-  initiator: { full_name: 'Priya Nair', email: 'priya@nvrco.in' },
-  first_approver: { full_name: 'Rahul Menon', email: 'rahul@nvrco.in' },
-  second_approver: { full_name: 'Anita Desai', email: 'anita@nvrco.in' },
+  initiator: { full_name: 'Priya Nair', email: 'priya@financeintelligence.in' },
+  first_approver: { full_name: 'Rahul Menon', email: 'rahul@financeintelligence.in' },
+  second_approver: { full_name: 'Anita Desai', email: 'anita@financeintelligence.in' },
   approved_1_at: '2026-02-15T10:22:00Z',
   approved_2_at: '2026-02-16T09:05:00Z',
 };

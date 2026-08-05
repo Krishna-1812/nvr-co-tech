@@ -48,7 +48,7 @@ export function SiteFooter() {
 
         <div className="m-dim-2 mt-14 flex flex-col gap-3 border-t border-[var(--m-line)] pt-8 text-xs sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {year} {BRAND.firmLong}. All rights reserved.
+            © {year} {BRAND.name}. All rights reserved.
           </p>
           <p className="m-mono tracking-[0.08em]">Hosted in Mumbai · ap-south-1</p>
         </div>

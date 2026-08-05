@@ -1,5 +1,5 @@
 -- ============================================================================
--- NVR Voucher v2 — the approval workflow
+-- Voucher Desk — the approval workflow
 --
 -- Every rule here is enforced in the DATABASE, not the UI. That is the whole
 -- point of the rebuild: v1's "approvals" were three free-text name boxes typed
@@ -39,7 +39,7 @@ language sql stable security definer set search_path = public as $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- Voucher numbering: NVR/<CHAPTER-CODE>/<FY>/<0001>
+-- Voucher numbering: FI/<CHAPTER-CODE>/<FY>/<0001>
 -- Indian financial year, 1 April – 31 March. Sequence is per chapter per FY.
 -- Assigned on submit (drafts stay unnumbered so abandoned drafts don't burn
 -- numbers — an auditor expects an unbroken series).
@@ -68,7 +68,7 @@ begin
   end if;
 
   v_fy := financial_year(coalesce(p_date, current_date));
-  v_prefix := 'NVR/' || v_code || '/' || v_fy || '/';
+  v_prefix := 'FI/' || v_code || '/' || v_fy || '/';
 
   -- Lock the chapter row so two concurrent submits can't take the same number.
   perform 1 from chapters where id = p_chapter_id for update;

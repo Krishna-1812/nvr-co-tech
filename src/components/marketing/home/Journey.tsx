@@ -296,7 +296,7 @@ function RulesScene() {
         >
           <span className="m-eyebrow">Issued</span>
           <span className="m-mono text-[13px] tracking-[0.04em] text-[var(--m-lime)]">
-            NVR/CIO/25-26/0042
+            FI/CIO/25-26/0042
           </span>
         </div>
       </div>
@@ -433,7 +433,7 @@ function Connector({ filled }: { filled?: boolean }) {
 
 const TRAIL = [
   { at: '14 Aug · 10:12', who: 'R. Menon', what: 'Raised the voucher' },
-  { at: '14 Aug · 10:14', who: 'R. Menon', what: 'Submitted. Given number NVR/CIO/25-26/0042' },
+  { at: '14 Aug · 10:14', who: 'R. Menon', what: 'Submitted. Given number FI/CIO/25-26/0042' },
   { at: '14 Aug · 11:40', who: 'A. Shah', what: 'First approval' },
   { at: '15 Aug · 09:05', who: 'P. Iyer', what: 'Second approval. Record locked' },
 ] as const;

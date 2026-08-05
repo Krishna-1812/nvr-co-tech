@@ -308,7 +308,7 @@ export function VoucherForm({
             <Field
               label="Voucher number"
               className="sm:col-span-2"
-              hint="Assigned automatically when you submit — NVR/CHAPTER/FY/0001."
+              hint="Assigned automatically when you submit — FI/CHAPTER/FY/0001."
             >
               <Input
                 value={(voucher.voucher_no as string) || 'Not yet assigned'}

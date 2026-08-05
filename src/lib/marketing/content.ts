@@ -17,21 +17,22 @@
  * absolute. Vercel exposes the deployment host, so preview deployments describe
  * themselves rather than claiming to be production. The literal is the fallback
  * for local development and for anywhere that variable is absent.
+ *
+ * ⚠ The literal is the intended production domain, not a registered one yet. On
+ * Vercel it is never reached, because the platform sets the variable above it.
+ * Set NEXT_PUBLIC_SITE_URL once the domain is bought and pointed here.
  */
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL
   ? process.env.NEXT_PUBLIC_SITE_URL
   : process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : 'https://nvr-tech.vercel.app';
+    : 'https://financeintelligence.in';
 
 export const BRAND = {
   /** The platform. */
-  name: 'NVR Intelligence',
+  name: 'Finance Intelligence',
   /** Shortened for tight spaces (nav mark, footer). */
-  short: 'NVR',
-  /** The firm that operates it. */
-  firm: 'N V R & Co',
-  firmLong: 'N V R & Co, Chartered Accountants',
+  short: 'FI',
   tagline: 'AI tools for finance teams',
   /** One sentence, used in metadata and the footer. */
   blurb:
@@ -85,7 +86,7 @@ export const AGENTS: Agent[] = [
     does: [
       'All thirty-two fields from the voucher your team already uses, so the printed page looks the way it always has.',
       'Two approvals from two different people, and neither of them can be the person who raised it. The database checks this, not the browser.',
-      'Voucher numbers are handed out when you submit, in the form NVR/CHAPTER/25-26/0001. One run of numbers per chapter per financial year, and nobody types them by hand.',
+      'Voucher numbers are handed out when you submit, in the form FI/CHAPTER/25-26/0001. One run of numbers per chapter per financial year, and nobody types them by hand.',
       'The database works out the totals itself, so the figure on screen is the figure on record.',
       'GST is sorted for you. CGST and SGST inside a state, IGST between states, never both at once. Checked before you can submit.',
       'Every step is added to a history that nobody can edit or delete, including the owner of the account.',
@@ -414,13 +415,12 @@ export const STAGE_NOTE: Record<AgentStage, string> = {
  * these addresses are the route itself rather than a fallback. They have to be
  * right in every place they appear.
  *
- * ⚠ UNVERIFIED. The nvrco.in domain was inferred from placeholder addresses in
- * the test fixtures, not from anything the firm has confirmed. Nobody has
- * checked that these two mailboxes exist. Confirm them before the site is shared
- * with anyone, because an enquiry sent here currently has no proven destination.
- * It is the one thing on the public site that fails silently.
+ * ⚠ UNVERIFIED. These are on the intended platform domain, which nobody has
+ * registered yet, so neither mailbox exists. Confirm both before the site is
+ * shared with anyone, because an enquiry sent here currently has no destination
+ * at all. It is the one thing on the public site that fails silently.
  */
 export const CONTACT = {
-  email: 'hello@nvrco.in',
-  security: 'security@nvrco.in',
+  email: 'hello@financeintelligence.in',
+  security: 'security@financeintelligence.in',
 } as const;

@@ -27,7 +27,7 @@ const V1_HEADERS = [
 ];
 
 const row = (over: Partial<ExportRow> = {}): ExportRow => ({
-  voucher_no: 'NVR/HYD/25-26/0042',
+  voucher_no: 'FI/HYD/25-26/0042',
   status: 'approved',
   date: '2026-02-14',
   sponsored: 'Sponsored',
@@ -62,9 +62,9 @@ const row = (over: Partial<ExportRow> = {}): ExportRow => ({
   paid_at: null,
   chapter: { name: 'CIO Association Hyderabad' },
   paid_by: { name: 'CIO Association HO' },
-  initiator: { full_name: 'Priya Nair', email: 'priya@nvrco.in' },
-  first_approver: { full_name: 'Rahul Menon', email: 'rahul@nvrco.in' },
-  second_approver: { full_name: 'Anita Desai', email: 'anita@nvrco.in' },
+  initiator: { full_name: 'Priya Nair', email: 'priya@financeintelligence.in' },
+  first_approver: { full_name: 'Rahul Menon', email: 'rahul@financeintelligence.in' },
+  second_approver: { full_name: 'Anita Desai', email: 'anita@financeintelligence.in' },
   voucher_attachments: [{ id: 'a' }, { id: 'b' }],
   ...over,
 });
@@ -147,9 +147,9 @@ describe('workbook', () => {
 
   it('falls back to email when someone has no name', () => {
     const { cell } = readBack([
-      row({ initiator: { full_name: null, email: 'priya@nvrco.in' } }),
+      row({ initiator: { full_name: null, email: 'priya@financeintelligence.in' } }),
     ]);
-    expect(cell('AD2').v).toBe('priya@nvrco.in');
+    expect(cell('AD2').v).toBe('priya@financeintelligence.in');
   });
 
   /**
@@ -202,7 +202,7 @@ describe('workbook', () => {
 
   it('handles a few hundred rows', () => {
     const many = Array.from({ length: 400 }, (_, i) =>
-      row({ voucher_no: `NVR/HO/25-26/${String(i).padStart(4, '0')}` }),
+      row({ voucher_no: `FI/HO/25-26/${String(i).padStart(4, '0')}` }),
     );
     const buf = buildVoucherXlsx(many);
     expect(buf.length).toBeGreaterThan(5000);
@@ -211,12 +211,12 @@ describe('workbook', () => {
 
 describe('exportFilename', () => {
   it('stamps the date so downloads sort chronologically', () => {
-    expect(exportFilename(new Date('2026-08-01T09:00:00Z'))).toBe('NVR-Vouchers-2026-08-01.xlsx');
+    expect(exportFilename(new Date('2026-08-01T09:00:00Z'))).toBe('FI-Vouchers-2026-08-01.xlsx');
   });
 
   it('marks a filtered export', () => {
     expect(exportFilename(new Date('2026-08-01T09:00:00Z'), 'filtered')).toBe(
-      'NVR-Vouchers-filtered-2026-08-01.xlsx',
+      'FI-Vouchers-filtered-2026-08-01.xlsx',
     );
   });
 });

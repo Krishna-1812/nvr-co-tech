@@ -1,7 +1,8 @@
-# NVR Voucher Portal — Full System Analysis
+# The v1 Voucher Portal — Full System Analysis
 
-**Source-verified** against the real repo: `github.com/vivekgaggarnvr-crypto/NVR-Voucher`
-(cloned to `NVR Tech/NVR-Voucher`). Live at `https://nvr-voucher.vercel.app`.
+**Source-verified** against the v1 repository, cloned locally alongside this one. The
+repository and deployment URL are recorded outside this document, since both carry the
+old brand name.
 
 37 files, ~3,100 lines of application code, 14 commits. Everything below is read from source.
 
@@ -13,10 +14,10 @@
 
 ## 1. What this product actually is
 
-**"N V R & Co — Payment Voucher Portal."** The npm package name is **`cio-voucher`**.
+**A payment voucher portal.** The npm package name is **`cio-voucher`**.
 
-N V R & Co is the accounting firm operating the portal; the subject organisation is the
-**CIO Association**, which has a Head Office plus 14 city chapters. The association runs **events**,
+It was operated by the accounting practice that now builds this platform; the subject
+organisation is the **CIO Association**, which has a Head Office plus 14 city chapters. The association runs **events**,
 vendors invoice against those events, and staff raise a numbered **payment voucher** per payment
 with two named approvals.
 
@@ -160,7 +161,7 @@ When auto, the UI renders a locked pill reading e.g. `Advance · auto-selected`.
 1. `INSERT` into `vouchers` (empty → `null`, amounts → `0`), `.select().single()`.
 2. `syncVouchersToSheet(inserted).catch(() => {})` — **fire-and-forget, deliberately silent**
    (comment: *"so a sheet problem can never block or fail the voucher save"*).
-3. `generateVoucherPDF(...)` → auto-downloads `NVR-Voucher-<voucher_no>.pdf`.
+3. `generateVoucherPDF(...)` → auto-downloads `<PREFIX>-Voucher-<voucher_no>.pdf`.
 4. Success banner, scroll to top. The form is **not** cleared.
 
 ---
@@ -170,7 +171,7 @@ When auto, the UI renders a locked pill reading e.g. `Advance · auto-selected`.
 A 1040px-wide styled HTML node rendered off-screen at `left: -10000px`, captured by html2canvas at
 `scale: 2.5`, embedded as a PNG into an **A4 landscape** jsPDF with an 8mm margin.
 
-Layout: `NVR` wordmark (the V in `#7091E6`) · centred "N V R & Co / Payment Voucher" ·
+Layout: a three-letter wordmark (the middle letter in `#7091E6`) · centred "firm name / Payment Voucher" ·
 Date/Chapter/Vch. No. block · a `Sponsored / Non-Sponsored` line where the **non-applicable word is
 struck through and greyed** · then the main table:
 
@@ -190,7 +191,7 @@ Palette: `#3D52A0` (border/ink), `#7091E6`, `#8697C4`, `#ADBBDA`, text `#1F2937`
   DB row *then* calls `deleteSheetRow(id)` (best-effort) to pull the matching Google Sheet row.
 - **Clear All** — bulk soft-delete of the user's active vouchers.
 - **Events** and **Chapters** management: individual delete + "clear all" (both **hard** deletes).
-- `↓ Download Excel` → `NVR-Voucher-Report.xlsx`, sheet `Vouchers`, 32 columns.
+- `↓ Download Excel` → `Voucher-Report.xlsx`, sheet `Vouchers`, 32 columns.
 
 Re-downloading a PDF sets `docData` then waits a **60 ms `setTimeout`** for the hidden document to
 re-render before capturing — a race, not a guarantee.
@@ -210,7 +211,7 @@ paste the link. `getSheetInfo` fetches the title, which doubles as a permission 
 shown for confirmation before saving. Green **Connected** badge; **Remove sheet** disconnects.
 
 **Admin** — user list with Owner/Admin/User badges and per-user voucher counts; click through to
-that user's vouchers, download any PDF, or export `NVR-<email>-Vouchers.xlsx`.
+that user's vouchers, download any PDF, or export `<prefix>-<email>-Vouchers.xlsx`.
 
 ---
 

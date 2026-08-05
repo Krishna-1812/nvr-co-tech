@@ -132,7 +132,7 @@ function Chrome() {
       </span>
       <span className="m-mono m-dim-2 mx-auto flex items-center gap-2 rounded-full border border-[var(--m-line)] px-3 py-1 text-[10px]">
         <Lock className="size-2.5" aria-hidden />
-        nvr-tech.vercel.app/dashboard
+        financeintelligence.in/dashboard
       </span>
     </div>
   );
@@ -151,7 +151,7 @@ function Rail() {
     <div className="w-48 shrink-0 border-r border-[var(--m-line)] bg-white/[0.015] p-3">
       <div className="flex items-center gap-2 px-2 py-2">
         <LogoMark id="showcase-mark" className="size-6" />
-        <span className="m-display text-[12px]">NVR Intelligence</span>
+        <span className="m-display text-[12px]">Finance Intelligence</span>
       </div>
 
       <div className="mt-4 space-y-0.5">
@@ -243,7 +243,7 @@ function Board() {
           <tbody>
             {ROWS.map((r) => (
               <tr key={r.no} className="border-b border-[var(--m-line)] last:border-0">
-                <Td className="m-mono whitespace-nowrap">NVR/CIO/25-26/{r.no}</Td>
+                <Td className="m-mono whitespace-nowrap">FI/CIO/25-26/{r.no}</Td>
                 <Td className="font-medium">{r.payee}</Td>
                 <Td className="m-dim-2">{r.chapter}</Td>
                 <Td className="numeric text-right tabular-nums">{fmtRupees(r.amount)}</Td>

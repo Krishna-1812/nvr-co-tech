@@ -218,8 +218,8 @@ export default function ContactPage() {
                   <h2 className="m-eyebrow">Elsewhere</h2>
                   <dl className="mt-5 space-y-4 text-[13.5px]">
                     <div>
-                      <dt className="m-dim-2">Operated by</dt>
-                      <dd className="mt-1">{BRAND.firmLong}</dd>
+                      <dt className="m-dim-2">Built by</dt>
+                      <dd className="mt-1">Chartered accountants, in Mumbai</dd>
                     </div>
                     <div>
                       <dt className="m-dim-2">Security reports</dt>

@@ -1,5 +1,5 @@
 -- ============================================================================
--- NVR Voucher v2 — deletion, restore, and chapter administration
+-- Voucher Desk — deletion, restore, and chapter administration
 --
 -- Fixes a real bug in 0003: `vouchers_update` requires `deleted_at is null` in
 -- its USING clause, so a soft-deleted row could never be updated — which means
