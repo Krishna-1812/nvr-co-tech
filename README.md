@@ -133,6 +133,39 @@ did the same: Mumbai edge, Virginia function, back again.
 Both ends now sit in the same city. If the Supabase project is ever moved, move this
 with it; a mismatch is invisible in the code and costs about a second a page.
 
+### If the deployment URL ever changes, sign-in breaks
+
+Renaming the Vercel project changes the `*.vercel.app` host, and **Supabase will not
+follow**. Two fields in the Supabase dashboard, under **Authentication → URL
+Configuration**, have to be updated by hand:
+
+- **Site URL** — the new origin, e.g. `https://the-finance-intelligence.vercel.app`
+- **Redirect URLs** — add `<new origin>/**`, keeping `http://localhost:3000/**` for
+  local development
+
+Miss them and the failure is thoroughly misleading. `signInWithOAuth` passes
+`window.location.origin` as `redirect_to`, which is correct, but Supabase checks that
+value against the allow-list and **silently discards it if absent**, falling back to
+Site URL. With Site URL left at its default the browser is sent to
+`http://localhost:3000` after a successful Google sign-in, and the user sees
+`ERR_CONNECTION_REFUSED` from their own machine. Nothing is logged anywhere, and the app
+is not involved in the redirect at all, so the repository looks blameless — it is.
+
+To read the live configuration without dashboard access, ask the auth API to resolve a
+`redirect_to` for you. A deliberately invalid token consumes nothing:
+
+```bash
+curl -s -o /dev/null -w '%{redirect_url}\n' -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" "$NEXT_PUBLIC_SUPABASE_URL/auth/v1/verify?token=invalid&type=recovery&redirect_to=https%3A%2F%2Fyour-host%2Fauth%2Fcallback"
+```
+
+The URL echoed back is the one Supabase would actually use. If it is your host, the
+host is allow-listed. If it is something else, that something else is Site URL and your
+host is not on the list. Omit `redirect_to` entirely to read Site URL directly.
+
+Google Cloud Console needs nothing: Google returns to
+`https://<project>.supabase.co/auth/v1/callback`, which does not vary with the app's
+own domain.
+
 ## Verification
 
 ```bash
