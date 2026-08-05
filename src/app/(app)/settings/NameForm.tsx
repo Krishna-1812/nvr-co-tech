@@ -28,12 +28,24 @@ export function NameForm({ initial }: { initial: string }) {
   };
 
   return (
-    <form onSubmit={save} className="flex flex-col gap-4 sm:flex-row sm:items-end">
+    <form onSubmit={save}>
+      {/* Save is the field's own action, so the Field places it — on the input's
+          line, not below the hint. See the note on `action` in primitives. */}
       <Field
         label="Full name"
         htmlFor="full_name"
-        className="flex-1"
         hint="Printed on every voucher you raise or approve."
+        action={
+          <Button
+            type="submit"
+            variant="primary"
+            loading={busy}
+            disabled={!dirty || name.trim().length < 2}
+          >
+            {!busy && <Check className="size-4" aria-hidden />}
+            Save
+          </Button>
+        }
       >
         <Input
           id="full_name"
@@ -43,17 +55,6 @@ export function NameForm({ initial }: { initial: string }) {
           required
         />
       </Field>
-
-      <Button
-        type="submit"
-        variant="primary"
-        loading={busy}
-        disabled={!dirty || name.trim().length < 2}
-        className="shrink-0"
-      >
-        {!busy && <Check className="size-4" aria-hidden />}
-        Save
-      </Button>
     </form>
   );
 }

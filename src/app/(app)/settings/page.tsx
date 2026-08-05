@@ -1,7 +1,7 @@
 import { Check, Palette, ShieldCheck, UserRound } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { canApprove, ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
-import { Card, CardBody, CardTitle } from '@/components/ui/primitives';
+import { Card, CardBody, CardTitle, IconTile } from '@/components/ui/primitives';
 import { PageHeader } from '@/components/PageHeader';
 import { ProfileCard } from './ProfileCard';
 import { ThemeChoice } from './ThemeChoice';
@@ -84,13 +84,24 @@ export default async function SettingsPage() {
         </CardBody>
       </Card>
 
+      {/*
+        A heading row in all but name, so it is built from the same parts as the
+        CardTitle rows above it: the icon in an IconTile, the same gap, the same
+        type. Loose beside the text it was the one icon on the page not sitting in
+        a tile, which made the last card look like it came from another screen.
+
+        It stays a CardBody rather than becoming a CardTitle, because there is
+        nothing underneath it for a heading to head.
+      */}
       <Card>
         <CardBody className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <UserRound className="text-subtle size-4" aria-hidden />
-            <div>
-              <p className="font-semibold">Sign out</p>
-              <p className="text-muted mt-0.5 text-sm">
+          <div className="flex min-w-0 items-start gap-3">
+            <IconTile>
+              <UserRound className="size-4" />
+            </IconTile>
+            <div className="min-w-0 pt-0.5">
+              <p className="font-semibold tracking-tight">Sign out</p>
+              <p className="text-muted mt-1 text-sm text-pretty">
                 Ends this session on this device only.
               </p>
             </div>

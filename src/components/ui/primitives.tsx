@@ -116,6 +116,28 @@ export function CardBody({ className, ...props }: ComponentProps<'div'>) {
 }
 
 /**
+ * The tile an icon sits in.
+ *
+ * The rail, the palette and the stat cards all seat their icons this way, and it
+ * is what makes a stack of cards read as one system rather than as a stack of
+ * pages. Shared with the rows that are card headings in all but name — an icon
+ * loose beside text next to an icon in a tile is the same page speaking in two
+ * voices, which is exactly what the settings screen was doing.
+ */
+export function IconTile({ className, ...props }: ComponentProps<'span'>) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'surface-sunken text-subtle grid size-7 shrink-0 place-items-center rounded-lg border',
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/**
  * The heading row a card opens with. Every screen was assembling the same
  * icon + title + sub-line by hand and landing on a slightly different type size
  * each time, which is what made a stack of cards look like a stack of pages.
@@ -136,19 +158,7 @@ export function CardTitle({
   return (
     <div className={cn('flex items-start justify-between gap-4 border-b px-5 py-3.5', className)}>
       <div className="flex min-w-0 items-start gap-3">
-        {/*
-          The icon sits in its own tile rather than loose beside the text. It is the
-          same tile the rail, the palette and the stat cards use, which is what makes
-          a stack of cards read as one system instead of as a stack of pages.
-        */}
-        {icon && (
-          <span
-            className="surface-sunken text-subtle grid size-7 shrink-0 place-items-center rounded-lg border"
-            aria-hidden
-          >
-            {icon}
-          </span>
-        )}
+        {icon && <IconTile>{icon}</IconTile>}
         <div className="min-w-0 pt-0.5">
           <h2 className="font-semibold tracking-tight">{title}</h2>
           {description && <p className="text-muted mt-1 text-sm text-pretty">{description}</p>}
@@ -239,28 +249,83 @@ type FieldProps = {
   children: ReactNode;
   htmlFor?: string;
   className?: string;
+  /**
+   * A control that acts on this one field — a Save beside a name. It is placed on
+   * the control's line, which is not somewhere a caller can reliably put it from
+   * outside: see the note below.
+   */
+  action?: ReactNode;
 };
 
-export function Field({ label, hint, error, required, children, htmlFor, className }: FieldProps) {
+export function Field({
+  label,
+  hint,
+  error,
+  required,
+  children,
+  htmlFor,
+  className,
+  action,
+}: FieldProps) {
+  const labelEl = (
+    <label htmlFor={htmlFor} className="text-sm font-medium">
+      {label}
+      {required && (
+        <span className="ml-0.5 text-red-500" aria-label="required">
+          *
+        </span>
+      )}
+    </label>
+  );
+
+  // Errors replace hints rather than stacking, so the layout never jumps.
+  const note = error ? (
+    <p role="alert" className="text-xs font-medium text-red-600 dark:text-red-400">
+      {error}
+    </p>
+  ) : hint ? (
+    <p className="text-subtle text-xs">{hint}</p>
+  ) : null;
+
+  if (!action) {
+    return (
+      <div className={cn('flex flex-col gap-1.5', className)}>
+        {labelEl}
+        {children}
+        {note}
+      </div>
+    );
+  }
+
+  /*
+   * With an action, the field is a grid rather than a column.
+   *
+   * The obvious thing — field and button side by side in a flex row, aligned with
+   * `items-end` — puts the button level with the bottom of the *field*, and a
+   * field ends with its hint rather than with its control. The button lands a
+   * whole line of helper text below the input and reads as floating loose.
+   * Nudging it back up with a margin means hard-coding the label's height, which
+   * is wrong the moment a label wraps.
+   *
+   * So the control keeps column one and the action takes column two on the
+   * control's own row, which aligns the two structurally at any label height. The
+   * hint stays directly under the control, where it describes it.
+   *
+   * On a phone the grid collapses to one column and source order applies: label,
+   * control, hint, action. The action goes last there on purpose — it is the end
+   * of the task, and putting it above the hint would separate the hint from the
+   * input it belongs to.
+   */
   return (
-    <div className={cn('flex flex-col gap-1.5', className)}>
-      <label htmlFor={htmlFor} className="text-sm font-medium">
-        {label}
-        {required && (
-          <span className="ml-0.5 text-red-500" aria-label="required">
-            *
-          </span>
-        )}
-      </label>
-      {children}
-      {/* Errors replace hints rather than stacking, so the layout never jumps. */}
-      {error ? (
-        <p role="alert" className="text-xs font-medium text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      ) : hint ? (
-        <p className="text-subtle text-xs">{hint}</p>
-      ) : null}
+    <div className={cn('grid gap-x-3 gap-y-1.5 sm:grid-cols-[minmax(0,1fr)_auto]', className)}>
+      <div className="sm:col-start-1 sm:row-start-1">{labelEl}</div>
+      <div className="sm:col-start-1 sm:row-start-2">{children}</div>
+      {note && <div className="sm:col-start-1 sm:row-start-3">{note}</div>}
+      {/* `grid` on a phone so a lone button fills the width the way it would as a
+          flex child; `block` from `sm` so it shrinks back to its own size. */}
+      <div className="mt-1.5 grid sm:col-start-2 sm:row-start-2 sm:mt-0 sm:block sm:self-center">
+        {action}
+      </div>
     </div>
   );
 }
