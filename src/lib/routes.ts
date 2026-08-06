@@ -22,6 +22,7 @@ export const PROTECTED_PREFIXES = [
   '/approvals',
   '/admin',
   '/settings',
+  '/reconcile',
 ] as const;
 
 export function isProtectedPath(pathname: string): boolean {

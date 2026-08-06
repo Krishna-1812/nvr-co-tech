@@ -132,9 +132,12 @@ export default async function AgentPage({ params }: Params) {
                 <h2 className="m-display mt-4 text-[clamp(1.8rem,3.6vw,2.7rem)]">
                   The specifics.
                 </h2>
+                {/* A live agent's list is a description, not a plan, and saying
+                    so is the point of writing these down to this level. */}
                 <p className="m-dim mt-5 max-w-sm text-sm leading-relaxed">
-                  Every line here is something it either does today or is being built to do. None of
-                  it is a vague area we are thinking about looking at.
+                  {agent.stage === 'live'
+                    ? 'Every line here is something it does today. If it were only planned, it would be on a page marked as planned.'
+                    : 'Every line here is something it is being built to do. None of it is a vague area we are thinking about looking at.'}
                 </p>
               </div>
             </Reveal>
@@ -202,7 +205,7 @@ export default async function AgentPage({ params }: Params) {
                   </h2>
                   <p className="m-dim mt-5 text-[15px] leading-relaxed">
                     {agent.stage === 'live'
-                      ? 'Sign in and raise a voucher. If you would rather someone showed you round first, we are happy to do that instead.'
+                      ? 'Sign in and it is there. If you would rather somebody showed you round first, we are happy to do that instead.'
                       : 'A walkthrough covers what you can use today, what this one will do, and where it sits in the queue. We will not give you a date on the call that we are not sure of.'}
                   </p>
                   <div className="mt-8 flex flex-wrap gap-3">
@@ -251,8 +254,6 @@ export default async function AgentPage({ params }: Params) {
  * rather than being greyed out.
  */
 function StageActions({ agent }: { agent: Agent }) {
-  const live = LIVE_AGENTS[0];
-
   if (agent.stage === 'live' && agent.href) {
     return (
       <>
@@ -264,11 +265,20 @@ function StageActions({ agent }: { agent: Agent }) {
     );
   }
 
+  /*
+   * From a roadmap page, the second action points at something that exists. With
+   * one live agent that is the agent itself; with more than one it has to be the
+   * roster, because picking one of them here would be an arbitrary
+   * recommendation made by a `[0]`.
+   */
+  const [first] = LIVE_AGENTS;
+  const elsewhere = LIVE_AGENTS.length === 1 ? `/agents/${first.slug}` : '/agents';
+
   return (
     <>
       <CTA href="/contact">Book a walkthrough</CTA>
-      {live && (
-        <CTA href={`/agents/${live.slug}`} variant="ghost">
+      {first && (
+        <CTA href={elsewhere} variant="ghost">
           See what is live today
         </CTA>
       )}

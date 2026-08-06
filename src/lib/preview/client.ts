@@ -57,6 +57,9 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   voucher_audit: fixtures.voucher_audit as unknown as Row[],
   user_settings: fixtures.user_settings as Row[],
   sheet_sync_log: fixtures.sheet_sync_log as Row[],
+  // Empty on purpose. A reconciliation is produced by running one, so seeding
+  // fixtures here would show a history nobody in preview could have created.
+  reconciliations: [],
 });
 
 const me = () => TABLES.profiles.find((p) => p.id === PREVIEW_USER_ID)!;
@@ -294,13 +297,30 @@ function table(name: string) {
       return q;
     },
 
-    delete: () => ({
-      eq: (col: string, val: unknown) => {
-        const i = rows.findIndex((r) => String(r[col]) === String(val));
-        if (i >= 0) rows.splice(i, 1);
-        return Promise.resolve({ data: null, error: null });
-      },
-    }),
+    /*
+     * Chainable, because real callers narrow a delete with more than one `eq` —
+     * `.eq('id', id).eq('created_by', me)` is the belt-and-braces form used
+     * against a table whose policy already scopes it. The previous version
+     * returned a Promise from the first `eq`, so the second call threw.
+     */
+    delete: () => {
+      const tests: Test[] = [];
+      const q = {
+        eq(col: string, val: unknown) {
+          tests.push((r) => String(r[col] ?? '') === String(val));
+          return q;
+        },
+        then<R1 = { data: null; error: null }, R2 = never>(
+          onfulfilled?: ((v: { data: null; error: null }) => R1 | PromiseLike<R1>) | null,
+          onrejected?: ((reason: unknown) => R2 | PromiseLike<R2>) | null,
+        ): PromiseLike<R1 | R2> {
+          const i = rows.findIndex((r) => tests.every((t) => t(r)));
+          if (i >= 0) rows.splice(i, 1);
+          return Promise.resolve({ data: null, error: null }).then(onfulfilled, onrejected);
+        },
+      };
+      return q;
+    },
   };
 }
 

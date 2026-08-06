@@ -1,5 +1,5 @@
 import type { UserRole } from '@/lib/domain/workflow';
-import { appNav } from '@/lib/nav';
+import type { Section } from '@/lib/nav';
 import { fiscalYear, istLongDate, istToday } from '@/lib/fiscal';
 import { PREVIEW } from '@/lib/preview';
 import { Backdrop } from './app/Backdrop';
@@ -17,24 +17,27 @@ type Props = {
     /** Their Google picture, if they signed in with Google. Passed to UserMenu. */
     avatarUrl?: string | null;
   };
-  /** Number of vouchers waiting on this person — drives the queue badge. */
-  pendingCount?: number;
+  /** Which tool you are inside. Decides the rail, the dock and the palette. */
+  section: Section;
   children: React.ReactNode;
 };
 
 /**
- * The frame every signed-in screen sits in.
+ * The frame every signed-in tool sits in.
  *
  * Three pieces of chrome and one atmosphere: a rail on the left from `lg` up, a
  * dock along the bottom below it, a glass bar across the top at every width, and
  * the Backdrop behind all of them.
  *
+ * What the frame does NOT know is which tool it is holding. That arrives as a
+ * Section, so a second tool is a nav definition and a route group rather than a
+ * second shell to keep in step with this one.
+ *
  * The rail's width is a CSS variable rather than a prop, which is what lets the
  * content column follow it when it collapses without either of them holding
  * state. See RailToggle for why that matters.
  */
-export function AppShell({ user, pendingCount = 0, children }: Props) {
-  const nav = appNav({ role: user.role, pendingCount });
+export function AppShell({ user, section, children }: Props) {
   const fiscal = fiscalYear(istToday());
 
   return (
@@ -49,7 +52,7 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
         Skip to content
       </a>
 
-      <SideRail nav={nav} fiscal={fiscal} />
+      <SideRail section={section} fiscal={fiscal} />
 
       {/*
         The content column. `pl` tracks the rail through the same variable the
@@ -59,7 +62,7 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
       <div className="transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:pl-[var(--a-rail)]">
         {PREVIEW && <PreviewBanner />}
 
-        <TopBar user={user} fiscal={fiscal} today={istLongDate()} />
+        <TopBar user={user} section={section} fiscal={fiscal} today={istLongDate()} />
 
         {/*
           The bottom padding clears the dock. Nothing at the end of a long
@@ -73,7 +76,7 @@ export function AppShell({ user, pendingCount = 0, children }: Props) {
         </main>
       </div>
 
-      <MobileDock nav={nav} />
+      <MobileDock nav={section.items} />
     </div>
   );
 }

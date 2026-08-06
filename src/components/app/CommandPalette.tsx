@@ -9,12 +9,11 @@ import {
   LogOut,
   Monitor,
   Moon,
-  Plus,
   Search,
   Sun,
   type LucideIcon,
 } from 'lucide-react';
-import { appNav } from '@/lib/nav';
+import { sectionFor } from '@/lib/nav';
 import { VOUCHER_STATUSES, STATUS_META, type UserRole } from '@/lib/domain/workflow';
 import { createClient } from '@/lib/supabase/client';
 import { setTheme } from '@/lib/theme';
@@ -32,6 +31,11 @@ import { cn } from '@/lib/utils';
  * permissions applied, so a free-text query becomes a navigation to /vouchers?q=
  * rather than a list of rows fetched here — the palette never sees a voucher it
  * would have to decide whether you are allowed to see.
+ *
+ * It offers the tool you are in, not every tool the platform runs. Somewhere
+ * between two solutions and eight, one palette listing all of them stops being a
+ * shortcut and becomes a second menu you have to read. "All solutions" is here,
+ * one keystroke away, and it goes to the screen built for choosing.
  */
 
 type Action = {
@@ -45,7 +49,7 @@ type Action = {
   run: () => void;
 };
 
-export function CommandPalette({ role }: { role: UserRole }) {
+export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; role: UserRole }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -83,18 +87,26 @@ export function CommandPalette({ role }: { role: UserRole }) {
 
   const actions = useMemo<Action[]>(() => {
     const go = (href: string) => () => router.push(href);
+    const section = sectionFor(sectionSlug, { role });
 
     return [
-      {
-        id: 'new',
-        label: 'New voucher',
-        hint: 'Starts a private draft',
-        icon: Plus,
-        group: 'Do',
-        keywords: 'create raise add payment',
-        run: go('/vouchers/new'),
-      },
-      ...appNav({ role }).map((item) => ({
+      ...(section.primary
+        ? [
+            {
+              id: 'primary',
+              label: section.primary.label,
+              hint:
+                section.slug === 'voucher-desk'
+                  ? 'Starts a private draft'
+                  : 'Clears the screen and starts again',
+              icon: section.primary.icon,
+              group: 'Do',
+              keywords: 'create raise add new start',
+              run: go(section.primary.href),
+            },
+          ]
+        : []),
+      ...section.items.map((item) => ({
         id: `go-${item.href}`,
         label: item.label,
         hint: item.hint,
@@ -102,8 +114,8 @@ export function CommandPalette({ role }: { role: UserRole }) {
         group: 'Go to',
         run: go(item.href),
       })),
-      // Out of Voucher Desk and back up to the platform. Last in the group on
-      // purpose: it is the one destination here that leaves this tool.
+      // Out of this tool and back up to the platform. Last in the group on
+      // purpose: it is the one destination here that leaves where you are.
       {
         id: 'go-hub',
         label: 'All solutions',
@@ -113,15 +125,19 @@ export function CommandPalette({ role }: { role: UserRole }) {
         keywords: 'hub workspace home agents platform switch',
         run: go('/hub'),
       },
-      ...VOUCHER_STATUSES.map((status) => ({
-        id: `filter-${status}`,
-        label: STATUS_META[status].label,
-        hint: STATUS_META[status].description,
-        icon: Search,
-        group: 'Filter the register',
-        keywords: `status ${status.replace('_', ' ')}`,
-        run: go(`/vouchers?status=${status}`),
-      })),
+      // Only where there is a register to filter. Offering voucher statuses
+      // inside a reconciliation would be offering somebody else's screen.
+      ...(section.slug === 'voucher-desk'
+        ? VOUCHER_STATUSES.map((status) => ({
+            id: `filter-${status}`,
+            label: STATUS_META[status].label,
+            hint: STATUS_META[status].description,
+            icon: Search,
+            group: 'Filter the register',
+            keywords: `status ${status.replace('_', ' ')}`,
+            run: go(`/vouchers?status=${status}`),
+          }))
+        : []),
       ...([
         ['light', Sun, 'Light'],
         ['dark', Moon, 'Dark'],
@@ -148,7 +164,10 @@ export function CommandPalette({ role }: { role: UserRole }) {
         },
       },
     ];
-  }, [role, router]);
+  }, [role, router, sectionSlug]);
+
+  /** Only Voucher Desk has a register, so only there does a stray query search one. */
+  const searchable = sectionSlug === 'voucher-desk';
 
   /*
    * Matching is a subsequence test, not a substring one: "apr" should find
@@ -172,12 +191,14 @@ export function CommandPalette({ role }: { role: UserRole }) {
     };
 
     const found = actions.filter(matches);
+    if (found.length > 0) return found;
 
     // A query that matches nothing is still a search of the register — which is
-    // the most likely reason somebody typed a voucher number in here.
-    return found.length > 0
-      ? found
-      : [
+    // the most likely reason somebody typed a voucher number in here. There is
+    // no equivalent inside a reconciliation, so nothing is offered there rather
+    // than sending somebody into another tool's search results.
+    return searchable
+      ? [
           {
             id: 'search',
             label: `Search the register for “${query.trim()}”`,
@@ -186,8 +207,9 @@ export function CommandPalette({ role }: { role: UserRole }) {
             group: 'Find',
             run: () => router.push(`/vouchers?q=${encodeURIComponent(query.trim())}`),
           } satisfies Action,
-        ];
-  }, [actions, query, router]);
+        ]
+      : [];
+  }, [actions, query, router, searchable]);
 
   /*
    * Any change to the query invalidates where the cursor was pointing, so it goes
@@ -219,6 +241,10 @@ export function CommandPalette({ role }: { role: UserRole }) {
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
+    // Nothing matched, so there is nothing to move between. Without this guard
+    // the modulo is a division by zero and the cursor becomes NaN.
+    if (results.length === 0) return;
+
     if (e.key === 'ArrowDown' || (e.key === 'n' && e.ctrlKey)) {
       e.preventDefault();
       setCursor((c) => (c + 1) % results.length);
@@ -264,7 +290,9 @@ export function CommandPalette({ role }: { role: UserRole }) {
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search actions, or type a voucher number…"
+                placeholder={
+                  searchable ? 'Search actions, or type a voucher number…' : 'Search actions…'
+                }
                 aria-label="Search actions"
                 className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[var(--text-subtle)]"
               />
@@ -319,6 +347,12 @@ export function CommandPalette({ role }: { role: UserRole }) {
                   </div>
                 );
               })}
+
+              {results.length === 0 && (
+                <p className="text-subtle px-3 py-10 text-center text-sm">
+                  Nothing here matches “{query.trim()}”.
+                </p>
+              )}
             </div>
 
             <div className="text-subtle flex shrink-0 items-center gap-4 border-t bg-[var(--surface-sunken)] px-4 py-2 text-[11px]">

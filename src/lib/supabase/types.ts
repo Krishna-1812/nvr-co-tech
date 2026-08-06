@@ -9,6 +9,7 @@
 
 import type { VoucherStatus, UserRole } from '@/lib/domain/workflow';
 import type { Sponsorship, SupportingType, PaymentType } from '@/lib/domain/voucher';
+import type { ReconResult, ReconStatus } from '@/lib/recon/types';
 
 export type Profile = {
   id: string;
@@ -151,6 +152,38 @@ export type UserSettings = {
 };
 
 /**
+ * One saved reconciliation (0008).
+ *
+ * `result` is the engine's own ReconResult, stored whole. The columns beside it
+ * are duplicated out of it on purpose: the history list renders from those alone,
+ * so opening the page does not mean deserialising every stored statement.
+ *
+ * There is no Update shape for this table, because there is no update policy.
+ */
+export type ReconciliationRow = {
+  id: string;
+  created_by: string;
+
+  ledger_a_name: string;
+  ledger_b_name: string;
+  reconciliation_date: string;
+  starting_ledger: 'A' | 'B';
+  tolerance_days: number | null;
+
+  status: ReconStatus;
+  variance: number;
+  starting_balance: number;
+  closing_balance: number;
+  matched_count: number;
+  timing_count: number;
+  one_sided_count: number;
+  amount_diff_count: number;
+
+  result: ReconResult;
+  created_at: string;
+};
+
+/**
  * Shape for the Supabase client generic.
  *
  * supabase-js expects each table to carry Row / Insert / Update / Relationships
@@ -175,6 +208,7 @@ export type Database = {
       voucher_audit: Table<VoucherAudit>;
       voucher_attachments: Table<VoucherAttachment>;
       user_settings: Table<UserSettings>;
+      reconciliations: Table<ReconciliationRow>;
     };
     Views: Record<never, never>;
     Functions: {

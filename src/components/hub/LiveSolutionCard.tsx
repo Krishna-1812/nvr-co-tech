@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Plus } from 'lucide-react';
+import { ArrowRight, Plus, type LucideIcon } from 'lucide-react';
 import type { Solution } from '@/lib/solutions';
 import { Figure } from '@/components/app/Figure';
 import { Glow } from '@/components/app/Glow';
@@ -42,9 +42,15 @@ export function LiveSolutionCard({
   /** The routing sentence: what, if anything, is waiting for this person. */
   note: string;
   noteTone?: string;
-  shortcut?: { href: string; label: string };
+  /**
+   * The second reason somebody comes here. Its mark defaults to a plus, which
+   * suits "raise one of these" and suits nothing else — a tool whose shortcut is
+   * a destination rather than a creation passes its own.
+   */
+  shortcut?: { href: string; label: string; icon?: LucideIcon };
 }) {
   const { icon: Icon, tone, open } = solution;
+  const ShortcutIcon = shortcut?.icon ?? Plus;
 
   return (
     <Glow
@@ -156,8 +162,12 @@ export function LiveSolutionCard({
                 href={shortcut.href}
                 className={buttonClass({ variant: 'secondary', className: 'relative z-30 group/s' })}
               >
-                <Plus
-                  className="size-4 transition-transform duration-300 group-hover/s:rotate-90"
+                <ShortcutIcon
+                  className={
+                    shortcut.icon
+                      ? 'size-4'
+                      : 'size-4 transition-transform duration-300 group-hover/s:rotate-90'
+                  }
                   aria-hidden
                 />
                 {shortcut.label}

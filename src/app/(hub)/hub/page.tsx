@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { Metadata } from 'next';
+import { History } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { canApprove, ROLE_META } from '@/lib/domain/workflow';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
@@ -50,25 +51,48 @@ export default async function HubPage() {
     supabase.from('vouchers').select('id', { count: 'exact', head: true }).is('deleted_at', null);
 
   /*
+   * Reconciliations are yours alone — 0008 gives that table no policy that would
+   * let anybody read somebody else's — so all three of these are scoped to you
+   * without needing to say so on the card.
+   *
+   * Counted separately from the vouchers because the table may not exist yet:
+   * 0008 has to be applied to the project first, and until it is, every query
+   * here fails. A missing history is not a reason for the workspace to fall
+   * over, so the counts fall back to zero and the card still opens the tool.
+   */
+  const recon = () =>
+    supabase
+      .from('reconciliations')
+      .select('id', { count: 'exact', head: true })
+      .eq('created_by', user.id);
+
+  /*
    * Four head-count queries, no rows fetched. Everything here is deliberately
    * scoped to "yours" except the approval queue, because the register itself is
    * scoped by RLS — a member sees only their own vouchers, an approver sees every
    * submitted one — and a figure whose meaning changes with the reader's role is
    * worse than no figure.
    */
-  const [drafts, withApprovers, queue, thisYear] = await Promise.all([
-    count().eq('created_by', user.id).eq('status', 'draft'),
-    count().eq('created_by', user.id).in('status', [...PENDING]),
-    // You can never approve your own voucher, so it must not appear in your queue.
-    approver ? count().in('status', [...PENDING]).neq('created_by', user.id) : null,
-    count().eq('created_by', user.id).gte('created_at', fyStart),
-  ]);
+  const [drafts, withApprovers, queue, thisYear, reconciled, reconOpen, reconYear] =
+    await Promise.all([
+      count().eq('created_by', user.id).eq('status', 'draft'),
+      count().eq('created_by', user.id).in('status', [...PENDING]),
+      // You can never approve your own voucher, so it must not appear in your queue.
+      approver ? count().in('status', [...PENDING]).neq('created_by', user.id) : null,
+      count().eq('created_by', user.id).gte('created_at', fyStart),
+      recon(),
+      recon().neq('status', 'RECONCILED'),
+      recon().gte('created_at', fyStart),
+    ]);
 
   const n = {
     drafts: drafts.count ?? 0,
     withApprovers: withApprovers.count ?? 0,
     queue: queue?.count ?? 0,
     thisYear: thisYear.count ?? 0,
+    reconciled: reconciled.count ?? 0,
+    reconOpen: reconOpen.count ?? 0,
+    reconYear: reconYear.count ?? 0,
   };
 
   const readings: Reading[] = [
@@ -122,12 +146,50 @@ export default async function HubPage() {
           : { text: 'Nothing is waiting on you. The desk is clear.', tone: 'var(--status-approved)' };
 
   /*
-   * Keyed by slug rather than by stage, because the instrumentation on the card
-   * below is about vouchers specifically. When the second tool goes live it will
-   * want its own readings, not a share of these.
+   * The second tool's own instrumentation.
+   *
+   * Keyed by slug rather than shared across whatever happens to be live, because
+   * the figures that matter differ per tool: a voucher is waiting on a person,
+   * whereas a reconciliation is either finished or it is not.
    */
+  const reconReadings: Reading[] = [
+    {
+      label: 'Reconciliations',
+      value: n.reconciled,
+      hint: 'Saved by you. Nobody else can see them.',
+    },
+    {
+      label: 'Still unexplained',
+      value: n.reconOpen,
+      tone: 'var(--status-warn)',
+      hint: 'Runs where a difference was left that the statement did not account for.',
+    },
+    {
+      label: `Run in FY ${fiscal.label}`,
+      value: n.reconYear,
+      hint: `Since 1 April ${m >= 4 ? y : y - 1}.`,
+    },
+  ];
+
+  const reconBrief =
+    n.reconOpen > 0
+      ? {
+          text: `${n.reconOpen} ${plural(n.reconOpen, 'reconciliation does', 'reconciliations do')} not tie out yet.`,
+          tone: 'var(--status-warn)',
+        }
+      : n.reconciled > 0
+        ? {
+            text: 'Everything you have reconciled ties out.',
+            tone: 'var(--status-approved)',
+          }
+        : {
+            text: 'Nothing reconciled yet. Two files is all it takes, and they stay on your machine.',
+            tone: 'var(--status-draft)',
+          };
+
   const voucherDesk = SOLUTIONS.find((s) => s.slug === 'voucher-desk');
-  const rest = SOLUTIONS.filter((s) => s.slug !== 'voucher-desk');
+  const reconciliation = SOLUTIONS.find((s) => s.slug === 'ledger-reconciliation');
+  const rest = SOLUTIONS.filter((s) => s.stage !== 'live');
   const firstName = (user.full_name ?? user.email).split(/[\s@.]+/)[0];
 
   return (
@@ -152,8 +214,8 @@ export default async function HubPage() {
             </h1>
 
             <p className="text-muted mt-3 max-w-xl text-[15px] text-pretty">
-              Everything the firm runs is here. Voucher Desk is open for work today, and the rest of
-              the roster is being built in the order below.
+              Everything the firm runs is here. Two of these are open for work today, and the rest
+              of the roster is being built in the order below.
             </p>
 
             <p className="mt-4">
@@ -178,18 +240,32 @@ export default async function HubPage() {
         />
       </header>
 
-      {/* ── The one you can use ── */}
-      {voucherDesk && (
-        <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_60ms_backwards]">
-          <LiveSolutionCard
-            solution={voucherDesk}
-            readings={readings}
-            note={brief.text}
-            noteTone={brief.tone}
-            shortcut={{ href: '/vouchers/new', label: 'New voucher' }}
-          />
-        </div>
-      )}
+      {/* ── The ones you can use ── */}
+      <div className="space-y-5">
+        {voucherDesk && (
+          <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_60ms_backwards]">
+            <LiveSolutionCard
+              solution={voucherDesk}
+              readings={readings}
+              note={brief.text}
+              noteTone={brief.tone}
+              shortcut={{ href: '/vouchers/new', label: 'New voucher' }}
+            />
+          </div>
+        )}
+
+        {reconciliation && (
+          <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_120ms_backwards]">
+            <LiveSolutionCard
+              solution={reconciliation}
+              readings={reconReadings}
+              note={reconBrief.text}
+              noteTone={reconBrief.tone}
+              shortcut={{ href: '/reconcile/history', label: 'History', icon: History }}
+            />
+          </div>
+        )}
+      </div>
 
       {/* ── The rest of the roster ── */}
       <section>

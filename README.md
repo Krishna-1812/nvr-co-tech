@@ -2,11 +2,19 @@
 
 A platform of AI agents for finance work, built by chartered accountants.
 
-**Voucher Desk** is the first and currently the only live agent: payment vouchers and a two-step
-**approval workflow** for the CIO Association. It is a rebuild of the v1 voucher portal, whose
-repository is recorded outside this file because its name carries the old brand.
-All 32 business fields, the amount formulas and the printed voucher layout are preserved exactly —
-they encode a real accounting process. Everything around them is rebuilt.
+Two agents are live.
+
+**Voucher Desk** is the first: payment vouchers and a two-step **approval workflow** for the CIO
+Association. It is a rebuild of the v1 voucher portal, whose repository is recorded outside this
+file because its name carries the old brand. All 32 business fields, the amount formulas and the
+printed voucher layout are preserved exactly — they encode a real accounting process. Everything
+around them is rebuilt.
+
+**Ledger Reconciliation** is the second: two ledgers in, a Bank Reconciliation Statement out. It is
+a port of a Python and React tool that ran as a separate FastAPI service, rebuilt as a TypeScript
+engine that runs **entirely in the browser**. The files are read on the reader's own machine and
+never uploaded, which for client bank statements is a better answer than a server-side session; it
+also removed the in-memory store the original lost on every restart.
 
 See [`docs/01-system-analysis.md`](docs/01-system-analysis.md) for the analysis of v1 and
 [`docs/03-rebuild-architecture.md`](docs/03-rebuild-architecture.md) for the design decisions.
@@ -16,10 +24,15 @@ See [`docs/01-system-analysis.md`](docs/01-system-analysis.md) for the analysis 
 ```
 /                     public marketing site   src/app/(marketing)
 /login, /signup       auth                    src/app/(auth)
+/hub                  the workspace           src/app/(hub)
 /dashboard, /vouchers,
 /approvals, /admin,
-/settings             the signed-in product   src/app/(app)
+/settings             Voucher Desk            src/app/(app)
+/reconcile            Ledger Reconciliation   src/app/(recon)
 ```
+
+Each tool is a route group with its own `Section` (see [`src/lib/nav.ts`](src/lib/nav.ts)) handed to
+one shared `AppShell`. A third tool is a nav definition and a route group, not a third shell.
 
 `src/proxy.ts` gates the last group and nothing else — see the note there on why it is a deny-list.
 Everything the public site says about itself lives in
@@ -182,7 +195,7 @@ does a production build.
 
 Built:
 
-- Schema, workflow and RLS migrations (5 files, parse-checked)
+- Schema, workflow and RLS migrations (8 files, parse-checked)
 - Domain layer — formulas, payment rules, GST exclusivity, PAN/GSTIN validation — with 52 tests
 - **Auth** — sign in, sign up, Google OAuth with its callback, route protection, role-aware shell
 - **Settings** — your name, the role ladder and what each rung grants, theme
@@ -198,9 +211,35 @@ Built:
 - Error, not-found and per-route loading states
 - **Public marketing site** — home, agent roster, per-agent pages, about, contact,
   with a generated social card, sitemap and robots
+- **Ledger Reconciliation** — the whole tool (see below)
 
-Not yet built: Google Sheets sync worker. Five of the six agents on `/agents` are roadmap
-entries, and the pages say so — only Voucher Desk exists.
+Not yet built: Google Sheets sync worker. Four of the six agents on `/agents` are roadmap
+entries, and the pages say so.
+
+### Ledger Reconciliation
+
+The engine is pure TypeScript in [`src/lib/recon`](src/lib/recon), with 140 tests. Nothing in it
+touches the network, the database or the DOM, which is what makes a reconciliation reproducible:
+the same two files reconcile to the same statement every time.
+
+- **Parsing** — Excel and CSV through SheetJS, PDF through pdf.js. The PDF reader rebuilds a
+  BORDERLESS table from word coordinates, which is what a bank statement is: no ruled lines, just
+  text that happens to line up. Scanned PDFs are refused with an explanation rather than returning
+  an empty ledger.
+- **Matching** — six passes, strongest evidence first: shared reference, then narration and amount,
+  then narration alone, then a contra amount, then any amount, then one-sided.
+- **The statement** — computed in one signed debit-positive space and projected onto the starting
+  ledger's side, so a credit-balance start needs no separate rule. Contra ledgers, where a bank
+  statement mirrors your cash book, are detected from the entries the two books share rather than
+  from their closing balances, which a single timing difference can flip.
+- **Exports** — a PDF working paper and a three-sheet workbook, both rendered server-side from a
+  posted result, plus a CSV of whatever the differences table is showing.
+- **History** — saved automatically to `reconciliations` (migration 0008), private to whoever ran
+  it, and never updatable: re-running produces a new row.
+
+`npm run recon:sample` writes a sample pair of ledgers to `scratch/`, in CSV and as borderless
+PDFs, plus a reconciliation of them. The PDF parser's own test suite reads those PDFs back, and
+skips itself if they have not been generated.
 
 ### Verified against a live database
 
@@ -212,6 +251,11 @@ Still only exercised in preview mode, never against Postgres: approval and rejec
 both need a second and third account, since the segregation-of-duties rules deliberately
 prevent one person from testing them — plus reopen, mark-paid, PDF, Excel export and
 attachment upload.
+
+> **Migrations 0007 and 0008 have not been applied.** Until 0007 is, the database still issues
+> `NVR/` voucher numbers. Until 0008 is, reconciliations run and export normally but cannot be
+> saved: the tool says so on the results screen and the history page explains why it is empty,
+> rather than failing.
 
 > `hello@financeintelligence.in` and `security@financeintelligence.in` on `/contact` are
 > **unverified**: the domain is not registered yet, so neither mailbox exists. Register it

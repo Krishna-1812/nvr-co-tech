@@ -1,8 +1,9 @@
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { canApprove } from '@/lib/domain/workflow';
+import { voucherSection } from '@/lib/nav';
 import { AppShell } from '@/components/AppShell';
 
-/** Shell for every signed-in page. Middleware has already guaranteed a session. */
+/** Voucher Desk. Middleware has already guaranteed a session. */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
 
@@ -21,7 +22,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <AppShell user={user} pendingCount={pendingCount}>
+    <AppShell user={user} section={voucherSection({ role: user.role, pendingCount })}>
       {children}
     </AppShell>
   );

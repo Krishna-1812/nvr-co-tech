@@ -68,9 +68,17 @@ export const STAGE_LABEL: Record<AgentStage, string> = {
 };
 
 /**
- * The roster. Voucher Desk is the one you can actually use today, and the
- * honesty about that is deliberate: a grid of six equally confident tiles that
- * all lead nowhere is the fastest way to lose a finance buyer.
+ * The roster.
+ *
+ * Two of the six are built and four are not, and every screen that renders this
+ * list says which is which. The honesty is deliberate: a grid of six equally
+ * confident tiles that mostly lead nowhere is the fastest way to lose a finance
+ * buyer, and the fastest way to lose them twice is for the tiles to have been
+ * lying about what the two working ones do.
+ *
+ * Which means the `does` list of a live agent is a promise, not a pitch. When
+ * one of these ships, this is the entry that gets rewritten down to what the
+ * thing actually does.
  */
 export const AGENTS: Agent[] = [
   {
@@ -99,22 +107,26 @@ export const AGENTS: Agent[] = [
   {
     slug: 'ledger-reconciliation',
     name: 'Ledger Reconciliation',
-    stage: 'building',
+    stage: 'live',
     category: 'Books & closing',
     accent: 'emerald',
     summary:
-      'Matches your bank statement against the ledger, clears the lines that clearly agree, and gives you a short list of the ones that do not.',
+      'Two ledgers in, a reconciliation statement out. It clears the lines that agree, explains the ones that do not, and tells you whether the two balances tie.',
     pitch:
-      'Most of a reconciliation is matching, and most matching follows rules. The software does that part. What is left is the handful of lines that need someone to think about them, and each one comes with a note on why.',
+      'Most of a reconciliation is matching, and most matching follows rules. The software does that part in a few seconds. What is left is the handful of lines that need somebody to think about them, and each one arrives with a note saying why it is there.',
     does: [
-      'Reads bank statements and ledger extracts in the formats they already arrive in.',
-      'Matches on amount, date, narration and reference, including one payment that settles several invoices.',
-      'Explains every line it could not match in plain words, instead of leaving you a difference column to work out.',
-      'Picks up the counterparties and the odd narration habits of your own accounts.',
-      'Hands you a list to look at. It does not post anything by itself.',
+      'Reads Excel, CSV and text PDFs, including the bank statements that print as tables with no lines around them.',
+      'Works out what each column is from its heading, and lets you fix it when the two files use different words for the same thing.',
+      'Matches on the reference first, then on the description and the amount, then on the amount alone. A cheque number counts for more than a round figure that happens to turn up twice.',
+      'Copes with a bank statement being the mirror of your cash book, where every debit in one is a credit in the other. It works that out from the entries themselves.',
+      'Builds the statement in the usual Add and Less form and says whether the two balances tie out.',
+      'Says in plain words why each remaining line is there, and names the likely cause of an amount difference: rounding, a decimal point in the wrong place, or a multiple.',
+      'A PDF for the file, an Excel workbook for the follow up, and a copy kept in your own history.',
+      'The two files are read inside your browser. They are never uploaded anywhere.',
     ],
-    inputs: 'Bank statements, ledger extracts',
-    outputs: 'Matched lines, and the ones to look at',
+    inputs: 'Two ledgers, as Excel, CSV or a text PDF',
+    outputs: 'A reconciliation statement, and the lines to look at',
+    href: '/reconcile',
   },
   {
     slug: 'gst-reconciliation',
@@ -331,7 +343,7 @@ export const JOBS: readonly Job[] = [
     when: 'Month end',
     title: 'The bank statement has to agree with the ledger',
     now: 'A day of matching, then a difference column nobody can explain, then a suspense entry that quietly stays there.',
-    ours: 'The lines that clearly agree are cleared, including one payment that settles several invoices. What is left is a short list, and each line says why it is on it.',
+    ours: 'The lines that agree are cleared in seconds, and the statement is built for you. What is left is a short list, and each line says why it is on it.',
     agent: 'ledger-reconciliation',
   },
   {
@@ -401,7 +413,7 @@ export const TDS_SECTIONS = [
  * than three weeks later on a call.
  */
 export const STAGE_NOTE: Record<AgentStage, string> = {
-  live: 'You can use this today. Sign in and it is there, with the approval steps running behind it.',
+  live: 'You can use this today. Sign in and it is there, with the rules running behind it.',
   building:
     'We are building this now. You cannot switch it on yet, and we would rather tell you that than give you a date we are not sure of.',
   planned:

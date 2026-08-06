@@ -24,9 +24,9 @@ export function MobileDock({ nav }: { nav: NavItem[] }) {
       className="a-glass fixed inset-x-0 bottom-0 z-40 border-t pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       {/*
-        One column per destination rather than a fixed five, so three items are
-        spread across the width instead of huddled at the left. There are never
-        more than five: appNav tops out there.
+        One column per destination rather than a fixed five, so a tool with two
+        destinations spreads them across the width instead of huddling them at
+        the left. No section offers more than five.
       */}
       <div
         className="grid px-1 py-1.5"

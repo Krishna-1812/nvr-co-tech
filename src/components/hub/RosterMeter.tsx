@@ -7,8 +7,8 @@ import { SOLUTIONS, stageCounts } from '@/lib/solutions';
  *
  * It answers the question the grid below takes six cards to answer — how much of
  * this platform actually exists — in about a centimetre of screen. It is also the
- * honest way to show that one of six is live, which is the sort of thing a launcher
- * usually tries to hide behind uniform tiles.
+ * honest way to show how few of the six are live, which is the sort of thing a
+ * launcher usually tries to hide behind uniform tiles.
  */
 export function RosterMeter() {
   const counts = stageCounts();

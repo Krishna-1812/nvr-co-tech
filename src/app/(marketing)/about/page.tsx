@@ -228,7 +228,9 @@ export default function AboutPage() {
 
           <Reveal delay={80}>
             <p className="m-dim-2 mt-8 max-w-2xl text-[13.5px] leading-relaxed">
-              {AGENTS.filter((a) => a.stage === 'live').length} of {AGENTS.length} is up and running
+              {/* "is" or "are", because the count changes as the roster ships. */}
+              {AGENTS.filter((a) => a.stage === 'live').length} of {AGENTS.length}{' '}
+              {AGENTS.filter((a) => a.stage === 'live').length === 1 ? 'is' : 'are'} up and running
               today. The rest are marked {STAGE_LABEL.building.toLowerCase()} or{' '}
               {STAGE_LABEL.planned.toLowerCase()}. We would rather say that here than have the
               conversation after you have signed something.

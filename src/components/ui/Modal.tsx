@@ -29,8 +29,9 @@ export function Modal({
           className="a-ring elev-4 animate-[pop_0.2s_cubic-bezier(0.34,1.56,0.64,1)] fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border bg-[var(--surface-raised)]"
           aria-describedby={description ? undefined : ''}
         >
-          {/* Every modal in this app is a decision about a voucher, so each one
-              carries the brand hairline that marks a consequential surface. */}
+          {/* Every modal in this app is a decision somebody cannot take back —
+              approving, rejecting, deleting — so each one carries the brand
+              hairline that marks a consequential surface. */}
           <span aria-hidden className="gradient-brand block h-[3px]" />
           <div className="p-5">
             <div className="mb-4 flex items-start justify-between gap-4">

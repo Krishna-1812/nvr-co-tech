@@ -12,7 +12,8 @@
     "check:sql": "node scripts/check-sql.mjs",
     "check": "npm run lint && npm run check:sql && npm run test && next build",
     "pdf:sample": "vite-node --config vitest.config.mts scripts/make-sample-pdf.tsx",
-    "xlsx:sample": "vite-node --config vitest.config.mts scripts/make-sample-xlsx.mts"
+    "xlsx:sample": "vite-node --config vitest.config.mts scripts/make-sample-xlsx.mts",
+    "recon:sample": "vite-node --config vitest.config.mts scripts/make-sample-recon.tsx"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",
@@ -28,6 +29,7 @@
     "googleapis": "^173.0.0",
     "lucide-react": "^1.28.0",
     "next": "16.2.12",
+    "pdfjs-dist": "^6.2.108",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.84.0",
