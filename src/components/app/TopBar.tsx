@@ -2,23 +2,21 @@ import Link from 'next/link';
 import type { UserRole } from '@/lib/domain/workflow';
 import type { Fiscal } from '@/lib/fiscal';
 import { ASSIST_SLUG, type Section } from '@/lib/nav';
-import { BRAND } from '@/lib/marketing/content';
-import { LogoMark } from '../marketing/Logo';
 import { UserMenu } from '../UserMenu';
 import { buttonClass } from '../ui/primitives';
 import { AssistPanel } from '../assist/AssistPanel';
 import { CommandPalette } from './CommandPalette';
+import { HomeCrumb } from './HomeCrumb';
 
 /**
  * The bar across the top of every signed-in screen.
  *
- * It carries almost nothing, on purpose. The rail already says where you are and
- * where you can go, so this is left with the two things that belong at the top of
- * a window: the way in to everything (⌘K) and the way out (the account menu).
+ * It carries four things: where you are and the way up out of it (the
+ * breadcrumb), the way in to everything (⌘K) and the way out (the account menu).
  *
- * Below `lg` the rail is gone, so the tool's name moves in here — otherwise the
- * app would have no name on a phone — and so does its primary action, which the
- * rail is normally holding.
+ * Below `lg` the rail is gone, so the tool's primary action moves in here, since
+ * the rail is normally holding it. The breadcrumb does not move, because it is
+ * the only thing on the screen naming the level above this one.
  */
 export function TopBar({
   user,
@@ -43,16 +41,12 @@ export function TopBar({
   return (
     <header className="a-glass sticky top-0 z-30 border-b">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
-        <Link href={section.home} className="group flex shrink-0 items-center gap-2.5 lg:hidden">
-          <LogoMark
-            id="bar-mark"
-            className="size-8 shrink-0 transition group-hover:brightness-110"
-          />
-          <span className="hidden leading-none sm:block">
-            <span className="block text-[13.5px] font-semibold tracking-tight">{section.name}</span>
-            <span className="text-subtle mt-1 block text-[10px]">{BRAND.name}</span>
-          </span>
-        </Link>
+        {/*
+          At every width, not just where the rail is missing. A tool is something
+          you are inside, and the bar should say so and offer the way out whether
+          or not the rail happens to be on screen.
+        */}
+        <HomeCrumb section={section} />
 
         {/* The slug rather than the section: the palette is a client component,
             and a Section carries Lucide icons, which are functions and cannot

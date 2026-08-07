@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { LayoutGrid } from 'lucide-react';
 import type { Section } from '@/lib/nav';
 import type { Fiscal } from '@/lib/fiscal';
 import { BRAND } from '@/lib/marketing/content';
@@ -32,7 +31,14 @@ export function SideRail({ section, fiscal }: { section: Section; fiscal: Fiscal
       aria-label="Sections"
       className="a-glass fixed inset-y-0 left-0 z-40 hidden w-[var(--a-rail)] flex-col border-r transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex"
     >
-      {/* ── Brand, and the way back up to the workspace ── */}
+      {/*
+        ── Brand ──
+        The door back out to the workspace used to be a second, smaller link in
+        here, and it only appeared while the rail was wide. That job now belongs
+        to the breadcrumb in the top bar, which is on screen at every width and
+        says what it leads to. Two doors to the hub within forty pixels of each
+        other was one too many.
+      */}
       <div className="a-rail-item flex h-16 shrink-0 items-center gap-2 border-b px-4">
         <Link href={section.home} className="group flex min-w-0 items-center gap-2.5">
           <LogoMark
@@ -45,21 +51,6 @@ export function SideRail({ section, fiscal }: { section: Section; fiscal: Fiscal
             </span>
             <span className="text-subtle mt-1 block truncate text-[10px]">{BRAND.name}</span>
           </span>
-        </Link>
-
-        {/*
-          This is one tool inside the platform, so there has to be a door back out
-          of it. Wide only: at 4.75rem the mark itself is the only thing that
-          fits, and the account menu carries the same destination at every width
-          for that reason.
-        */}
-        <Link
-          href="/hub"
-          title="All solutions"
-          className="a-rail-wide text-subtle ml-auto grid size-7 shrink-0 place-items-center rounded-lg transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]"
-        >
-          <LayoutGrid className="size-[15px]" aria-hidden />
-          <span className="sr-only">All solutions</span>
         </Link>
       </div>
 
