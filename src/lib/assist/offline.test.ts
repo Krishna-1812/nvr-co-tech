@@ -50,7 +50,7 @@ describe('the sample itself', () => {
   });
 
   it('says how to get a real one', async () => {
-    expect(textOf(await collect('how does matching work'))).toMatch(/OPENAI_API_KEY/);
+    expect(textOf(await collect('how does matching work'))).toMatch(/GEMINI_API_KEY/);
   });
 
   it('reads back what retrieval found, so the retrieval can be judged', async () => {

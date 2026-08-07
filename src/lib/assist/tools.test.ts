@@ -30,7 +30,6 @@ describe('the tool list', () => {
     for (const tool of TOOLS) {
       expect(tool.description.length).toBeGreaterThan(40);
       expect(tool.parameters.type).toBe('object');
-      expect(tool.parameters.additionalProperties).toBe(false);
     }
   });
 
@@ -42,11 +41,15 @@ describe('the tool list', () => {
     }
   });
 
-  it('sends the schemas in the shape the API takes', () => {
-    for (const schema of toolSchemas()) {
-      expect(schema.type).toBe('function');
-      expect(typeof schema.name).toBe('string');
-      expect(schema.parameters).toBeTruthy();
+  it('sends every tool in one declaration list, which is the shape Gemini takes', () => {
+    const [tools, ...rest] = toolSchemas();
+
+    expect(rest).toHaveLength(0);
+    expect(tools.functionDeclarations).toHaveLength(TOOLS.length);
+
+    for (const declaration of tools.functionDeclarations) {
+      expect(typeof declaration.name).toBe('string');
+      expect(declaration.parameters).toBeTruthy();
     }
   });
 });

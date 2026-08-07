@@ -52,6 +52,13 @@ describe('the standing instructions', () => {
     expect(text).toMatch(/no connection to their vouchers/);
   });
 
+  it('tells it to decline anything that is not its subject', () => {
+    // Left to itself it answers the question anyway and recommends a library,
+    // which is helpful and is not what this is for.
+    expect(text).toMatch(/Stay on your subject/);
+    expect(text).toMatch(/Do not answer it anyway/);
+  });
+
   it('tells it to be careful with statutory figures', () => {
     expect(text).toMatch(/Never invent a rate, a section or a deadline/);
     expect(text).toMatch(/not a substitute for professional advice/);

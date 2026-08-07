@@ -11,33 +11,34 @@
 /**
  * The model.
  *
- * GPT-5.6 is three tiers rather than one model: Sol is the flagship, Terra sits
- * roughly where 5.5 did at half the price, and Luna is the fast cheap lane. This
- * assistant answers questions about money and about statutory work, where being
- * wrong is expensive and being slow is merely annoying, so the default is the
- * flagship.
+ * Gemini's Flash and Pro lines are on separate release cadences, and the Flash
+ * one is further ahead: at the time of writing the newest Flash is 3.6 while the
+ * newest Pro is a 3.1 preview. So "the newest model" and "the biggest model" are
+ * not the same choice, and this is the newest.
  *
- * If the bill matters more than the last few points of accuracy, `gpt-5.6-terra`
- * is the switch to make, and it is one environment variable.
+ * It is also the one a free-tier key can actually reach. Every Pro model returns
+ * 429 with a quota of exactly zero unless billing is enabled on the Google Cloud
+ * project behind the key, which is a thing that fails at run time rather than at
+ * deploy time. See describeApiFailure, which says so in as many words.
  */
-export const MODEL = process.env.OPENAI_MODEL ?? 'gpt-5.6-sol';
+export const MODEL = process.env.GEMINI_MODEL ?? 'gemini-3.6-flash';
 
 /**
- * How hard the model thinks before answering.
+ * How much the model thinks before answering.
  *
- * Left unset by default and only sent when configured. The reasoning parameter
- * has moved between model families more than once, and a request carrying a
- * field the chosen model does not accept is a 400 rather than a degraded answer.
- * Unset means "whatever this model does by default", which is always valid.
+ * Left unset by default and only sent when configured. Unset means whatever the
+ * model does on its own, which is always valid; a field the chosen model does
+ * not accept is a 400 rather than a slightly different answer.
  *
- * Accepted by the API today: none, minimal, low, medium, high. Anything else is
- * passed through untouched, because this file should not be the reason a value
- * OpenAI has just added cannot be used.
+ * Gemini 3 takes `minimal`, `low` and `high`. A plain number is sent as a token
+ * budget instead, which is what the 2.5 models take. Both were checked against
+ * the live API rather than against the documentation.
  */
-export const REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT || null;
+export const THINKING_LEVEL = process.env.GEMINI_THINKING_LEVEL || null;
 
-/** Where the Responses API lives. Overridable for a proxy or a gateway. */
-export const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
+/** Where the API lives. Overridable for a proxy or a gateway. */
+export const GEMINI_BASE_URL =
+  process.env.GEMINI_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta';
 
 /**
  * The key, read at call time.
@@ -47,7 +48,7 @@ export const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? 'https://api.opena
  * and runs perfectly well without one.
  */
 export function apiKey(): string | null {
-  const key = process.env.OPENAI_API_KEY?.trim();
+  const key = process.env.GEMINI_API_KEY?.trim();
   return key ? key : null;
 }
 
@@ -73,8 +74,15 @@ export const MAX_HISTORY_TURNS = 12;
 /** Total characters of history sent, oldest dropped first. Belt to the braces above. */
 export const MAX_HISTORY_CHARS = 24_000;
 
-/** The ceiling on one answer. Generous: a reconciliation walkthrough is long. */
-export const MAX_OUTPUT_TOKENS = 4_000;
+/**
+ * The ceiling on one answer.
+ *
+ * Generous, and it has to be more generous here than it looks: Gemini counts
+ * thinking tokens against this budget, and a hard question can spend a thousand
+ * of them before writing a word. Set this to what you want the answer to be and
+ * the answer arrives truncated.
+ */
+export const MAX_OUTPUT_TOKENS = 8_000;
 
 /**
  * How many rounds of "call a tool, look at the result, carry on" are allowed.
@@ -92,7 +100,7 @@ export const MAX_TOOL_ROUNDS = 4;
  * This is a cost control, not a security control. It is enforced in the memory
  * of one server instance, so on a platform that runs several the real ceiling is
  * this multiplied by however many are warm. That is fine for what it is for:
- * stopping one open tab with a stuck retry from spending the month's credit. A
+ * stopping one open tab with a stuck retry from spending the month's quota. A
  * limit that had to hold exactly would need to live in the database.
  */
 export const RATE_LIMIT = 30;

@@ -1,5 +1,6 @@
 import { AGENTS, JOBS, STAGE_LABEL, TDS_SECTIONS } from '@/lib/marketing/content';
 import { ROLE_META, USER_ROLES } from '@/lib/domain/workflow';
+import { assistSection, reconSection, voucherSection } from '@/lib/nav';
 
 /**
  * What the assistant is allowed to know.
@@ -116,6 +117,49 @@ function calendarDoc(): Doc {
   };
 }
 
+/**
+ * Where the screens are, generated from the navigation itself.
+ *
+ * Added after watching the assistant answer "approve this for me" correctly and
+ * then send the reader to /dashboard for their approval queue, which is at
+ * /approvals. It had nothing to go on: the corpus described what each tool does
+ * and never said where anything lives, so the one part of the answer it had to
+ * invent was the part the reader would act on.
+ *
+ * Generated rather than written for the obvious reason. A hand-written list of
+ * routes is wrong the first time somebody moves one, and being confidently wrong
+ * about where a screen is is worse than not knowing.
+ *
+ * Built as an owner so every destination appears, with the two that are gated
+ * marked as such rather than silently dropped.
+ */
+function screensDoc(): Doc {
+  const sections = [voucherSection({ role: 'owner' }), reconSection(), assistSection()];
+
+  return {
+    id: 'platform-screens',
+    title: 'Where each screen is',
+    agent: null,
+    kind: 'platform',
+    keywords: ['where', 'find', 'go to', 'screen', 'page', 'menu', 'navigation', 'url', 'link'],
+    body: [
+      'Signing in takes you to the hub at /hub, which is where you choose a tool.',
+      'Each tool then has its own set of screens.',
+      '',
+      ...sections.flatMap((section) => [
+        `${section.name}, which opens at ${section.home}:`,
+        ...section.items.map((item) => `- ${item.label}, at ${item.href}. ${item.hint}.`),
+        ...(section.primary ? [`- ${section.primary.label}, at ${section.primary.href}.`] : []),
+        '',
+      ]),
+      'Two of those are only there for some people. Approvals is for approvers,',
+      'admins and owners. Admin is for admins and owners. A member sees neither.',
+      '',
+      'Settings is the same screen from every tool. So is the hub.',
+    ].join('\n'),
+  };
+}
+
 /** The role ladder, from the same table the settings screen prints. */
 function rolesDoc(): Doc {
   return {
@@ -225,10 +269,10 @@ const WRITTEN: Doc[] = [
       'other people have to approve. Invoice attachments go to file storage, and who',
       'can open one mirrors who can see the voucher it belongs to.',
       '',
-      'What you type to this assistant is sent to OpenAI to be answered. Do not paste',
-      'anything into it that you would not send to a third party. It is not given a',
-      'connection to your vouchers, your ledgers or your history, so it cannot read',
-      'your records even if you ask it to.',
+      'What you type to this assistant is sent to Google, and answered by Gemini. Do',
+      'not paste anything into it that you would not send to a third party. It is not',
+      'given a connection to your vouchers, your ledgers or your history, so it cannot',
+      'read your records even if you ask it to.',
     ].join('\n'),
   },
   {
@@ -815,7 +859,14 @@ const WRITTEN: Doc[] = [
 ];
 
 /** The whole corpus, generated part first. */
-export const DOCS: Doc[] = [...rosterDocs(), rolesDoc(), calendarDoc(), tdsDoc(), ...WRITTEN];
+export const DOCS: Doc[] = [
+  ...rosterDocs(),
+  screensDoc(),
+  rolesDoc(),
+  calendarDoc(),
+  tdsDoc(),
+  ...WRITTEN,
+];
 
 export function docById(id: string): Doc | undefined {
   return DOCS.find((d) => d.id === id);

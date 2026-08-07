@@ -4,20 +4,22 @@ import { MODEL } from './config';
  * Turning a failure into a sentence somebody can act on.
  *
  * A chat window that says "something went wrong" is the least useful screen in
- * software, because the four things that actually go wrong here have four
- * completely different owners. A refused key and an exhausted balance both
- * arrive as a colour of red the reader cannot distinguish, and only one of them
- * is fixed by waiting. So each one is named, and the message says who can do
- * something about it.
+ * software, because the things that actually go wrong here have different
+ * owners. The one worth the most care is the quota case, because Gemini uses a
+ * single status code for two situations that could not be more different: "you
+ * are asking too fast, wait a moment" and "your key has no access to this model
+ * at all, and waiting will never help". Both arrive as 429. Telling them apart
+ * is the difference between a reader waiting patiently forever and a reader
+ * turning billing on.
  *
  * These are read by customers, so: short sentences, ordinary words, no
  * em-dashes.
  */
 
-/** The error envelope the API returns. Only the fields worth branching on. */
+/** The error envelope Gemini returns. Only the fields worth branching on. */
 type ApiError = {
   message?: unknown;
-  type?: unknown;
+  status?: unknown;
   code?: unknown;
 };
 
@@ -26,54 +28,99 @@ function field(value: unknown): string {
 }
 
 /**
- * What to say about an HTTP failure from OpenAI.
+ * A quota of exactly zero is not a rate limit.
+ *
+ * Google reports "no access to this model on this plan" as a 429 whose message
+ * happens to contain `limit: 0`. Every Pro model does this on a key without
+ * billing enabled. Read as an ordinary rate limit it produces the worst possible
+ * advice, which is to try again in a minute, forever.
+ */
+function isPlanLimit(message: string): boolean {
+  return /limit:\s*0\b/.test(message);
+}
+
+/**
+ * What to say about an HTTP failure from Gemini.
  *
  * The body is passed in already parsed, or as null when it was not JSON, which
  * happens on a gateway error where the response is an HTML page.
  */
 export function describeApiFailure(status: number, body: unknown): string {
   const error = ((body as { error?: ApiError } | null)?.error ?? {}) as ApiError;
-  const code = field(error.code);
-  const type = field(error.type);
+  const state = field(error.status);
   const message = field(error.message);
 
-  if (code === 'credit_balance_exhausted' || type === 'insufficient_quota') {
-    return 'The OpenAI account behind this assistant has no credits left, so it cannot answer. Everything else on this platform is unaffected. Adding credits to the account switches it back on.';
+  if (status === 429 && isPlanLimit(message)) {
+    return `The key this deployment uses has no quota for ${MODEL}, so waiting will not help. Either enable billing on the Google Cloud project behind the key, or set GEMINI_MODEL to a model the free tier covers. The Flash models are free; the Pro ones are not.`;
   }
 
-  if (status === 401 || code === 'invalid_api_key') {
-    return 'The OpenAI key this deployment is using was refused. It is either wrong, or it has been revoked. Nobody can fix that from this screen.';
+  if (status === 429 || state === 'RESOURCE_EXHAUSTED') {
+    /*
+     * Google says how long to wait, and it is worth passing on rather than
+     * rounding to "a minute": the free tier allows twenty requests a minute, and
+     * one question can be several requests because each round of calculations is
+     * one. So this fires more often than you would expect, and "about twenty
+     * seconds" is a thing somebody will actually wait for.
+     */
+    const wait = /retry in ([\d.]+)s/i.exec(message);
+    const seconds = wait ? Math.ceil(Number(wait[1])) : null;
+
+    return seconds
+      ? `That is more questions than this deployment's Gemini plan allows just now. Try again in about ${seconds} second${seconds === 1 ? '' : 's'}.`
+      : 'Google is taking too many questions from this deployment at once. Give it a minute and ask again.';
   }
 
-  /*
-   * Before the general 403 below, not after it. "You do not have access to
-   * model x" arrives as a 403, and it is a much more specific problem than the
-   * key being unauthorised: the key is fine and one variable is wrong.
-   */
-  if (code === 'model_not_found' || /does not exist|do not have access/i.test(message)) {
-    return `The model this deployment asks for, ${MODEL}, is not available to its OpenAI key. Set OPENAI_MODEL to one the key can reach.`;
+  if (status === 401 || state === 'UNAUTHENTICATED' || /API key not valid|API_KEY_INVALID/i.test(message)) {
+    return 'The Gemini key this deployment is using was refused. It is either wrong or it has been revoked. Nobody can fix that from this screen.';
   }
 
-  if (status === 403) {
-    return 'The OpenAI key this deployment is using is not allowed to do this. Check what the key has access to.';
+  if (status === 404 || state === 'NOT_FOUND') {
+    return `There is no model called ${MODEL}. Set GEMINI_MODEL to one that exists.`;
   }
 
-  if (status === 429) {
-    return 'Too many questions are being asked of OpenAI at once. Give it a moment and ask again.';
+  if (status === 403 || state === 'PERMISSION_DENIED') {
+    return 'The Gemini key this deployment is using is not allowed to do this. Check what the key has access to.';
   }
 
-  if (status >= 500) {
-    return 'OpenAI is having a problem at its end. This usually clears on its own, so it is worth asking again in a minute.';
+  if (status >= 500 || state === 'UNAVAILABLE') {
+    return 'Gemini is having a problem at its end. This usually clears on its own, so it is worth asking again in a minute.';
   }
 
-  if (status === 400 && message) {
+  if (message) {
     // The only case where the raw text is genuinely the most useful thing: a
-    // rejected parameter names itself, and whoever is reading it is the person
-    // who set it.
-    return `OpenAI refused the request: ${message}`;
+    // rejected field names itself, and whoever is reading it is the person who
+    // set it or wrote it.
+    return `Gemini refused the request: ${message}`;
   }
 
-  return 'The assistant could not reach OpenAI just now. Please try again.';
+  return 'The assistant could not reach Gemini just now. Please try again.';
+}
+
+/**
+ * Why an answer stopped, when it was not simply finished.
+ *
+ * Returns null for a normal ending, and for the reasons the reader can do
+ * nothing about and does not need to see. What comes back is appended to the
+ * answer in italics rather than replacing it, because whatever was written
+ * before it is still worth reading.
+ */
+export function describeStopReason(reason: string | null): string | null {
+  switch (reason) {
+    case 'MAX_TOKENS':
+      return 'That answer was cut short because it reached its length limit. Ask for the rest and it will carry on.';
+    case 'SAFETY':
+    case 'PROHIBITED_CONTENT':
+    case 'BLOCKLIST':
+      return "That answer was stopped by Google's safety filters. Rewording the question usually gets past this.";
+    case 'RECITATION':
+      return 'That answer was stopped because it was reproducing a source too closely. Asking for it in your own terms usually works.';
+    case 'MALFORMED_FUNCTION_CALL':
+      return 'The model asked for a calculation in a way this app could not read, so the answer stops here.';
+    default:
+      // STOP, null, and anything new Google adds. A stop reason nobody has seen
+      // before is not worth showing a reader.
+      return null;
+  }
 }
 
 /** What to say when the request never got an answer at all. */
@@ -82,11 +129,11 @@ export function describeTransportFailure(error: unknown): string {
     return 'That answer was taking too long, so it was stopped. A shorter question usually comes back quickly.';
   }
   if (error instanceof Error && /fetch failed|ENOTFOUND|ECONNREFUSED|network/i.test(error.message)) {
-    return 'This server could not reach OpenAI. That is a connection problem here rather than anything you did.';
+    return 'This server could not reach Gemini. That is a connection problem here rather than anything you did.';
   }
   return 'Something went wrong while answering. Please try again.';
 }
 
 /** The assistant is not configured at all. Said once, plainly. */
 export const NO_KEY =
-  'The assistant is not switched on for this deployment. It needs an OpenAI key in OPENAI_API_KEY.';
+  'The assistant is not switched on for this deployment. It needs a Gemini key in GEMINI_API_KEY.';

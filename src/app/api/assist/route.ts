@@ -4,7 +4,7 @@ import { PREVIEW } from '@/lib/preview';
 import { MAX_QUESTION_CHARS, apiKey } from '@/lib/assist/config';
 import { NO_KEY } from '@/lib/assist/errors';
 import { runOffline } from '@/lib/assist/offline';
-import { runAssist, type InputItem } from '@/lib/assist/openai';
+import { runAssist } from '@/lib/assist/gemini';
 import {
   contextBlock,
   instructions,
@@ -134,11 +134,9 @@ export async function POST(request: Request) {
     role: user.role,
   })}\n\n${contextBlock(hits)}`;
 
-  const input: InputItem[] = turns.map((turn) => ({ role: turn.role, content: turn.content }));
-
   const events = offline
     ? runOffline(latestQuestion(turns), hits)
-    : runAssist(system, input, request.signal);
+    : runAssist(system, turns, request.signal);
 
   const encoder = new TextEncoder();
 

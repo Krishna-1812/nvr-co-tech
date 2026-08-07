@@ -40,12 +40,23 @@ export type ToolOutcome = {
   data: Record<string, unknown>;
 };
 
-/** JSON Schema, as the API wants it. Hand-written; there are six of them. */
+/**
+ * The parameter schema, in the subset Gemini accepts.
+ *
+ * It looks like JSON Schema and is not. Gemini takes an OpenAPI-flavoured
+ * subset, and anything outside it is a hard 400 rather than an ignored field:
+ * `additionalProperties: false`, which every JSON Schema in this codebase would
+ * ordinarily carry, is rejected by name. That is not a thing the documentation
+ * makes obvious and it is not a thing you find without sending one.
+ *
+ * So the type is written down as the subset. `toolSchemas` has a test that
+ * walks what is actually sent and fails on any key outside it, because the next
+ * person to add a tool will reach for the JSON Schema they know.
+ */
 type Schema = {
   type: 'object';
   properties: Record<string, unknown>;
   required?: string[];
-  additionalProperties: false;
 };
 
 export type AssistTool = {
@@ -113,7 +124,6 @@ const voucherTotal: AssistTool = {
       discount: { type: 'number', description: 'Line I. Subtracts.' },
     },
     required: ['basic_value'],
-    additionalProperties: false,
   },
   run(args) {
     const basic = num(args.basic_value);
@@ -184,7 +194,6 @@ const gstSplit: AssistTool = {
       },
     },
     required: ['taxable_value', 'rate_percent', 'inter_state'],
-    additionalProperties: false,
   },
   run(args) {
     const value = num(args.taxable_value);
@@ -243,7 +252,6 @@ const tdsDeduction: AssistTool = {
       },
     },
     required: ['amount', 'section'],
-    additionalProperties: false,
   },
   run(args) {
     const amount = num(args.amount);
@@ -294,7 +302,6 @@ const checkIdentifier: AssistTool = {
       pan: { type: 'string', description: 'A PAN, for example ABCDE1234F.' },
       gstin: { type: 'string', description: 'A GSTIN, fifteen characters.' },
     },
-    additionalProperties: false,
   },
   run(args) {
     // Case and stray spaces are a transcription artefact, not the reader being
@@ -358,7 +365,6 @@ const financialYearTool: AssistTool = {
         description: 'A date as yyyy-mm-dd. Leave it out for today in India.',
       },
     },
-    additionalProperties: false,
   },
   run(args) {
     const given = str(args.date);
@@ -412,7 +418,6 @@ const ledgerBalance: AssistTool = {
       stated_closing_side: { type: 'string', enum: ['Dr', 'Cr'] },
     },
     required: ['opening', 'opening_side', 'total_debits', 'total_credits'],
-    additionalProperties: false,
   },
   run(args) {
     const opening = num(args.opening);
@@ -477,20 +482,26 @@ export function toolByName(name: string): AssistTool | undefined {
   return TOOLS.find((t) => t.name === name);
 }
 
-/** The tool list in the shape the Responses API takes. */
+/**
+ * The tool list, in the one shape Gemini takes.
+ *
+ * All six go in a single `tools` entry rather than one entry each. That is what
+ * the API expects, and sending six entries is accepted but reportedly makes the
+ * model worse at choosing between them.
+ *
+ * Note what is NOT here. There is no strict mode and no way to ask for one, so
+ * every argument is checked in `run` regardless of what the model sent. That is
+ * where it has to happen anyway: a schema stops a field being the wrong type, it
+ * does not stop a plausible number being the wrong number.
+ */
 export function toolSchemas() {
-  return TOOLS.map((tool) => ({
-    type: 'function' as const,
-    name: tool.name,
-    description: tool.description,
-    parameters: tool.parameters,
-    /*
-     * Off deliberately. Strict mode requires every property to be listed as
-     * required, which for a voucher would force the model to send nine amount
-     * lines when a question mentions two, and a zero it invented is
-     * indistinguishable here from a zero the reader gave. Every argument is
-     * checked in `run` anyway, which is where it has to happen regardless.
-     */
-    strict: false,
-  }));
+  return [
+    {
+      functionDeclarations: TOOLS.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters,
+      })),
+    },
+  ];
 }

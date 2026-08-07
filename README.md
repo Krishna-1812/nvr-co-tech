@@ -251,9 +251,13 @@ skips itself if they have not been generated.
 
 ### Ask
 
-The assistant lives in [`src/lib/assist`](src/lib/assist), with 230 tests. It talks to OpenAI's
-Responses API, streams over server-sent events, and is signed-in only, because an unauthenticated
-endpoint that spends somebody else's API credit is a bill waiting to happen.
+The assistant lives in [`src/lib/assist`](src/lib/assist), with 248 tests. It talks to Gemini,
+streams over server-sent events, and is signed-in only, because an unauthenticated endpoint that
+spends somebody else's API quota is a bill waiting to happen.
+
+One file, [`gemini.ts`](src/lib/assist/gemini.ts), knows whose API it is. Everything else is
+provider-agnostic and proved it: the platform moved from OpenAI to Gemini without retrieval, the
+prompt, the tools, the event stream, the markdown renderer or a single component changing.
 
 Three things do the work that "accurate" usually only claims:
 
@@ -274,10 +278,36 @@ weather. A retrieval miss is fixed by adding a keyword, which is a thing a perso
 Markdown is parsed to a tree and rendered as React elements. Nothing the model writes ever reaches
 the HTML parser, and a link is only a link when it points inside this app.
 
-`OPENAI_API_KEY` switches it on; without one the panel says so and nothing else is affected. The
-model defaults to `gpt-5.6-sol` and moves with `OPENAI_MODEL`. In preview mode with no key it streams
-a clearly labelled sample built from whatever retrieval found, which is how the interface was built
-and is the reason the whole pipeline can be exercised without spending anything.
+`GEMINI_API_KEY` switches it on; without one the panel says so and nothing else is affected. In
+preview mode with no key it streams a clearly labelled sample built from whatever retrieval found,
+which is how the interface was built and is the reason the whole pipeline can be exercised without
+spending anything.
+
+#### Three things about Gemini that are only findable by sending a request
+
+- **`additionalProperties` is rejected by name.** Gemini takes an OpenAPI subset for function
+  parameters, not JSON Schema, and an unknown key is a hard 400 rather than an ignored field. A test
+  walks every schema actually sent and fails on anything outside the subset, because the next person
+  to add a tool will reach for the JSON Schema they know.
+- **Thought signatures have to survive the round trip.** A function call arrives carrying an opaque
+  `thoughtSignature`, and echoing the call back without it is a 400. So the whole part is kept
+  verbatim rather than rebuilt from its name and arguments, which is the obvious way to write it and
+  fails every time.
+- **A quota of zero arrives as a rate limit.** Every Pro model answers 429 with `limit: 0` unless
+  billing is enabled, which is indistinguishable from "slow down" unless you read the message. Told
+  apart in [`errors.ts`](src/lib/assist/errors.ts), because advising somebody to wait for a quota
+  that is structurally zero is the worst thing this screen can say.
+
+#### Which model, and what the free tier gives you
+
+Defaults to `gemini-3.6-flash`, moved with `GEMINI_MODEL`. Flash and Pro are on separate release
+cadences and Flash is further ahead, so the newest model and the biggest model are not the same
+choice. Flash is also the only family a free key can reach at all.
+
+The free tier allows **20 requests a minute**, and one question is more than one request: each round
+of calculations is its own call, so a question that uses three tools costs four. Expect roughly five
+questions a minute before it starts asking you to wait, and the wait it quotes comes from Google
+rather than from a guess.
 
 ### Verified against a live database
 

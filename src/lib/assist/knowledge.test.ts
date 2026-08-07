@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AGENTS, LIVE_AGENTS, STAGE_LABEL } from '@/lib/marketing/content';
 import { ROLE_META, USER_ROLES } from '@/lib/domain/workflow';
+import { reconSection, voucherSection } from '@/lib/nav';
 import { DOCS, docById } from './knowledge';
 
 /**
@@ -80,6 +81,22 @@ describe('agreeing with the website', () => {
     }
   });
 
+  it('takes every route from the navigation rather than writing them down again', () => {
+    /*
+     * Added after the live model sent somebody to /dashboard for their approval
+     * queue. It had nothing else to go on, so the one part of the answer it had
+     * to invent was the part the reader would act on.
+     */
+    const screens = docById('platform-screens')?.body ?? '';
+    for (const item of voucherSection({ role: 'owner' }).items) {
+      expect(screens, `${item.href} is missing`).toContain(item.href);
+    }
+    for (const item of reconSection().items) {
+      expect(screens, `${item.href} is missing`).toContain(item.href);
+    }
+    expect(screens).toContain('/hub');
+  });
+
   it('takes the role ladder from the same table the settings screen prints', () => {
     const roles = docById('platform-roles');
     for (const role of USER_ROLES) {
@@ -116,7 +133,7 @@ describe('being honest about the assistant itself', () => {
   });
 
   it('warns that questions are sent to a third party', () => {
-    expect(docById('platform-privacy')?.body).toMatch(/sent to OpenAI/);
+    expect(docById('platform-privacy')?.body).toMatch(/sent to Google/);
   });
 });
 
@@ -139,7 +156,8 @@ describe('house style, because a customer reads all of this', () => {
      * calendar at whatever length those were written at, which is not this
      * file's business to reformat.
      */
-    const generated = (id: string) => id.startsWith('agent-') || id === 'finance-month';
+    const generated = (id: string) =>
+      id.startsWith('agent-') || id === 'finance-month' || id === 'platform-screens';
 
     for (const doc of DOCS) {
       if (generated(doc.id)) continue;

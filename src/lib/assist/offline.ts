@@ -46,14 +46,14 @@ function answer(question: string, hits: Hit[]): string {
       '',
       `Nothing in the knowledge base matched “${asked}”, so a real answer would say it does not know rather than guess.`,
       '',
-      'Set `OPENAI_API_KEY` and turn preview mode off to ask the model itself.',
+      'Set `GEMINI_API_KEY` and turn preview mode off to ask the model itself.',
     ].join('\n');
   }
 
   return [
     '**This is a sample answer. There is no model behind it.**',
     '',
-    `Preview mode is on and no OpenAI key is set, so instead of an answer to “${asked}”, here is what the assistant would have been given to work from. A real answer would be written from these, in prose, with any figures coming from the calculators.`,
+    `Preview mode is on and no Gemini key is set, so instead of an answer to “${asked}”, here is what the assistant would have been given to work from. A real answer would be written from these, in prose, with any figures coming from the calculators.`,
     '',
     ...hits.flatMap((hit) => [
       `### ${hit.doc.title}`,
@@ -65,7 +65,7 @@ function answer(question: string, hits: Hit[]): string {
     ]),
     '---',
     '',
-    'Set `OPENAI_API_KEY` and turn preview mode off to ask the model itself.',
+    'Set `GEMINI_API_KEY` and turn preview mode off to ask the model itself.',
   ].join('\n');
 }
 
