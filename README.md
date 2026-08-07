@@ -300,14 +300,19 @@ spending anything.
 
 #### Which model, and what the free tier gives you
 
-Defaults to `gemini-3.6-flash`, moved with `GEMINI_MODEL`. Flash and Pro are on separate release
-cadences and Flash is further ahead, so the newest model and the biggest model are not the same
-choice. Flash is also the only family a free key can reach at all.
+Defaults to `gemini-3.5-flash`, moved with `GEMINI_MODEL`. That is deliberately **not** the newest
+model, and the reason is worth writing down because it is invisible until you hit it.
 
-The free tier allows **20 requests a minute**, and one question is more than one request: each round
-of calculations is its own call, so a question that uses three tools costs four. Expect roughly five
-questions a minute before it starts asking you to wait, and the wait it quotes comes from Google
-rather than from a guess.
+Free-tier allowances are per model, and they are not comparable. `gemini-3.6-flash`, the newest, gets
+**20 requests a day**. One question costs a request per round of calculations, so a question using
+three tools costs four: twenty a day is about five questions before the assistant stops working until
+tomorrow. `gemini-3.5-flash` is one generation behind and has a real allowance. Measured by
+exhausting the first and watching the second carry on, not read off a page.
+
+Pro is not reachable on a free key at all. Every Pro model answers with a quota of exactly zero.
+
+So with billing enabled on the Google Cloud project, move `GEMINI_MODEL` up. Without it, this is the
+setting that gives you a working assistant rather than a better one that is switched off by lunchtime.
 
 ### Verified against a live database
 

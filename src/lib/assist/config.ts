@@ -11,17 +11,23 @@
 /**
  * The model.
  *
- * Gemini's Flash and Pro lines are on separate release cadences, and the Flash
- * one is further ahead: at the time of writing the newest Flash is 3.6 while the
- * newest Pro is a 3.1 preview. So "the newest model" and "the biggest model" are
- * not the same choice, and this is the newest.
+ * Not the newest one, and that was measured rather than assumed.
  *
- * It is also the one a free-tier key can actually reach. Every Pro model returns
- * 429 with a quota of exactly zero unless billing is enabled on the Google Cloud
- * project behind the key, which is a thing that fails at run time rather than at
- * deploy time. See describeApiFailure, which says so in as many words.
+ * The newest Flash is 3.6, and on a free key it allows twenty requests A DAY.
+ * One question costs a request per round of calculations, so that is about five
+ * questions before the assistant stops working until tomorrow. `gemini-3.5-flash`
+ * is a generation behind and has a real allowance, which makes it the only one
+ * of the two that is a product. Both were checked by exhausting the first and
+ * watching the second keep answering.
+ *
+ * Pro is not an option at all without billing: every Pro model returns 429 with
+ * a quota of exactly zero. See describeApiFailure, which tells the reader that
+ * in as many words rather than advising them to wait.
+ *
+ * So: with billing enabled, `gemini-3.6-flash` is the better model and this is
+ * the line to change. Without it, this is the one that works.
  */
-export const MODEL = process.env.GEMINI_MODEL ?? 'gemini-3.6-flash';
+export const MODEL = process.env.GEMINI_MODEL ?? 'gemini-3.5-flash';
 
 /**
  * How much the model thinks before answering.
