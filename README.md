@@ -16,6 +16,12 @@ engine that runs **entirely in the browser**. The files are read on the reader's
 never uploaded, which for client bank statements is a better answer than a server-side session; it
 also removed the in-memory store the original lost on every restart.
 
+**Ask** is not a third agent. It is a layer across the other two: a chat panel on every signed-in
+screen, and a page of its own at `/ask`. It answers questions about the tools and about the
+accounting behind them, grounded in a corpus that is generated from the same roster the website
+renders, and it does its arithmetic by calling the application's own functions rather than by adding
+up in prose. See below.
+
 See [`docs/01-system-analysis.md`](docs/01-system-analysis.md) for the analysis of v1 and
 [`docs/03-rebuild-architecture.md`](docs/03-rebuild-architecture.md) for the design decisions.
 
@@ -29,6 +35,7 @@ See [`docs/01-system-analysis.md`](docs/01-system-analysis.md) for the analysis 
 /approvals, /admin,
 /settings             Voucher Desk            src/app/(app)
 /reconcile            Ledger Reconciliation   src/app/(recon)
+/ask                  the assistant           src/app/(assist)
 ```
 
 Each tool is a route group with its own `Section` (see [`src/lib/nav.ts`](src/lib/nav.ts)) handed to
@@ -212,6 +219,7 @@ Built:
 - **Public marketing site** — home, agent roster, per-agent pages, about, contact,
   with a generated social card, sitemap and robots
 - **Ledger Reconciliation** — the whole tool (see below)
+- **Ask** — a grounded assistant across every tool, with the arithmetic done by the app's own code
 
 Not yet built: Google Sheets sync worker. Four of the six agents on `/agents` are roadmap
 entries, and the pages say so.
@@ -240,6 +248,36 @@ the same two files reconcile to the same statement every time.
 `npm run recon:sample` writes a sample pair of ledgers to `scratch/`, in CSV and as borderless
 PDFs, plus a reconciliation of them. The PDF parser's own test suite reads those PDFs back, and
 skips itself if they have not been generated.
+
+### Ask
+
+The assistant lives in [`src/lib/assist`](src/lib/assist), with 230 tests. It talks to OpenAI's
+Responses API, streams over server-sent events, and is signed-in only, because an unauthenticated
+endpoint that spends somebody else's API credit is a bill waiting to happen.
+
+Three things do the work that "accurate" usually only claims:
+
+- **It may not invent.** Every claim about this platform has to come from a retrieved document, and
+  the interface shows the reader which documents those were. The corpus is partly generated from
+  `AGENTS`, so the assistant cannot describe a roadmap tool as available or promise something the
+  marketing page stopped claiming.
+- **It does no arithmetic.** Six tools are exposed to the model, and they call `calcGrandTotal`,
+  `gstMode`, `isValidGstin`, `fiscalYear` and the rest directly. The same code the voucher form uses
+  and the database mirrors. The working is printed under the answer with its inputs.
+- **It is careful about statute.** Rates, sections and due dates are stated only where the site
+  already commits to them, always with the note to confirm the current position.
+
+Retrieval is lexical rather than embeddings, on purpose: the corpus is thirty documents we wrote, and
+the same question has to reach the same documents every time or the tests are asserting about the
+weather. A retrieval miss is fixed by adding a keyword, which is a thing a person can do.
+
+Markdown is parsed to a tree and rendered as React elements. Nothing the model writes ever reaches
+the HTML parser, and a link is only a link when it points inside this app.
+
+`OPENAI_API_KEY` switches it on; without one the panel says so and nothing else is affected. The
+model defaults to `gpt-5.6-sol` and moves with `OPENAI_MODEL`. In preview mode with no key it streams
+a clearly labelled sample built from whatever retrieval found, which is how the interface was built
+and is the reason the whole pipeline can be exercised without spending anything.
 
 ### Verified against a live database
 

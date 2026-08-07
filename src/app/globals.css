@@ -539,6 +539,13 @@
   50%      { opacity: 0.45; transform: scale(0.82); }
 }
 
+/* A panel arriving from the right edge. Short and eased, because it is opened
+   from a keystroke and anything slower reads as lag rather than as motion. */
+@keyframes sheet-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
 /* Barely-there vertical drift, for a badge or mark that should feel unfixed. */
 @keyframes float {
   0%, 100% { transform: translateY(0); }
@@ -813,7 +820,8 @@ body:has([data-skin='night']) {
    * background-clip trick; as a mask on a padding box it is one element, and it
    * follows any border-radius the caller sets.
    */
-  .m-ring {
+  /* Same as .a-ring below: it must not clobber a positioning utility. */
+  .m-ring:where(:not(.fixed, .absolute, .sticky)) {
     position: relative;
   }
   .m-ring::before {
@@ -1075,7 +1083,18 @@ body:has([data-skin='night']) {
    * from a card with an edge — a flat 1px line round all four sides is the thing
    * that makes a panel look drawn rather than lit.
    */
-  .a-ring { position: relative; }
+  /*
+   * The edge needs a containing block, which `relative` gives it. But `fixed`,
+   * `absolute` and `sticky` establish one too, and this rule sits later in the
+   * file than Tailwind's own utilities: at equal specificity it was winning, so
+   * `.a-ring fixed` came out relative and any panel written that way was laid
+   * out in the flow of the page instead of over it. That is what had happened
+   * to the command palette.
+   *
+   * `:where()` contributes no specificity, so this is still a plain class and
+   * the only change is that it now declines to fight a positioning utility.
+   */
+  .a-ring:where(:not(.fixed, .absolute, .sticky)) { position: relative; }
   .a-ring::before {
     content: '';
     position: absolute;

@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import type { UserRole } from '@/lib/domain/workflow';
 import type { Fiscal } from '@/lib/fiscal';
-import type { Section } from '@/lib/nav';
+import { ASSIST_SLUG, type Section } from '@/lib/nav';
 import { BRAND } from '@/lib/marketing/content';
 import { LogoMark } from '../marketing/Logo';
 import { UserMenu } from '../UserMenu';
 import { buttonClass } from '../ui/primitives';
+import { AssistPanel } from '../assist/AssistPanel';
 import { CommandPalette } from './CommandPalette';
 
 /**
@@ -72,6 +73,15 @@ export function TopBar({
         </div>
 
         <div className="ml-auto flex items-center gap-2 md:ml-3">
+          {/*
+            The assistant follows you into whichever tool you are in, and is told
+            which one that is. Not offered on its own page, where the whole screen
+            is already it.
+          */}
+          {section.slug !== ASSIST_SLUG && (
+            <AssistPanel agent={section.slug} agentName={section.name} />
+          )}
+
           {/* Only where the rail is not there to carry it. The same button twice
               on one screen is one too many. */}
           {section.primary && Primary && (

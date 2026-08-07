@@ -10,6 +10,7 @@ import {
   Monitor,
   Moon,
   Search,
+  Sparkles,
   Sun,
   type LucideIcon,
 } from 'lucide-react';
@@ -114,6 +115,17 @@ export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; rol
         group: 'Go to',
         run: go(item.href),
       })),
+      // The assistant is on every screen behind ⌘J, which is exactly the sort of
+      // thing nobody discovers. So it is also here, where people look.
+      {
+        id: 'go-ask',
+        label: 'Ask',
+        hint: 'Questions about the tools and the accounting',
+        icon: Sparkles,
+        group: 'Go to',
+        keywords: 'assistant chat help ai question explain',
+        run: go('/ask'),
+      },
       // Out of this tool and back up to the platform. Last in the group on
       // purpose: it is the one destination here that leaves where you are.
       {

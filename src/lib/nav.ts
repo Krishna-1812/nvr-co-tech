@@ -6,6 +6,7 @@ import {
   Plus,
   Scale,
   Settings,
+  Sparkles,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -111,13 +112,16 @@ export function voucherSection({
 }
 
 /**
- * Ledger Reconciliation.
+ * The assistant is not on the roster, and this slug is what says so.
  *
- * No role branch, unlike Voucher Desk. Nothing here is approved or paid, so
- * there is nothing an approver can do that a member cannot, and inventing a
- * permission to make the two tools look alike would only be inventing a way to
- * lock somebody out of their own work.
+ * AGENTS is the list of tools we sell, and the assistant is not one of them: it
+ * is a way of asking about the others. Giving it a slug that cannot collide with
+ * a roster entry keeps that distinction enforceable, and lets the shell tell
+ * "which tool am I in" apart from "am I in the assistant", which is the question
+ * the top bar asks before deciding whether to offer the Ask button.
  */
+export const ASSIST_SLUG = 'assistant';
+
 /**
  * A section from its slug alone.
  *
@@ -130,11 +134,49 @@ export function sectionFor(
   slug: string,
   { role, pendingCount = 0 }: { role: UserRole; pendingCount?: number },
 ): Section {
-  return slug === 'ledger-reconciliation'
-    ? reconSection()
-    : voucherSection({ role, pendingCount });
+  if (slug === 'ledger-reconciliation') return reconSection();
+  if (slug === ASSIST_SLUG) return assistSection();
+  return voucherSection({ role, pendingCount });
 }
 
+/**
+ * The assistant with a whole screen to itself.
+ *
+ * The panel is the main way in and is on every other screen. This exists for the
+ * conversation that turned out to be long, and for anyone who would rather have
+ * a page they can leave open. No primary action: the primary action is the box
+ * at the bottom, which is already the largest thing on the page.
+ */
+export function assistSection(): Section {
+  return {
+    slug: ASSIST_SLUG,
+    name: 'Ask',
+    home: '/ask',
+    items: [
+      {
+        href: '/ask',
+        label: 'Ask',
+        icon: Sparkles,
+        hint: 'Questions about the tools and the accounting',
+      },
+      {
+        href: '/settings',
+        label: 'Settings',
+        icon: Settings,
+        hint: 'Your account and appearance',
+      },
+    ],
+  };
+}
+
+/**
+ * Ledger Reconciliation.
+ *
+ * No role branch, unlike Voucher Desk. Nothing here is approved or paid, so
+ * there is nothing an approver can do that a member cannot, and inventing a
+ * permission to make the two tools look alike would only be inventing a way to
+ * lock somebody out of their own work.
+ */
 export function reconSection(): Section {
   return {
     slug: 'ledger-reconciliation',

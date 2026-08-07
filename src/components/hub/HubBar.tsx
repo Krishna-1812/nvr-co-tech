@@ -4,13 +4,18 @@ import type { Fiscal } from '@/lib/fiscal';
 import { BRAND } from '@/lib/marketing/content';
 import { LogoMark } from '../marketing/Logo';
 import { UserMenu } from '../UserMenu';
+import { AssistPanel } from '../assist/AssistPanel';
 
 /**
  * The bar across the top of the hub.
  *
- * Deliberately thinner than Voucher Desk's. There is no rail here, no queue badge
- * and no ⌘K, because the hub has exactly one job — choose a tool — and a page with
- * one job should not arrive wearing the chrome of the tool you have not opened yet.
+ * Deliberately thinner than Voucher Desk's. There is no rail here and no queue
+ * badge, because the hub has exactly one job — choose a tool — and a page with one
+ * job should not arrive wearing the chrome of the tool you have not opened yet.
+ *
+ * The assistant is the exception, and it earns its place: "which of these should
+ * I be using" is a question about the hub itself, asked by somebody who has just
+ * arrived and is looking at six tiles.
  *
  * The name here is the platform, not the product. That is the whole point of the
  * screen: you have signed in to Finance Intelligence, and Voucher Desk is something
@@ -58,7 +63,10 @@ export function HubBar({
           </span>
         </div>
 
-        <div className="ml-auto md:ml-3">
+        <div className="ml-auto flex items-center gap-2 md:ml-3">
+          {/* No tool is open here, so nothing is pinned and the question alone
+              decides what the answer is built from. */}
+          <AssistPanel agent={null} agentName={null} />
           <UserMenu user={user} />
         </div>
       </div>
