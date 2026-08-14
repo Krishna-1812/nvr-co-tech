@@ -5,6 +5,8 @@ import { RotateCcw } from 'lucide-react';
 import { LogoMark } from '@/components/marketing/Logo';
 import { ask } from '@/lib/assist/stream';
 import { suggestionsFor } from '@/lib/assist/suggestions';
+import { AGENTS } from '@/lib/marketing/content';
+import { ACCENT_VAR } from '@/lib/solutions';
 import type { Turn } from '@/lib/assist/types';
 import { cn } from '@/lib/utils';
 import { Composer } from './Composer';
@@ -294,13 +296,16 @@ function Opening({
   onPick: (question: string) => void;
 }) {
   const suggestions = suggestionsFor(agent);
+  const here = agent ? AGENTS.find((a) => a.slug === agent) : undefined;
+  const tone = here ? ACCENT_VAR[here.accent] : 'var(--color-brand-500)';
 
   return (
     <div className="animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] px-1 py-6 text-center">
       <div className="relative mx-auto w-fit">
         <span
           aria-hidden
-          className="absolute inset-0 -z-10 m-auto size-24 rounded-full bg-[radial-gradient(circle,var(--color-brand-500),transparent_70%)] opacity-25 blur-2xl"
+          className="absolute inset-0 -z-10 m-auto size-24 rounded-full opacity-25 blur-2xl"
+          style={{ background: `radial-gradient(circle, ${tone}, transparent 70%)` }}
         />
         <LogoMark id="assist-opening" className="elev-2 size-11 rounded-2xl" />
       </div>
@@ -321,7 +326,8 @@ function Opening({
             onClick={() => onPick(suggestion.question)}
             className="surface-lit a-lift group rounded-xl px-3.5 py-3 text-left"
           >
-            <span className="block text-[13px] font-semibold tracking-tight">
+            <span className="flex items-center gap-1.5 text-[13px] font-semibold tracking-tight">
+              <span aria-hidden className="size-1.5 shrink-0 rounded-full" style={{ background: tone }} />
               {suggestion.label}
             </span>
             <span className="text-subtle mt-1 block line-clamp-2 text-[11.5px] leading-relaxed">

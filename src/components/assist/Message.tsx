@@ -3,6 +3,7 @@
 import { AlertCircle, FlaskConical } from 'lucide-react';
 import { LogoMark } from '@/components/marketing/Logo';
 import type { Turn } from '@/lib/assist/types';
+import { cn } from '@/lib/utils';
 import { Markdown } from './Markdown';
 import { Sources } from './Sources';
 import { Workings } from './Workings';
@@ -46,9 +47,13 @@ function Mark({ sample }: { sample: boolean }) {
 }
 
 export function Message({ turn, streaming = false }: { turn: Turn; streaming?: boolean }) {
+  // Plays once, on the turn's first mount. Its id never changes across the
+  // re-renders a streaming reply causes, so this never replays mid-answer.
+  const enter = 'animate-[rise_0.4s_cubic-bezier(0.22,1,0.36,1)_backwards]';
+
   if (turn.role === 'user') {
     return (
-      <div className="flex justify-end">
+      <div className={cn('flex justify-end', enter)}>
         <div className="surface-lit max-w-[85%] rounded-2xl rounded-br-md px-3.5 py-2.5 text-[14px] leading-relaxed whitespace-pre-wrap">
           {turn.content}
         </div>
@@ -60,7 +65,10 @@ export function Message({ turn, streaming = false }: { turn: Turn; streaming?: b
     return (
       <div
         role="alert"
-        className="tinted flex items-start gap-2.5 rounded-2xl border px-3.5 py-3 text-[13.5px] leading-relaxed"
+        className={cn(
+          'tinted flex items-start gap-2.5 rounded-2xl border px-3.5 py-3 text-[13.5px] leading-relaxed',
+          enter,
+        )}
         style={{ '--tone': 'var(--status-rejected)' } as React.CSSProperties}
       >
         <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -70,7 +78,7 @@ export function Message({ turn, streaming = false }: { turn: Turn; streaming?: b
   }
 
   return (
-    <div className="flex gap-3">
+    <div className={cn('flex gap-3', enter)}>
       <Mark sample={turn.note === 'offline'} />
 
       <div className="min-w-0 flex-1">

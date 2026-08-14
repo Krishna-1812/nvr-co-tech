@@ -9,7 +9,7 @@
  */
 
 /** The model. Overridable per deployment without a code change. */
-export const MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5';
+export const MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-opus-5';
 
 /** Where the API lives. Overridable for a proxy or a gateway. */
 export const ANTHROPIC_BASE_URL = process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com/v1';

@@ -64,6 +64,10 @@ describe('the standing instructions', () => {
     expect(text).toMatch(/not a substitute for professional advice/);
   });
 
+  it('tells it to check its own answer against what it was actually given', () => {
+    expect(text).toMatch(/check it against what you were actually given/);
+  });
+
   it('carries the house style, since every answer is read by a customer', () => {
     expect(text).toMatch(/Short sentences and ordinary words. No em-dashes/);
     expect(text).toMatch(/₹1,00,000 rather than ₹100,000/);

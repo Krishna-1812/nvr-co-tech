@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Maximize2, Sparkles, X } from 'lucide-react';
+import { AGENTS } from '@/lib/marketing/content';
+import { ACCENT_VAR } from '@/lib/solutions';
 import { cn } from '@/lib/utils';
 import { Conversation } from './Conversation';
 
@@ -36,6 +38,12 @@ export function AssistPanel({
 }) {
   const [open, setOpen] = useState(false);
 
+  // The panel is tinted by the tool it was opened from, when there is one, so
+  // the claim in the subtitle below ("Answering about X") is also something you
+  // can see rather than only read.
+  const here = agent ? AGENTS.find((a) => a.slug === agent) : undefined;
+  const tone = here ? ACCENT_VAR[here.accent] : undefined;
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === 'j' && (e.metaKey || e.ctrlKey)) {
@@ -61,7 +69,7 @@ export function AssistPanel({
         >
           <Sparkles
             className="size-4 shrink-0 transition-transform group-hover:scale-110"
-            style={{ color: 'var(--color-brand-500)' }}
+            style={{ color: tone ?? 'var(--color-brand-500)' }}
             aria-hidden
           />
           <span className="hidden text-[13px] font-medium sm:block">Ask</span>
@@ -87,7 +95,11 @@ export function AssistPanel({
             'animate-[sheet-in_0.28s_cubic-bezier(0.22,1,0.36,1)]',
           )}
         >
-          <span aria-hidden className="gradient-brand h-[3px] shrink-0" />
+          <span
+            aria-hidden
+            className={cn('h-[3px] shrink-0', !tone && 'gradient-brand')}
+            style={tone ? { backgroundImage: `linear-gradient(135deg, ${tone}, var(--color-accent-500))` } : undefined}
+          />
 
           <div className="flex shrink-0 items-center gap-3 border-b px-4 py-3">
             <div className="min-w-0 flex-1">
