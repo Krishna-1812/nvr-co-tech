@@ -8,43 +8,11 @@
  * that something client-side later imports for one of the other values.
  */
 
-/**
- * The model.
- *
- * Not the newest one, and that was measured rather than assumed.
- *
- * The newest Flash is 3.6, and on a free key it allows twenty requests A DAY.
- * One question costs a request per round of calculations, so that is about five
- * questions before the assistant stops working until tomorrow. `gemini-3.5-flash`
- * is a generation behind and has a real allowance, which makes it the only one
- * of the two that is a product. Both were checked by exhausting the first and
- * watching the second keep answering.
- *
- * Pro is not an option at all without billing: every Pro model returns 429 with
- * a quota of exactly zero. See describeApiFailure, which tells the reader that
- * in as many words rather than advising them to wait.
- *
- * So: with billing enabled, `gemini-3.6-flash` is the better model and this is
- * the line to change. Without it, this is the one that works.
- */
-export const MODEL = process.env.GEMINI_MODEL ?? 'gemini-3.5-flash';
-
-/**
- * How much the model thinks before answering.
- *
- * Left unset by default and only sent when configured. Unset means whatever the
- * model does on its own, which is always valid; a field the chosen model does
- * not accept is a 400 rather than a slightly different answer.
- *
- * Gemini 3 takes `minimal`, `low` and `high`. A plain number is sent as a token
- * budget instead, which is what the 2.5 models take. Both were checked against
- * the live API rather than against the documentation.
- */
-export const THINKING_LEVEL = process.env.GEMINI_THINKING_LEVEL || null;
+/** The model. Overridable per deployment without a code change. */
+export const MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5';
 
 /** Where the API lives. Overridable for a proxy or a gateway. */
-export const GEMINI_BASE_URL =
-  process.env.GEMINI_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta';
+export const ANTHROPIC_BASE_URL = process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com/v1';
 
 /**
  * The key, read at call time.
@@ -54,7 +22,7 @@ export const GEMINI_BASE_URL =
  * and runs perfectly well without one.
  */
 export function apiKey(): string | null {
-  const key = process.env.GEMINI_API_KEY?.trim();
+  const key = process.env.ANTHROPIC_API_KEY?.trim();
   return key ? key : null;
 }
 
@@ -80,14 +48,7 @@ export const MAX_HISTORY_TURNS = 12;
 /** Total characters of history sent, oldest dropped first. Belt to the braces above. */
 export const MAX_HISTORY_CHARS = 24_000;
 
-/**
- * The ceiling on one answer.
- *
- * Generous, and it has to be more generous here than it looks: Gemini counts
- * thinking tokens against this budget, and a hard question can spend a thousand
- * of them before writing a word. Set this to what you want the answer to be and
- * the answer arrives truncated.
- */
+/** The ceiling on one answer. `max_tokens` is a required field, not a courtesy. */
 export const MAX_OUTPUT_TOKENS = 8_000;
 
 /**

@@ -13,102 +13,60 @@ import {
  * Tested because the things that go wrong here have different owners, and a chat
  * window that says "something went wrong" to all of them is the least useful
  * screen in software.
- *
- * The pair worth the most care is the two 429s. Gemini reports "slow down" and
- * "your key has no access to this model at all" with the same status code, and
- * only one of them is fixed by waiting.
  */
 
-describe('the two quota failures, which share a status code', () => {
-  const planLimit = {
-    error: {
-      code: 429,
-      status: 'RESOURCE_EXHAUSTED',
-      message:
-        'You exceeded your current quota. * Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro-preview',
-    },
-  };
-
-  it('reads a quota of zero as no access, and says what to do about it', () => {
-    const message = describeApiFailure(429, planLimit);
-
-    expect(message).toMatch(/waiting will not help/);
-    expect(message).toMatch(/enable billing/);
-    expect(message).toMatch(/GEMINI_MODEL/);
-    // Naming the model matters: the reader has to know which one to change.
-    expect(message).toContain(MODEL);
-  });
-
-  it('says which family is free, since that is the actual fix', () => {
-    expect(describeApiFailure(429, planLimit)).toMatch(/Flash models are free/);
-  });
-
-  it('reads an ordinary rate limit as one, and does not mention billing', () => {
-    const message = describeApiFailure(429, {
-      error: { status: 'RESOURCE_EXHAUSTED', message: 'Too many requests. limit: 60' },
-    });
+describe('rate limits', () => {
+  it('says to wait, without mentioning billing', () => {
+    const message = describeApiFailure(429, { error: { type: 'rate_limit_error', message: 'Too many requests' } });
 
     expect(message).toMatch(/Give it a minute/);
     expect(message).not.toMatch(/billing/);
   });
 
-  it('passes on how long to wait, since Google says', () => {
-    // The free tier allows twenty requests a minute and one question can be
-    // several, so this fires often. "About twenty seconds" is a thing somebody
-    // will wait for; "give it a minute" is a thing they will give up on.
-    const message = describeApiFailure(429, {
-      error: {
-        status: 'RESOURCE_EXHAUSTED',
-        message:
-          'Quota exceeded for metric: generate_content_free_tier_requests, limit: 20. Please retry in 28.830214809s.',
-      },
-    });
-
+  it('passes on how long to wait when Anthropic sent one', () => {
+    const message = describeApiFailure(429, { error: { type: 'rate_limit_error' } }, 29);
     expect(message).toMatch(/about 29 seconds/);
   });
 
   it('rounds a wait of one second to the singular', () => {
-    expect(
-      describeApiFailure(429, { error: { message: 'limit: 20. Please retry in 0.4s.' } }),
-    ).toMatch(/about 1 second\./);
-  });
-
-  it('does not mistake a limit of 60 for a limit of 0', () => {
-    expect(describeApiFailure(429, { error: { message: 'limit: 600' } })).toMatch(/Give it a minute/);
+    expect(describeApiFailure(429, { error: { type: 'rate_limit_error' } }, 1)).toMatch(/about 1 second\./);
   });
 });
 
-describe('other failures from Gemini', () => {
-  it('names a refused key from the message, since the status is only a 400', () => {
-    const message = describeApiFailure(400, {
-      error: { message: 'API key not valid. Please pass a valid API key.' },
-    });
+describe('other failures from Anthropic', () => {
+  it('names a refused key from the error type', () => {
+    const message = describeApiFailure(401, { error: { type: 'authentication_error', message: 'invalid x-api-key' } });
 
     expect(message).toMatch(/was refused/);
     expect(message).toMatch(/Nobody can fix that from this screen/);
   });
 
-  it('names a refused key from an UNAUTHENTICATED status too', () => {
-    expect(describeApiFailure(401, { error: { status: 'UNAUTHENTICATED' } })).toMatch(/was refused/);
+  it('names a permission failure', () => {
+    expect(describeApiFailure(403, { error: { type: 'permission_error' } })).toMatch(/not allowed to do this/);
   });
 
   it('names the model, and the variable that changes it', () => {
-    const message = describeApiFailure(404, { error: { status: 'NOT_FOUND' } });
+    const message = describeApiFailure(404, { error: { type: 'not_found_error' } });
     expect(message).toContain(MODEL);
-    expect(message).toContain('GEMINI_MODEL');
+    expect(message).toContain('ANTHROPIC_MODEL');
+  });
+
+  it('says a request that is too large plainly', () => {
+    expect(describeApiFailure(413, { error: { type: 'request_too_large_error' } })).toMatch(/too long for one request/);
+  });
+
+  it('says the servers are overloaded, not that the reader did something wrong', () => {
+    expect(describeApiFailure(529, { error: { type: 'overloaded_error' } })).toMatch(/overloaded/);
   });
 
   it('says a server error will probably clear on its own', () => {
-    expect(describeApiFailure(503, null)).toMatch(/problem at its end/);
+    expect(describeApiFailure(500, { error: { type: 'api_error' } })).toMatch(/problem at its end/);
   });
 
   it('passes a rejected field through, because it names itself', () => {
-    // The person reading this is the person who wrote the schema.
     expect(
-      describeApiFailure(400, {
-        error: { message: 'Unknown name "additionalProperties" at tools[0]' },
-      }),
-    ).toContain('additionalProperties');
+      describeApiFailure(400, { error: { type: 'invalid_request_error', message: 'max_tokens: field required' } }),
+    ).toContain('max_tokens');
   });
 
   it('still says something when the body is an HTML gateway page', () => {
@@ -119,34 +77,25 @@ describe('other failures from Gemini', () => {
 describe('why an answer stopped', () => {
   it('says nothing when it simply finished', () => {
     // A note under every answer would be noise on all of them.
-    expect(describeStopReason('STOP')).toBeNull();
+    expect(describeStopReason('end_turn')).toBeNull();
+    expect(describeStopReason('stop_sequence')).toBeNull();
     expect(describeStopReason(null)).toBeNull();
   });
 
   it('says nothing for a reason nobody has seen before', () => {
-    expect(describeStopReason('SOMETHING_NEW')).toBeNull();
+    expect(describeStopReason('something_new')).toBeNull();
   });
 
   it('explains running out of room, and says the answer can be continued', () => {
-    expect(describeStopReason('MAX_TOKENS')).toMatch(/Ask for the rest/);
+    expect(describeStopReason('max_tokens')).toMatch(/Ask for the rest/);
   });
 
-  it('explains a safety stop without blaming the reader', () => {
-    for (const reason of ['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST']) {
-      expect(describeStopReason(reason)).toMatch(/Rewording the question/);
-    }
-  });
-
-  it('explains a recitation stop', () => {
-    expect(describeStopReason('RECITATION')).toMatch(/reproducing a source/);
-  });
-
-  it('explains a call this app could not read', () => {
-    expect(describeStopReason('MALFORMED_FUNCTION_CALL')).toMatch(/could not read/);
+  it('explains a refusal without blaming the reader', () => {
+    expect(describeStopReason('refusal')).toMatch(/Rewording the question/);
   });
 });
 
-describe('failures before Gemini answered', () => {
+describe('failures before Anthropic answered', () => {
   it('explains a timeout as one, and suggests something', () => {
     const message = describeTransportFailure(new DOMException('aborted', 'AbortError'));
     expect(message).toMatch(/taking too long/);
@@ -167,17 +116,14 @@ describe('failures before Gemini answered', () => {
 describe('house style', () => {
   const all = [
     NO_KEY,
-    describeApiFailure(429, { error: { message: 'limit: 0' } }),
-    describeApiFailure(429, {}),
-    describeApiFailure(401, {}),
-    describeApiFailure(403, {}),
-    describeApiFailure(404, {}),
-    describeApiFailure(500, {}),
+    describeApiFailure(429, { error: { type: 'rate_limit_error' } }),
+    describeApiFailure(401, { error: { type: 'authentication_error' } }),
+    describeApiFailure(403, { error: { type: 'permission_error' } }),
+    describeApiFailure(404, { error: { type: 'not_found_error' } }),
+    describeApiFailure(500, { error: { type: 'api_error' } }),
     describeTransportFailure(new DOMException('x', 'AbortError')),
     describeTransportFailure(new Error('fetch failed')),
-    ...['MAX_TOKENS', 'SAFETY', 'RECITATION', 'MALFORMED_FUNCTION_CALL'].map(
-      (r) => describeStopReason(r) as string,
-    ),
+    ...['max_tokens', 'refusal'].map((r) => describeStopReason(r) as string),
   ];
 
   it('never uses an em-dash', () => {

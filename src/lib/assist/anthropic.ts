@@ -1,10 +1,9 @@
 import {
-  GEMINI_BASE_URL,
+  ANTHROPIC_BASE_URL,
   MAX_OUTPUT_TOKENS,
   MAX_TOOL_ROUNDS,
   MODEL,
   REQUEST_TIMEOUT_MS,
-  THINKING_LEVEL,
   apiKey,
 } from './config';
 import { describeApiFailure, describeStopReason, describeTransportFailure, NO_KEY } from './errors';
@@ -17,94 +16,68 @@ import type { AssistEvent, ToolTrace } from './types';
  *
  * This file reads the API key, and only the route handler imports it. It does
  * not carry a `server-only` guard, because the guarantee that matters is
- * already stronger than one: `GEMINI_API_KEY` has no NEXT_PUBLIC_ prefix, so
+ * already stronger than one: `ANTHROPIC_API_KEY` has no NEXT_PUBLIC_ prefix, so
  * Next replaces it with undefined in anything that reaches the browser. The key
  * cannot end up in a bundle even if somebody imports this from the wrong place.
  * Leaving the module importable is what lets the tool loop below be tested.
  *
- * Everything above this file is provider-agnostic and stayed that way when the
- * platform moved from OpenAI to Gemini: retrieval, the prompt, the tools, the
- * event stream, the markdown and the whole interface did not change. This is the
- * only file that knows whose API it is talking to, which is the point of it.
- *
- * Three things here were found by sending requests rather than by reading the
- * documentation, and each is noted where it bites.
+ * Everything above this file is provider-agnostic: retrieval, the prompt, the
+ * tools, the event stream, the markdown and the whole interface do not know or
+ * care whose API answers a question. This is the only file that does.
  */
 
 /** One turn of the conversation, as everything above this file thinks of it. */
 export type Turn = { role: 'user' | 'assistant'; content: string };
 
-/**
- * A piece of a model reply.
- *
- * `thought` marks the model's own reasoning, which arrives interleaved with the
- * answer and must never be shown: it is draft thinking, it contradicts itself on
- * the way to being right, and a reader cannot tell it from the answer.
- *
- * `thoughtSignature` is the one that has to survive a round trip. See below.
- */
-type Part = {
-  text?: unknown;
-  thought?: unknown;
-  thoughtSignature?: unknown;
-  functionCall?: { name?: unknown; args?: unknown; id?: unknown };
-};
+type ToolUseBlock = { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> };
+type ToolResultBlock = { type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean };
 
 /** A message in the conversation, in the shape the API takes it. */
-type Content = { role: 'user' | 'model'; parts: unknown[] };
+type Message = { role: 'user' | 'assistant'; content: string | (ToolUseBlock | ToolResultBlock)[] };
 
-type PendingCall = {
-  /**
-   * The whole part, kept verbatim rather than rebuilt from its pieces.
-   *
-   * A function call comes back carrying a `thoughtSignature`, and echoing the
-   * call back WITHOUT it is a hard 400: "Function call is missing a
-   * thought_signature in functionCall parts". It is an opaque blob that only
-   * means anything to the model, so the only correct thing to do with it is to
-   * hand it back untouched. Reconstructing the part from name and args, which is
-   * the obvious way to write this, fails every time.
-   */
-  part: Part;
-  name: string;
-  args: Record<string, unknown>;
-  id?: string;
-};
+type PendingCall = { id: string; name: string; args: Record<string, unknown> };
 
 type Round = { calls: PendingCall[]; stop: string | null };
 
-/** What one streamed frame can carry that this code acts on. */
-type Frame = {
-  candidates?: { content?: { parts?: Part[] }; finishReason?: unknown }[];
-  promptFeedback?: { blockReason?: unknown };
-  error?: { message?: unknown; status?: unknown };
-};
+/**
+ * One streamed event, in the small part of Anthropic's shape this code reads.
+ *
+ * A tool call's arguments do not arrive as one object. They stream as
+ * fragments of JSON text against the `content_block` they belong to, and are
+ * only ever complete once `content_block_stop` closes that block. That is why
+ * the calls below are assembled in a map keyed by `index` rather than read
+ * straight off the event.
+ */
+type StreamEvent =
+  | { type: 'message_start' }
+  | { type: 'content_block_start'; index: number; content_block: { type: string; id?: string; name?: string } }
+  | { type: 'content_block_delta'; index: number; delta: { type: string; text?: string; partial_json?: string } }
+  | { type: 'content_block_stop'; index: number }
+  | { type: 'message_delta'; delta: { stop_reason?: string } }
+  | { type: 'message_stop' }
+  | { type: 'ping' }
+  | { type: 'error'; error?: { message?: string } };
 
-function requestBody(instructions: string, contents: Content[]) {
+function requestBody(instructions: string, messages: Message[]) {
   return {
-    systemInstruction: { parts: [{ text: instructions }] },
-    contents,
+    model: MODEL,
+    max_tokens: MAX_OUTPUT_TOKENS,
+    system: instructions,
+    messages,
     tools: toolSchemas(),
-    generationConfig: {
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      /*
-       * Only sent when somebody has set it. Unset means whatever the model does
-       * by default, which is always valid. A word is a thinking level and a
-       * number is a token budget, which is the split between the 3.x and 2.5
-       * families; both were checked against the live API.
-       */
-      ...(THINKING_LEVEL
-        ? {
-            thinkingConfig: /^\d+$/.test(THINKING_LEVEL)
-              ? { thinkingBudget: Number(THINKING_LEVEL) }
-              : { thinkingLevel: THINKING_LEVEL },
-          }
-        : {}),
-    },
+    stream: true,
   };
 }
 
 /** A failure already turned into a sentence for the reader. */
 export class AssistFailure extends Error {}
+
+/** Anthropic sends how long to wait as a response header, not in the body. */
+function retryAfterSeconds(response: Response): number | null {
+  const header = response.headers.get('retry-after');
+  const seconds = header ? Number(header) : NaN;
+  return Number.isFinite(seconds) ? Math.ceil(seconds) : null;
+}
 
 /**
  * One request, streamed.
@@ -116,7 +89,7 @@ export class AssistFailure extends Error {}
  */
 async function* streamOnce(
   instructions: string,
-  contents: Content[],
+  messages: Message[],
   signal: AbortSignal,
 ): AsyncGenerator<{ text: string }, Round> {
   const key = apiKey();
@@ -124,17 +97,18 @@ async function* streamOnce(
 
   let response: Response;
   try {
-    response = await fetch(
-      `${GEMINI_BASE_URL}/models/${encodeURIComponent(MODEL)}:streamGenerateContent?alt=sse`,
-      {
-        method: 'POST',
-        // The key goes in a header, not in the query string, so it cannot end up
-        // in an access log or a referrer.
-        headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify(requestBody(instructions, contents)),
-        signal,
+    response = await fetch(`${ANTHROPIC_BASE_URL}/messages`, {
+      method: 'POST',
+      // The key goes in a header, not in the query string, so it cannot end up
+      // in an access log or a referrer.
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
       },
-    );
+      body: JSON.stringify(requestBody(instructions, messages)),
+      signal,
+    });
   } catch (error) {
     throw new AssistFailure(describeTransportFailure(error));
   }
@@ -144,12 +118,14 @@ async function* streamOnce(
     // that do not, so a parse failure is itself information and is passed on as
     // null rather than thrown.
     const body = await response.json().catch(() => null);
-    throw new AssistFailure(describeApiFailure(response.status, body));
+    throw new AssistFailure(describeApiFailure(response.status, body, retryAfterSeconds(response)));
   }
 
   const parser = createSseParser();
   const decoder = new TextDecoder();
   const reader = response.body.getReader();
+
+  const blocks = new Map<number, { type: string; id?: string; name?: string; json: string }>();
   const calls: PendingCall[] = [];
   let stop: string | null = null;
 
@@ -161,55 +137,68 @@ async function* streamOnce(
         ? parser.flush()
         : parser.push(decoder.decode(value, { stream: true }));
 
-      for (const frame of parsePayloads(payloads) as Frame[]) {
-        // An error can arrive as a frame rather than as a status, once the
-        // stream has already started.
-        if (frame.error) {
+      for (const event of parsePayloads(payloads) as StreamEvent[]) {
+        if (event.type === 'error') {
           throw new AssistFailure(
-            typeof frame.error.message === 'string'
-              ? `The model stopped: ${frame.error.message}`
+            event.error?.message
+              ? `The model stopped: ${event.error.message}`
               : 'The model stopped partway through that answer.',
           );
         }
 
-        // The prompt itself was refused, so there is no candidate to read.
-        if (frame.promptFeedback?.blockReason) {
-          throw new AssistFailure(
-            `That question was refused by Google's safety filters (${String(frame.promptFeedback.blockReason)}). Rewording it usually gets past this.`,
-          );
+        if (event.type === 'content_block_start') {
+          blocks.set(event.index, {
+            type: event.content_block.type,
+            id: event.content_block.id,
+            name: event.content_block.name,
+            json: '',
+          });
+          continue;
         }
 
-        const candidate = frame.candidates?.[0];
-        if (candidate?.finishReason) stop = String(candidate.finishReason);
+        if (event.type === 'content_block_delta') {
+          const block = blocks.get(event.index);
+          if (!block) continue;
 
-        for (const part of candidate?.content?.parts ?? []) {
-          // Thinking, not answer. Dropped rather than shown.
-          if (part.thought) continue;
-
-          if (typeof part.text === 'string' && part.text) {
-            yield { text: part.text };
+          if (event.delta.type === 'text_delta' && typeof event.delta.text === 'string') {
+            yield { text: event.delta.text };
           }
 
-          if (part.functionCall && typeof part.functionCall.name === 'string') {
-            const args = part.functionCall.args;
-            calls.push({
-              part,
-              name: part.functionCall.name,
-              // Already an object here, unlike the JSON string other APIs send.
-              args: args && typeof args === 'object' && !Array.isArray(args)
-                ? (args as Record<string, unknown>)
-                : {},
-              id: typeof part.functionCall.id === 'string' ? part.functionCall.id : undefined,
-            });
+          if (event.delta.type === 'input_json_delta' && typeof event.delta.partial_json === 'string') {
+            block.json += event.delta.partial_json;
           }
+          continue;
+        }
+
+        if (event.type === 'content_block_stop') {
+          const block = blocks.get(event.index);
+          if (block?.type === 'tool_use' && block.id && block.name) {
+            let args: Record<string, unknown> = {};
+            try {
+              // An empty input arrives as an empty string here, not as "{}".
+              const parsed = block.json ? JSON.parse(block.json) : {};
+              if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) args = parsed;
+            } catch {
+              // Malformed JSON from the model is treated as no arguments at
+              // all, which the tool itself already reports as missing fields
+              // rather than this code throwing over it.
+            }
+            calls.push({ id: block.id, name: block.name, args });
+          }
+          continue;
+        }
+
+        if (event.type === 'message_delta' && event.delta.stop_reason) {
+          stop = event.delta.stop_reason;
         }
       }
 
       if (done) break;
     }
   } finally {
-    // Abandoning a stream without this leaves the connection open until it times
-    // out, which on a page somebody navigates away from is every request.
+    // Abandoning a stream without this leaves the connection open until it
+    // times out, which on a page somebody navigates away from is every
+    // request.
     reader.cancel().catch(() => {});
   }
 
@@ -239,12 +228,7 @@ export async function* runAssist(
   const onAbort = () => controller.abort();
   outerSignal?.addEventListener('abort', onAbort);
 
-  // "assistant" everywhere else in this codebase, "model" here. Translated at
-  // the boundary rather than leaking Gemini's vocabulary upwards.
-  const contents: Content[] = turns.map((turn) => ({
-    role: turn.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: turn.content }],
-  }));
+  const messages: Message[] = turns.map((turn) => ({ role: turn.role, content: turn.content }));
 
   let wroteSomething = false;
   let lastStop: string | null = null;
@@ -257,7 +241,7 @@ export async function* runAssist(
      * mid-thought, which is the one outcome worse than a slow one.
      */
     for (let round = 0; round <= MAX_TOOL_ROUNDS + 1; round++) {
-      const stream = streamOnce(instructions, contents, controller.signal);
+      const stream = streamOnce(instructions, messages, controller.signal);
 
       let result = await stream.next();
       while (!result.done) {
@@ -273,28 +257,28 @@ export async function* runAssist(
       const exhausted = round >= MAX_TOOL_ROUNDS;
 
       /*
-       * Every call the model made goes back in one `model` turn, and every
+       * Every call the model made goes back in one `assistant` turn, and every
        * result in one `user` turn after it. Splitting them into a turn each
-       * would interleave calls and results, which the API rejects when the model
-       * asked for several at once.
+       * would interleave calls and results, which the API rejects when the
+       * model asked for several at once.
        */
-      contents.push({ role: 'model', parts: calls.map((call) => call.part) });
+      messages.push({
+        role: 'assistant',
+        content: calls.map((call) => ({ type: 'tool_use', id: call.id, name: call.name, input: call.args })),
+      });
 
-      const responses: unknown[] = [];
+      const results: ToolResultBlock[] = [];
 
       for (const call of calls) {
         if (exhausted) {
           // Refused in the same channel a result would have arrived in, so the
           // model can see what happened and write around it.
-          responses.push({
-            functionResponse: {
-              name: call.name,
-              id: call.id,
-              response: {
-                error:
-                  'No more calculations are allowed for this question. Answer with what you already have, or say what you would still need.',
-              },
-            },
+          results.push({
+            type: 'tool_result',
+            tool_use_id: call.id,
+            content:
+              'No more calculations are allowed for this question. Answer with what you already have, or say what you would still need.',
+            is_error: true,
           });
           continue;
         }
@@ -305,18 +289,15 @@ export async function* runAssist(
         const { data, ...trace } = runTool(call);
         yield { type: 'tool', trace };
 
-        responses.push({
-          functionResponse: {
-            name: call.name,
-            // Carried back so a reply can be matched to its call when the model
-            // asked for several at once.
-            id: call.id,
-            response: trace.ok ? data : { error: trace.summary },
-          },
+        results.push({
+          type: 'tool_result',
+          tool_use_id: call.id,
+          content: JSON.stringify(trace.ok ? data : { error: trace.summary }),
+          is_error: !trace.ok,
         });
       }
 
-      contents.push({ role: 'user', parts: responses });
+      messages.push({ role: 'user', content: results });
     }
 
     /*

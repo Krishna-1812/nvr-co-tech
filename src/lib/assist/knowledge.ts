@@ -269,7 +269,7 @@ const WRITTEN: Doc[] = [
       'other people have to approve. Invoice attachments go to file storage, and who',
       'can open one mirrors who can see the voucher it belongs to.',
       '',
-      'What you type to this assistant is sent to Google, and answered by Gemini. Do',
+      'What you type to this assistant is sent to Anthropic, and answered by Claude. Do',
       'not paste anything into it that you would not send to a third party. It is not',
       'given a connection to your vouchers, your ledgers or your history, so it cannot',
       'read your records even if you ask it to.',

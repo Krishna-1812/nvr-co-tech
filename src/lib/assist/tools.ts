@@ -41,17 +41,13 @@ export type ToolOutcome = {
 };
 
 /**
- * The parameter schema, in the subset Gemini accepts.
+ * The parameter schema, as a small, deliberately restricted subset of JSON
+ * Schema.
  *
- * It looks like JSON Schema and is not. Gemini takes an OpenAPI-flavoured
- * subset, and anything outside it is a hard 400 rather than an ignored field:
- * `additionalProperties: false`, which every JSON Schema in this codebase would
- * ordinarily carry, is rejected by name. That is not a thing the documentation
- * makes obvious and it is not a thing you find without sending one.
- *
- * So the type is written down as the subset. `toolSchemas` has a test that
- * walks what is actually sent and fails on any key outside it, because the next
- * person to add a tool will reach for the JSON Schema they know.
+ * The API this app talks to accepts the full thing, `additionalProperties`
+ * included, but the subset is kept anyway: every tool here is one of six flat,
+ * hand-written shapes, and a subset that a schema has to fit inside is a
+ * cheaper guarantee than a test that walks an unbounded one.
  */
 type Schema = {
   type: 'object';
@@ -483,11 +479,7 @@ export function toolByName(name: string): AssistTool | undefined {
 }
 
 /**
- * The tool list, in the one shape Gemini takes.
- *
- * All six go in a single `tools` entry rather than one entry each. That is what
- * the API expects, and sending six entries is accepted but reportedly makes the
- * model worse at choosing between them.
+ * The tool list, in the shape the API takes: one object per tool.
  *
  * Note what is NOT here. There is no strict mode and no way to ask for one, so
  * every argument is checked in `run` regardless of what the model sent. That is
@@ -495,13 +487,9 @@ export function toolByName(name: string): AssistTool | undefined {
  * does not stop a plausible number being the wrong number.
  */
 export function toolSchemas() {
-  return [
-    {
-      functionDeclarations: TOOLS.map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        parameters: tool.parameters,
-      })),
-    },
-  ];
+  return TOOLS.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    input_schema: tool.parameters,
+  }));
 }

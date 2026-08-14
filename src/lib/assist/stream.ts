@@ -4,7 +4,7 @@ import type { AssistEvent } from './types';
 /**
  * The browser end of the stream.
  *
- * The same parser the server uses to read Gemini is used here to read the
+ * The same parser the server uses to read Anthropic is used here to read the
  * server, which is the point of having written it as a function over strings
  * rather than as part of either. One implementation, one set of tests, and the
  * chunk-boundary bug can only exist in one place.

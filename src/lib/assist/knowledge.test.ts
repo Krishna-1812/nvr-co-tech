@@ -133,7 +133,7 @@ describe('being honest about the assistant itself', () => {
   });
 
   it('warns that questions are sent to a third party', () => {
-    expect(docById('platform-privacy')?.body).toMatch(/sent to Google/);
+    expect(docById('platform-privacy')?.body).toMatch(/sent to Anthropic/);
   });
 });
 

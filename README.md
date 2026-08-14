@@ -251,13 +251,14 @@ skips itself if they have not been generated.
 
 ### Ask
 
-The assistant lives in [`src/lib/assist`](src/lib/assist), with 248 tests. It talks to Gemini,
-streams over server-sent events, and is signed-in only, because an unauthenticated endpoint that
-spends somebody else's API quota is a bill waiting to happen.
+The assistant lives in [`src/lib/assist`](src/lib/assist), with 244 tests. It talks to Anthropic's
+Claude, streams over server-sent events, and is signed-in only, because an unauthenticated endpoint
+that spends somebody else's API quota is a bill waiting to happen.
 
-One file, [`gemini.ts`](src/lib/assist/gemini.ts), knows whose API it is. Everything else is
-provider-agnostic and proved it: the platform moved from OpenAI to Gemini without retrieval, the
-prompt, the tools, the event stream, the markdown renderer or a single component changing.
+One file, [`anthropic.ts`](src/lib/assist/anthropic.ts), knows whose API it is. Everything else is
+provider-agnostic and has proved it twice: the platform moved from OpenAI to Gemini and then from
+Gemini to Anthropic without retrieval, the prompt, the tools, the event stream, the markdown
+renderer or a single component changing.
 
 Three things do the work that "accurate" usually only claims:
 
@@ -278,41 +279,30 @@ weather. A retrieval miss is fixed by adding a keyword, which is a thing a perso
 Markdown is parsed to a tree and rendered as React elements. Nothing the model writes ever reaches
 the HTML parser, and a link is only a link when it points inside this app.
 
-`GEMINI_API_KEY` switches it on; without one the panel says so and nothing else is affected. In
+`ANTHROPIC_API_KEY` switches it on; without one the panel says so and nothing else is affected. In
 preview mode with no key it streams a clearly labelled sample built from whatever retrieval found,
 which is how the interface was built and is the reason the whole pipeline can be exercised without
 spending anything.
 
-#### Three things about Gemini that are only findable by sending a request
+#### How the tool loop is streamed
 
-- **`additionalProperties` is rejected by name.** Gemini takes an OpenAPI subset for function
-  parameters, not JSON Schema, and an unknown key is a hard 400 rather than an ignored field. A test
-  walks every schema actually sent and fails on anything outside the subset, because the next person
-  to add a tool will reach for the JSON Schema they know.
-- **Thought signatures have to survive the round trip.** A function call arrives carrying an opaque
-  `thoughtSignature`, and echoing the call back without it is a 400. So the whole part is kept
-  verbatim rather than rebuilt from its name and arguments, which is the obvious way to write it and
-  fails every time.
-- **A quota of zero arrives as a rate limit.** Every Pro model answers 429 with `limit: 0` unless
-  billing is enabled, which is indistinguishable from "slow down" unless you read the message. Told
-  apart in [`errors.ts`](src/lib/assist/errors.ts), because advising somebody to wait for a quota
-  that is structurally zero is the worst thing this screen can say.
+A tool call's arguments do not arrive as one object: they stream as fragments of JSON text against
+the `content_block` they belong to, and are only complete once that block's `content_block_stop`
+event closes it. [`anthropic.ts`](src/lib/assist/anthropic.ts) assembles each block in a map keyed by
+its index and parses the accumulated JSON once, at that point, rather than trying to parse partial
+fragments as they land.
 
-#### Which model, and what the free tier gives you
+Several tool calls in one turn go back as one `assistant` message and all their results as one `user`
+message after it. Splitting them into a message each would interleave calls and results, which the
+API rejects when the model asked for more than one at once.
 
-Defaults to `gemini-3.5-flash`, moved with `GEMINI_MODEL`. That is deliberately **not** the newest
-model, and the reason is worth writing down because it is invisible until you hit it.
+Extended thinking is not wired up. If it is ever turned on, a thinking block streams as its own
+`content_block` with `thinking_delta` events, and this code only ever reads `text_delta`, so it is
+dropped by construction rather than by a special case that could be forgotten.
 
-Free-tier allowances are per model, and they are not comparable. `gemini-3.6-flash`, the newest, gets
-**20 requests a day**. One question costs a request per round of calculations, so a question using
-three tools costs four: twenty a day is about five questions before the assistant stops working until
-tomorrow. `gemini-3.5-flash` is one generation behind and has a real allowance. Measured by
-exhausting the first and watching the second carry on, not read off a page.
+#### The model
 
-Pro is not reachable on a free key at all. Every Pro model answers with a quota of exactly zero.
-
-So with billing enabled on the Google Cloud project, move `GEMINI_MODEL` up. Without it, this is the
-setting that gives you a working assistant rather than a better one that is switched off by lunchtime.
+Defaults to `claude-sonnet-5`, moved with `ANTHROPIC_MODEL`.
 
 ### Verified against a live database
 

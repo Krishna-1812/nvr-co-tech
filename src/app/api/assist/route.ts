@@ -4,7 +4,7 @@ import { PREVIEW } from '@/lib/preview';
 import { MAX_QUESTION_CHARS, apiKey } from '@/lib/assist/config';
 import { NO_KEY } from '@/lib/assist/errors';
 import { runOffline } from '@/lib/assist/offline';
-import { runAssist } from '@/lib/assist/gemini';
+import { runAssist } from '@/lib/assist/anthropic';
 import {
   contextBlock,
   instructions,

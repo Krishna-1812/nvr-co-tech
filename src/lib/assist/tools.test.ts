@@ -41,15 +41,14 @@ describe('the tool list', () => {
     }
   });
 
-  it('sends every tool in one declaration list, which is the shape Gemini takes', () => {
-    const [tools, ...rest] = toolSchemas();
+  it('sends every tool as its own object, which is the shape the API takes', () => {
+    const tools = toolSchemas();
 
-    expect(rest).toHaveLength(0);
-    expect(tools.functionDeclarations).toHaveLength(TOOLS.length);
+    expect(tools).toHaveLength(TOOLS.length);
 
-    for (const declaration of tools.functionDeclarations) {
-      expect(typeof declaration.name).toBe('string');
-      expect(declaration.parameters).toBeTruthy();
+    for (const tool of tools) {
+      expect(typeof tool.name).toBe('string');
+      expect(tool.input_schema).toBeTruthy();
     }
   });
 });
