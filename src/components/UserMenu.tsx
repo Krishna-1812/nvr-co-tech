@@ -142,7 +142,7 @@ export function UserMenu({
                 className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--surface-sunken)]"
               >
                 <Radar className="size-4" aria-hidden />
-                Visitor intelligence
+                Analytics
               </Link>
             </DropdownMenu.Item>
           )}
