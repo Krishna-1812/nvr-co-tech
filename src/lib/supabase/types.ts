@@ -184,6 +184,43 @@ export type ReconciliationRow = {
 };
 
 /**
+ * One saved conversation with the assistant (0009).
+ *
+ * `turn_count` and `updated_at` are maintained by a trigger and are not
+ * writable, which is why there is no Insert shape that includes them and no
+ * Update shape at all: neither table has an update policy.
+ */
+export type AssistConversationRow = {
+  id: string;
+  created_by: string;
+  title: string;
+  /** Roster slug of the tool it was begun inside, or null on /ask. */
+  agent: string | null;
+  turn_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+/**
+ * One turn of one conversation (0009).
+ *
+ * `sources` and `tools` are the interface's own Source[] and ToolTrace[] stored
+ * whole. They are typed as unknown here rather than as those arrays, because
+ * that is what jsonb gives back: see turnsFromRows in lib/assist/history, which
+ * is the one place they are validated.
+ */
+export type AssistTurnRow = {
+  id: number;
+  conversation_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  sources: unknown;
+  tools: unknown;
+  note: 'offline' | null;
+  created_at: string;
+};
+
+/**
  * Shape for the Supabase client generic.
  *
  * supabase-js expects each table to carry Row / Insert / Update / Relationships
@@ -209,6 +246,8 @@ export type Database = {
       voucher_attachments: Table<VoucherAttachment>;
       user_settings: Table<UserSettings>;
       reconciliations: Table<ReconciliationRow>;
+      assist_conversations: Table<AssistConversationRow>;
+      assist_turns: Table<AssistTurnRow>;
     };
     Views: Record<never, never>;
     Functions: {

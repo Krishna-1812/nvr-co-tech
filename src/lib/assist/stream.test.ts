@@ -68,6 +68,21 @@ describe('reading events off the wire', () => {
     expect(events).toEqual([{ type: 'delta', text: 'ok' }]);
   });
 
+  it('reads where the exchange was filed, and drops one with no id', async () => {
+    const events = await drain(
+      readEvents(
+        bodyOf(
+          frames(
+            { type: 'conversation', title: 'no id here' },
+            { type: 'conversation', id: 'c1', title: 'What is the TDS' },
+          ),
+        ),
+      ),
+    );
+
+    expect(events).toEqual([{ type: 'conversation', id: 'c1', title: 'What is the TDS' }]);
+  });
+
   it('drops a frame that is not JSON without losing the rest', async () => {
     const events = await drain(
       readEvents(bodyOf(`data: {"type":"delta","text":"a"}\n\ndata: broken\n\ndata: {"type":"done"}\n\n`)),
@@ -91,7 +106,22 @@ describe('asking', () => {
     expect(JSON.parse(String(init.body))).toEqual({
       turns: [{ role: 'user', content: 'hi' }],
       agent: 'voucher-desk',
+      // Null rather than absent on a first question: the server decides where
+      // the exchange is filed, and it is told plainly that there is nowhere yet.
+      conversationId: null,
     });
+  });
+
+  it('posts the saved conversation back when there is one to carry on', async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(bodyOf(frames({ type: 'done' })), { status: 200 }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await drain(ask([{ role: 'user', content: 'and TDS?' }], null, undefined, 'abc-123'));
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body)).conversationId).toBe('abc-123');
   });
 
   it('turns a refusal before the stream into an error event', async () => {

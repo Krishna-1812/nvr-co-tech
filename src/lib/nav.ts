@@ -160,6 +160,12 @@ export function assistSection(): Section {
         hint: 'Questions about the tools and the accounting',
       },
       {
+        href: '/ask/history',
+        label: 'History',
+        icon: History,
+        hint: 'Conversations you have had, and the switch to delete them',
+      },
+      {
         href: '/settings',
         label: 'Settings',
         icon: Settings,

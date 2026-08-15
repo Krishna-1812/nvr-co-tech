@@ -7,9 +7,11 @@ import { ask } from '@/lib/assist/stream';
 import { suggestionsFor } from '@/lib/assist/suggestions';
 import { AGENTS } from '@/lib/marketing/content';
 import { ACCENT_VAR } from '@/lib/solutions';
+import type { SavedConversation } from '@/lib/assist/history';
 import type { Turn } from '@/lib/assist/types';
 import { cn } from '@/lib/utils';
 import { Composer } from './Composer';
+import { History } from './History';
 import { Message } from './Message';
 
 /**
@@ -24,17 +26,33 @@ export function Conversation({
   agent,
   agentName,
   variant,
+  initial = null,
 }: {
   /** Roster slug of the tool on screen, or null on a screen that is not one. */
   agent: string | null;
   agentName: string | null;
   variant: 'panel' | 'page';
+  /** A saved conversation to open on, when the page was asked for one. */
+  initial?: SavedConversation | null;
 }) {
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [turns, setTurns] = useState<Turn[]>(initial?.turns ?? []);
   const [draft, setDraft] = useState('');
   const [streaming, setStreaming] = useState(false);
 
+  /*
+   * Which saved conversation this is, once there is one.
+   *
+   * Null until the first exchange has been written, which the server does and
+   * then says so on the stream. Held rather than derived, because it is the one
+   * thing that decides whether the next question continues this conversation or
+   * starts another, and getting that wrong scatters one thread across several
+   * rows in the history.
+   */
+  const [conversationId, setConversationId] = useState<string | null>(initial?.id ?? null);
+
   const abort = useRef<AbortController | null>(null);
+  // Turns read out of the history are prefixed differently (see turnsFromRows),
+  // so a counter that starts at nothing cannot collide with one of them.
   const nextId = useRef(0);
   const scroller = useRef<HTMLDivElement>(null);
 
@@ -134,10 +152,17 @@ export function Conversation({
         );
 
       try {
-        for await (const event of ask(history, agent, controller.signal)) {
+        for await (const event of ask(history, agent, controller.signal, conversationId)) {
           switch (event.type) {
             case 'sources':
               patch({ sources: event.sources });
+              break;
+
+            // Where this exchange was filed. On the first question it is the
+            // conversation being created, and from then on it is the same id
+            // coming back, so setting it every time costs nothing.
+            case 'conversation':
+              setConversationId(event.id);
               break;
 
             case 'note':
@@ -200,15 +225,33 @@ export function Conversation({
         );
       }
     },
-    [agent, flush, streaming, turns],
+    [agent, conversationId, flush, streaming, turns],
   );
 
   const stop = useCallback(() => abort.current?.abort(), []);
 
+  /**
+   * A clean sheet.
+   *
+   * The conversation that was on screen is not thrown away, it is left where it
+   * was saved, and dropping the id here is what makes the next question the
+   * start of a new one rather than a continuation of the last.
+   */
   const reset = useCallback(() => {
     abort.current?.abort();
     setTurns([]);
     setDraft('');
+    setConversationId(null);
+  }, []);
+
+  /** Open one from the history, in place, wherever this is being rendered. */
+  const resume = useCallback((conversation: SavedConversation) => {
+    abort.current?.abort();
+    setTurns(conversation.turns);
+    setConversationId(conversation.id);
+    setDraft('');
+    // Opened at the end, where the conversation was left, not at the beginning.
+    stickToBottom.current = true;
   }, []);
 
   const empty = turns.length === 0;
@@ -262,6 +305,14 @@ export function Conversation({
               Answers can be wrong. Figures come from this app&rsquo;s own calculators, but check
               anything you are going to file.
             </p>
+
+            {/*
+              Offered even on an empty screen, which is exactly when somebody is
+              most likely to want it: the reason to open the assistant with
+              nothing on screen is often to find what you asked it last time.
+            */}
+            <History current={conversationId} onOpen={resume} />
+
             {!empty && (
               <button
                 type="button"

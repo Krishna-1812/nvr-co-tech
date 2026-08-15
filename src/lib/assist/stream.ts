@@ -26,6 +26,11 @@ function isEvent(value: unknown): value is AssistEvent {
       return Array.isArray((value as { sources?: unknown }).sources);
     case 'note':
       return (value as { note?: unknown }).note === 'offline';
+    case 'conversation':
+      return (
+        typeof (value as { id?: unknown }).id === 'string' &&
+        typeof (value as { title?: unknown }).title === 'string'
+      );
     case 'tool':
       return Boolean((value as { trace?: unknown }).trace);
     case 'error':
@@ -72,6 +77,8 @@ export async function* ask(
   turns: { role: 'user' | 'assistant'; content: string }[],
   agent: string | null,
   signal?: AbortSignal,
+  /** The saved conversation to append to, or null to begin one. */
+  conversationId?: string | null,
 ): AsyncGenerator<AssistEvent> {
   let response: Response;
 
@@ -79,7 +86,7 @@ export async function* ask(
     response = await fetch('/api/assist', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ turns, agent }),
+      body: JSON.stringify({ turns, agent, conversationId: conversationId ?? null }),
       signal,
     });
   } catch (error) {

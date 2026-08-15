@@ -60,6 +60,11 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   // Empty on purpose. A reconciliation is produced by running one, so seeding
   // fixtures here would show a history nobody in preview could have created.
   reconciliations: [],
+  // Same again for the assistant. Preview answers come from the offline
+  // samples, and those are saved like any other, so the history fills up by
+  // being used rather than by being seeded.
+  assist_conversations: [],
+  assist_turns: [],
 });
 
 const me = () => TABLES.profiles.find((p) => p.id === PREVIEW_USER_ID)!;
@@ -224,6 +229,21 @@ function audit(voucher_id: string, action: string, extra: Row = {}) {
   });
 }
 
+/**
+ * What migration 0009's trigger does, done by hand.
+ *
+ * turn_count and updated_at are derived from the turns and are maintained in
+ * Postgres by a trigger, which this has no equivalent of. Without it a preview
+ * history would show every conversation as empty and never reorder, so the two
+ * columns are bumped here for the same reason audit rows are written above.
+ */
+function bumpConversation(id: unknown) {
+  const conversation = TABLES.assist_conversations.find((c) => c.id === id);
+  if (!conversation) return;
+  conversation.turn_count = Number(conversation.turn_count ?? 0) + 1;
+  conversation.updated_at = nowIso();
+}
+
 class Writer implements PromiseLike<{ data: unknown; error: unknown }> {
   private returning = false;
   private one = false;
@@ -271,10 +291,15 @@ function table(name: string) {
                 total_tax: 0, net_total: 0, grand_total: 0,
               }
             : {}),
+          // A turn is read back in id order, so its id has to sort the way a
+          // sequence does. The random string every other table gets would put
+          // the answer before the question about half the time.
+          ...(name === 'assist_turns' ? { id: rows.length + 1 } : {}),
           ...v,
         };
         rows.push(row);
         if (name === 'vouchers') audit(String(row.id), 'created', { to_status: 'draft' });
+        if (name === 'assist_turns') bumpConversation(row.conversation_id);
         return row;
       });
       return new Writer({ data: created[0] ?? null, error: null });
@@ -314,8 +339,19 @@ function table(name: string) {
           onfulfilled?: ((v: { data: null; error: null }) => R1 | PromiseLike<R1>) | null,
           onrejected?: ((reason: unknown) => R2 | PromiseLike<R2>) | null,
         ): PromiseLike<R1 | R2> {
-          const i = rows.findIndex((r) => tests.every((t) => t(r)));
-          if (i >= 0) rows.splice(i, 1);
+          // Every match, not the first. A DELETE with a filter that hits four
+          // rows removes four, and "delete all my conversations" is exactly
+          // that shape.
+          for (const row of rows.filter((r) => tests.every((t) => t(r)))) {
+            rows.splice(rows.indexOf(row), 1);
+            // The one cascade this app relies on (0009). Without it a preview
+            // delete would leave the turns behind with nothing pointing at them.
+            if (name === 'assist_conversations') {
+              TABLES.assist_turns = TABLES.assist_turns.filter(
+                (t) => t.conversation_id !== row.id,
+              );
+            }
+          }
           return Promise.resolve({ data: null, error: null }).then(onfulfilled, onrejected);
         },
       };

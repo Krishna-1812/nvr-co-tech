@@ -22,11 +22,13 @@ import { Conversation } from './Conversation';
  * approve this" is answered about approvals rather than about approvals in
  * general.
  *
- * ⌘J to open, to match ⌘K for the palette. The conversation lives in the
- * Conversation component's own state, so closing the panel and opening it again
- * loses it. That is deliberate for now: a persisted history is a table, a
- * retention decision and a place for somebody's pasted bank statement to sit,
- * and none of that should be added quietly.
+ * ⌘J to open, to match ⌘K for the palette. Closing the panel still clears what
+ * is on screen, because a sheet that reopens mid-thought is a sheet you have to
+ * clear before you can ask something else. What has changed is that the
+ * conversation is no longer gone with it: each exchange is written as it lands,
+ * and the History control at the foot of the panel opens any of them back up
+ * here without leaving the page. See migration 0009 for what is kept, what is
+ * not, and who can read it.
  */
 export function AssistPanel({
   agent,

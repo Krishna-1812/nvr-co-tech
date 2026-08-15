@@ -15,7 +15,8 @@ import {
 } from '@/lib/assist/prompt';
 import { checkRate } from '@/lib/assist/ratelimit';
 import { retrieveWithContext } from '@/lib/assist/retrieve';
-import type { AssistEvent } from '@/lib/assist/types';
+import { saveExchange } from '@/lib/assist/store';
+import type { AssistEvent, ToolTrace, TurnNote } from '@/lib/assist/types';
 
 /**
  * The assistant, as one streaming endpoint.
@@ -38,9 +39,20 @@ export const dynamic = 'force-dynamic';
 type Body = {
   turns?: unknown;
   agent?: unknown;
+  conversationId?: unknown;
 };
 
 type Turn = { role: 'user' | 'assistant'; content: string };
+
+/**
+ * The most turns one request may carry.
+ *
+ * Well above MAX_HISTORY_TURNS, which is what actually reaches the model — this
+ * is not a modelling decision. Since conversations are saved, a long one can be
+ * reopened and posted back whole, and this is the ceiling on how large that body
+ * may get before it is refused rather than parsed.
+ */
+const MAX_POSTED_TURNS = 400;
 
 /**
  * Read the conversation out of the body, or say why it cannot be.
@@ -54,6 +66,9 @@ type Turn = { role: 'user' | 'assistant'; content: string };
 function readTurns(body: Body): { turns: Turn[] } | { error: string } {
   if (!Array.isArray(body.turns) || body.turns.length === 0) {
     return { error: 'No question was sent.' };
+  }
+  if (body.turns.length > MAX_POSTED_TURNS) {
+    return { error: 'That conversation is too long to carry on. Start a new one.' };
   }
 
   const turns: Turn[] = [];
@@ -111,6 +126,14 @@ export async function POST(request: Request) {
   const turns = trimHistory(read.turns);
 
   /*
+   * Which saved conversation this belongs to, if the browser has been told one.
+   * Not trusted beyond its shape: the store checks it is a conversation that
+   * still exists and still belongs to this person, and starts a new one if not.
+   */
+  const conversationId =
+    typeof body.conversationId === 'string' && body.conversationId ? body.conversationId : null;
+
+  /*
    * Retrieval runs on the question, not on the whole conversation, with the
    * previous question prepended when the current one is too short to stand up on
    * its own. See retrievalQuery for why.
@@ -142,13 +165,70 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      /*
+       * Sending is allowed to fail quietly, and only for one reason: the reader
+       * can close the tab or press stop at any point, and a stream nobody is
+       * holding throws on the next enqueue. That is not an error worth
+       * reporting to anybody — there is no longer anybody to report it to — and
+       * letting it propagate would abandon the work below, which still has an
+       * answer to file away.
+       */
+      const send = (event: AssistEvent) => {
+        try {
+          controller.enqueue(encoder.encode(frame(event)));
+        } catch {
+          // Nobody is listening.
+        }
+      };
+
       // Sources first, so the interface can show what it is reading from before
       // the first word of the answer lands.
-      controller.enqueue(encoder.encode(frame({ type: 'sources', sources })));
+      send({ type: 'sources', sources });
+
+      /*
+       * The answer is assembled here as well as sent, so that it can be kept.
+       *
+       * Reading it off the stream rather than asking the browser to post it back
+       * afterwards is the only version that cannot lie: what is written to the
+       * history is byte for byte what was sent to the screen, and a tab that is
+       * closed mid-answer cannot leave a different record behind.
+       */
+      let answer = '';
+      const traces: ToolTrace[] = [];
+      let note: TurnNote | undefined;
+      let failed = false;
 
       try {
         for await (const event of events) {
-          controller.enqueue(encoder.encode(frame(event)));
+          if (event.type === 'delta') answer += event.text;
+          else if (event.type === 'tool') traces.push(event.trace);
+          else if (event.type === 'note') note = event.note;
+          else if (event.type === 'error') failed = true;
+
+          send(event);
+        }
+
+        /*
+         * Kept only when there is something worth keeping. A failed turn is
+         * dropped: a rate limit or a dropped connection is something that
+         * happened to the interface, not something that was said, and a history
+         * full of them is a history nobody reads.
+         *
+         * An answer the reader stopped part way through is kept, because they
+         * did read it, and it is stored exactly as much as arrived.
+         */
+        if (!failed && answer.trim()) {
+          const saved = await saveExchange({
+            conversationId,
+            agent,
+            question: latestQuestion(turns),
+            answer,
+            sources,
+            tools: traces,
+            note,
+          });
+
+          if (saved) send({ type: 'conversation', id: saved.id, title: saved.title });
         }
       } catch (error) {
         /*
@@ -157,20 +237,22 @@ export async function POST(request: Request) {
          * because a stream that simply stops looks exactly like an answer that
          * is still being written and never arrives.
          */
-        controller.enqueue(
-          encoder.encode(
-            frame({
-              type: 'error',
-              message:
-                error instanceof Error && error.message
-                  ? error.message
-                  : 'Something went wrong while answering.',
-              note: 'error',
-            }),
-          ),
-        );
+        send({
+          type: 'error',
+          message:
+            error instanceof Error && error.message
+              ? error.message
+              : 'Something went wrong while answering.',
+          note: 'error',
+        });
       } finally {
-        controller.close();
+        // Same reason as `send`: closing a stream the reader has already walked
+        // away from throws, and there is nothing left to do about it.
+        try {
+          controller.close();
+        } catch {
+          // Already gone.
+        }
       }
     },
   });

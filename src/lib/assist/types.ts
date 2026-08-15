@@ -55,6 +55,12 @@ export type AssistRequest = {
    * on screen rather than the first thing in the corpus.
    */
   agent?: string | null;
+  /**
+   * The conversation this question belongs to, once there is one. Null on the
+   * first question: the server creates the conversation when it has an answer
+   * to put in it, and sends the id back on the stream.
+   */
+  conversationId?: string | null;
 };
 
 // ─── The stream ──────────────────────────────────────────────────────────────
@@ -78,5 +84,12 @@ export type AssistEvent =
   | { type: 'note'; note: TurnNote }
   | { type: 'tool'; trace: ToolTrace }
   | { type: 'delta'; text: string }
+  /**
+   * This exchange was kept, and here is what it was kept under. Sent after the
+   * answer rather than before it, because that is when the writing happens: a
+   * conversation is created once there is a question AND an answer to put in
+   * it. The browser holds the id and sends it back with the next question.
+   */
+  | { type: 'conversation'; id: string; title: string }
   | { type: 'done' }
   | { type: 'error'; message: string; note?: TurnNote };

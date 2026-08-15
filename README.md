@@ -251,7 +251,7 @@ skips itself if they have not been generated.
 
 ### Ask
 
-The assistant lives in [`src/lib/assist`](src/lib/assist), with 244 tests. It talks to Anthropic's
+The assistant lives in [`src/lib/assist`](src/lib/assist), with 262 tests. It talks to Anthropic's
 Claude, streams over server-sent events, and is signed-in only, because an unauthenticated endpoint
 that spends somebody else's API quota is a bill waiting to happen.
 
@@ -279,6 +279,16 @@ weather. A retrieval miss is fixed by adding a keyword, which is a thing a perso
 Markdown is parsed to a tree and rendered as React elements. Nothing the model writes ever reaches
 the HTML parser, and a link is only a link when it points inside this app.
 
+**History** is saved to `assist_conversations` and `assist_turns` (migration 0009), private to
+whoever asked, and kept until they delete it. The exchange is written by the route as the answer
+streams, so what is stored is byte for byte what was on screen; a question whose answer failed is
+not written at all, so a conversation never has a question sitting in it with nothing underneath.
+Nothing expires on its own, which is why `/ask/history` carries a delete-everything control rather
+than a retention rule invented on somebody's behalf. Neither table has an update policy: a turn is
+a record of something that was said, so it is append-only, like `voucher_audit`. Until the
+migration is applied, the assistant behaves exactly as before and both the history page and the
+dropdown say why they are empty.
+
 `ANTHROPIC_API_KEY` switches it on; without one the panel says so and nothing else is affected. In
 preview mode with no key it streams a clearly labelled sample built from whatever retrieval found,
 which is how the interface was built and is the reason the whole pipeline can be exercised without
@@ -302,7 +312,7 @@ dropped by construction rather than by a special case that could be forgotten.
 
 #### The model
 
-Defaults to `claude-sonnet-5`, moved with `ANTHROPIC_MODEL`.
+Defaults to `claude-opus-5`, moved with `ANTHROPIC_MODEL`.
 
 ### Verified against a live database
 
@@ -315,10 +325,10 @@ both need a second and third account, since the segregation-of-duties rules deli
 prevent one person from testing them — plus reopen, mark-paid, PDF, Excel export and
 attachment upload.
 
-> **Migrations 0007 and 0008 have not been applied.** Until 0007 is, the database still issues
-> `NVR/` voucher numbers. Until 0008 is, reconciliations run and export normally but cannot be
-> saved: the tool says so on the results screen and the history page explains why it is empty,
-> rather than failing.
+> **Migrations 0007, 0008 and 0009 have not been applied.** Until 0007 is, the database still
+> issues `NVR/` voucher numbers. Until 0008 is, reconciliations run and export normally but cannot
+> be saved. Until 0009 is, the assistant answers normally but nothing is kept. In all three cases
+> the screen says so rather than failing.
 
 > `hello@financeintelligence.in` and `security@financeintelligence.in` on `/contact` are
 > **unverified**: the domain is not registered yet, so neither mailbox exists. Register it
