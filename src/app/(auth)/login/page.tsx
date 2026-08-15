@@ -67,7 +67,7 @@ function LoginForm() {
               icon={Mail}
               type="email"
               autoComplete="email"
-              placeholder="you@financeintelligence.in"
+              placeholder="you@thefinanceintelligence.com"
               required
               autoFocus
               value={email}

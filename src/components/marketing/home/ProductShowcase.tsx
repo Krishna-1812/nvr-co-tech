@@ -133,7 +133,7 @@ function Chrome() {
       </span>
       <span className="m-mono m-dim-2 mx-auto flex items-center gap-2 rounded-full border border-[var(--m-line)] px-3 py-1 text-[10px]">
         <Lock className="size-2.5" aria-hidden />
-        financeintelligence.in/dashboard
+        thefinanceintelligence.com/dashboard
       </span>
     </div>
   );

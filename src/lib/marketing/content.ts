@@ -18,15 +18,15 @@
  * themselves rather than claiming to be production. The literal is the fallback
  * for local development and for anywhere that variable is absent.
  *
- * ⚠ The literal is the intended production domain, not a registered one yet. On
- * Vercel it is never reached, because the platform sets the variable above it.
- * Set NEXT_PUBLIC_SITE_URL once the domain is bought and pointed here.
+ * The literal is the real production domain. On Vercel it is never reached,
+ * because the platform sets the variable above it — this only fires in local
+ * development or anywhere NEXT_PUBLIC_SITE_URL isn't set.
  */
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL
   ? process.env.NEXT_PUBLIC_SITE_URL
   : process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : 'https://financeintelligence.in';
+    : 'https://www.thefinanceintelligence.com';
 
 export const BRAND = {
   /** The platform. */
@@ -427,12 +427,13 @@ export const STAGE_NOTE: Record<AgentStage, string> = {
  * these addresses are the route itself rather than a fallback. They have to be
  * right in every place they appear.
  *
- * ⚠ UNVERIFIED. These are on the intended platform domain, which nobody has
- * registered yet, so neither mailbox exists. Confirm both before the site is
- * shared with anyone, because an enquiry sent here currently has no destination
- * at all. It is the one thing on the public site that fails silently.
+ * ⚠ UNVERIFIED. The domain is registered and live, but neither mailbox has
+ * been created on it yet (no Google Workspace or equivalent is set up). Create
+ * both before the site is shared with anyone, because an enquiry sent here
+ * currently has no destination at all. It is the one thing on the public site
+ * that fails silently.
  */
 export const CONTACT = {
-  email: 'hello@financeintelligence.in',
-  security: 'security@financeintelligence.in',
+  email: 'hello@thefinanceintelligence.com',
+  security: 'security@thefinanceintelligence.com',
 } as const;
