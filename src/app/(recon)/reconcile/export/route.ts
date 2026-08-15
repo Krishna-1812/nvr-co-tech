@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { BRAND } from '@/lib/marketing/content';
 import { buildReconXlsx } from '@/lib/recon/export/workbook';
 import { renderReconPdf } from '@/lib/recon/export/pdf';
 import type { ReconResult } from '@/lib/recon/types';
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     .select('full_name')
     .eq('id', user.id)
     .maybeSingle();
-  const preparedBy = profile?.full_name ?? user.email ?? 'Finance Intelligence';
+  const preparedBy = profile?.full_name ?? user.email ?? BRAND.name;
 
   const base = `reconciliation-${result.statement.reconciliationDate}`;
 

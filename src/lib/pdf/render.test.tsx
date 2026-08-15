@@ -101,7 +101,7 @@ describe('voucher PDF', () => {
   it('carries the voucher number in its metadata', async () => {
     const buf = await renderToBuffer(<VoucherDocument v={sample} />);
     const raw = buf.toString('latin1');
-    expect(raw).toContain('Finance Intelligence');
+    expect(raw).toContain('The Finance Intelligence');
     expect(raw).toMatch(/Payment Voucher/);
   });
 

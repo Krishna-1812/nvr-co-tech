@@ -227,13 +227,13 @@ function tdsDoc(): Doc {
 const WRITTEN: Doc[] = [
   {
     id: 'platform-overview',
-    title: 'What Finance Intelligence is',
+    title: 'What The Finance Intelligence is',
     agent: null,
     kind: 'platform',
     keywords: ['product', 'company', 'platform', 'what is this', 'overview', 'tools', 'agents'],
     href: '/agents',
     body: [
-      'Finance Intelligence is a platform of tools for finance work, built by',
+      'The Finance Intelligence is a platform of tools for finance work, built by',
       'chartered accountants. Each tool takes one job a finance team already',
       'repeats, does the routine part of it, and keeps a clear record of who did',
       'what and when.',

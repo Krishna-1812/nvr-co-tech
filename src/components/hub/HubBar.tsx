@@ -18,7 +18,7 @@ import { AssistPanel } from '../assist/AssistPanel';
  * arrived and is looking at six tiles.
  *
  * The name here is the platform, not the product. That is the whole point of the
- * screen: you have signed in to Finance Intelligence, and Voucher Desk is something
+ * screen: you have signed in to The Finance Intelligence, and Voucher Desk is something
  * inside it.
  */
 export function HubBar({

@@ -7,6 +7,7 @@ import {
   Users,
 } from 'lucide-react';
 import { fmtRupees } from '@/lib/domain/voucher';
+import { BRAND } from '@/lib/marketing/content';
 import { Container, Section, SectionHeading } from '../bits';
 import { Reveal } from '../Reveal';
 import { LogoMark } from '../Logo';
@@ -151,7 +152,7 @@ function Rail() {
     <div className="w-48 shrink-0 border-r border-[var(--m-line)] bg-white/[0.015] p-3">
       <div className="flex items-center gap-2 px-2 py-2">
         <LogoMark id="showcase-mark" className="size-6" />
-        <span className="m-display text-[12px]">Finance Intelligence</span>
+        <span className="m-display text-[12px]">{BRAND.name}</span>
       </div>
 
       <div className="mt-4 space-y-0.5">

@@ -19,7 +19,7 @@ const PENDING = ['pending_first', 'pending_second'] as const;
  * The workspace.
  *
  * What signing in now lands on, instead of the voucher dashboard. The reason is not
- * decoration: Finance Intelligence is a set of tools of which Voucher Desk is the first,
+ * decoration: The Finance Intelligence is a set of tools of which Voucher Desk is the first,
  * and landing straight inside one of them made the platform look like a single
  * application that happened to have an ambitious marketing site attached. A person
  * signing in should see what the firm runs, then choose.

@@ -11,7 +11,7 @@ import { Platform } from '@/components/marketing/home/Platform';
 import { FinalCTA } from '@/components/marketing/home/FinalCTA';
 
 export const metadata: Metadata = {
-  // `absolute` opts out of the root layout's "%s · Finance Intelligence" template,
+  // `absolute` opts out of the root layout's "%s · The Finance Intelligence" template,
   // which would otherwise render the brand name twice on the home page.
   title: { absolute: `${BRAND.name} · ${BRAND.tagline}` },
   description: BRAND.blurb,

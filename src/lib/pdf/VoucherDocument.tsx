@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Font,
 } from '@react-pdf/renderer';
+import { BRAND } from '@/lib/marketing/content';
 import { fmtAmount, fmtDate, toNum } from '@/lib/domain/voucher';
 import type { VoucherStatus } from '@/lib/domain/workflow';
 
@@ -260,7 +261,7 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
   return (
     <Document
       title={`Payment Voucher ${v.voucher_no ?? ''}`.trim()}
-      author="Finance Intelligence"
+      author={BRAND.name}
       subject={`Payment voucher for ${v.paid_to ?? 'vendor'}`}
       creator="Voucher Desk"
     >
@@ -272,11 +273,11 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
               <Text style={s.wordmark}>
                 F<Text style={{ color: ACCENT }}>I</Text>
               </Text>
-              <Text style={s.wordmarkSub}>Finance Intelligence</Text>
+              <Text style={s.wordmarkSub}>{BRAND.name}</Text>
             </View>
 
             <View style={[s.titleBlock, { width: '40%' }]}>
-              <Text style={s.firmName}>Finance Intelligence</Text>
+              <Text style={s.firmName}>{BRAND.name}</Text>
               <Text style={s.docTitle}>Payment Voucher</Text>
             </View>
 

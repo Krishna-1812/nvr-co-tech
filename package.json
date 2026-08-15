@@ -13,7 +13,8 @@
     "check": "npm run lint && npm run check:sql && npm run test && next build",
     "pdf:sample": "vite-node --config vitest.config.mts scripts/make-sample-pdf.tsx",
     "xlsx:sample": "vite-node --config vitest.config.mts scripts/make-sample-xlsx.mts",
-    "recon:sample": "vite-node --config vitest.config.mts scripts/make-sample-recon.tsx"
+    "recon:sample": "vite-node --config vitest.config.mts scripts/make-sample-recon.tsx",
+    "brand:icons": "vite-node --config vitest.config.mts scripts/build-brand.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

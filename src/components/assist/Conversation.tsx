@@ -307,7 +307,7 @@ function Opening({
           className="absolute inset-0 -z-10 m-auto size-24 rounded-full opacity-25 blur-2xl"
           style={{ background: `radial-gradient(circle, ${tone}, transparent 70%)` }}
         />
-        <LogoMark id="assist-opening" className="elev-2 size-11 rounded-2xl" />
+        <LogoMark id="assist-opening" tile className="elev-2 size-11 rounded-2xl" />
       </div>
 
       <h2 className="m-display mt-5 text-[clamp(1.25rem,2.4vw,1.6rem)]">

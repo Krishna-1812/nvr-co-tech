@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { BRAND } from '@/lib/marketing/content';
+import { BEAK, EYE, HEAD, HEAD_INK, INK, RUPEE, RUPEE_SHIFT, TUFTS, VIEW } from '@/lib/brand/mark';
 
 /**
  * The card that appears when a link to the public site is pasted into Slack,
@@ -10,6 +11,10 @@ import { BRAND } from '@/lib/marketing/content';
  * small slice of CSS. Flexbox only, no CSS variables, no oklch(), no external
  * fonts unless they are fetched and passed in. Hence the literal hex values,
  * which are the sRGB equivalents of the --m-* tokens.
+ *
+ * The mark is the exception. Its geometry and ink come from lib/brand/mark,
+ * which is already plain sRGB hex for exactly this reason, so the owl on this
+ * card cannot drift from the owl in the header.
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
@@ -57,35 +62,49 @@ export default function OpengraphImage() {
         />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6 55%, #22d3ee)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <svg width="34" height="34" viewBox="0 0 32 32" fill="none">
-              <path
-                d="M9 15.4 13.2 19.6 23 9.8"
-                stroke="white"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          {/*
+            The owl, from the same geometry and the same ink the site header
+            draws, so the mark somebody meets in a Slack preview is the one they
+            meet on the page.
+          */}
+          <svg width="72" height="72" viewBox={`0 0 ${VIEW} ${VIEW}`}>
+            <defs>
+              <linearGradient
+                id="og-owl"
+                gradientUnits="userSpaceOnUse"
+                x1="0"
+                y1="0"
+                x2={VIEW}
+                y2={VIEW}
+              >
+                <stop offset="0%" stopColor={HEAD_INK.hi} />
+                <stop offset="100%" stopColor={HEAD_INK.lo} />
+              </linearGradient>
+            </defs>
+            {TUFTS.map((points) => (
+              <polygon key={points} points={points} fill="url(#og-owl)" />
+            ))}
+            <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill="url(#og-owl)" />
+            {EYE.x.map((x) => (
+              <circle key={`w${x}`} cx={x} cy={EYE.y} r={EYE.white} fill="#FFFFFF" />
+            ))}
+            {EYE.x.map((x) => (
+              <circle
+                key={`r${x}`}
+                cx={x}
+                cy={EYE.y}
+                r={EYE.ring}
+                fill="none"
+                stroke={INK.gold}
+                strokeWidth={EYE.ringWidth}
               />
-              <path
-                d="M9 21.6 13.2 25.8 23 16"
-                stroke="white"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity="0.5"
-              />
-            </svg>
-          </div>
+            ))}
+            {EYE.x.map((x) => (
+              <circle key={`p${x}`} cx={x} cy={EYE.y} r={EYE.pupil} fill={INK.navy} />
+            ))}
+            <polygon points={BEAK} fill={INK.gold} />
+            <path fill={INK.gold} transform={`translate(0,${RUPEE_SHIFT})`} d={RUPEE} />
+          </svg>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ color: '#eef1fb', fontSize: 30, fontWeight: 700 }}>{BRAND.name}</span>
             <span style={{ color: '#8b95bd', fontSize: 17, marginTop: 4 }}>{BRAND.tagline}</span>
@@ -95,7 +114,8 @@ export default function OpengraphImage() {
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span
             style={{
-              color: '#8b95bd',
+              // Gold, matching .m-eyebrow on the site itself.
+              color: INK.gold,
               fontSize: 19,
               letterSpacing: 4,
               textTransform: 'uppercase',

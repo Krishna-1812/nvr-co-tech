@@ -1,7 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { BRAND, SITE_URL } from '@/lib/marketing/content';
+import { INK } from '@/lib/brand/mark';
 import './globals.css';
 
 /*
@@ -77,6 +78,15 @@ export const metadata: Metadata = {
    * they redirect to /login for anyone without a session anyway.
    */
   robots: { index: true, follow: true },
+};
+
+/**
+ * The colour a mobile browser paints its chrome with, matched to the icon's
+ * ground so the tile and the address bar are the same navy. Kept out of
+ * `metadata` because Next wants it here, and it is not indexable text.
+ */
+export const viewport: Viewport = {
+  themeColor: INK.navy,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

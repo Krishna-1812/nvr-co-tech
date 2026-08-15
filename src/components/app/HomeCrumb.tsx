@@ -15,7 +15,7 @@ import { LogoMark } from '../marketing/Logo';
  * had no way of knowing there was anything above them.
  *
  * So this is a breadcrumb rather than a back button, because the missing idea was
- * hierarchy, not history. "Finance Intelligence › Voucher Desk" says both where
+ * hierarchy, not history. "The Finance Intelligence › Voucher Desk" says both where
  * you are and that there is a level above it, and both crumbs are real links: the
  * platform to the hub, the tool to its own front door. A back button would only
  * have said "somewhere else", and would have lied the moment somebody arrived

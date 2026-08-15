@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { BRAND } from '@/lib/marketing/content';
 import { formatINR } from '../amount';
 import { formatLedgerDate } from '../dates';
 import type { DifferenceItem, ReconResult } from '../types';
@@ -160,13 +161,13 @@ export function ReconDocument({ result, preparedBy }: { result: ReconResult; pre
   return (
     <Document
       title={`Reconciliation ${statement.reconciliationDate}`}
-      author="Finance Intelligence"
+      author={BRAND.name}
       subject={`${summaryA.name} against ${summaryB.name}`}
     >
       <Page size="A4" style={s.page}>
         <View style={s.header}>
           <View>
-            <Text style={s.wordmark}>Finance Intelligence</Text>
+            <Text style={s.wordmark}>{BRAND.name}</Text>
             <Text style={s.wordmarkSub}>LEDGER RECONCILIATION</Text>
           </View>
           <View style={s.titleBlock}>

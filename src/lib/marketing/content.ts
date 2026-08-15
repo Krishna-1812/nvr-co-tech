@@ -30,7 +30,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL
 
 export const BRAND = {
   /** The platform. */
-  name: 'Finance Intelligence',
+  name: 'The Finance Intelligence',
   /** Shortened for tight spaces (nav mark, footer). */
   short: 'FI',
   tagline: 'AI tools for finance teams',

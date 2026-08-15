@@ -602,6 +602,19 @@
   --m-lime:    oklch(0.885 0.195 128);
   --m-magenta: oklch(0.700 0.230 340);
 
+  /*
+   * The mark's gold, #E8C468, as the eye rings and the rupee draw it.
+   *
+   * The only warm colour on an otherwise cool page, and the reason the owl in
+   * the header does not read as a sticker somebody stuck on an indigo site. It
+   * is rationed to the section labels, which repeat often enough to look
+   * intended and are small enough never to compete with the gradients.
+   *
+   * Close to --m-amber and not the same job: amber is one of the eight hues an
+   * agent tile can be given, and this belongs to the brand.
+   */
+  --m-gold:    oklch(0.833 0.119 88);
+
   --m-grad:     linear-gradient(100deg, var(--m-indigo), var(--m-violet) 55%, var(--m-cyan));
   /* Cool→acid, for anything live or measured. */
   --m-grad-2:   linear-gradient(100deg, var(--m-cyan), var(--m-lime));
@@ -722,14 +735,16 @@ body:has([data-skin='night']) {
   .m-mono { font-family: var(--font-mono); }
 
   /* Section labels. Small, spaced, monospaced — the thing that makes a page
-     read as a product site rather than a document. */
+     read as a product site rather than a document. Gold, so the one warm
+     colour in the mark is repeated down the page instead of appearing once in
+     the corner and never again. */
   .m-eyebrow {
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--m-dim-2);
+    color: var(--m-gold);
   }
 
   .m-dim   { color: var(--m-dim); }
