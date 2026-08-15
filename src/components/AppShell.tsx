@@ -2,6 +2,7 @@ import type { UserRole } from '@/lib/domain/workflow';
 import type { Section } from '@/lib/nav';
 import { fiscalYear, istLongDate, istToday } from '@/lib/fiscal';
 import { PREVIEW } from '@/lib/preview';
+import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { Backdrop } from './app/Backdrop';
 import { SideRail } from './app/SideRail';
 import { TopBar } from './app/TopBar';
@@ -38,8 +39,23 @@ type Props = {
  * content column follow it when it collapses without either of them holding
  * state. See RailToggle for why that matters.
  */
-export function AppShell({ user, section, children }: Props) {
+export async function AppShell({ user, section, children }: Props) {
   const fiscal = fiscalYear(istToday());
+
+  /*
+   * Whether to offer the way in to visitor intelligence.
+   *
+   * Asked here, once, rather than in each tool's layout, because the account
+   * menu is the only chrome every shell shares and this is the flag that
+   * decides what it shows. It resolves to the same Postgres function the
+   * row-level policies call, so the door cannot appear for somebody the
+   * database would then hand nothing to — and cannot stay hidden from somebody
+   * it would.
+   *
+   * Memoised per request, so on the analytics screens themselves — where the
+   * layout has already asked — this costs nothing.
+   */
+  const analyticsAdmin = await isAnalyticsAdmin();
 
   return (
     <div className="relative min-h-screen">
@@ -63,7 +79,13 @@ export function AppShell({ user, section, children }: Props) {
       <div className="transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:pl-[var(--a-rail)]">
         {PREVIEW && <PreviewBanner />}
 
-        <TopBar user={user} section={section} fiscal={fiscal} today={istLongDate()} />
+        <TopBar
+          user={user}
+          section={section}
+          fiscal={fiscal}
+          today={istLongDate()}
+          analyticsAdmin={analyticsAdmin}
+        />
 
         {/*
           The bottom padding clears the dock. Nothing at the end of a long

@@ -23,6 +23,7 @@ export function TopBar({
   section,
   fiscal,
   today,
+  analyticsAdmin = false,
 }: {
   user: {
     id: string;
@@ -35,6 +36,8 @@ export function TopBar({
   section: Section;
   fiscal: Fiscal;
   today: string;
+  /** Decided once in AppShell, from the same function the RLS policies call. */
+  analyticsAdmin?: boolean;
 }) {
   const Primary = section.primary?.icon;
 
@@ -92,7 +95,7 @@ export function TopBar({
               <span className="hidden sm:inline">{section.primary.short}</span>
             </Link>
           )}
-          <UserMenu user={user} />
+          <UserMenu user={user} analyticsAdmin={analyticsAdmin} />
         </div>
       </div>
     </header>
