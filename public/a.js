@@ -129,8 +129,16 @@
 
     var text = document.createElement('p');
     text.style.cssText = 'margin:0 0 12px';
-    text.textContent =
-      'We use one first-party cookie for anonymous analytics. No ad networks, no third parties.';
+    text.appendChild(
+      document.createTextNode(
+        'We use one first-party cookie for anonymous analytics. No ad networks, no third parties. ',
+      ),
+    );
+    var link = document.createElement('a');
+    link.href = '/privacy';
+    link.textContent = 'Details.';
+    link.style.cssText = 'color:#c9cdf2;text-decoration:underline';
+    text.appendChild(link);
 
     var row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:8px';

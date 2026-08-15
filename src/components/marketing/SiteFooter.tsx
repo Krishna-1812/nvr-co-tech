@@ -9,6 +9,8 @@ const RESOURCES = [
   { href: '/signup', label: 'Create an account' },
 ] as const;
 
+const LEGAL = [{ href: '/privacy', label: 'Privacy' }] as const;
+
 export function SiteFooter() {
   const year = new Date().getFullYear();
 
@@ -33,6 +35,11 @@ export function SiteFooter() {
             {NAV.map((n) => (
               <FooterLink key={n.href} href={n.href}>
                 {n.label}
+              </FooterLink>
+            ))}
+            {LEGAL.map((l) => (
+              <FooterLink key={l.href} href={l.href}>
+                {l.label}
               </FooterLink>
             ))}
           </FooterCol>
