@@ -10,7 +10,7 @@ import { AGENTS, NAV, SITE_URL } from '@/lib/marketing/content';
  * from, so a new agent appears here without anyone remembering to add it.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticPages = ['/', ...NAV.map((n) => n.href), '/login', '/signup', '/privacy'];
+  const staticPages = ['/', ...NAV.map((n) => n.href), '/login', '/signup', '/privacy', '/terms'];
   const agentPages = AGENTS.map((a) => `/agents/${a.slug}`);
 
   return [...staticPages, ...agentPages].map((path) => ({

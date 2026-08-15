@@ -9,7 +9,10 @@ const RESOURCES = [
   { href: '/signup', label: 'Create an account' },
 ] as const;
 
-const LEGAL = [{ href: '/privacy', label: 'Privacy' }] as const;
+const LEGAL = [
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
+] as const;
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
