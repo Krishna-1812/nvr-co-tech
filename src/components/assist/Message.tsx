@@ -43,7 +43,7 @@ function Mark({ sample }: { sample: boolean }) {
     );
   }
 
-  return <LogoMark id="assist-mark" tile className="elev-1 mt-0.5 size-7 shrink-0 rounded-xl" />;
+  return <LogoMark id="assist-mark" className="mt-0.5 size-7 shrink-0" />;
 }
 
 export function Message({ turn, streaming = false }: { turn: Turn; streaming?: boolean }) {

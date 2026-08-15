@@ -1,17 +1,6 @@
 import { cn } from '@/lib/utils';
 import { BRAND } from '@/lib/marketing/content';
-import {
-  BEAK,
-  EYE,
-  HALO,
-  HEAD,
-  INK,
-  RECENTRE,
-  RUPEE,
-  TILE_SCALE,
-  TUFTS,
-  VIEW,
-} from '@/lib/brand/mark';
+import { BEAK, EYE, HALO, HEAD, INK, RECENTRE, RUPEE, TUFTS, VIEW } from '@/lib/brand/mark';
 
 /**
  * The owl, drawn from the geometry in lib/brand/mark.
@@ -23,16 +12,7 @@ import {
  * `id` has to be unique per instance. Two gradients sharing an id on one page
  * makes the second one silently inherit the first.
  */
-export function LogoMark({
-  className,
-  id = 'fi-mark',
-  tile = false,
-}: {
-  className?: string;
-  id?: string;
-  /** Draw it on its own navy tile, for places that want a filled square. */
-  tile?: boolean;
-}) {
+export function LogoMark({ className, id = 'fi-mark' }: { className?: string; id?: string }) {
   const eyes = (r: number, fill: string, stroke?: string) =>
     EYE.x.map((x) => (
       <circle
@@ -55,29 +35,21 @@ export function LogoMark({
         </linearGradient>
       </defs>
 
-      {tile && <rect width={VIEW} height={VIEW} fill={INK.navy} />}
+      {/* The light disc, so a navy bird still reads on a dark ground. */}
+      <circle cx={HALO.cx} cy={HALO.cy} r={HALO.r} fill={HALO.fill} />
 
-      <g
-        transform={
-          tile ? `translate(150,150) scale(${TILE_SCALE}) translate(-150,-150)` : undefined
-        }
-      >
-        {/* The light disc, so a navy bird still reads on a dark ground. */}
-        <circle cx={HALO.cx} cy={HALO.cy} r={HALO.r} fill={HALO.fill} />
+      <g transform={`translate(0,${RECENTRE})`}>
+        {TUFTS.map((points) => (
+          <polygon key={points} points={points} fill={`url(#${id}-g)`} />
+        ))}
+        <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill={`url(#${id}-g)`} />
 
-        <g transform={`translate(0,${RECENTRE})`}>
-          {TUFTS.map((points) => (
-            <polygon key={points} points={points} fill={`url(#${id}-g)`} />
-          ))}
-          <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill={`url(#${id}-g)`} />
+        {eyes(EYE.white, '#FFFFFF')}
+        {eyes(EYE.ring, 'none', INK.gold)}
+        {eyes(EYE.pupil, INK.navy)}
 
-          {eyes(EYE.white, '#FFFFFF')}
-          {eyes(EYE.ring, 'none', INK.gold)}
-          {eyes(EYE.pupil, INK.navy)}
-
-          <polygon points={BEAK} fill={INK.gold} />
-          <path fill={INK.gold} d={RUPEE} />
-        </g>
+        <polygon points={BEAK} fill={INK.gold} />
+        <path fill={INK.gold} d={RUPEE} />
       </g>
     </svg>
   );

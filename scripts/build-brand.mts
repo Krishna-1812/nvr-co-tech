@@ -18,7 +18,6 @@ const app = join(root, 'src', 'app');
 const brand = join(root, 'public', 'brand');
 mkdirSync(brand, { recursive: true });
 
-const icon = markSvg({ tile: true });
 const mark = markSvg();
 
 const png = (svg: string, size: number) =>
@@ -57,13 +56,15 @@ const put = (path: string, data: Buffer | string) => {
   written.push(path.replace(root, '').replace(/\\/g, '/').replace(/^\//, ''));
 };
 
-// The two vector masters. icon.svg is what a modern browser actually shows in
-// a tab; the .ico below is for the ones that do not take SVG.
-put(join(app, 'icon.svg'), icon);
+// One mark, everywhere. icon.svg is what a modern browser actually shows in a
+// tab; the .ico below is for the ones that do not take SVG. Both keep their
+// transparent ground, so the bird is round in a tab rather than sitting on a
+// plate the shape of the file.
+put(join(app, 'icon.svg'), mark);
 put(join(brand, 'logo-mark.svg'), mark);
 
 const at: Record<number, Buffer> = {};
-for (const size of [16, 32, 48, 180, 192, 512]) at[size] = await png(icon, size);
+for (const size of [16, 32, 48, 180, 192, 512]) at[size] = await png(mark, size);
 
 put(join(app, 'favicon.ico'), ico([16, 32, 48].map((size) => ({ size, data: at[size] }))));
 put(join(app, 'apple-icon.png'), at[180]);

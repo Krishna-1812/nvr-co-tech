@@ -68,19 +68,16 @@ export const BEAK = '150,172 138,190 150,206 162,190';
 export const RUPEE =
   'M139.344 231.304L131.503 231.304L134.167 225.401L168.497 225.401L165.894 231.304L156.327 231.304Q157.296 233 157.659 235.240L168.497 235.240L165.894 241.143L157.508 241.143Q156.993 243.474 155.691 245.230Q153.512 248.106 149.152 249.468Q151.544 250.013 153.451 251.951Q155.358 253.888 157.266 257.763L163.593 270.599L151.181 270.599L145.671 259.368Q144.006 255.977 142.295 254.736Q140.585 253.495 137.739 253.495L133.198 253.495L133.198 245.442L139.344 245.442Q143.007 245.442 144.611 243.414Q145.398 242.415 145.792 241.143L131.503 241.143L134.167 235.240L145.701 235.240Q145.308 234.120 144.611 233.242Q143.007 231.304 139.344 231.304';
 
-/** How far the owl is inset when it is drawn on its own tile, so the halo breathes. */
-export const TILE_SCALE = 0.86;
-
 /**
  * The mark as a standalone SVG document, for the icon build script, which has
  * no React. The components draw the same shapes from the same constants.
+ *
+ * There is one mark and no tiled variant. The halo is already a circular
+ * ground, so an icon needs nothing behind it: a square plate would only put a
+ * dark box in a browser tab around a bird that is round.
  */
-export function markSvg({ tile = false }: { tile?: boolean } = {}): string {
-  const id = tile ? 'tfi-tile' : 'tfi-mark';
-  const open = tile
-    ? `<g transform="translate(150,150) scale(${TILE_SCALE}) translate(-150,-150)">`
-    : '';
-  const close = tile ? '</g>' : '';
+export function markSvg(): string {
+  const id = 'tfi-mark';
 
   const eyes = (r: number, fill: string, stroke?: string) =>
     EYE.x
@@ -99,7 +96,7 @@ export function markSvg({ tile = false }: { tile?: boolean } = {}): string {
       <stop offset="0%" stop-color="${INK.navyLit}"/>
       <stop offset="100%" stop-color="${INK.navy}"/>
     </linearGradient>
-  </defs>${tile ? `\n  <rect width="${VIEW}" height="${VIEW}" fill="${INK.navy}"/>` : ''}${open}
+  </defs>
   <circle cx="${HALO.cx}" cy="${HALO.cy}" r="${HALO.r}" fill="${HALO.fill}"/>
   <g transform="translate(0,${RECENTRE})">
     ${TUFTS.map((points) => `<polygon points="${points}" fill="url(#${id})"/>`).join('\n    ')}
@@ -109,7 +106,7 @@ export function markSvg({ tile = false }: { tile?: boolean } = {}): string {
     ${eyes(EYE.pupil, INK.navy)}
     <polygon points="${BEAK}" fill="${INK.gold}"/>
     <path fill="${INK.gold}" d="${RUPEE}"/>
-  </g>${close}
+  </g>
 </svg>
 `;
 }
