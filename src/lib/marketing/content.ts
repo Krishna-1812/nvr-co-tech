@@ -427,13 +427,11 @@ export const STAGE_NOTE: Record<AgentStage, string> = {
  * these addresses are the route itself rather than a fallback. They have to be
  * right in every place they appear.
  *
- * ⚠ UNVERIFIED. The domain is registered and live, but neither mailbox has
- * been created on it yet (no Google Workspace or equivalent is set up). Create
- * both before the site is shared with anyone, because an enquiry sent here
- * currently has no destination at all. It is the one thing on the public site
- * that fails silently.
+ * One real mailbox, team@, behind both. There's no dedicated security inbox
+ * yet — `security` is the same address for now, kept as its own field so it
+ * moves to a real one later without touching every call site.
  */
 export const CONTACT = {
-  email: 'hello@thefinanceintelligence.com',
-  security: 'security@thefinanceintelligence.com',
+  email: 'team@thefinanceintelligence.com',
+  security: 'team@thefinanceintelligence.com',
 } as const;

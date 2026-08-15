@@ -426,7 +426,6 @@ tool traces and source chips intact, continued into the same conversation rather
 one, and deleted. That proves the components and the queries agree on a shape. It proves
 nothing about the policies, which only Postgres enforces.
 
-> `hello@thefinanceintelligence.com` and `security@thefinanceintelligence.com` on `/contact`
-> are **unverified**: the domain is live, but neither mailbox has been created on it yet
-> (no Google Workspace or equivalent is set up). Create both before sharing the site — see
-> the note on `CONTACT` in `src/lib/marketing/content.ts`.
+> `/contact` sends everything to `team@thefinanceintelligence.com` — one real mailbox,
+> created on GoDaddy. There's no separate security-reports inbox yet; see the note on
+> `CONTACT` in `src/lib/marketing/content.ts`.
