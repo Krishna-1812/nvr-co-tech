@@ -207,12 +207,22 @@ export function CTA({
   variant = 'primary',
   className,
   external = false,
+  data,
 }: {
   href: string;
   children: React.ReactNode;
   variant?: 'primary' | 'ghost';
   className?: string;
   external?: boolean;
+  /**
+   * Data attributes for the analytics tracker's call-to-action taxonomy.
+   *
+   * Attributes rather than matching on the href, deliberately. A taxonomy keyed
+   * on URLs breaks silently the day somebody moves a page: the button keeps
+   * working, the tracker stops recognising it, and the metric quietly goes to
+   * zero with no error anywhere. An attribute travels with the button.
+   */
+  data?: Record<string, string>;
 }) {
   const base =
     'group inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition active:scale-[0.98]';
@@ -227,6 +237,7 @@ export function CTA({
       href={href}
       className={cn(base, look, className)}
       style={variant === 'primary' ? { backgroundImage: 'var(--m-grad)' } : undefined}
+      {...data}
       {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
     >
       {children}

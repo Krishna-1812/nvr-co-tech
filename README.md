@@ -36,6 +36,7 @@ See [`docs/01-system-analysis.md`](docs/01-system-analysis.md) for the analysis 
 /settings             Voucher Desk            src/app/(app)
 /reconcile            Ledger Reconciliation   src/app/(recon)
 /ask                  the assistant           src/app/(assist)
+/analytics            visitor intelligence    src/app/(insight)
 ```
 
 Each tool is a route group with its own `Section` (see [`src/lib/nav.ts`](src/lib/nav.ts)) handed to
@@ -315,12 +316,102 @@ dropped by construction rather than by a special case that could be forgotten.
 
 Defaults to `claude-opus-5`, moved with `ANTHROPIC_MODEL`.
 
+### Visitor intelligence
+
+First-party web analytics, plus an engine that works out which *company* is behind an anonymous
+visit. Migration 0010, the library in [`src/lib/analytics`](src/lib/analytics), the tracker in
+[`public/a.js`](public/a.js), and four screens under `/analytics`.
+
+There is no Google Analytics on this site and no third-party pixel of any kind. Our own script, our
+own cookie, our own endpoints, our own database. That is the whole architecture, and it is why the
+word first-party means something here rather than being a claim on a privacy page.
+
+**Nobody sees it but an analytics admin.** The allowlist is a table, seeded with one address, and
+`is_analytics_admin()` is called by every select policy in 0010 *and* by the application. One list,
+so what the navigation shows and what Postgres will hand over cannot drift apart — which is the
+usual way admin-gated interface quietly starts lying. Being an `owner` of the voucher workflow
+grants nothing here; approving a payment is not a reason to be shown who read the pricing page.
+Adding a colleague is one `INSERT`, with no deploy.
+
+**Nobody writes to it directly either.** The beacon is unauthenticated by necessity — an anonymous
+visitor has no session — so granting `anon` an insert policy would let anybody holding the
+publishable key write whatever they liked into the visitor record. There are no insert policies on
+the event tables at all. Every write goes through a `SECURITY DEFINER` function that decides for
+itself what a row may contain.
+
+#### The gate is the product
+
+An IP address resolving to an organisation name does not mean that organisation employs the
+visitor. It might be their broadband provider, their mobile carrier, a cloud host running somebody
+else's crawler, or a security proxy that a thousand unrelated companies route their traffic
+through. Reporting any of those as an account that visited your pricing page is a false positive
+that ends the feature's credibility the first time a salesperson sees it.
+
+So every address is classified first, and only `business`, `education` and `government` may ever
+surface a name. Past that gate a name still needs evidence of the right *kind*: a reverse DNS
+record or a direct provider hit stands alone; two independent methods agreeing stands; a clean
+registry registrant on a small dedicated block stands. A single domain guessed from an organisation
+name, on a large shared block, never does — however plausible the guess and whatever the arithmetic
+said.
+
+Expect roughly a fifth to two fifths of real traffic to resolve. That gap is the gate working, and
+the instinct to widen it until the screen fills is the one change that would make every row on it
+worthless. Every resolution carries the list of reasons it did or did not identify somebody, which
+is what makes the refusals readable as answers rather than as failures.
+
+The classification and scoring are unit-tested entirely offline, by injecting fake provider
+responses — see [`gate.test.ts`](src/lib/analytics/ip/gate.test.ts), where most of the assertions
+are about a refusal rather than a result.
+
+#### Never fabricate a person
+
+An anonymous visitor becomes a named person only when something proves it: a sign-in, a form
+submission, or a token-gated webhook. Those create `deterministic` edges in the identity graph, and
+only those may merge two identities. Sharing an IP or a device fingerprint creates a
+`co_occurrence` edge, which is recorded and never read by the resolver — because the classic way an
+identity graph destroys itself is one coincidental shared address on office wifi silently fusing
+two unrelated people's histories.
+
+What that buys, and it is the valuable half: the moment somebody signs in, everything they read
+beforehand becomes theirs, because it was all keyed on a visitor id their browser was carrying the
+whole time. What it does not buy is naming a stranger who has never interacted with us. That needs
+a licensed identity graph or a publisher co-op; the plug point is a file reader shaped exactly like
+one, so wiring a real feed in later is a procurement decision rather than an engineering project.
+
+#### Money
+
+Free enrichment runs for every identified visitor and costs nothing: the company's own homepage,
+its schema.org and OpenGraph data, and a tech-stack fingerprint. Headcount and revenue for a
+private company are left empty rather than estimated, because an honest gap is not a bug.
+
+Paid enrichment lives in its own file that nothing else imports, has exactly one call site, and
+that call site is a button on one named account. Every call writes a row to `enrichment_spend` with
+the name of the person who caused it, because a rule about deliberate spending is only true if
+somebody can check it afterwards.
+
+#### Privacy
+
+Do Not Track and Global Privacy Control are honoured unconditionally — no cookie, no identifier, no
+request, not a reduced mode. Visitors whose timezone suggests a jurisdiction that expects to be
+asked get a dismissible card, and declining wipes the identifier that already exists rather than
+only the ones that would have. Both leave permanent, deliberate gaps in these numbers.
+
+None of `IPINFO_TOKEN`, `APOLLO_API_KEY` or the rest is required. Without an IP-intelligence token
+the engine falls back to reverse DNS and RDAP, which are free and need no key; it identifies fewer
+visitors, which is the trade, not a fault. This project currently runs with no such token.
+
 ### Verified against a live database
 
 Every migration through 0009 has been applied to a real Supabase project in Mumbai, confirmed on
 15 August 2026 by querying `pg_tables`, `pg_policies`, `pg_indexes` and `pg_proc` rather than by
 remembering. Sign-up, Google OAuth, voucher creation and submission (including the generated
 voucher number) have been exercised end to end.
+
+> **Migration 0010 has not been applied yet.** Until it is, the tracker collects nothing, the
+> endpoints answer without writing, and `/analytics` says so plainly to whoever opens it instead of
+> showing an empty dashboard. Run [`0010_analytics.sql`](supabase/migrations/0010_analytics.sql) in
+> the Supabase SQL editor as one paste. It seeds `analytics_admins` with
+> `krishna.ladha18@gmail.com`, which is the address that will be able to open those screens.
 
 Voucher numbers issued before 0007 keep their `NVR/` prefix permanently, and the run of numbers
 continued unbroken across the rename: see the note at the top of that migration for why both of

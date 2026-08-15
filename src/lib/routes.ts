@@ -24,6 +24,10 @@ export const PROTECTED_PREFIXES = [
   '/settings',
   '/reconcile',
   '/ask',
+  // Visitor intelligence. Gated a second time inside its own layout against the
+  // analytics allowlist, which is a different and much shorter list than
+  // "anybody with a session" — see lib/analytics/admin.
+  '/analytics',
 ] as const;
 
 export function isProtectedPath(pathname: string): boolean {

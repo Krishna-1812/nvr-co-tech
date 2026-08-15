@@ -221,6 +221,49 @@ export type AssistTurnRow = {
 };
 
 /**
+ * The analytics store (0010).
+ *
+ * Deliberately thin here. The event tables have no insert policy at all — every
+ * write goes through a SECURITY DEFINER function taking one jsonb payload — so
+ * there is no meaningful Insert shape for them, and the row shapes the screens
+ * actually reason about live in lib/analytics/types.ts beside the code that
+ * reads them. What this file needs is only enough for the query builder to type
+ * a select and for the two caches, which the dashboard does write to directly.
+ */
+export type AnalyticsAdminRow = { email: string; note: string | null; added_at: string };
+
+export type IpResolutionRow = {
+  ip: string;
+  /** Stamped by the resolver, so improved logic re-resolves instead of serving stale. */
+  version: number;
+  resolution: unknown;
+  resolved_at: string;
+  expires_at: string;
+};
+
+export type CompanyEnrichmentRow = {
+  domain: string;
+  tier: 'free' | 'paid';
+  version: number;
+  /** Null is a real cached answer: we looked, and there was nothing. */
+  data: unknown;
+  fetched_at: string;
+  expires_at: string;
+};
+
+export type EnrichmentSpendRow = {
+  id: number;
+  spent_at: string;
+  actor_email: string;
+  kind: 'company' | 'person';
+  subject: string;
+  outcome: 'hit' | 'miss' | 'error';
+};
+
+/** Row shapes for the append-only analytics tables, as the dashboard reads them. */
+type AnalyticsRow = Record<string, unknown>;
+
+/**
  * Shape for the Supabase client generic.
  *
  * supabase-js expects each table to carry Row / Insert / Update / Relationships
@@ -248,6 +291,17 @@ export type Database = {
       reconciliations: Table<ReconciliationRow>;
       assist_conversations: Table<AssistConversationRow>;
       assist_turns: Table<AssistTurnRow>;
+
+      // 0010 — the analytics store.
+      analytics_admins: Table<AnalyticsAdminRow>;
+      page_views: Table<AnalyticsRow>;
+      visitor_analytics: Table<AnalyticsRow>;
+      visitor_identities: Table<AnalyticsRow>;
+      identity_nodes: Table<AnalyticsRow>;
+      identity_edges: Table<AnalyticsRow>;
+      ip_resolutions: Table<IpResolutionRow>;
+      company_enrichment: Table<CompanyEnrichmentRow>;
+      enrichment_spend: Table<EnrichmentSpendRow>;
     };
     Views: Record<never, never>;
     Functions: {
@@ -275,6 +329,18 @@ export type Database = {
       // No arguments on purpose: it reads auth.users itself, so a caller cannot
       // choose the URL that other people's browsers will end up fetching.
       sync_own_avatar: { Args: Record<string, never>; Returns: string | null };
+
+      /*
+       * 0010 — analytics. The three writers all take one jsonb payload rather
+       * than thirty-odd arguments, and they are the only way anything reaches
+       * the event tables: those have no insert policy, so this is not a
+       * convenience, it is the door.
+       */
+      is_analytics_admin: { Args: Record<string, never>; Returns: boolean };
+      record_visitor_view: { Args: { p: Record<string, unknown> }; Returns: void };
+      record_page_view: { Args: { p: Record<string, unknown> }; Returns: void };
+      record_identity: { Args: { p: Record<string, unknown> }; Returns: void };
+      prune_analytics: { Args: { p_days?: number }; Returns: number };
     };
     Enums: {
       user_role: UserRole;

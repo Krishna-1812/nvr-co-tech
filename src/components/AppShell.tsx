@@ -7,6 +7,7 @@ import { SideRail } from './app/SideRail';
 import { TopBar } from './app/TopBar';
 import { MobileDock } from './app/MobileDock';
 import { PreviewBanner } from './app/PreviewBanner';
+import { PageTiming } from './app/PageTiming';
 
 type Props = {
   user: {
@@ -77,6 +78,15 @@ export function AppShell({ user, section, children }: Props) {
       </div>
 
       <MobileDock nav={section.items} />
+
+      {/*
+        Reading time, per screen, for the signed-in side.
+
+        Here rather than in each tool's layout so a new tool cannot arrive
+        without it — and here rather than in the root layout so it never runs on
+        the public site, which has its own tracker and its own consent rules.
+      */}
+      <PageTiming />
     </div>
   );
 }

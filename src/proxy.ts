@@ -111,9 +111,14 @@ export default async function proxy(request: NextRequest) {
  * requests were all running this proxy, and none of them has a session to refresh
  * or a route to gate. Fonts already sat under _next/static; the rest are named
  * here by extension.
+ *
+ * `.js` joined the list with the analytics tracker: /a.js is a static file
+ * requested by every visitor to the public site, and running a session refresh
+ * for it would put this proxy on the hot path of the one request that exists to
+ * avoid being on anybody's hot path.
  */
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|otf|txt|xml|webmanifest)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:js|svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|otf|txt|xml|webmanifest)$).*)',
   ],
 };

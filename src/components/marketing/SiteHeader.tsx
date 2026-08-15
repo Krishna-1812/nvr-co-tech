@@ -89,12 +89,15 @@ export function SiteHeader() {
           <div className="ml-auto flex items-center gap-2">
             <Link
               href="/login"
+              data-signin=""
               className="m-dim hidden rounded-full px-4 py-2 text-[13px] font-medium transition hover:text-[var(--m-ink)] sm:block"
             >
               Sign in
             </Link>
             <Link
               href="/contact"
+              data-demo=""
+              data-interest="Header"
               className="hidden h-9 items-center rounded-full px-4 text-[13px] font-semibold text-white transition hover:brightness-110 active:scale-[0.98] sm:inline-flex"
               style={{ backgroundImage: 'var(--m-grad)' }}
             >
@@ -130,12 +133,15 @@ export function SiteHeader() {
               <div className="mt-3 flex gap-2 border-t border-[var(--m-line)] pt-4 pb-2">
                 <Link
                   href="/login"
+                  data-signin=""
                   className="flex h-11 flex-1 items-center justify-center rounded-full border border-[var(--m-line-2)] text-sm font-semibold"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/contact"
+                  data-demo=""
+                  data-interest="Phone menu"
                   className="flex h-11 flex-1 items-center justify-center rounded-full text-sm font-semibold text-white"
                   style={{ backgroundImage: 'var(--m-grad)' }}
                 >

@@ -49,6 +49,7 @@ export function AgentGrid() {
               >
                 <Link
                   href={`/agents/${agent.slug}`}
+                  data-name={agent.name}
                   className="group relative flex h-full flex-col p-6"
                 >
                   {/* Accent bloom in the corner, behind the content. */}

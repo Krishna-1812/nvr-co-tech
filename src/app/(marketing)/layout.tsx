@@ -1,3 +1,4 @@
+import Script from 'next/script';
 import { SiteHeader } from '@/components/marketing/SiteHeader';
 import { SiteFooter } from '@/components/marketing/SiteFooter';
 
@@ -44,6 +45,20 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <SiteHeader />
       <main>{children}</main>
       <SiteFooter />
+
+      {/*
+        Our own measurement, on our own origin, writing to our own database.
+        There is no Google Analytics on this site and no third-party pixel of
+        any kind; see public/a.js, which is the whole of the client side.
+
+        `lazyOnload` because nothing it measures needs it to have run early —
+        the one beacon it sends goes on the way out — and a marketing page
+        should spend its first second painting rather than booting a tracker.
+        It refuses to do anything at all under Do Not Track or Global Privacy
+        Control, and asks before doing anything in the regions that expect to
+        be asked.
+      */}
+      <Script src="/a.js" strategy="lazyOnload" />
     </div>
   );
 }

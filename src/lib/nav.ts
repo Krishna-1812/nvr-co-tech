@@ -1,9 +1,13 @@
 import {
+  Activity,
+  Building2,
   FileText,
   History,
   Inbox,
   LayoutDashboard,
+  MousePointerClick,
   Plus,
+  Radar,
   Scale,
   Settings,
   Sparkles,
@@ -136,7 +140,61 @@ export function sectionFor(
 ): Section {
   if (slug === 'ledger-reconciliation') return reconSection();
   if (slug === ASSIST_SLUG) return assistSection();
+  if (slug === ANALYTICS_SLUG) return analyticsSection();
   return voucherSection({ role, pendingCount });
+}
+
+/**
+ * Not on the roster either, and for a sharper reason than the assistant.
+ *
+ * Visitor intelligence is not something we sell; it is something we run about
+ * the people who look at what we sell. It is also the only part of this platform
+ * gated on a list that has nothing to do with anybody's role in the voucher
+ * workflow — an owner who can approve a payment sees none of it unless their
+ * address is in `analytics_admins`. Giving it a slug outside AGENTS keeps that
+ * separation structural rather than remembered.
+ */
+export const ANALYTICS_SLUG = 'analytics';
+
+export function analyticsSection(): Section {
+  return {
+    slug: ANALYTICS_SLUG,
+    name: 'Visitor Intelligence',
+    home: '/analytics',
+    items: [
+      {
+        href: '/analytics',
+        label: 'Overview',
+        icon: Activity,
+        hint: 'Traffic, where it came from and how the site is holding up',
+      },
+      {
+        href: '/analytics/companies',
+        label: 'Companies',
+        icon: Building2,
+        hint: 'The accounts the traffic resolved to, ranked by how close they look',
+      },
+      {
+        href: '/analytics/visitors',
+        label: 'Visitors',
+        icon: Radar,
+        hint: 'Every session, with who it was and where it came from',
+      },
+      {
+        href: '/analytics/behaviour',
+        label: 'Behaviour',
+        icon: MousePointerClick,
+        hint: 'Scrolling, clicking, searching, and the lead funnel',
+        secondary: true,
+      },
+      {
+        href: '/settings',
+        label: 'Settings',
+        icon: Settings,
+        hint: 'Your account and appearance',
+      },
+    ],
+  };
 }
 
 /**

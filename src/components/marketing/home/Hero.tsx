@@ -51,7 +51,9 @@ export function Hero() {
 
             <Rise delay={450}>
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <CTA href="/contact">Book a walkthrough</CTA>
+                <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'Hero' }}>
+                  Book a walkthrough
+                </CTA>
                 <CTA href="/agents" variant="ghost">
                   See what we build
                 </CTA>

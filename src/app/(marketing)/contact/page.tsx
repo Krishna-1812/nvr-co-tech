@@ -70,6 +70,7 @@ export default function ContactPage() {
                 action={MAILTO}
                 method="post"
                 encType="text/plain"
+                data-lead-form=""
                 aria-describedby="mailto-note"
                 className="m-card p-6 sm:p-9"
               >

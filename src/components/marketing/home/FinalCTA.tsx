@@ -26,8 +26,10 @@ export function FinalCTA() {
         </Reveal>
         <Reveal delay={140}>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <CTA href="/contact">Book a walkthrough</CTA>
-            <CTA href="/signup" variant="ghost">
+            <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'Final call to action' }}>
+              Book a walkthrough
+            </CTA>
+            <CTA href="/signup" variant="ghost" data={{ 'data-signup': '' }}>
               Create an account
             </CTA>
           </div>

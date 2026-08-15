@@ -142,7 +142,9 @@ export default function AgentsPage() {
                   it is not built yet, we will say so, and tell you when it should be.
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
-                  <CTA href="/contact">Book a walkthrough</CTA>
+                  <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'Agent index' }}>
+                    Book a walkthrough
+                  </CTA>
                   <CTA href="/about" variant="ghost">
                     How we build it
                   </CTA>

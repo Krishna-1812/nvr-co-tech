@@ -1,4 +1,5 @@
 import * as fixtures from './fixtures';
+import * as analytics from './analytics';
 import { PREVIEW_USER_ID } from './fixtures';
 import { financialYear } from '@/lib/domain/voucher';
 import {
@@ -65,6 +66,17 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   // being used rather than by being seeded.
   assist_conversations: [],
   assist_turns: [],
+  // Analytics (0010). Seeded, unlike the two above, because these screens are
+  // the one part of the platform whose content cannot be produced by using it:
+  // a preview visitor cannot generate a fortnight of somebody else's traffic.
+  visitor_analytics: analytics.visitor_analytics,
+  page_views: [],
+  visitor_identities: analytics.visitor_identities,
+  identity_nodes: analytics.identity_nodes,
+  identity_edges: analytics.identity_edges,
+  ip_resolutions: [],
+  company_enrichment: [],
+  enrichment_spend: [],
 });
 
 const me = () => TABLES.profiles.find((p) => p.id === PREVIEW_USER_ID)!;
@@ -531,6 +543,20 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
       c.name = String(args.p_name ?? '').trim();
       return ok(c);
     }
+
+    /*
+     * Analytics (0010). The three writers are no-ops here rather than pushing
+     * rows: the sample traffic is a fortnight of other people's browsing, and a
+     * preview user wandering the marketing site adding their own page views to
+     * it would make every figure on those screens drift away from the sample it
+     * was built to show.
+     */
+    case 'is_analytics_admin':
+      return ok(true);
+    case 'record_visitor_view':
+    case 'record_page_view':
+    case 'record_identity':
+      return ok();
 
     default:
       return fail(`${fn} is not available in preview mode.`);

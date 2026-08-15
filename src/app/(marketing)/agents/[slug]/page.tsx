@@ -258,7 +258,7 @@ function StageActions({ agent }: { agent: Agent }) {
     return (
       <>
         <CTA href={agent.href}>Open {agent.name}</CTA>
-        <CTA href="/contact" variant="ghost">
+        <CTA href="/contact" variant="ghost" data={{ 'data-demo': '', 'data-interest': agent.name }}>
           Book a walkthrough
         </CTA>
       </>
@@ -276,7 +276,9 @@ function StageActions({ agent }: { agent: Agent }) {
 
   return (
     <>
-      <CTA href="/contact">Book a walkthrough</CTA>
+      <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': agent.name }}>
+        Book a walkthrough
+      </CTA>
       {first && (
         <CTA href={elsewhere} variant="ghost">
           See what is live today

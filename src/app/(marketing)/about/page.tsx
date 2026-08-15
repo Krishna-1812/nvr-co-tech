@@ -282,7 +282,9 @@ export default function AboutPage() {
                   that governs it. Ask us about the odd case that broke your last system.
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
-                  <CTA href="/contact">Book a walkthrough</CTA>
+                  <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'About' }}>
+                    Book a walkthrough
+                  </CTA>
                   <CTA href="/agents" variant="ghost">
                     See what we build
                   </CTA>

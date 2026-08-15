@@ -1,6 +1,21 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  images: {
+    /*
+     * The only external image this site loads, and it is admin-only.
+     *
+     * Company logos on the visitor-intelligence screens come from a free
+     * no-auth brand index. A 200 from it is also a soft signal that the domain
+     * we resolved belongs to a real company rather than being a plausible
+     * string, which is the other half of why it is fetched at all.
+     *
+     * `unoptimized` at the call site: these are 36px marks, so putting them
+     * through the optimiser would cost a server round-trip and a cache entry
+     * each to save nothing.
+     */
+    remotePatterns: [{ protocol: 'https', hostname: 'logo.clearbit.com' }],
+  },
   experimental: {
     /*
      * How long the browser may reuse a page it has already fetched.
