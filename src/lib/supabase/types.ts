@@ -263,6 +263,19 @@ export type EnrichmentSpendRow = {
 /** Row shapes for the append-only analytics tables, as the dashboard reads them. */
 type AnalyticsRow = Record<string, unknown>;
 
+/** 0011 — a caught failure, as the errors admin screen reads it. */
+type ErrorLogRow = {
+  id: number;
+  occurred_at: string;
+  scope: 'client' | 'server';
+  route: string | null;
+  message: string;
+  digest: string | null;
+  stack: string | null;
+  user_email: string | null;
+  extra: Record<string, unknown> | null;
+};
+
 /**
  * Shape for the Supabase client generic.
  *
@@ -302,6 +315,9 @@ export type Database = {
       ip_resolutions: Table<IpResolutionRow>;
       company_enrichment: Table<CompanyEnrichmentRow>;
       enrichment_spend: Table<EnrichmentSpendRow>;
+
+      // 0011 — shared rate limiting and error logging.
+      error_log: Table<ErrorLogRow>;
     };
     Views: Record<never, never>;
     Functions: {
@@ -341,6 +357,17 @@ export type Database = {
       record_page_view: { Args: { p: Record<string, unknown> }; Returns: void };
       record_identity: { Args: { p: Record<string, unknown> }; Returns: void };
       prune_analytics: { Args: { p_days?: number }; Returns: number };
+
+      /*
+       * 0011 — a shared rate-limit counter and a caught-failure log, both
+       * reachable by anon since both exist for callers with no session.
+       */
+      check_rate_limit: {
+        Args: { p_key: string; p_limit: number; p_window_seconds: number };
+        Returns: { allowed: boolean; retry_after_seconds: number }[];
+      };
+      record_error: { Args: { p: Record<string, unknown> }; Returns: void };
+      prune_errors: { Args: { p_days?: number }; Returns: number };
     };
     Enums: {
       user_role: UserRole;

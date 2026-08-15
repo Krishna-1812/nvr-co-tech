@@ -4,6 +4,8 @@ import { readBody, pageViewRow } from '@/lib/analytics/payload';
 import { recordPageView, recordIdentity } from '@/lib/analytics/store';
 import { clientIp } from '@/lib/analytics/ua';
 import { readVisitorCookie } from '@/lib/analytics/cookie';
+import { checkRateLimit } from '@/lib/ratelimit';
+import { logServerError } from '@/lib/errors/server';
 
 /**
  * How long a signed-in person spent on a page.
@@ -22,15 +24,23 @@ import { readVisitorCookie } from '@/lib/analytics/cookie';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/** One person reading pages, not a script — this can be tight. */
+const LIMIT = 120;
+const WINDOW_SECONDS = 300;
+
 export async function POST(request: Request) {
   try {
-    const body = await readBody(request);
     const user = await getCurrentUser();
+    const ip = clientIp(request.headers);
+    const rate = await checkRateLimit(`track:${user?.id ?? ip ?? 'unknown'}`, LIMIT, WINDOW_SECONDS);
+    if (!rate.allowed) return NextResponse.json({ ok: true });
+
+    const body = await readBody(request);
     const visitorId = readVisitorCookie(request.headers.get('cookie'));
 
     const row = pageViewRow(body, {
       ua: request.headers.get('user-agent'),
-      ip: clientIp(request.headers),
+      ip,
       // The session, not the body. A page-view endpoint that accepts an email
       // from its caller is an endpoint that will be sent somebody else's.
       email: user?.authEmail ?? user?.email ?? null,
@@ -54,8 +64,12 @@ export async function POST(request: Request) {
         source: 'sign_in',
       });
     }
-  } catch {
-    // Never worth a failure on a page somebody is using.
+  } catch (error) {
+    await logServerError({
+      route: '/api/track',
+      message: error instanceof Error ? error.message : 'Unknown error in /api/track',
+      stack: error instanceof Error ? error.stack : null,
+    });
   }
 
   return NextResponse.json({ ok: true });

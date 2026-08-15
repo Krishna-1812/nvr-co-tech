@@ -17,6 +17,7 @@ import { checkRate } from '@/lib/assist/ratelimit';
 import { retrieveWithContext } from '@/lib/assist/retrieve';
 import { saveExchange } from '@/lib/assist/store';
 import type { AssistEvent, ToolTrace, TurnNote } from '@/lib/assist/types';
+import { logServerError } from '@/lib/errors/server';
 
 /**
  * The assistant, as one streaming endpoint.
@@ -101,7 +102,21 @@ function frame(event: AssistEvent): string {
 }
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
+  let user;
+  try {
+    user = await getCurrentUser();
+  } catch (error) {
+    // getCurrentUser() can throw when a session cannot be resolved to a
+    // profile — a real, previously-seen fault (see src/lib/supabase/server.ts)
+    // that used to surface as an endless redirect between here and /login
+    // rather than a message anybody could act on.
+    await logServerError({
+      route: '/api/assist',
+      message: error instanceof Error ? error.message : 'Could not resolve the session',
+      stack: error instanceof Error ? error.stack : null,
+    });
+    return NextResponse.json({ error: 'Something went wrong while checking your session.' }, { status: 500 });
+  }
   if (!user) {
     return NextResponse.json({ error: 'You are not signed in.' }, { status: 401 });
   }
@@ -235,8 +250,16 @@ export async function POST(request: Request) {
          * runAssist turns its own failures into an error event, so reaching here
          * means something outside it broke. The reader still gets a sentence,
          * because a stream that simply stops looks exactly like an answer that
-         * is still being written and never arrives.
+         * is still being written and never arrives — and this one is also worth
+         * recording, since nothing about a stream failure otherwise reaches
+         * anywhere an operator would see it.
          */
+        await logServerError({
+          route: '/api/assist',
+          message: error instanceof Error ? error.message : 'Unknown error while answering',
+          stack: error instanceof Error ? error.stack : null,
+          userEmail: user.authEmail ?? user.email ?? null,
+        });
         send({
           type: 'error',
           message:

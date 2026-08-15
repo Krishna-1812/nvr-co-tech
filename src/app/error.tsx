@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/primitives';
+import { logClientError } from '@/lib/errors/client';
 
 /**
  * Shown when a page throws. Most failures here will be a Postgres function
@@ -21,6 +22,7 @@ export default function AppError({
     // Server-side digests are not readable from here; log so the browser console
     // has something to correlate against the server log.
     console.error(error);
+    void logClientError({ message: error.message, digest: error.digest, stack: error.stack });
   }, [error]);
 
   return (

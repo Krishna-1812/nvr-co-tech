@@ -1,5 +1,6 @@
 import {
   Activity,
+  AlertTriangle,
   Building2,
   FileText,
   History,
@@ -185,6 +186,13 @@ export function analyticsSection(): Section {
         label: 'Behaviour',
         icon: MousePointerClick,
         hint: 'Scrolling, clicking, searching, and the lead funnel',
+        secondary: true,
+      },
+      {
+        href: '/analytics/errors',
+        label: 'Errors',
+        icon: AlertTriangle,
+        hint: 'Every failure a page boundary or a route handler caught',
         secondary: true,
       },
       {

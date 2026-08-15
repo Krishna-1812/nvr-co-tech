@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { logClientError } from '@/lib/errors/client';
 
 /**
  * Last resort: a failure in the root layout itself, where error.tsx cannot
@@ -17,6 +18,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error(error);
+    void logClientError({ message: error.message, digest: error.digest, stack: error.stack });
   }, [error]);
 
   return (
