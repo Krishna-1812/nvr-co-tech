@@ -285,9 +285,10 @@ streams, so what is stored is byte for byte what was on screen; a question whose
 not written at all, so a conversation never has a question sitting in it with nothing underneath.
 Nothing expires on its own, which is why `/ask/history` carries a delete-everything control rather
 than a retention rule invented on somebody's behalf. Neither table has an update policy: a turn is
-a record of something that was said, so it is append-only, like `voucher_audit`. Until the
-migration is applied, the assistant behaves exactly as before and both the history page and the
-dropdown say why they are empty.
+a record of something that was said, so it is append-only, like `voucher_audit`. On a project
+where the migration has not been applied, the assistant behaves exactly as it did before it
+existed, and both the history page and the dropdown say why they are empty rather than showing an
+empty list.
 
 `ANTHROPIC_API_KEY` switches it on; without one the panel says so and nothing else is affected. In
 preview mode with no key it streams a clearly labelled sample built from whatever retrieval found,
@@ -316,19 +317,23 @@ Defaults to `claude-opus-5`, moved with `ANTHROPIC_MODEL`.
 
 ### Verified against a live database
 
-The migrations have been applied to a real Supabase project in Mumbai, and sign-up,
-Google OAuth, voucher creation and submission (including the generated
+Every migration through 0009 has been applied to a real Supabase project in Mumbai, confirmed on
+15 August 2026 by querying `pg_tables`, `pg_policies`, `pg_indexes` and `pg_proc` rather than by
+remembering. Sign-up, Google OAuth, voucher creation and submission (including the generated
 voucher number) have been exercised end to end.
+
+Voucher numbers issued before 0007 keep their `NVR/` prefix permanently, and the run of numbers
+continued unbroken across the rename: see the note at the top of that migration for why both of
+those are deliberate.
 
 Still only exercised in preview mode, never against Postgres: approval and rejection —
 both need a second and third account, since the segregation-of-duties rules deliberately
-prevent one person from testing them — plus reopen, mark-paid, PDF, Excel export and
-attachment upload.
-
-> **Migrations 0007, 0008 and 0009 have not been applied.** Until 0007 is, the database still
-> issues `NVR/` voucher numbers. Until 0008 is, reconciliations run and export normally but cannot
-> be saved. Until 0009 is, the assistant answers normally but nothing is kept. In all three cases
-> the screen says so rather than failing.
+prevent one person from testing them — plus reopen, mark-paid, PDF, Excel export,
+attachment upload, saving a reconciliation, and saving an assistant conversation. The last
+of those was exercised in full against the preview client: asked, saved, reopened with its
+tool traces and source chips intact, continued into the same conversation rather than a new
+one, and deleted. That proves the components and the queries agree on a shape. It proves
+nothing about the policies, which only Postgres enforces.
 
 > `hello@financeintelligence.in` and `security@financeintelligence.in` on `/contact` are
 > **unverified**: the domain is not registered yet, so neither mailbox exists. Register it
