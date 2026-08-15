@@ -7,6 +7,7 @@ import {
   Font,
 } from '@react-pdf/renderer';
 import { BRAND } from '@/lib/marketing/content';
+import { PdfMark } from '@/lib/brand/PdfMark';
 import { fmtAmount, fmtDate, toNum } from '@/lib/domain/voucher';
 import type { VoucherStatus } from '@/lib/domain/workflow';
 
@@ -53,7 +54,8 @@ const s = StyleSheet.create({
 
   // Header
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  wordmark: { fontSize: 24, fontFamily: 'Helvetica-Bold', color: INK },
+  lockup: { flexDirection: 'row', alignItems: 'center' },
+  wordmark: { fontSize: 24, fontFamily: 'Helvetica-Bold', color: INK, marginLeft: 7 },
   wordmarkSub: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: SOFT, marginTop: 3, letterSpacing: 0.5 },
   titleBlock: { alignItems: 'center' },
   firmName: { fontSize: 15, fontFamily: 'Helvetica-Bold', color: INK },
@@ -270,9 +272,12 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
           {/* ── Header ── */}
           <View style={s.header}>
             <View style={{ width: '24%' }}>
-              <Text style={s.wordmark}>
-                F<Text style={{ color: ACCENT }}>I</Text>
-              </Text>
+              <View style={s.lockup}>
+                <PdfMark size={30} />
+                <Text style={s.wordmark}>
+                  F<Text style={{ color: ACCENT }}>I</Text>
+                </Text>
+              </View>
               <Text style={s.wordmarkSub}>{BRAND.name}</Text>
             </View>
 

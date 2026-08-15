@@ -3,13 +3,12 @@ import { BRAND } from '@/lib/marketing/content';
 import {
   BEAK,
   EYE,
+  HALO,
   HEAD,
-  HEAD_INK,
   INK,
+  RECENTRE,
   RUPEE,
-  RUPEE_SHIFT,
-  TILE,
-  TILE_INK,
+  TILE_SCALE,
   TUFTS,
   VIEW,
 } from '@/lib/brand/mark';
@@ -17,11 +16,9 @@ import {
 /**
  * The owl, drawn from the geometry in lib/brand/mark.
  *
- * A wise bird holding a rupee: the reading the firm wanted, and it earns its
- * place at 16px because the eyes carry it when nothing else survives. The
- * numbers are not repeated here. They are shared with the social card and the
- * favicon build script, because the mark this replaced had been hand-copied
- * into all three and they had already drifted apart.
+ * The numbers are not repeated here. They are shared with the social card, the
+ * printed voucher and the favicon build script, because the mark this replaced
+ * had been hand-copied into all of those and had already drifted apart.
  *
  * `id` has to be unique per instance. Two gradients sharing an id on one page
  * makes the second one silently inherit the first.
@@ -33,15 +30,9 @@ export function LogoMark({
 }: {
   className?: string;
   id?: string;
-  /**
-   * Draw it on its own navy tile, for places that want a filled square rather
-   * than a free standing bird. The head lifts to stay legible against it.
-   */
+  /** Draw it on its own navy tile, for places that want a filled square. */
   tile?: boolean;
 }) {
-  const hi = tile ? TILE_INK.hi : HEAD_INK.hi;
-  const lo = tile ? TILE_INK.lo : HEAD_INK.lo;
-
   const eyes = (r: number, fill: string, stroke?: string) =>
     EYE.x.map((x) => (
       <circle
@@ -58,42 +49,35 @@ export function LogoMark({
   return (
     <svg viewBox={`0 0 ${VIEW} ${VIEW}`} className={className} aria-hidden focusable="false">
       <defs>
-        {/*
-          userSpaceOnUse, not the default. Measured per object, the tufts get
-          their own ramp and leave a seam where they meet the head.
-        */}
-        <linearGradient
-          id={`${id}-g`}
-          gradientUnits="userSpaceOnUse"
-          x1="0"
-          y1="0"
-          x2={VIEW}
-          y2={VIEW}
-        >
-          <stop offset="0%" stopColor={hi} />
-          <stop offset="100%" stopColor={lo} />
+        <linearGradient id={`${id}-g`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={INK.navyLit} />
+          <stop offset="100%" stopColor={INK.navy} />
         </linearGradient>
       </defs>
 
-      {tile && <rect width={VIEW} height={VIEW} rx={TILE.radius} fill={INK.navy} />}
+      {tile && <rect width={VIEW} height={VIEW} fill={INK.navy} />}
 
       <g
         transform={
-          tile ? `translate(150,150) scale(${TILE.scale}) translate(-150,-150)` : undefined
+          tile ? `translate(150,150) scale(${TILE_SCALE}) translate(-150,-150)` : undefined
         }
       >
-        {/* Behind the head, so the head cuts them to shape. */}
-        {TUFTS.map((points) => (
-          <polygon key={points} points={points} fill={`url(#${id}-g)`} />
-        ))}
-        <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill={`url(#${id}-g)`} />
+        {/* The light disc, so a navy bird still reads on a dark ground. */}
+        <circle cx={HALO.cx} cy={HALO.cy} r={HALO.r} fill={HALO.fill} />
 
-        {eyes(EYE.white, '#FFFFFF')}
-        {eyes(EYE.ring, 'none', INK.gold)}
-        {eyes(EYE.pupil, INK.navy)}
+        <g transform={`translate(0,${RECENTRE})`}>
+          {TUFTS.map((points) => (
+            <polygon key={points} points={points} fill={`url(#${id}-g)`} />
+          ))}
+          <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill={`url(#${id}-g)`} />
 
-        <polygon points={BEAK} fill={INK.gold} />
-        <path fill={INK.gold} transform={`translate(0,${RUPEE_SHIFT})`} d={RUPEE} />
+          {eyes(EYE.white, '#FFFFFF')}
+          {eyes(EYE.ring, 'none', INK.gold)}
+          {eyes(EYE.pupil, INK.navy)}
+
+          <polygon points={BEAK} fill={INK.gold} />
+          <path fill={INK.gold} d={RUPEE} />
+        </g>
       </g>
     </svg>
   );

@@ -11,7 +11,7 @@
 import sharp from 'sharp';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { markSvg, TILE } from '../src/lib/brand/mark';
+import { markSvg } from '../src/lib/brand/mark';
 
 const root = process.cwd();
 const app = join(root, 'src', 'app');
@@ -20,9 +20,6 @@ mkdirSync(brand, { recursive: true });
 
 const icon = markSvg({ tile: true });
 const mark = markSvg();
-
-/** Corners are the browser's job on a tab and the platform's on a home screen. */
-const square = icon.replace(` rx="${TILE.radius}"`, '');
 
 const png = (svg: string, size: number) =>
   sharp(Buffer.from(svg)).resize(size, size).png({ compressionLevel: 9 }).toBuffer();
@@ -66,7 +63,7 @@ put(join(app, 'icon.svg'), icon);
 put(join(brand, 'logo-mark.svg'), mark);
 
 const at: Record<number, Buffer> = {};
-for (const size of [16, 32, 48, 180, 192, 512]) at[size] = await png(square, size);
+for (const size of [16, 32, 48, 180, 192, 512]) at[size] = await png(icon, size);
 
 put(join(app, 'favicon.ico'), ico([16, 32, 48].map((size) => ({ size, data: at[size] }))));
 put(join(app, 'apple-icon.png'), at[180]);

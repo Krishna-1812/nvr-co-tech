@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { BRAND } from '@/lib/marketing/content';
-import { BEAK, EYE, HEAD, HEAD_INK, INK, RUPEE, RUPEE_SHIFT, TUFTS, VIEW } from '@/lib/brand/mark';
+import { BEAK, EYE, HALO, HEAD, INK, RECENTRE, RUPEE, TUFTS, VIEW } from '@/lib/brand/mark';
 
 /**
  * The card that appears when a link to the public site is pasted into Slack,
@@ -67,43 +67,39 @@ export default function OpengraphImage() {
             draws, so the mark somebody meets in a Slack preview is the one they
             meet on the page.
           */}
-          <svg width="72" height="72" viewBox={`0 0 ${VIEW} ${VIEW}`}>
+          <svg width="76" height="76" viewBox={`0 0 ${VIEW} ${VIEW}`}>
             <defs>
-              <linearGradient
-                id="og-owl"
-                gradientUnits="userSpaceOnUse"
-                x1="0"
-                y1="0"
-                x2={VIEW}
-                y2={VIEW}
-              >
-                <stop offset="0%" stopColor={HEAD_INK.hi} />
-                <stop offset="100%" stopColor={HEAD_INK.lo} />
+              <linearGradient id="og-owl" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={INK.navyLit} />
+                <stop offset="100%" stopColor={INK.navy} />
               </linearGradient>
             </defs>
-            {TUFTS.map((points) => (
-              <polygon key={points} points={points} fill="url(#og-owl)" />
-            ))}
-            <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill="url(#og-owl)" />
-            {EYE.x.map((x) => (
-              <circle key={`w${x}`} cx={x} cy={EYE.y} r={EYE.white} fill="#FFFFFF" />
-            ))}
-            {EYE.x.map((x) => (
-              <circle
-                key={`r${x}`}
-                cx={x}
-                cy={EYE.y}
-                r={EYE.ring}
-                fill="none"
-                stroke={INK.gold}
-                strokeWidth={EYE.ringWidth}
-              />
-            ))}
-            {EYE.x.map((x) => (
-              <circle key={`p${x}`} cx={x} cy={EYE.y} r={EYE.pupil} fill={INK.navy} />
-            ))}
-            <polygon points={BEAK} fill={INK.gold} />
-            <path fill={INK.gold} transform={`translate(0,${RUPEE_SHIFT})`} d={RUPEE} />
+            <circle cx={HALO.cx} cy={HALO.cy} r={HALO.r} fill={HALO.fill} />
+            <g transform={`translate(0,${RECENTRE})`}>
+              {TUFTS.map((points) => (
+                <polygon key={points} points={points} fill="url(#og-owl)" />
+              ))}
+              <circle cx={HEAD.cx} cy={HEAD.cy} r={HEAD.r} fill="url(#og-owl)" />
+              {EYE.x.map((x) => (
+                <circle key={`w${x}`} cx={x} cy={EYE.y} r={EYE.white} fill="#FFFFFF" />
+              ))}
+              {EYE.x.map((x) => (
+                <circle
+                  key={`r${x}`}
+                  cx={x}
+                  cy={EYE.y}
+                  r={EYE.ring}
+                  fill="none"
+                  stroke={INK.gold}
+                  strokeWidth={EYE.ringWidth}
+                />
+              ))}
+              {EYE.x.map((x) => (
+                <circle key={`p${x}`} cx={x} cy={EYE.y} r={EYE.pupil} fill={INK.navy} />
+              ))}
+              <polygon points={BEAK} fill={INK.gold} />
+              <path fill={INK.gold} d={RUPEE} />
+            </g>
           </svg>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ color: '#eef1fb', fontSize: 30, fontWeight: 700 }}>{BRAND.name}</span>
