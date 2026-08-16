@@ -510,6 +510,7 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
 
     case 'purge_voucher': {
       if (!v) return fail('Voucher not found.');
+      if (!isOwner(a.role)) return fail('Only an owner can permanently delete a voucher.');
       const everApproved = TABLES.voucher_audit.some(
         (e) => e.voucher_id === id && ['approved_second', 'marked_paid'].includes(String(e.action)),
       );

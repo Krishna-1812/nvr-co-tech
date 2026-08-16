@@ -13,6 +13,7 @@ import {
   lettersOnly,
   alphaNumeric,
   paidByChapterOptions,
+  voucherDateIssue,
   PAYMENT_RULES,
   type Chapter,
 } from './voucher';
@@ -147,6 +148,33 @@ describe('payment rules', () => {
   it('only offers Advance and Full Payment on an Invoice', () => {
     expect(PAYMENT_RULES['Invoice'].options).toEqual(['Advance', 'Full Payment']);
     expect(PAYMENT_RULES['Reimbursement'].options).toEqual(['Full Payment']);
+  });
+});
+
+describe('voucher date bounds', () => {
+  const today = '2026-08-16'; // FY 26-27
+
+  it('accepts today and earlier dates in the current financial year', () => {
+    expect(voucherDateIssue(today, today)).toBeNull();
+    expect(voucherDateIssue('2026-04-01', today)).toBeNull();
+  });
+
+  it('rejects a date in the future', () => {
+    expect(voucherDateIssue('2026-08-17', today)).toMatch(/future/);
+  });
+
+  it('accepts a date in the immediately preceding financial year', () => {
+    expect(voucherDateIssue('2026-03-31', today)).toBeNull(); // FY 25-26
+    expect(voucherDateIssue('2025-04-01', today)).toBeNull(); // FY 25-26
+  });
+
+  it('rejects a date two financial years back — almost always a typo', () => {
+    expect(voucherDateIssue('2025-03-31', today)).toMatch(/financial year/); // FY 24-25
+    expect(voucherDateIssue('2024-01-01', today)).toMatch(/financial year/);
+  });
+
+  it('leaves an empty date alone — required-ness is checked elsewhere', () => {
+    expect(voucherDateIssue('', today)).toBeNull();
   });
 });
 

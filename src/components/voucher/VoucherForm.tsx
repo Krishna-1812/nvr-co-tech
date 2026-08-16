@@ -27,6 +27,7 @@ import {
   type SupportingType,
 } from '@/lib/domain/voucher';
 import { crossFieldIssues, submitReadiness } from '@/lib/domain/schema';
+import { istToday } from '@/lib/fiscal';
 import { saveDraft, deleteDraft } from '@/app/actions/voucher';
 import { submitVoucher } from '@/app/actions/workflow';
 import {
@@ -108,6 +109,9 @@ export function VoucherForm({
 
   const dirty = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Computed once per mount — good enough for a date picker's `max`, and for
+  // the FY-boundary check submitReadiness runs against the same value.
+  const [today] = useState(() => istToday());
 
   const set = useCallback((key: string, value: string) => {
     dirty.current = true;
@@ -133,7 +137,7 @@ export function VoucherForm({
   );
 
   const issues = useMemo(() => crossFieldIssues(form), [form]);
-  const blockers = useMemo(() => submitReadiness(form), [form]);
+  const blockers = useMemo(() => submitReadiness(form, today), [form, today]);
   const errorFor = (path: string) =>
     showErrors
       ? (blockers.find((i) => i.path === path)?.message ?? issues.find((i) => i.path === path)?.message)
@@ -293,8 +297,14 @@ export function VoucherForm({
         <Card id="info">
           <SectionHead step={1} title="Voucher info" />
           <div className="grid gap-5 p-5 sm:grid-cols-2">
-            <Field label="Voucher date" htmlFor="f-date">
-              <Input id="f-date" type="date" value={form.date ?? ''} onChange={(e) => set('date', e.target.value)} />
+            <Field label="Voucher date" htmlFor="f-date" error={errorFor('date')}>
+              <Input
+                id="f-date"
+                type="date"
+                max={today}
+                value={form.date ?? ''}
+                onChange={(e) => set('date', e.target.value)}
+              />
             </Field>
 
             <Field label="Chapter" htmlFor="f-chapter_id" required error={errorFor('chapter_id')}>

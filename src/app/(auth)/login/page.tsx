@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Lock, Mail } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { signIn as signInAction } from '@/app/actions/auth';
 import { AuthError, AuthSubmit, GoogleButton, OrDivider } from '@/components/auth/AuthBits';
 import { AuthCard, AuthHeading } from '@/components/auth/AuthCard';
 import { AuthField, AuthInput, AuthPassword } from '@/components/auth/AuthField';
@@ -31,8 +32,8 @@ function LoginForm() {
     setUnconfirmedEmail('');
     setResendState('idle');
     setBusy(true);
-    const { error } = await createClient().auth.signInWithPassword({ email, password });
-    if (error) {
+    const result = await signInAction({ email, password });
+    if (!result.ok) {
       setBusy(false);
       /*
        * Every failure used to get the same "wrong password" message, including
@@ -40,9 +41,11 @@ function LoginForm() {
        * that person looking for a typo that was never there, with no hint
        * that a confirmation link is what they actually need.
        */
-      if (error.code === 'email_not_confirmed') {
+      if (result.code === 'email_not_confirmed') {
         setError('Please confirm your email first. Check your inbox for the link we sent.');
         setUnconfirmedEmail(email);
+      } else if (result.code === 'rate_limited') {
+        setError(result.error);
       } else {
         setError('That email and password did not work. Please try again.');
       }

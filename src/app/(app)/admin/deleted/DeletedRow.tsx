@@ -15,7 +15,13 @@ import { Modal } from '@/components/ui/Modal';
 import { relativeTime } from '@/lib/utils';
 import type { DeletedVoucher } from './page';
 
-export function DeletedRow({ voucher }: { voucher: DeletedVoucher }) {
+export function DeletedRow({
+  voucher,
+  viewerIsOwner,
+}: {
+  voucher: DeletedVoucher;
+  viewerIsOwner: boolean;
+}) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
@@ -116,6 +122,13 @@ export function DeletedRow({ voucher }: { voucher: DeletedVoucher }) {
                 title="An approved voucher keeps its record permanently"
               >
                 Kept
+              </span>
+            ) : !viewerIsOwner ? (
+              <span
+                className="text-subtle inline-flex h-8 items-center px-2 text-xs"
+                title="Only an owner can permanently delete a voucher"
+              >
+                Owner only
               </span>
             ) : (
               <button

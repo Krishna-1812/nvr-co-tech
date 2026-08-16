@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Lock, Mail, MailCheck, User } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { signUp as signUpAction } from '@/app/actions/auth';
 import { AuthError, AuthSubmit, GoogleButton, OrDivider } from '@/components/auth/AuthBits';
 import { AuthCard, AuthHeading } from '@/components/auth/AuthCard';
 import { AuthField, AuthInput, AuthPassword } from '@/components/auth/AuthField';
@@ -35,23 +35,16 @@ function SignupForm() {
     }
 
     setBusy(true);
-    const { data, error } = await createClient().auth.signUp({
-      email,
-      password,
-      options: {
-        // Read by the handle_new_user trigger to populate profiles.full_name,
-        // which is what gets printed on the voucher as "Initiated By".
-        data: { full_name: fullName.trim() },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
-    });
+    const result = await signUpAction({ email, password, fullName, next });
 
-    if (error) {
+    if (!result.ok) {
       setBusy(false);
       setError(
-        error.message.toLowerCase().includes('already')
-          ? 'There is already an account with that email. Try signing in instead.'
-          : error.message,
+        result.code === 'rate_limited'
+          ? result.error
+          : result.error.toLowerCase().includes('already')
+            ? 'There is already an account with that email. Try signing in instead.'
+            : result.error,
       );
       return;
     }
@@ -61,7 +54,7 @@ function SignupForm() {
      * account is not usable until the emailed link is followed. With it off, a
      * session arrives immediately and we can go straight in.
      */
-    if (data.session) {
+    if (result.hasSession) {
       router.push(next);
       router.refresh();
       return;

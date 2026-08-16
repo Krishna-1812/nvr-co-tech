@@ -1,7 +1,7 @@
 import { Trash2 } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { personCols, tolerateMissingColumns } from '@/lib/supabase/columns';
-import { type VoucherStatus } from '@/lib/domain/workflow';
+import { isOwner, type VoucherStatus } from '@/lib/domain/workflow';
 import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
 import { DeletedRow } from './DeletedRow';
 
@@ -25,7 +25,7 @@ export type DeletedVoucher = {
  * deleting the voucher would cascade away the record of its approval.
  */
 export default async function AdminDeletedPage() {
-  await requireUser();
+  const me = await requireUser();
   const supabase = await createClient();
 
   const { data } = await tolerateMissingColumns(() =>
@@ -77,7 +77,7 @@ export default async function AdminDeletedPage() {
             </Thead>
             <tbody className="divide-y">
               {rows.map((v) => (
-                <DeletedRow key={v.id} voucher={v} />
+                <DeletedRow key={v.id} voucher={v} viewerIsOwner={isOwner(me.role)} />
               ))}
             </tbody>
           </DataTable>

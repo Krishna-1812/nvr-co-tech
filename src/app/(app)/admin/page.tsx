@@ -55,7 +55,10 @@ export default async function AdminPeoplePage() {
     byUser.set(v.created_by, (byUser.get(v.created_by) ?? 0) + 1);
   }
 
-  const approvers = rows.filter((u) => u.role !== 'member').length;
+  // An inactive account cannot actually approve anything — current_role_of()
+  // (0002) only returns a role for an active profile — so counting one here
+  // would understate the real gap and hide the banner when it should show.
+  const approvers = rows.filter((u) => u.role !== 'member' && u.is_active).length;
 
   return (
     <div className="space-y-4">

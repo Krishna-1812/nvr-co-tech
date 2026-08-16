@@ -22,9 +22,31 @@ export default async function OnboardingPage({
   searchParams: Promise<{ invite?: string }>;
 }) {
   const user = await requireUser();
-  if (user.organizationId) redirect('/hub');
-
   const token = (await searchParams).invite?.trim();
+
+  if (user.organizationId) {
+    // A second invite link opened by someone already settled into an
+    // organization used to bounce here straight to /hub with no explanation
+    // at all — indistinguishable from the link simply not working. There is
+    // no leave-organization path yet, so the honest answer is that this
+    // invite cannot be accepted from this account, not silence.
+    if (!token) redirect('/hub');
+
+    return (
+      <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
+        <AuthHeading
+          title="You're already in an organisation."
+          lead="An account can only belong to one at a time, so this invite cannot be accepted here."
+        />
+        <AuthCard>
+          <p className="m-dim text-[14px] leading-relaxed">
+            To join the organisation this invite is for, accept it from a different account — or ask
+            whoever sent it to invite the address you are signed in with instead.
+          </p>
+        </AuthCard>
+      </div>
+    );
+  }
 
   if (token) {
     const supabase = await createClient();

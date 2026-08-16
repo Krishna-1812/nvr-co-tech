@@ -1,11 +1,11 @@
-import { Check, Palette, ShieldCheck, UserRound } from 'lucide-react';
+import { Check, Palette, ShieldCheck, ShieldOff, UserRound } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { canApprove, ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
 import { Card, CardBody, CardTitle, IconTile } from '@/components/ui/primitives';
 import { PageHeader } from '@/components/PageHeader';
 import { ProfileCard } from './ProfileCard';
 import { ThemeChoice } from './ThemeChoice';
-import { SignOutButton } from './SignOutButton';
+import { SignOutButton, SignOutEverywhereButton } from './SignOutButton';
 import { ChangePasswordForm } from './ChangePasswordForm';
 import { ChangeEmailForm } from './ChangeEmailForm';
 
@@ -114,6 +114,22 @@ export default async function SettingsPage() {
             </div>
           </div>
           <SignOutButton />
+        </CardBody>
+
+        <CardBody className="flex flex-wrap items-center justify-between gap-4 border-t">
+          <div className="flex min-w-0 items-start gap-3">
+            <IconTile>
+              <ShieldOff className="size-4" />
+            </IconTile>
+            <div className="min-w-0 pt-0.5">
+              <p className="font-semibold tracking-tight">Sign out everywhere</p>
+              <p className="text-muted mt-1 text-sm text-pretty">
+                Ends every session on every device — use this after a lost device or a password you
+                think someone else may have.
+              </p>
+            </div>
+          </div>
+          <SignOutEverywhereButton />
         </CardBody>
       </Card>
     </div>

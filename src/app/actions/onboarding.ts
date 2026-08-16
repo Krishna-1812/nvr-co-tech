@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit } from '@/lib/ratelimit';
 import type { ActionResult } from './workflow';
 
 /**
@@ -35,6 +36,20 @@ export async function createOrganization(name: string): Promise<ActionResult> {
 
 export async function acceptInvite(token: string): Promise<ActionResult> {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'You are not signed in.' };
+
+  // Keyed by the accepting account rather than by token: the thing worth
+  // slowing down is one session repeatedly hammering this RPC, not any one
+  // token, which accept_invite already binds to a single verified email.
+  const rate = await checkRateLimit(`accept-invite:${user.id}`, 10, 600);
+  if (!rate.allowed) {
+    return { ok: false, error: 'Too many attempts. Please wait a few minutes and try again.' };
+  }
+
   const { error } = await supabase.rpc('accept_invite', { p_token: token });
 
   if (error) return { ok: false, error: toMessage(error, 'Could not accept that invite.') };

@@ -118,4 +118,10 @@ describe('submit readiness mirrors submit_voucher()', () => {
       'igst',
     );
   });
+
+  it('flags a voucher date in the future, against an explicit "today"', () => {
+    const today = '2026-08-16';
+    expect(paths(submitReadiness({ ...complete, date: '2026-08-17' }, today))).toContain('date');
+    expect(submitReadiness({ ...complete, date: today }, today)).toHaveLength(0);
+  });
 });

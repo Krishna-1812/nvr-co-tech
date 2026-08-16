@@ -7,7 +7,9 @@ import {
   isValidGstin,
   gstinMatchesPan,
   calcGrandTotal,
+  voucherDateIssue,
 } from './voucher';
+import { istToday } from '@/lib/fiscal';
 
 /**
  * Two schemas, deliberately.
@@ -139,21 +141,25 @@ export const crossFieldIssues = (v: {
  * What submit_voucher() requires. Mirrored here so the UI can point at the
  * offending field instead of surfacing a bare database exception.
  */
-export const submitReadiness = (v: {
-  chapter_id?: string | null;
-  paid_to?: string | null;
-  type_of_supporting?: string | null;
-  type_of_payment?: string | null;
-  basic_value?: unknown;
-  cgst?: unknown;
-  sgst?: unknown;
-  igst?: unknown;
-  vat?: unknown;
-  tds?: unknown;
-  advance?: unknown;
-  tips?: unknown;
-  discount?: unknown;
-}): { path: string; message: string }[] => {
+export const submitReadiness = (
+  v: {
+    chapter_id?: string | null;
+    paid_to?: string | null;
+    type_of_supporting?: string | null;
+    type_of_payment?: string | null;
+    date?: string | null;
+    basic_value?: unknown;
+    cgst?: unknown;
+    sgst?: unknown;
+    igst?: unknown;
+    vat?: unknown;
+    tds?: unknown;
+    advance?: unknown;
+    tips?: unknown;
+    discount?: unknown;
+  },
+  today: string = istToday(),
+): { path: string; message: string }[] => {
   const issues: { path: string; message: string }[] = [];
 
   if (!v.chapter_id) issues.push({ path: 'chapter_id', message: 'Choose the chapter.' });
@@ -166,6 +172,10 @@ export const submitReadiness = (v: {
   }
   if (calcGrandTotal(v) <= 0) {
     issues.push({ path: 'basic_value', message: 'The grand total must be more than zero.' });
+  }
+  if (v.date) {
+    const dateIssue = voucherDateIssue(v.date, today);
+    if (dateIssue) issues.push({ path: 'date', message: dateIssue });
   }
 
   return [...issues, ...crossFieldIssues(v)];

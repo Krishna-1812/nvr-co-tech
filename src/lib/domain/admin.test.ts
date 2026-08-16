@@ -66,24 +66,25 @@ describe('who may change a role', () => {
 });
 
 /**
- * Approval needs two different people, neither of them the initiator. Below
- * three capable people, some voucher always has nobody left to clear it — which
- * is why the People screen warns at that threshold.
+ * Approval needs one person other than whoever raised the voucher (0015: a
+ * single signature is enough now, not two). Below two capable people, a
+ * voucher raised by the only approver has nobody left to clear it — which is
+ * why the People screen warns at that threshold.
  */
 describe('approver capacity warning', () => {
   const capable = (roles: UserRole[]) => roles.filter((r) => canApprove(r)).length;
 
-  it('warns when fewer than three people can approve', () => {
-    expect(capable(['owner', 'member', 'member'])).toBeLessThan(3);
-    expect(capable(['owner', 'approver', 'member'])).toBeLessThan(3);
+  it('warns when fewer than two people can approve', () => {
+    expect(capable(['owner', 'member', 'member'])).toBeLessThan(2);
+    expect(capable(['owner'])).toBeLessThan(2);
   });
 
-  it('is satisfied at three', () => {
-    expect(capable(['owner', 'approver', 'approver'])).toBe(3);
+  it('is satisfied at two', () => {
+    expect(capable(['owner', 'approver', 'member'])).toBe(2);
   });
 
   it('a lone owner cannot clear anything they raised themselves', () => {
-    // One approver total: they raise it, so no one is left to give approval 1.
+    // One approver total: they raise it, so no one is left to give approval.
     expect(capable(['owner', 'member'])).toBe(1);
   });
 });

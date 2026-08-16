@@ -127,6 +127,32 @@ export function financialYear(d: Date): string {
   return `${String(startYear).slice(2)}-${String(startYear + 1).slice(2)}`;
 }
 
+/** The year a financial year starting 1 April begins in, from a `yyyy-mm` pair. */
+const fyStartYear = (y: number, m: number): number => (m >= 4 ? y : y - 1);
+
+/**
+ * A voucher's date is almost always today or very recent. The two ways it goes
+ * wrong in practice are a date that has not happened yet, and a mistyped year
+ * that lands the voucher in a financial year nobody is filing for any more —
+ * both worth catching before submit rather than after. Pure string comparison
+ * throughout: yyyy-mm-dd sorts chronologically without ever constructing a
+ * Date, so there is no local-timezone rounding to get wrong.
+ */
+export function voucherDateIssue(iso: string, todayIso: string): string | null {
+  if (!iso) return null;
+  if (iso > todayIso) return 'The voucher date cannot be in the future.';
+
+  const [ty, tm] = todayIso.split('-').map(Number);
+  const [dy, dm] = iso.split('-').map(Number);
+  const currentFyStart = fyStartYear(ty, tm);
+  const dateFyStart = fyStartYear(dy, dm);
+
+  if (dateFyStart !== currentFyStart && dateFyStart !== currentFyStart - 1) {
+    return 'That date falls outside the current or previous financial year — check the year.';
+  }
+  return null;
+}
+
 // ─── GST mode ────────────────────────────────────────────────────────────────
 
 /**

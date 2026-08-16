@@ -269,7 +269,17 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
   // there is nothing outstanding, so the block says so instead.
   const finalized = v.status === 'approved' || v.status === 'paid';
   const firstSkipped = finalized && !v.first_approver;
-  const secondSkipped = finalized && !v.second_approver;
+  /*
+   * Since 0015, approve_voucher() never routes a newly-raised voucher through
+   * pending_second — one signature closes it out. So a voucher still in
+   * flight (pending_first, or sent back and awaiting resubmission) will never
+   * pick up a second approver either, and printing "Awaiting approval" for a
+   * signature that is never coming is worse than printing nothing was here.
+   * Only a voucher already sitting in pending_second — raised before 0015
+   * shipped — still genuinely needs, and is shown as awaiting, its second
+   * signature.
+   */
+  const secondSkipped = v.status !== 'pending_second' && !v.second_approver;
 
   return (
     <Document
