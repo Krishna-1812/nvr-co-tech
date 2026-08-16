@@ -650,7 +650,7 @@ export function VoucherForm({
           <p className="text-sm font-medium">Approvals</p>
           <p className="text-muted mt-1 text-sm">
             {requiresApproval
-              ? 'You no longer type approver names. When you submit, this voucher enters the approval queue and records who approves it — two different people, neither of them you.'
+              ? 'You no longer type approver names. When you submit, this voucher enters the approval queue and records who approves it — never you.'
               : 'This organisation does not require approval. When you submit, this voucher is paid immediately.'}
           </p>
         </Card>
