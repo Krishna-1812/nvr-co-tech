@@ -1,14 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   Document,
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
   Font,
 } from '@react-pdf/renderer';
 import { BRAND } from '@/lib/marketing/content';
-import { PdfMark } from '@/lib/brand/PdfMark';
 import { fmtAmount, fmtDate, toNum } from '@/lib/domain/voucher';
+import type { VoucherStatus } from '@/lib/domain/workflow';
 
 /**
  * The client this printed voucher is raised for — CIO Association — as
@@ -17,7 +20,15 @@ import { fmtAmount, fmtDate, toNum } from '@/lib/domain/voucher';
  * itself).
  */
 const VOUCHER_ORG_NAME = 'CIO Association';
-import type { VoucherStatus } from '@/lib/domain/workflow';
+
+/**
+ * The client's own logo, read once at module load and inlined as a data URI —
+ * server-only (this module is never bundled to the browser), so a plain `fs`
+ * read is simpler and more reliable here than fetching it over the network.
+ */
+const CIO_LOGO_DATA_URI = `data:image/png;base64,${fs
+  .readFileSync(path.join(process.cwd(), 'public', 'brand', 'CIO_logo.png'))
+  .toString('base64')}`;
 
 /**
  * The printed payment voucher.
@@ -38,7 +49,6 @@ import type { VoucherStatus } from '@/lib/domain/workflow';
 Font.registerHyphenationCallback((word) => [word]);
 
 const INK = '#3D52A0';
-const ACCENT = '#7091E6';
 const SOFT = '#8697C4';
 const TEXT = '#1F2937';
 const MUTED = '#6B7280';
@@ -62,9 +72,7 @@ const s = StyleSheet.create({
 
   // Header
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  lockup: { flexDirection: 'row', alignItems: 'center' },
-  wordmark: { fontSize: 24, fontFamily: 'Helvetica-Bold', color: INK, marginLeft: 7 },
-  wordmarkSub: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: SOFT, marginTop: 3, letterSpacing: 0.5 },
+  logo: { width: 66, height: 46, objectFit: 'contain' },
   titleBlock: { alignItems: 'center' },
   firmName: { fontSize: 15, fontFamily: 'Helvetica-Bold', color: INK },
   docTitle: { fontSize: 12, fontFamily: 'Helvetica-Bold', marginTop: 1 },
@@ -301,13 +309,8 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
           {/* ── Header ── */}
           <View style={s.header}>
             <View style={{ width: '24%' }}>
-              <View style={s.lockup}>
-                <PdfMark size={30} />
-                <Text style={s.wordmark}>
-                  F<Text style={{ color: ACCENT }}>I</Text>
-                </Text>
-              </View>
-              <Text style={s.wordmarkSub}>{VOUCHER_ORG_NAME}</Text>
+              {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf's Image, not an <img>; no alt prop exists */}
+              <Image src={CIO_LOGO_DATA_URI} style={s.logo} />
             </View>
 
             <View style={[s.titleBlock, { width: '40%' }]}>

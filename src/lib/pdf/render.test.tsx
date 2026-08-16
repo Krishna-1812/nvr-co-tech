@@ -119,14 +119,19 @@ describe('voucher PDF', () => {
     expect(buf.length).toBeGreaterThan(1000);
   });
 
-  it('embeds real text, not a rasterised image', async () => {
+  it('embeds real text, not a rasterised page', async () => {
     const buf = await renderToBuffer(<VoucherDocument v={sample} />);
     const content = extractText(buf);
 
-    // Text-showing operators prove vector text; an image-only PDF has none.
+    // Text-showing operators prove vector text; a page rendered as one
+    // screenshot (v1's approach) has none.
     expect(content).toMatch(/\bT[jJ]\b/);
-    // ...and no embedded bitmap.
-    expect(content).not.toContain('/Subtype /Image');
+    // The client's own logo is one deliberate small raster image — its own
+    // XObject plus the soft mask that carries its transparency, not the
+    // whole page rasterised. More would mean something is being
+    // screenshotted again rather than drawn as vector text.
+    expect(content.match(/\/Subtype\s*\/Image/g)?.length ?? 0).toBe(2);
+    // A lossless PNG, not a JPEG re-encode that would soften its edges.
     expect(content).not.toContain('/DCTDecode');
   });
 
