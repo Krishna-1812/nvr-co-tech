@@ -62,7 +62,7 @@ export default async function VoucherDetailPage({
    * exist or RLS will not show it to you. Both are scoped by the same policies, so
    * they come back empty, and a 404 is not the case worth optimising for.
    */
-  const [{ data: voucher }, { data: attachments }, { data: audit }] = await Promise.all([
+  const [{ data: voucher }, { data: attachments }, { data: audit }, { data: org }] = await Promise.all([
     tolerateMissingColumns(() =>
       supabase
         .from('vouchers')
@@ -79,11 +79,14 @@ export default async function VoucherDetailPage({
     tolerateMissingColumns(() =>
       supabase
         .from('voucher_audit')
-        .select(`id, action, note, created_at, actor:profiles!voucher_audit_actor_id_fkey(${personCols()})`)
+        .select(`id, action, note, created_at, to_status, actor:profiles!voucher_audit_actor_id_fkey(${personCols()})`)
         .eq('voucher_id', id)
         .order('created_at', { ascending: true }),
     ),
+    supabase.from('organizations').select('requires_approval').single(),
   ]);
+
+  const requiresApproval = org?.requires_approval ?? true;
 
   if (!voucher) notFound();
 
@@ -205,6 +208,7 @@ export default async function VoucherDetailPage({
           <VoucherActions
             voucher={voucher as unknown as VoucherLike & { id: string; voucher_no: string | null }}
             me={{ id: user.id, role: user.role }}
+            requiresApproval={requiresApproval}
           />
 
           <div className="flex gap-2">

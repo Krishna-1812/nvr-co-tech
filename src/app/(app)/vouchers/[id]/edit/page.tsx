@@ -23,20 +23,24 @@ export default async function EditVoucherPage({
   const user = await requireUser();
   const supabase = await createClient();
 
-  const [{ data: voucher }, { data: chapters }, { data: events }, { data: attachments }] = await Promise.all([
-    supabase.from('vouchers').select('*').eq('id', id).is('deleted_at', null).maybeSingle(),
-    supabase.from('chapters').select('*').eq('is_active', true).is('deleted_at', null).order('name'),
-    supabase
-      .from('events')
-      .select('id, name, date_of_event, chapter_id')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('voucher_attachments')
-      .select('id, voucher_id, storage_path, file_name, mime_type, size_bytes, created_at')
-      .eq('voucher_id', id)
-      .order('created_at', { ascending: true }),
-  ]);
+  const [{ data: voucher }, { data: chapters }, { data: events }, { data: attachments }, { data: org }] =
+    await Promise.all([
+      supabase.from('vouchers').select('*').eq('id', id).is('deleted_at', null).maybeSingle(),
+      supabase.from('chapters').select('*').eq('is_active', true).is('deleted_at', null).order('name'),
+      supabase
+        .from('events')
+        .select('id, name, date_of_event, chapter_id')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('voucher_attachments')
+        .select('id, voucher_id, storage_path, file_name, mime_type, size_bytes, created_at')
+        .eq('voucher_id', id)
+        .order('created_at', { ascending: true }),
+      supabase.from('organizations').select('requires_approval').single(),
+    ]);
+
+  const requiresApproval = org?.requires_approval ?? true;
 
   if (!voucher) notFound();
 
@@ -90,6 +94,7 @@ export default async function EditVoucherPage({
         voucher={voucher}
         chapters={(chapters ?? []) as Chapter[]}
         events={(events ?? []) as EventOption[]}
+        requiresApproval={requiresApproval}
       />
 
       {/* Attaching the invoice is what lets an approver check the numbers. */}

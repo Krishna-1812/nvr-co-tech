@@ -190,6 +190,7 @@ export const PDF_LABELS = {
   approval1: '1st Approval done by',
   approval2: '2nd Approval done by',
   awaiting: 'Awaiting approval',
+  notRequired: 'Not required',
 } as const;
 
 /** Labels whose amount is subtracted from the net total. */
@@ -259,6 +260,12 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
   // stamped, so a draft printout can never be mistaken for an authorised one —
   // v1 produced an identical-looking PDF at every stage.
   const provisional = v.status !== 'approved' && v.status !== 'paid';
+
+  // Paid with nobody having approved it: this organization does not require
+  // approval (0013), and submit_voucher() paid this one directly. "Awaiting
+  // approval" would be false on a document already stamped final — there is
+  // nothing outstanding, so the signature blocks say so instead.
+  const approvalSkipped = v.status === 'paid' && !v.first_approver && !v.second_approver;
 
   return (
     <Document
@@ -390,12 +397,24 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
             <Signature
               label={PDF_LABELS.approval1}
               person={v.first_approver}
-              meta={v.approved_1_at ? `Approved ${fmtDate(v.approved_1_at)}` : PDF_LABELS.awaiting}
+              meta={
+                v.approved_1_at
+                  ? `Approved ${fmtDate(v.approved_1_at)}`
+                  : approvalSkipped
+                    ? PDF_LABELS.notRequired
+                    : PDF_LABELS.awaiting
+              }
             />
             <Signature
               label={PDF_LABELS.approval2}
               person={v.second_approver}
-              meta={v.approved_2_at ? `Approved ${fmtDate(v.approved_2_at)}` : PDF_LABELS.awaiting}
+              meta={
+                v.approved_2_at
+                  ? `Approved ${fmtDate(v.approved_2_at)}`
+                  : approvalSkipped
+                    ? PDF_LABELS.notRequired
+                    : PDF_LABELS.awaiting
+              }
             />
           </View>
 

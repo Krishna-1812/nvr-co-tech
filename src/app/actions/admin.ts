@@ -97,6 +97,21 @@ export async function inviteUser(input: {
   };
 }
 
+// ─── Approval policy ─────────────────────────────────────────────────────────
+
+/**
+ * Owner-only. Off means submit_voucher() pays a voucher immediately instead of
+ * routing it through the two-person approval chain — see migration 0013.
+ */
+export async function setRequiresApproval(value: boolean): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('set_requires_approval', { p_value: value });
+
+  if (error) return { ok: false, error: toMessage(error, 'Could not change that setting.') };
+  refreshAdmin();
+  return { ok: true, data: undefined };
+}
+
 // ─── Chapters ────────────────────────────────────────────────────────────────
 
 const createChapterSchema = z.object({

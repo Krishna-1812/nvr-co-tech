@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import type { AuditAction } from '@/lib/supabase/types';
+import type { VoucherStatus } from '@/lib/domain/workflow';
 import { Avatar } from '@/components/Avatar';
 import { relativeTime } from '@/lib/utils';
 import { fmtDate } from '@/lib/domain/voucher';
@@ -20,6 +21,9 @@ type Entry = {
   action: AuditAction;
   note: string | null;
   created_at: string;
+  /** Only 'submitted' cares about this — it is the one action whose meaning
+   * forks depending on where it landed (0013: straight to paid, or queued). */
+  to_status?: VoucherStatus | null;
   actor?: { full_name: string | null; email: string; avatar_url?: string | null } | null;
 };
 
@@ -66,6 +70,11 @@ export function AuditTimeline({ entries }: { entries: Entry[] }) {
     <ol className="relative space-y-0 p-5">
       {entries.map((e, i) => {
         const meta = ACTION_META[e.action];
+        // A voucher that skipped approval entirely (0013) was 'submitted'
+        // straight to 'paid' — labelling that "for approval" would describe
+        // a step that never happened.
+        const label =
+          e.action === 'submitted' && e.to_status === 'paid' ? 'Submitted and paid' : meta.label;
         const last = i === entries.length - 1;
         const who = e.actor?.full_name ?? e.actor?.email ?? 'Someone';
 
@@ -101,7 +110,7 @@ export function AuditTimeline({ entries }: { entries: Entry[] }) {
                 separately from the actions they belong to.
               */}
               <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
-                <span className="font-medium">{meta.label}</span>
+                <span className="font-medium">{label}</span>
                 <span className="text-muted">by</span>
                 {e.actor && (
                   <Avatar

@@ -6,6 +6,7 @@ import { isOwner, type UserRole } from '@/lib/domain/workflow';
 import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
 import { UserRow } from './UserRow';
 import { InviteForm } from './InviteForm';
+import { ApprovalPolicyCard } from './ApprovalPolicyCard';
 
 export const metadata = { title: 'People' };
 
@@ -31,7 +32,7 @@ export default async function AdminPeoplePage() {
   const me = await requireUser();
   const supabase = await createClient();
 
-  const [{ data: users }, { data: counts }] = await Promise.all([
+  const [{ data: users }, { data: counts }, { data: org }] = await Promise.all([
     tolerateMissingColumns(() =>
       supabase
         .from('profiles')
@@ -39,7 +40,10 @@ export default async function AdminPeoplePage() {
         .order('created_at', { ascending: true }),
     ),
     supabase.from('vouchers').select('created_by').is('deleted_at', null),
+    supabase.from('organizations').select('requires_approval').single(),
   ]);
+
+  const requiresApproval = org?.requires_approval ?? true;
 
   // The select string is built at runtime (see lib/supabase/columns.ts), so
   // supabase-js has no literal to infer the row from.
@@ -57,13 +61,16 @@ export default async function AdminPeoplePage() {
     <div className="space-y-4">
       <InviteForm />
 
+      {isOwner(me.role) && <ApprovalPolicyCard requiresApproval={requiresApproval} />}
+
       {/*
         Two approvers are the minimum the workflow can function with: the second
         approval must come from a different person than the first, and neither
         may be the person who raised the voucher. Below that, vouchers submit
-        but can never clear.
+        but can never clear. Not a concern once this organization has turned
+        approval off entirely — nobody is ever waiting on a second signature.
       */}
-      {approvers < 3 && (
+      {requiresApproval && approvers < 3 && (
         <div
           role="alert"
           style={{ '--tone': 'var(--status-warn)' } as CSSProperties}

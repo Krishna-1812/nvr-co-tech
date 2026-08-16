@@ -50,11 +50,14 @@ export type EventRow = {
 /**
  * One client on this platform (0012). `voucher_prefix` is what
  * next_voucher_no() issues numbers under, editable per organization.
+ * `requires_approval` (0013) — false means submit_voucher() pays a voucher
+ * immediately instead of routing it through pending_first/pending_second.
  */
 export type OrganizationRow = {
   id: string;
   name: string;
   voucher_prefix: string;
+  requires_approval: boolean;
   created_at: string;
 };
 
@@ -419,6 +422,10 @@ export type Database = {
         Returns: { organization_name: string | null; role: UserRole | null; email: string | null; valid: boolean }[];
       };
       accept_invite: { Args: { p_token: string }; Returns: OrganizationRow };
+
+      // 0013 — owner-only toggle read by submit_voucher() to decide whether a
+      // draft routes through approval or is paid immediately.
+      set_requires_approval: { Args: { p_value: boolean }; Returns: OrganizationRow };
     };
     Enums: {
       user_role: UserRole;

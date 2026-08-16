@@ -21,6 +21,12 @@ import { cn } from '@/lib/utils';
  * A sent-back voucher gets a fifth state rather than a fifth rung: the two approval
  * rungs go back to empty (Postgres genuinely voids them) and a red marker sits where
  * the chain broke, because "returned to the start" is what actually happened.
+ *
+ * An organization can turn approval off entirely (0013): submit_voucher() then
+ * pays a voucher straight from draft, and the two approval rungs are never
+ * going to fill. That is not the same fact as "waiting on somebody" — there is
+ * nobody to wait on — so a paid voucher with no approvers marks those rungs
+ * skipped rather than drawing the pulsing "next" halo on one of them.
  */
 
 type Step = {
@@ -64,6 +70,9 @@ export function ApprovalChain({
   rejectedBy: PersonRef;
 }) {
   const rejected = status === 'rejected';
+  // Paid with nobody ever having approved it: this org does not require
+  // approval, and this voucher went straight from draft to paid.
+  const approvalSkipped = status === 'paid' && !firstApprover && !secondApprover;
 
   const steps: Step[] = [
     {
@@ -109,9 +118,10 @@ export function ApprovalChain({
     },
   ];
 
-  // The rung the voucher is currently sitting on. -1 when it is finished, or when
-  // it has been sent back and is not sitting anywhere.
-  const next = rejected ? -1 : steps.findIndex((s) => !s.done);
+  // The rung the voucher is currently sitting on. -1 when it is finished, when
+  // it has been sent back and is not sitting anywhere, or when it was paid
+  // directly and the approval rungs were never going to fill.
+  const next = rejected || approvalSkipped ? -1 : steps.findIndex((s) => !s.done);
 
   return (
     <div>
@@ -159,7 +169,7 @@ export function ApprovalChain({
                   </p>
                 ) : (
                   <p className="text-subtle mt-1 text-[13px]">
-                    {i === next ? 'Waiting' : 'Not yet'}
+                    {approvalSkipped ? 'Not required' : i === next ? 'Waiting' : 'Not yet'}
                   </p>
                 )}
               </div>

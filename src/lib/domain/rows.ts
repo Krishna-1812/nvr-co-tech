@@ -38,7 +38,7 @@ export type VoucherDetailRow = Voucher & {
 };
 
 /** Audit row with its actor resolved. */
-export type AuditRow = Pick<VoucherAudit, 'id' | 'action' | 'note' | 'created_at'> & {
+export type AuditRow = Pick<VoucherAudit, 'id' | 'action' | 'note' | 'created_at' | 'to_status'> & {
   actor: PersonRef;
 };
 

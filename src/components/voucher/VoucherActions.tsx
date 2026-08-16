@@ -28,6 +28,8 @@ import { Modal } from '@/components/ui/Modal';
 type Props = {
   voucher: VoucherLike & { id: string; voucher_no: string | null };
   me: VoucherActor;
+  /** Off means submit pays the voucher immediately instead of queuing it (0013). */
+  requiresApproval: boolean;
 };
 
 /**
@@ -35,7 +37,7 @@ type Props = {
  * actually do. The mirrored permission checks keep the UI honest; Postgres has
  * the final say, and its refusal messages are shown verbatim.
  */
-export function VoucherActions({ voucher, me }: Props) {
+export function VoucherActions({ voucher, me, requiresApproval }: Props) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -84,12 +86,14 @@ export function VoucherActions({ voucher, me }: Props) {
             onClick={() =>
               run(
                 () => submitVoucher(voucher.id),
-                `${voucher.voucher_no ?? 'Voucher'} submitted for approval.`,
+                requiresApproval
+                  ? `${voucher.voucher_no ?? 'Voucher'} submitted for approval.`
+                  : `${voucher.voucher_no ?? 'Voucher'} recorded as paid.`,
               )
             }
           >
             <Send className="size-4" aria-hidden />
-            Submit for approval
+            {requiresApproval ? 'Submit for approval' : 'Submit & pay'}
           </Button>
         )}
 

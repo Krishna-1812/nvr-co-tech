@@ -91,10 +91,13 @@ export function VoucherForm({
   voucher,
   chapters,
   events,
+  requiresApproval,
 }: {
   voucher: Record<string, unknown> & { id: string; status: string };
   chapters: Chapter[];
   events: EventOption[];
+  /** Off means submit pays the voucher immediately instead of queuing it (0013). */
+  requiresApproval: boolean;
 }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() => toFormState(voucher));
@@ -257,7 +260,11 @@ export function VoucherForm({
 
       const res = await submitVoucher(voucher.id);
       if (res.ok) {
-        toast.success(`${res.data.voucherNo} submitted for approval.`);
+        toast.success(
+          requiresApproval
+            ? `${res.data.voucherNo} submitted for approval.`
+            : `${res.data.voucherNo} recorded as paid.`,
+        );
         router.push(`/vouchers/${voucher.id}`);
       } else {
         toast.error(res.error);
@@ -642,8 +649,9 @@ export function VoucherForm({
         <Card className="border-dashed p-5">
           <p className="text-sm font-medium">Approvals</p>
           <p className="text-muted mt-1 text-sm">
-            You no longer type approver names. When you submit, this voucher enters the approval
-            queue and records who approves it — two different people, neither of them you.
+            {requiresApproval
+              ? 'You no longer type approver names. When you submit, this voucher enters the approval queue and records who approves it — two different people, neither of them you.'
+              : 'This organisation does not require approval. When you submit, this voucher is paid immediately.'}
           </p>
         </Card>
       </div>
@@ -711,7 +719,7 @@ export function VoucherForm({
               disabled={saveState === 'saving'}
             >
               <Send className="size-4" aria-hidden />
-              Submit for approval
+              {requiresApproval ? 'Submit for approval' : 'Submit & pay'}
             </Button>
             <Button variant="ghost" className="w-full" onClick={onDelete} disabled={submitting}>
               <Trash2 className="size-4" aria-hidden />
