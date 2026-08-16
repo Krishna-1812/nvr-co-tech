@@ -261,11 +261,15 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
   // v1 produced an identical-looking PDF at every stage.
   const provisional = v.status !== 'approved' && v.status !== 'paid';
 
-  // Paid with nobody having approved it: this organization does not require
-  // approval (0013), and submit_voucher() paid this one directly. "Awaiting
-  // approval" would be false on a document already stamped final — there is
-  // nothing outstanding, so the signature blocks say so instead.
-  const approvalSkipped = v.status === 'paid' && !v.first_approver && !v.second_approver;
+  // Nothing further is coming once a voucher is approved or paid — whichever
+  // signature block is still blank at that point was never going to fill,
+  // whether because this organization does not require approval at all
+  // (0013) or because it only ever needed the one signature (0015).
+  // "Awaiting approval" would be false on a document already stamped final —
+  // there is nothing outstanding, so the block says so instead.
+  const finalized = v.status === 'approved' || v.status === 'paid';
+  const firstSkipped = finalized && !v.first_approver;
+  const secondSkipped = finalized && !v.second_approver;
 
   return (
     <Document
@@ -400,7 +404,7 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
               meta={
                 v.approved_1_at
                   ? `Approved ${fmtDate(v.approved_1_at)}`
-                  : approvalSkipped
+                  : firstSkipped
                     ? PDF_LABELS.notRequired
                     : PDF_LABELS.awaiting
               }
@@ -411,7 +415,7 @@ export function VoucherDocument({ v }: { v: PdfVoucher }) {
               meta={
                 v.approved_2_at
                   ? `Approved ${fmtDate(v.approved_2_at)}`
-                  : approvalSkipped
+                  : secondSkipped
                     ? PDF_LABELS.notRequired
                     : PDF_LABELS.awaiting
               }

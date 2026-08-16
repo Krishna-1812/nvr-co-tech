@@ -69,10 +69,16 @@ export const STATUS_META: Record<
     tone: 'neutral',
   },
   pending_first: {
-    label: 'Awaiting 1st approval',
-    description: 'Submitted and waiting for its first approver.',
+    label: 'Awaiting approval',
+    description: 'Submitted and waiting for an approver.',
     tone: 'info',
   },
+  /*
+   * No organization's submit_voucher() ever puts a voucher here any more
+   * (0015) — approval only ever needs one signature now. Kept for any
+   * voucher that entered the queue before that shipped and is still
+   * waiting on its second, different approver.
+   */
   pending_second: {
     label: 'Awaiting 2nd approval',
     description: 'First approval given. Needs a second, different approver.',
@@ -80,7 +86,7 @@ export const STATUS_META: Record<
   },
   approved: {
     label: 'Approved',
-    description: 'Both approvals in. Locked against edits.',
+    description: 'Approval given. Locked against edits.',
     tone: 'success',
   },
   rejected: {
@@ -165,7 +171,7 @@ export const canDelete = (v: VoucherLike, me: VoucherActor): boolean =>
 export const NEXT_STATUS: Partial<Record<VoucherStatus, VoucherStatus>> = {
   draft: 'pending_first',
   rejected: 'pending_first',
-  pending_first: 'pending_second',
+  pending_first: 'approved',
   pending_second: 'approved',
   approved: 'paid',
 };

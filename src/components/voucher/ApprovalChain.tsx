@@ -22,11 +22,13 @@ import { cn } from '@/lib/utils';
  * rungs go back to empty (Postgres genuinely voids them) and a red marker sits where
  * the chain broke, because "returned to the start" is what actually happened.
  *
- * An organization can turn approval off entirely (0013): submit_voucher() then
- * pays a voucher straight from draft, and the two approval rungs are never
- * going to fill. That is not the same fact as "waiting on somebody" — there is
- * nobody to wait on — so a paid voucher with no approvers marks those rungs
- * skipped rather than drawing the pulsing "next" halo on one of them.
+ * An organization can turn approval off entirely (0013), and even when it is
+ * on, one signature is now all that is required (0015) — the second-approval
+ * rung is only ever filled by a voucher that entered the queue before that
+ * shipped. Either way, a rung nothing is ever going to fill is not the same
+ * fact as "waiting on somebody" — there is nobody to wait on — so a voucher
+ * that is already approved or paid marks any unfilled approval rung skipped
+ * rather than drawing the pulsing "next" halo on it.
  */
 
 type Step = {
@@ -39,6 +41,8 @@ type Step = {
   who: string | null;
   when: string;
   done: boolean;
+  /** Nothing is ever going to fill this rung — draw it "not required", not "waiting". */
+  skip?: boolean;
 };
 
 /** The name to print for somebody, when their picture is not enough. */
@@ -70,9 +74,11 @@ export function ApprovalChain({
   rejectedBy: PersonRef;
 }) {
   const rejected = status === 'rejected';
-  // Paid with nobody ever having approved it: this org does not require
-  // approval, and this voucher went straight from draft to paid.
-  const approvalSkipped = status === 'paid' && !firstApprover && !secondApprover;
+  // Nothing further is coming once a voucher is approved or paid — whichever
+  // approval rung is still empty at that point was never going to fill.
+  const finalized = status === 'approved' || status === 'paid';
+  const firstSkipped = finalized && !firstApprover;
+  const secondSkipped = finalized && !secondApprover;
 
   const steps: Step[] = [
     {
@@ -92,6 +98,7 @@ export function ApprovalChain({
       who: nameOf(firstApprover),
       when: fmtDate(firstAt),
       done: Boolean(firstApprover),
+      skip: firstSkipped,
     },
     {
       key: 'second',
@@ -101,6 +108,7 @@ export function ApprovalChain({
       who: nameOf(secondApprover),
       when: fmtDate(secondAt),
       done: Boolean(secondApprover),
+      skip: secondSkipped,
     },
     {
       key: 'paid',
@@ -119,9 +127,9 @@ export function ApprovalChain({
   ];
 
   // The rung the voucher is currently sitting on. -1 when it is finished, when
-  // it has been sent back and is not sitting anywhere, or when it was paid
-  // directly and the approval rungs were never going to fill.
-  const next = rejected || approvalSkipped ? -1 : steps.findIndex((s) => !s.done);
+  // it has been sent back and is not sitting anywhere, or when every unfilled
+  // rung ahead of it is one that was never going to fill.
+  const next = rejected ? -1 : steps.findIndex((s) => !s.done && !s.skip);
 
   return (
     <div>
@@ -169,7 +177,7 @@ export function ApprovalChain({
                   </p>
                 ) : (
                   <p className="text-subtle mt-1 text-[13px]">
-                    {approvalSkipped ? 'Not required' : i === next ? 'Waiting' : 'Not yet'}
+                    {step.skip ? 'Not required' : i === next ? 'Waiting' : 'Not yet'}
                   </p>
                 )}
               </div>

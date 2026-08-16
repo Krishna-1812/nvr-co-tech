@@ -64,13 +64,14 @@ export default async function AdminPeoplePage() {
       {isOwner(me.role) && <ApprovalPolicyCard requiresApproval={requiresApproval} />}
 
       {/*
-        Two approvers are the minimum the workflow can function with: the second
-        approval must come from a different person than the first, and neither
-        may be the person who raised the voucher. Below that, vouchers submit
-        but can never clear. Not a concern once this organization has turned
-        approval off entirely — nobody is ever waiting on a second signature.
+        Two approvers are the minimum the workflow can function with: a voucher's
+        one approval can never come from whoever raised it, so if the same
+        person is both the only approver and the one raising vouchers, their
+        own have nobody left to clear them. Not a concern once this
+        organization has turned approval off entirely — nobody is ever
+        waiting on a signature.
       */}
-      {requiresApproval && approvers < 3 && (
+      {requiresApproval && approvers < 2 && (
         <div
           role="alert"
           style={{ '--tone': 'var(--status-warn)' } as CSSProperties}
@@ -78,11 +79,11 @@ export default async function AdminPeoplePage() {
         >
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
           <div>
-            <p className="font-semibold">You need at least three people who can approve</p>
+            <p className="font-semibold">You need at least two people who can approve</p>
             <p className="mt-1 text-pretty opacity-90">
-              Every voucher needs two different approvers, and neither can be the person who raised
-              it. With {approvers} {approvers === 1 ? 'person' : 'people'} able to approve, some
-              vouchers will have nobody left to clear them.
+              A voucher&apos;s approval can never come from the person who raised it. With {approvers}{' '}
+              {approvers === 1 ? 'person' : 'people'} able to approve, some vouchers will have nobody
+              left to clear them.
             </p>
           </div>
         </div>

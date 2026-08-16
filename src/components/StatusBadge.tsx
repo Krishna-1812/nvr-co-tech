@@ -33,7 +33,7 @@ export const STATUS_TONE: Record<VoucherStatus, string> = {
  */
 const SHORT_LABEL: Record<VoucherStatus, string> = {
   draft: 'Draft',
-  pending_first: '1st approval',
+  pending_first: 'Pending',
   pending_second: '2nd approval',
   approved: 'Approved',
   rejected: 'Sent back',
@@ -79,13 +79,15 @@ export function StatusBadge({
 }
 
 /**
- * How far along the two-approval chain a voucher is.
+ * Whether a voucher's one required approval is in or still outstanding.
  *
- * Drawn as two rungs joined by a connector rather than as a progress bar, because
- * the chain is two discrete events by two different people, and a bar at 50%
- * suggests something continuous. The rung that is next carries a ring, so an
- * approver looking at a queue can see which signature is missing without reading
- * the status.
+ * This used to draw two rungs — the workflow required two different
+ * approvers. Approval is one signature now (0015): the queue only ever has
+ * one thing to wait for, so a single mark rather than a two-rung chain is
+ * what is actually true. A voucher that entered the queue before that
+ * shipped and is still sitting in pending_second reads the same as any other
+ * one still waiting — the distinction was never something an approver
+ * scanning the queue needed to see.
  */
 export function ApprovalProgress({
   status,
@@ -94,53 +96,36 @@ export function ApprovalProgress({
   status: VoucherStatus;
   className?: string;
 }) {
-  const first = ['pending_second', 'approved', 'paid'].includes(status);
-  const second = ['approved', 'paid'].includes(status);
   const rejected = status === 'rejected';
+  const done = status === 'approved' || status === 'paid';
+  const waiting = status === 'pending_first' || status === 'pending_second';
 
   const tone = rejected ? 'var(--status-rejected)' : 'var(--status-approved)';
-  const done = rejected ? 0 : Number(first) + Number(second);
-  // Which rung is being waited on. -1 once there is nothing left to wait for.
-  const next = rejected ? -1 : done < 2 && status !== 'draft' ? done : -1;
 
   return (
     <div
       className={cn('flex items-center gap-1.5', className)}
       role="img"
-      aria-label={rejected ? 'Sent back for correction' : `${done} of 2 approvals given`}
+      aria-label={rejected ? 'Sent back for correction' : done ? 'Approved' : 'Waiting for approval'}
       style={{ '--tone': tone } as CSSProperties}
     >
-      {[0, 1].map((i) => (
-        <span key={i} className="flex items-center gap-1.5">
-          {i === 1 && (
-            <span
-              aria-hidden
-              className="h-px w-2.5 rounded-full"
-              style={{ background: done >= 1 ? tone : 'var(--border-strong)' }}
-            />
-          )}
-          <span
-            aria-hidden
-            className={cn(
-              'grid size-4 place-items-center rounded-full border transition-all',
-              i < done
-                ? 'border-transparent text-white'
-                : i === next
-                  ? 'border-dashed border-[var(--tone)] ring-2 ring-[color-mix(in_oklab,var(--tone)_18%,transparent)]'
-                  : 'border-dashed border-[var(--border-strong)]',
-            )}
-            style={i < done ? { background: tone } : undefined}
-          >
-            {i < done && <Check className="size-2.5" strokeWidth={3.5} />}
-          </span>
-        </span>
-      ))}
-
       <span
         aria-hidden
-        className={cn('numeric ml-0.5 text-xs font-medium', done === 0 && 'text-subtle')}
+        className={cn(
+          'grid size-4 place-items-center rounded-full border transition-all',
+          done
+            ? 'border-transparent text-white'
+            : waiting
+              ? 'border-dashed border-[var(--tone)] ring-2 ring-[color-mix(in_oklab,var(--tone)_18%,transparent)]'
+              : 'border-dashed border-[var(--border-strong)]',
+        )}
+        style={done ? { background: tone } : undefined}
       >
-        {rejected ? <X className="size-3" /> : `${done}/2`}
+        {done && <Check className="size-2.5" strokeWidth={3.5} />}
+      </span>
+
+      <span aria-hidden className={cn('numeric ml-0.5 text-xs font-medium', !done && 'text-subtle')}>
+        {rejected ? <X className="size-3" /> : done ? 'Approved' : 'Pending'}
       </span>
     </div>
   );

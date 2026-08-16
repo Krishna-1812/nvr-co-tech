@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ShieldCheck, Users, Zap } from 'lucide-react';
+import { ShieldCheck, User, Zap } from 'lucide-react';
 import { setRequiresApproval } from '@/app/actions/admin';
 import { Card, CardTitle } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils';
@@ -11,9 +11,9 @@ import { cn } from '@/lib/utils';
 const OPTIONS = [
   {
     value: true,
-    label: 'Two-person approval',
-    hint: 'A voucher needs two different approvers before it can be paid. Nobody approves their own voucher.',
-    icon: Users,
+    label: 'One-person approval',
+    hint: 'A voucher needs one approver before it can be paid. Nobody approves their own voucher.',
+    icon: User,
   },
   {
     value: false,
@@ -25,8 +25,9 @@ const OPTIONS = [
 
 /**
  * Owner-only. This is the one control that decides whether submit_voucher()
- * routes a draft through pending_first/pending_second or straight to paid —
- * see migration 0013. Every other organization defaults to approval on.
+ * routes a draft through pending_first (needing one approval, given by
+ * approve_voucher — see migration 0015) or straight to paid. Every
+ * organization defaults to no approval required (0014).
  */
 export function ApprovalPolicyCard({ requiresApproval }: { requiresApproval: boolean }) {
   const router = useRouter();
@@ -40,7 +41,7 @@ export function ApprovalPolicyCard({ requiresApproval }: { requiresApproval: boo
       const res = await setRequiresApproval(next);
       if (res.ok) {
         toast.success(
-          next ? 'Vouchers now need two approvals.' : 'Vouchers are now paid on submission.',
+          next ? 'Vouchers now need one approval.' : 'Vouchers are now paid on submission.',
         );
         router.refresh();
       } else {
@@ -55,7 +56,7 @@ export function ApprovalPolicyCard({ requiresApproval }: { requiresApproval: boo
       <CardTitle
         icon={<ShieldCheck className="size-4" />}
         title="Approval"
-        description="Whether a voucher needs two people to sign off before it is paid."
+        description="Whether a voucher needs someone else to sign off before it is paid."
       />
       <div className="grid gap-3 p-5 sm:grid-cols-2" role="radiogroup" aria-label="Approval requirement">
         {OPTIONS.map((o) => {

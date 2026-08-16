@@ -72,9 +72,17 @@ export function AuditTimeline({ entries }: { entries: Entry[] }) {
         const meta = ACTION_META[e.action];
         // A voucher that skipped approval entirely (0013) was 'submitted'
         // straight to 'paid' — labelling that "for approval" would describe
-        // a step that never happened.
+        // a step that never happened. Likewise 'approved_first' (0015) now
+        // usually means the one required approval, not the first of two —
+        // it only really was "first of two" when it left the voucher in
+        // pending_second, which is what to_status still records for any
+        // voucher that entered the queue before this shipped.
         const label =
-          e.action === 'submitted' && e.to_status === 'paid' ? 'Submitted and paid' : meta.label;
+          e.action === 'submitted' && e.to_status === 'paid'
+            ? 'Submitted and paid'
+            : e.action === 'approved_first' && e.to_status === 'approved'
+              ? 'Approved'
+              : meta.label;
         const last = i === entries.length - 1;
         const who = e.actor?.full_name ?? e.actor?.email ?? 'Someone';
 
