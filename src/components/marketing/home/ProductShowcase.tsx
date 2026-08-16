@@ -27,12 +27,12 @@ type Row = {
   payee: string;
   chapter: string;
   amount: number;
-  status: 'Paid' | 'Approved' | '2nd approval' | '1st approval' | 'Sent back' | 'Draft';
+  status: 'Paid' | 'Approved' | 'Pending approval' | 'Sent back' | 'Draft';
 };
 
 const ROWS: Row[] = [
-  { no: '0058', payee: 'Lumina Events Pvt Ltd', chapter: 'Hyderabad', amount: 61_800, status: '1st approval' },
-  { no: '0057', payee: 'Grid & Co Printing', chapter: 'Bengaluru', amount: 18_450, status: '2nd approval' },
+  { no: '0058', payee: 'Lumina Events Pvt Ltd', chapter: 'Hyderabad', amount: 61_800, status: 'Pending approval' },
+  { no: '0057', payee: 'Grid & Co Printing', chapter: 'Bengaluru', amount: 18_450, status: 'Approved' },
   { no: '0056', payee: 'Sarvodaya Caterers', chapter: 'Chennai', amount: 142_000, status: 'Approved' },
   { no: '0055', payee: 'Nirvana Travel Desk', chapter: 'Mumbai', amount: 27_300, status: 'Sent back' },
   { no: '0054', payee: 'Axis Sound Systems', chapter: 'Bengaluru', amount: 96_500, status: 'Paid' },
@@ -41,16 +41,14 @@ const ROWS: Row[] = [
 const STATUS_COLOR: Record<Row['status'], string> = {
   Paid: 'var(--m-cyan)',
   Approved: 'var(--m-emerald)',
-  '2nd approval': 'var(--m-amber)',
-  '1st approval': 'var(--m-amber)',
+  'Pending approval': 'var(--m-amber)',
   'Sent back': 'var(--m-rose)',
   Draft: 'var(--m-dim-2)',
 };
 
 const PIPELINE = [
   { label: 'Draft', n: 6, color: 'var(--m-dim-2)' },
-  { label: '1st approval', n: 4, color: 'var(--m-amber)' },
-  { label: '2nd approval', n: 3, color: 'var(--m-amber)' },
+  { label: 'Pending approval', n: 7, color: 'var(--m-amber)' },
   { label: 'Approved', n: 11, color: 'var(--m-emerald)' },
   { label: 'Paid', n: 34, color: 'var(--m-cyan)' },
 ];

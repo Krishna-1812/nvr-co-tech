@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { notifyErrorAlert } from './alert';
 
 /**
  * Where a route handler writes down a failure it is not going to show anybody.
@@ -35,4 +36,13 @@ export async function logServerError(input: {
   } catch {
     // See above.
   }
+
+  // Best-effort, and deliberately outside the try above: a failure to write
+  // the row must not skip the push, and a failure to push (handled inside
+  // notifyErrorAlert itself) must not un-write the row.
+  await notifyErrorAlert({
+    route: input.route,
+    message: input.message,
+    userEmail: input.userEmail,
+  });
 }

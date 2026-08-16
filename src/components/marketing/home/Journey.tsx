@@ -334,7 +334,7 @@ function Rule({
 
 function DecideScene() {
   return (
-    <Panel title="Approvals" meta="two people needed" accent="var(--m-indigo)">
+    <Panel title="Approvals" meta="not the person who raised it" accent="var(--m-indigo)">
       <div className="px-5 py-5">
         <div className="space-y-2.5">
           <Line label="Net total (A + B + C)" value={fmtRupees(NET)} delay={60} />
@@ -347,10 +347,8 @@ function DecideScene() {
 
         <div className="mt-6 flex items-center gap-2">
           <Node name="R. Menon" caption="Raised" state="done" />
-          <Connector filled />
-          <Node name="A. Shah" caption="1st approval" state="done" />
           <Connector />
-          <Node name="Waiting" caption="2nd approval" state="waiting" />
+          <Node name="Waiting" caption="Approval" state="waiting" />
         </div>
 
         <p
@@ -359,9 +357,9 @@ function DecideScene() {
         >
           <Ban className="mt-px size-3.5 shrink-0 text-[var(--m-rose)]" aria-hidden />
           <span>
-            R. Menon raised this one, so the database will not take their approval. A. Shah has
-            already given the first, so it will not take theirs again. The second approval has to come
-            from somebody else.
+            R. Menon raised this one, so the database will not take their approval. It has to come
+            from somebody else. Some organizations skip this step entirely and pay a voucher the
+            moment it is submitted.
           </span>
         </p>
       </div>
@@ -434,8 +432,7 @@ function Connector({ filled }: { filled?: boolean }) {
 const TRAIL = [
   { at: '14 Aug · 10:12', who: 'R. Menon', what: 'Raised the voucher' },
   { at: '14 Aug · 10:14', who: 'R. Menon', what: 'Submitted. Given number FI/CIO/25-26/0042' },
-  { at: '14 Aug · 11:40', who: 'A. Shah', what: 'First approval' },
-  { at: '15 Aug · 09:05', who: 'P. Iyer', what: 'Second approval. Record locked' },
+  { at: '14 Aug · 11:40', who: 'A. Shah', what: 'Approved. Record locked' },
 ] as const;
 
 function CloseScene() {

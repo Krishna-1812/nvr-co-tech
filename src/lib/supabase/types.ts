@@ -375,6 +375,13 @@ export type Database = {
       restore_voucher: { Args: { p_id: string }; Returns: Voucher };
       purge_voucher: { Args: { p_id: string }; Returns: void };
 
+      // 0017 — a plain edit, logged with its own ownership check rather than
+      // trusting the caller (unlike log_audit, this is reachable directly).
+      log_voucher_change: {
+        Args: { p_id: string; p_action: 'created' | 'updated'; p_changed?: Record<string, unknown> | null };
+        Returns: void;
+      };
+
       set_chapter_active: { Args: { p_id: string; p_active: boolean }; Returns: ChapterRow };
       rename_chapter: { Args: { p_id: string; p_name: string }; Returns: ChapterRow };
 

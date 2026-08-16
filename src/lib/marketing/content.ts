@@ -88,12 +88,12 @@ export const AGENTS: Agent[] = [
     category: 'Payments & approvals',
     accent: 'indigo',
     summary:
-      'Payment vouchers with two approvals built in. Nobody can approve their own voucher, and nobody can approve the same one twice.',
+      'Payment vouchers with approval built in, on or off by your choice. Nobody can approve their own voucher, whatever you set.',
     pitch:
-      'The approval steps are not just screens in an app. They are rules inside the database, so they hold whether the request comes from the website, from a script, or from anywhere else.',
+      'The approval step is not just a screen in an app. It is a rule inside the database, so it holds whether the request comes from the website, from a script, or from anywhere else.',
     does: [
       'All thirty-two fields from the voucher your team already uses, so the printed page looks the way it always has.',
-      'Two approvals from two different people, and neither of them can be the person who raised it. The database checks this, not the browser.',
+      'Approval, if you want it, needs one signature and never from the person who raised the voucher. Turn it off and a submission goes straight to paid. The database checks this, not the browser.',
       'Voucher numbers are handed out when you submit, in the form FI/CHAPTER/25-26/0001. One run of numbers per chapter per financial year, and nobody types them by hand.',
       'The database works out the totals itself, so the figure on screen is the figure on record.',
       'GST is sorted for you. CGST and SGST inside a state, IGST between states, never both at once. Checked before you can submit.',

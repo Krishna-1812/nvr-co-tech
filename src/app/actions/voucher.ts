@@ -40,6 +40,10 @@ export async function createDraft(): Promise<ActionResult<{ id: string }>> {
 
   if (error || !data) return { ok: false, error: toMessage(error, 'Could not start a voucher.') };
 
+  // Best-effort: a missed 'created' entry is a smaller loss than blocking the
+  // voucher itself on it, so its own error is swallowed rather than surfaced.
+  await supabase.rpc('log_voucher_change', { p_id: data.id, p_action: 'created' });
+
   revalidatePath('/vouchers');
   return { ok: true, data: { id: data.id } };
 }
@@ -61,6 +65,15 @@ export async function saveDraft(
   }
 
   const supabase = await createClient();
+  const fields = Object.keys(parsed.data);
+
+  // Read the old values for exactly the fields this save touches, so the
+  // audit entry can carry what actually changed rather than just that a save
+  // happened. Fetched before the update, since afterwards there is no "before".
+  const { data: before } = fields.length
+    ? await supabase.from('vouchers').select(fields.join(',')).eq('id', id).maybeSingle()
+    : { data: null };
+
   const { error } = await supabase.from('vouchers').update(parsed.data).eq('id', id);
 
   if (error) {
@@ -68,7 +81,27 @@ export async function saveDraft(
     return { ok: false, error: toMessage(error, 'Could not save. This voucher may be locked.') };
   }
 
+  const changed = diffFields(before as Record<string, unknown> | null, parsed.data);
+  if (changed) {
+    await supabase.rpc('log_voucher_change', { p_id: id, p_action: 'updated', p_changed: changed });
+  }
+
   return { ok: true, data: { savedAt: new Date().toISOString() } };
+}
+
+/** Only the fields whose value actually moved, `before` → `after`. Null if none did. */
+function diffFields(
+  before: Record<string, unknown> | null,
+  after: Record<string, unknown>,
+): Record<string, { before: unknown; after: unknown }> | null {
+  if (!before) return null;
+  const changed: Record<string, { before: unknown; after: unknown }> = {};
+  for (const key of Object.keys(after)) {
+    const prev = before[key] ?? null;
+    const next = after[key] ?? null;
+    if (prev !== next) changed[key] = { before: prev, after: next };
+  }
+  return Object.keys(changed).length ? changed : null;
 }
 
 // ─── Inline creation of events and chapters ──────────────────────────────────
@@ -118,12 +151,14 @@ export async function createEvent(input: {
 
 // ─── Deleting a draft ────────────────────────────────────────────────────────
 
+/**
+ * Goes through `soft_delete_voucher` rather than a direct UPDATE, same as
+ * every other deletion path (see workflow.ts's softDeleteVoucher) — a raw
+ * update here left no audit entry at all, unlike deleting from the recycle bin.
+ */
 export async function deleteDraft(id: string): Promise<ActionResult> {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from('vouchers')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id);
+  const { error } = await supabase.rpc('soft_delete_voucher', { p_id: id, p_reason: null });
 
   if (error) return { ok: false, error: toMessage(error, 'Could not delete this voucher.') };
 

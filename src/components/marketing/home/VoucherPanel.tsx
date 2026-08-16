@@ -43,7 +43,7 @@ export function VoucherPanel() {
             <p className="m-dim-2 mt-0.5 text-[11px]">Bengaluru Chapter · Annual Summit</p>
           </div>
           <span className="m-mono ml-auto shrink-0 rounded-full border border-[color-mix(in_oklab,var(--m-amber)_32%,transparent)] bg-[color-mix(in_oklab,var(--m-amber)_10%,transparent)] px-2.5 py-1 text-[10px] tracking-[0.1em] uppercase text-[var(--m-amber)]">
-            2nd approval
+            Awaiting approval
           </span>
         </div>
 
@@ -64,18 +64,16 @@ export function VoucherPanel() {
         <div className="border-t border-[var(--m-line)] bg-white/[0.02] px-5 py-5">
           <div className="flex items-center gap-2">
             <Node name="R. Menon" caption="Raised" state="done" />
-            <Connector filled />
-            <Node name="A. Shah" caption="1st approval" state="done" />
             <Connector />
-            <Node name="Waiting" caption="2nd approval" state="waiting" />
+            <Node name="Waiting" caption="Approval" state="waiting" />
           </div>
 
           {/* The rule, stated rather than implied. */}
           <p className="m-dim-2 mt-4 flex items-start gap-2 text-[11px] leading-relaxed">
             <Ban className="mt-px size-3.5 shrink-0 text-[var(--m-rose)]" aria-hidden />
             <span>
-              R. Menon raised this voucher, so they cannot approve it. A. Shah has already given the
-              first approval. The second has to come from somebody else.
+              R. Menon raised this voucher, so the database will not take their approval too. It
+              has to come from somebody else.
             </span>
           </p>
         </div>

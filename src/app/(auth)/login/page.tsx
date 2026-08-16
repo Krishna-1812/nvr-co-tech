@@ -21,19 +21,41 @@ function LoginForm() {
   // The OAuth callback route reports failures by redirecting back with ?error=.
   const [error, setError] = useState(params.get('error') ?? '');
   const [busy, setBusy] = useState(false);
+  // Set only for 'email_not_confirmed', so the error can offer to resend it.
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState('');
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setUnconfirmedEmail('');
+    setResendState('idle');
     setBusy(true);
     const { error } = await createClient().auth.signInWithPassword({ email, password });
     if (error) {
       setBusy(false);
-      setError('That email and password did not work. Please try again.');
+      /*
+       * Every failure used to get the same "wrong password" message, including
+       * a real account that simply never confirmed its email — which sends
+       * that person looking for a typo that was never there, with no hint
+       * that a confirmation link is what they actually need.
+       */
+      if (error.code === 'email_not_confirmed') {
+        setError('Please confirm your email first. Check your inbox for the link we sent.');
+        setUnconfirmedEmail(email);
+      } else {
+        setError('That email and password did not work. Please try again.');
+      }
       return;
     }
     router.push(next);
     router.refresh();
+  };
+
+  const resendConfirmation = async () => {
+    setResendState('sending');
+    await createClient().auth.resend({ type: 'signup', email: unconfirmedEmail });
+    setResendState('sent');
   };
 
   return (
@@ -77,7 +99,18 @@ function LoginForm() {
             />
           </AuthField>
 
-          <AuthField label="Password" htmlFor="password">
+          <AuthField
+            label="Password"
+            htmlFor="password"
+            action={
+              <Link
+                href="/forgot-password"
+                className="text-[12.5px] font-medium text-[var(--m-dim)] underline-offset-4 transition hover:text-[var(--m-cyan)] hover:underline"
+              >
+                Forgot password?
+              </Link>
+            }
+          >
             <AuthPassword
               id="password"
               icon={Lock}
@@ -90,6 +123,20 @@ function LoginForm() {
           </AuthField>
 
           <AuthError message={error} />
+
+          {unconfirmedEmail && resendState !== 'sent' && (
+            <button
+              type="button"
+              onClick={resendConfirmation}
+              disabled={resendState === 'sending'}
+              className="text-[13px] font-semibold text-[var(--m-ink)] underline-offset-4 transition hover:text-[var(--m-cyan)] hover:underline disabled:opacity-60"
+            >
+              {resendState === 'sending' ? 'Sending…' : 'Resend confirmation email'}
+            </button>
+          )}
+          {resendState === 'sent' && (
+            <p className="m-dim text-[13px]">Sent. Check your inbox.</p>
+          )}
 
           <div className="pt-1">
             <AuthSubmit loading={busy}>

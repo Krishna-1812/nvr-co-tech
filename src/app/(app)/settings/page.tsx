@@ -6,6 +6,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { ProfileCard } from './ProfileCard';
 import { ThemeChoice } from './ThemeChoice';
 import { SignOutButton } from './SignOutButton';
+import { ChangePasswordForm } from './ChangePasswordForm';
+import { ChangeEmailForm } from './ChangeEmailForm';
 
 export const metadata = { title: 'Settings' };
 
@@ -23,8 +25,10 @@ export default async function SettingsPage() {
   /*
    * Approvals are counted as two queries rather than one `or` filter, which keeps
    * this working against the preview client as well as Postgres. Nothing is double
-   * counted: a voucher's two approvals must come from two different people, so the
-   * same person can never be both approver_1 and approver_2 on one row.
+   * counted: the same person can never be both approver_1 and approver_2 on one
+   * row, so summing the two queries never counts a single approval twice. Most
+   * vouchers only ever need one approval now (0015) — approver_2 stays populated
+   * only on the rare voucher that entered the queue before that shipped.
    */
   const [raised, approver1, approver2, profile] = await Promise.all([
     count().eq('created_by', user.id),
@@ -61,6 +65,9 @@ export default async function SettingsPage() {
         approved={approved}
         memberSince={memberSince}
       />
+
+      <ChangeEmailForm email={user.authEmail} />
+      <ChangePasswordForm email={user.authEmail} />
 
       <Card className="overflow-hidden">
         <CardTitle

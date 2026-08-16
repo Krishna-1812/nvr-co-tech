@@ -1,0 +1,43 @@
+name: Check
+
+# Runs the same gate `npm run check` runs locally, before anything reaches
+# main — which auto-deploys straight to production on every push. Before this
+# workflow existed, that gate only ran if whoever was pushing remembered to
+# run it themselves.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run check:sql
+
+      - run: npm run test
+
+      # Needs real-looking values to build (some routes construct a Supabase
+      # client at request time), but nothing in the build actually calls out
+      # to it — everything under (app) renders dynamically via cookies().
+      # Set these two as repository secrets: Settings → Secrets and
+      # variables → Actions. The anon key is safe to hold here — it is meant
+      # to be public; every rule that matters is enforced by RLS.
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_PREVIEW_MODE: '0'
