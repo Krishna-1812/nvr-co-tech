@@ -97,6 +97,7 @@ export const crossFieldIssues = (v: {
   igst?: unknown;
   pan_number?: string | null;
   gst_number?: string | null;
+  date?: string | null;
   event_date?: string | null;
   invoice_date?: string | null;
   invoice_received_date?: string | null;
@@ -145,6 +146,18 @@ export const crossFieldIssues = (v: {
 
   if (v.invoice_date && v.payment_date && v.payment_date < v.invoice_date) {
     issues.push({ path: 'payment_date', message: 'Payment cannot pre-date the invoice.' });
+  }
+
+  // Voucher date and Invoice received date can never be earlier than the
+  // Invoice date — the invoice has to exist before it's paid for or received.
+  if (v.invoice_date && v.date && v.date < v.invoice_date) {
+    issues.push({ path: 'date', message: 'The voucher date cannot be before the invoice date.' });
+  }
+  if (v.invoice_date && v.invoice_received_date && v.invoice_received_date < v.invoice_date) {
+    issues.push({
+      path: 'invoice_received_date',
+      message: 'The invoice received date cannot be before the invoice date.',
+    });
   }
 
   return issues;

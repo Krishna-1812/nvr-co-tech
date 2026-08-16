@@ -299,6 +299,17 @@ export function VoucherForm({
         <Card id="info">
           <SectionHead step={1} title="Voucher info" />
           <div className="grid gap-5 p-5 sm:grid-cols-2">
+            <Field label="Voucher date" htmlFor="f-date" error={errorFor('date')}>
+              <Input
+                id="f-date"
+                type="date"
+                min={MIN_VOUCHER_DATE}
+                max={today}
+                value={form.date ?? ''}
+                onChange={(e) => set('date', e.target.value)}
+              />
+            </Field>
+
             <Field label="Chapter" htmlFor="f-chapter_id" required error={errorFor('chapter_id')}>
               <Select
                 id="f-chapter_id"
@@ -316,6 +327,7 @@ export function VoucherForm({
 
             <Field
               label="Voucher number"
+              className="sm:col-span-2"
               htmlFor="f-voucher_no"
               required
               error={errorFor('voucher_no')}
@@ -435,7 +447,7 @@ export function VoucherForm({
               </div>
             )}
 
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-3">
               <Field label="Invoice number">
                 <Input
                   value={form.invoice_no ?? ''}
@@ -448,17 +460,6 @@ export function VoucherForm({
                   min={MIN_VOUCHER_DATE}
                   value={form.invoice_date ?? ''}
                   onChange={(e) => set('invoice_date', e.target.value)}
-                />
-              </Field>
-              {/* Both of these must come after Invoice date — that is the point of this row's order. */}
-              <Field label="Voucher date" htmlFor="f-date" error={errorFor('date')}>
-                <Input
-                  id="f-date"
-                  type="date"
-                  min={MIN_VOUCHER_DATE}
-                  max={today}
-                  value={form.date ?? ''}
-                  onChange={(e) => set('date', e.target.value)}
                 />
               </Field>
               <Field label="Invoice received date" error={errorFor('invoice_received_date')}>

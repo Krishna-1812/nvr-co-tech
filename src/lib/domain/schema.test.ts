@@ -88,6 +88,27 @@ describe('cross-field rules', () => {
     ).toHaveLength(0);
   });
 
+  it('rejects a voucher date before the invoice date', () => {
+    expect(
+      paths(crossFieldIssues({ invoice_date: '2026-08-15', date: '2026-08-14' })),
+    ).toContain('date');
+    expect(
+      crossFieldIssues({ invoice_date: '2026-08-15', date: '2026-08-15' }),
+    ).toHaveLength(0);
+    expect(
+      crossFieldIssues({ invoice_date: '2026-08-15', date: '2026-08-16' }),
+    ).toHaveLength(0);
+  });
+
+  it('rejects an invoice received date before the invoice date', () => {
+    expect(
+      paths(crossFieldIssues({ invoice_date: '2026-08-15', invoice_received_date: '2026-08-14' })),
+    ).toContain('invoice_received_date');
+    expect(
+      crossFieldIssues({ invoice_date: '2026-08-15', invoice_received_date: '2026-08-15' }),
+    ).toHaveLength(0);
+  });
+
   it('floors event date, invoice date, invoice received date and payment date at 1 April 2026', () => {
     expect(paths(crossFieldIssues({ event_date: '2026-03-31' }))).toContain('event_date');
     expect(paths(crossFieldIssues({ invoice_date: '2026-03-31' }))).toContain('invoice_date');
