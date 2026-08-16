@@ -52,7 +52,9 @@ function LoginForm() {
           <p className="m-dim text-[13px]">
             First time here?{' '}
             <Link
-              href="/signup"
+              // Carries an invite link's ?next= through to signup, so accepting
+              // an invite survives someone not having an account yet.
+              href={next === AFTER_LOGIN ? '/signup' : `/signup?next=${encodeURIComponent(next)}`}
               className="font-semibold text-[var(--m-ink)] underline-offset-4 transition hover:text-[var(--m-cyan)] hover:underline"
             >
               Create an account

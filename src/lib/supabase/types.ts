@@ -19,12 +19,15 @@ export type Profile = {
   avatar_url: string | null;
   role: UserRole;
   is_active: boolean;
+  /** Null means signed up but not yet joined or created an organization (0012). */
+  organization_id: string | null;
   created_at: string;
   updated_at: string;
 };
 
 export type ChapterRow = {
   id: string;
+  organization_id: string;
   name: string;
   code: string;
   is_head_office: boolean;
@@ -35,6 +38,7 @@ export type ChapterRow = {
 
 export type EventRow = {
   id: string;
+  organization_id: string;
   name: string;
   chapter_id: string | null;
   date_of_event: string | null;
@@ -43,8 +47,34 @@ export type EventRow = {
   deleted_at: string | null;
 };
 
+/**
+ * One client on this platform (0012). `voucher_prefix` is what
+ * next_voucher_no() issues numbers under, editable per organization.
+ */
+export type OrganizationRow = {
+  id: string;
+  name: string;
+  voucher_prefix: string;
+  created_at: string;
+};
+
+/** A copy-a-link invite (0012). Consumed only through accept_invite(). */
+export type OrganizationInviteRow = {
+  id: string;
+  organization_id: string;
+  email: string;
+  role: UserRole;
+  token: string;
+  invited_by: string | null;
+  created_at: string;
+  expires_at: string;
+  accepted_at: string | null;
+};
+
 export type Voucher = {
   id: string;
+  /** Stamped by a trigger from the caller's own organization (0012), never client-set. */
+  organization_id: string;
   voucher_no: string | null;
   status: VoucherStatus;
 
@@ -108,7 +138,7 @@ export type Voucher = {
 /** Columns the client may write. Generated totals and workflow state are excluded. */
 export type VoucherWritable = Omit<
   Voucher,
-  | 'id' | 'voucher_no' | 'status'
+  | 'id' | 'organization_id' | 'voucher_no' | 'status'
   | 'total_tax' | 'net_total' | 'grand_total'
   | 'initiated_by' | 'initiated_at' | 'submitted_at'
   | 'approver_1' | 'approved_1_at' | 'approver_2' | 'approved_2_at'
@@ -294,6 +324,10 @@ type Table<Row> = {
 export type Database = {
   public: {
     Tables: {
+      // 0012 — organizations.
+      organizations: Table<OrganizationRow>;
+      organization_invites: Table<OrganizationInviteRow>;
+
       profiles: Table<Profile>;
       chapters: Table<ChapterRow>;
       events: Table<EventRow>;
@@ -368,6 +402,23 @@ export type Database = {
       };
       record_error: { Args: { p: Record<string, unknown> }; Returns: void };
       prune_errors: { Args: { p_days?: number }; Returns: number };
+
+      /*
+       * 0012 — organizations. my_organization_id() is read-only and used
+       * everywhere else; the other three are the only way to move a profile
+       * into (or between) an organization_id.
+       */
+      my_organization_id: { Args: Record<string, never>; Returns: string | null };
+      create_organization: { Args: { p_name: string }; Returns: OrganizationRow };
+      invite_user: {
+        Args: { p_email: string; p_role?: UserRole };
+        Returns: OrganizationInviteRow;
+      };
+      invite_preview: {
+        Args: { p_token: string };
+        Returns: { organization_name: string | null; role: UserRole | null; email: string | null; valid: boolean }[];
+      };
+      accept_invite: { Args: { p_token: string }; Returns: OrganizationRow };
     };
     Enums: {
       user_role: UserRole;

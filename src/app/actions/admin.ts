@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-import { USER_ROLES } from '@/lib/domain/workflow';
+import { USER_ROLES, type UserRole } from '@/lib/domain/workflow';
+import { SITE_URL } from '@/lib/marketing/content';
 import type { ActionResult } from './workflow';
 
 /**
@@ -56,6 +57,44 @@ export async function setUserRole(input: {
   // The nav and approval queue both key off roles.
   revalidatePath('/', 'layout');
   return { ok: true, data: undefined };
+}
+
+// ─── Inviting a teammate ─────────────────────────────────────────────────────
+
+const inviteSchema = z.object({
+  email: z.email('Give a valid email address.'),
+  role: z.enum(USER_ROLES.filter((r) => r !== 'owner') as [UserRole, ...UserRole[]]),
+});
+
+/**
+ * Copy-a-link, not send-an-email — there is no transactional email provider
+ * wired into this project, and the invite is only ever as sensitive as its
+ * token: accept_invite (migration 0012) checks it against the accepting
+ * person's own verified address regardless of who ends up holding the link.
+ */
+export async function inviteUser(input: {
+  email: string;
+  role: string;
+}): Promise<ActionResult<{ link: string; email: string }>> {
+  const parsed = inviteSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid invite.' };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('invite_user', {
+    p_email: parsed.data.email,
+    p_role: parsed.data.role,
+  });
+
+  if (error || !data) {
+    return { ok: false, error: toMessage(error, 'Could not create that invite.') };
+  }
+
+  return {
+    ok: true,
+    data: { link: `${SITE_URL}/onboarding?invite=${data.token}`, email: data.email },
+  };
 }
 
 // ─── Chapters ────────────────────────────────────────────────────────────────

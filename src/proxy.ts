@@ -57,8 +57,10 @@ export default async function proxy(request: NextRequest) {
   if (!hasSession) {
     if (isProtectedPath(pathname)) {
       const url = request.nextUrl.clone();
+      const target = pathname + request.nextUrl.search;
       url.pathname = '/login';
-      url.searchParams.set('next', pathname);
+      url.search = '';
+      url.searchParams.set('next', target);
       return NextResponse.redirect(url);
     }
     return NextResponse.next({ request });
@@ -88,9 +90,12 @@ export default async function proxy(request: NextRequest) {
 
   if (!user && isProtectedPath(pathname)) {
     const url = request.nextUrl.clone();
+    // Come back here after signing in — the query string too, since a page
+    // like /onboarding?invite=<token> loses its whole purpose without it.
+    const target = pathname + request.nextUrl.search;
     url.pathname = '/login';
-    // Come back here after signing in.
-    url.searchParams.set('next', pathname);
+    url.search = '';
+    url.searchParams.set('next', target);
     return NextResponse.redirect(url);
   }
 

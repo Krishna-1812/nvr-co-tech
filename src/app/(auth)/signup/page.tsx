@@ -107,8 +107,8 @@ function SignupForm() {
               account is ready.
             </p>
             <p className="m-dim-2 mt-5 text-[12px] leading-relaxed">
-              You start off as a <span className="font-semibold text-[var(--m-ink)]">Member</span>,
-              so you can raise vouchers right away.
+              Open it, and you will set up your own organisation — or join one, if you followed an
+              invite link to get here.
             </p>
           </div>
         </AuthCard>
@@ -132,7 +132,9 @@ function SignupForm() {
           <p className="m-dim text-[13px]">
             Already have an account?{' '}
             <Link
-              href="/login"
+              // Carries an invite link's ?next= through to login, so accepting
+              // an invite survives already having an account.
+              href={next === AFTER_LOGIN ? '/login' : `/login?next=${encodeURIComponent(next)}`}
               className="font-semibold text-[var(--m-ink)] underline-offset-4 transition hover:text-[var(--m-cyan)] hover:underline"
             >
               Sign in
@@ -204,11 +206,10 @@ function SignupForm() {
         <OrDivider />
         <GoogleButton next={next} onError={setError} label="Sign up with Google" />
 
-        {/* What a new account can do before anyone has to grant it anything. */}
+        {/* What happens right after this, before anyone has to grant anything. */}
         <p className="m-dim-2 mt-6 text-center text-[12px] leading-relaxed">
-          New accounts start as a <span className="font-semibold text-[var(--m-ink)]">Member</span>,
-          so you can raise vouchers straight away. Being able to approve them is something an
-          administrator gives you.
+          If you have an invite link, it will take you straight into your team&rsquo;s organisation.
+          Otherwise, you will set up your own — and start as its owner.
         </p>
       </AuthCard>
     </div>

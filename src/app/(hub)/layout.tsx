@@ -1,4 +1,4 @@
-import { requireUser } from '@/lib/supabase/server';
+import { requireOrgMember } from '@/lib/supabase/server';
 import { fiscalYear, istLongDate, istToday } from '@/lib/fiscal';
 import { PREVIEW } from '@/lib/preview';
 import { Backdrop } from '@/components/app/Backdrop';
@@ -14,7 +14,7 @@ import { HubBar } from '@/components/hub/HubBar';
  * The two shells share the atmosphere and the account menu and nothing else.
  */
 export default async function HubLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser();
+  const user = await requireOrgMember();
   const fiscal = fiscalYear(istToday());
 
   return (

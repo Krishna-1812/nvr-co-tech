@@ -5,6 +5,7 @@ import { tolerateMissingColumns, withAvatar } from '@/lib/supabase/columns';
 import { isOwner, type UserRole } from '@/lib/domain/workflow';
 import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
 import { UserRow } from './UserRow';
+import { InviteForm } from './InviteForm';
 
 export const metadata = { title: 'People' };
 
@@ -54,6 +55,8 @@ export default async function AdminPeoplePage() {
 
   return (
     <div className="space-y-4">
+      <InviteForm />
+
       {/*
         Two approvers are the minimum the workflow can function with: the second
         approval must come from a different person than the first, and neither

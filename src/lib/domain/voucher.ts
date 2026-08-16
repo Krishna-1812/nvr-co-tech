@@ -11,9 +11,6 @@
 
 // ─── Chapters ────────────────────────────────────────────────────────────────
 
-/** Head office — always permitted as the paying chapter, whatever the voucher's chapter. */
-export const HEAD_OFFICE_NAME = 'CIO Association HO';
-
 export type Chapter = {
   id: string;
   name: string;

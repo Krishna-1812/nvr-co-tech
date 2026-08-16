@@ -49,7 +49,10 @@ export const createClient = cache(async () => {
  * the select drops it on a database that has not got the column yet — a face is
  * the one thing here the app can render without.
  */
-type SessionProfile = Pick<Profile, 'id' | 'email' | 'full_name' | 'role' | 'is_active'> & {
+type SessionProfile = Pick<
+  Profile,
+  'id' | 'email' | 'full_name' | 'role' | 'is_active' | 'organization_id'
+> & {
   avatar_url?: string | null;
 };
 
@@ -82,7 +85,7 @@ export const getCurrentUser = cache(async () => {
   const { data, error } = await tolerateMissingColumns(() =>
     supabase
       .from('profiles')
-      .select(withAvatar('id, email, full_name, role, is_active'))
+      .select(withAvatar('id, email, full_name, role, is_active, organization_id'))
       .eq('id', user.id)
       .single(),
   );
@@ -129,7 +132,12 @@ export const getCurrentUser = cache(async () => {
     safeAvatarUrl(meta?.avatar_url) ??
     safeAvatarUrl(meta?.picture);
 
-  return { ...profile, authEmail: user.email ?? profile.email, avatarUrl };
+  return {
+    ...profile,
+    authEmail: user.email ?? profile.email,
+    avatarUrl,
+    organizationId: profile.organization_id,
+  };
 });
 
 /** Same, but redirects to /login instead of returning null. Use in protected pages. */
@@ -140,4 +148,23 @@ export async function requireUser() {
     redirect('/login');
   }
   return user!;
+}
+
+/**
+ * Same as requireUser(), and additionally redirects to /onboarding when the
+ * session has no organization yet.
+ *
+ * Use this rather than requireUser() at the top of anything that reads or
+ * writes chapters, events or vouchers — every one of those is organization-
+ * scoped now (see migration 0012), and a profile with organization_id still
+ * null would see nothing under RLS regardless, which reads as a blank screen
+ * rather than as the "finish setting up" step it actually is.
+ */
+export async function requireOrgMember() {
+  const user = await requireUser();
+  if (!user.organizationId) {
+    const { redirect } = await import('next/navigation');
+    redirect('/onboarding');
+  }
+  return user as typeof user & { organizationId: string };
 }

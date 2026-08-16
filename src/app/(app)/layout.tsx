@@ -1,11 +1,11 @@
-import { requireUser, createClient } from '@/lib/supabase/server';
+import { requireOrgMember, createClient } from '@/lib/supabase/server';
 import { canApprove } from '@/lib/domain/workflow';
 import { voucherSection } from '@/lib/nav';
 import { AppShell } from '@/components/AppShell';
 
 /** Voucher Desk. Middleware has already guaranteed a session. */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser();
+  const user = await requireOrgMember();
 
   // Queue badge: how many vouchers this person could actually action.
   let pendingCount = 0;

@@ -1,4 +1,4 @@
-import { requireUser } from '@/lib/supabase/server';
+import { requireOrgMember } from '@/lib/supabase/server';
 import { reconSection } from '@/lib/nav';
 import { AppShell } from '@/components/AppShell';
 
@@ -12,7 +12,7 @@ import { AppShell } from '@/components/AppShell';
  * same AppShell and differ only in the Section they hand it.
  */
 export default async function ReconLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser();
+  const user = await requireOrgMember();
 
   return (
     <AppShell user={user} section={reconSection()}>

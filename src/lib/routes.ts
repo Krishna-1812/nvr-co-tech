@@ -24,6 +24,8 @@ export const PROTECTED_PREFIXES = [
   '/settings',
   '/reconcile',
   '/ask',
+  // Signed in, but not yet a member of an organization — see requireOrgMember().
+  '/onboarding',
   // Visitor intelligence. Gated a second time inside its own layout against the
   // analytics allowlist, which is a different and much shorter list than
   // "anybody with a session" — see lib/analytics/admin.
