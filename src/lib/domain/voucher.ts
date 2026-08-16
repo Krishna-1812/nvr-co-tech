@@ -153,6 +153,19 @@ export function voucherDateIssue(iso: string, todayIso: string): string | null {
   return null;
 }
 
+/**
+ * The desk stopped taking vouchers dated before FY 26-27. Every date on the
+ * form — not just the voucher date — is checked against this same floor, so
+ * pure string comparison works here too.
+ */
+export const MIN_VOUCHER_DATE = '2026-04-01';
+
+export function dateFloorIssue(iso: string): string | null {
+  if (!iso) return null;
+  if (iso < MIN_VOUCHER_DATE) return 'Dates cannot be earlier than 1 April 2026.';
+  return null;
+}
+
 // ─── GST mode ────────────────────────────────────────────────────────────────
 
 /**

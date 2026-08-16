@@ -14,6 +14,8 @@ import {
   alphaNumeric,
   paidByChapterOptions,
   voucherDateIssue,
+  dateFloorIssue,
+  MIN_VOUCHER_DATE,
   PAYMENT_RULES,
   type Chapter,
 } from './voucher';
@@ -175,6 +177,26 @@ describe('voucher date bounds', () => {
 
   it('leaves an empty date alone — required-ness is checked elsewhere', () => {
     expect(voucherDateIssue('', today)).toBeNull();
+  });
+});
+
+describe('the FY 26-27 date floor', () => {
+  it('is 1 April 2026', () => {
+    expect(MIN_VOUCHER_DATE).toBe('2026-04-01');
+  });
+
+  it('rejects any date before the floor', () => {
+    expect(dateFloorIssue('2026-03-31')).toMatch(/1 April 2026/);
+    expect(dateFloorIssue('2025-04-01')).toMatch(/1 April 2026/);
+  });
+
+  it('accepts the floor date and anything after it', () => {
+    expect(dateFloorIssue('2026-04-01')).toBeNull();
+    expect(dateFloorIssue('2026-08-16')).toBeNull();
+  });
+
+  it('leaves an empty date alone — required-ness is checked elsewhere', () => {
+    expect(dateFloorIssue('')).toBeNull();
   });
 });
 

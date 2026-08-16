@@ -14,7 +14,10 @@ import type { ActionResult } from './workflow';
  * state with no persistence, so a refresh lost the lot.
  */
 
-function toMessage(error: { message?: string } | null, fallback: string): string {
+function toMessage(error: { message?: string; code?: string } | null, fallback: string): string {
+  if (error?.code === '23505' && error.message?.includes('vouchers_no_unique')) {
+    return 'That voucher number is already in use — choose a different one.';
+  }
   const raw = error?.message ?? '';
   if (!raw) return fallback;
   return raw.split('\nCONTEXT:')[0].replace(/^ERROR:\s*/, '').trim() || fallback;

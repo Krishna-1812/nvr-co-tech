@@ -23,7 +23,10 @@ export type ActionResult<T = void> =
  * for humans (see the migration), so pass them through rather than inventing a
  * generic "something went wrong".
  */
-function toMessage(error: { message?: string } | null, fallback: string): string {
+function toMessage(error: { message?: string; code?: string } | null, fallback: string): string {
+  if (error?.code === '23505' && error.message?.includes('vouchers_no_unique')) {
+    return 'That voucher number is already in use — choose a different one.';
+  }
   const raw = error?.message ?? '';
   if (!raw) return fallback;
   // Strip the PL/pgSQL context noise Supabase sometimes appends.

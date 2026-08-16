@@ -81,10 +81,27 @@ describe('cross-field rules', () => {
 
   it('rejects a payment dated before its invoice', () => {
     expect(
-      paths(crossFieldIssues({ invoice_date: '2026-02-10', payment_date: '2026-02-01' })),
+      paths(crossFieldIssues({ invoice_date: '2026-04-10', payment_date: '2026-04-01' })),
     ).toContain('payment_date');
     expect(
-      crossFieldIssues({ invoice_date: '2026-02-01', payment_date: '2026-02-10' }),
+      crossFieldIssues({ invoice_date: '2026-04-01', payment_date: '2026-04-10' }),
+    ).toHaveLength(0);
+  });
+
+  it('floors event date, invoice date, invoice received date and payment date at 1 April 2026', () => {
+    expect(paths(crossFieldIssues({ event_date: '2026-03-31' }))).toContain('event_date');
+    expect(paths(crossFieldIssues({ invoice_date: '2026-03-31' }))).toContain('invoice_date');
+    expect(
+      paths(crossFieldIssues({ invoice_received_date: '2026-03-31' })),
+    ).toContain('invoice_received_date');
+    expect(paths(crossFieldIssues({ payment_date: '2026-03-31' }))).toContain('payment_date');
+    expect(
+      crossFieldIssues({
+        event_date: '2026-04-01',
+        invoice_date: '2026-04-01',
+        invoice_received_date: '2026-04-01',
+        payment_date: '2026-04-01',
+      }),
     ).toHaveLength(0);
   });
 });
@@ -95,6 +112,7 @@ describe('submit readiness mirrors submit_voucher()', () => {
     paid_to: 'Acme Ltd',
     type_of_supporting: 'Invoice',
     type_of_payment: 'Full Payment',
+    voucher_no: 'FI/HO/26-27/0001',
     basic_value: 10000,
   };
 
@@ -104,8 +122,13 @@ describe('submit readiness mirrors submit_voucher()', () => {
 
   it('names every missing requirement at once', () => {
     expect(paths(submitReadiness({}))).toEqual(
-      ['basic_value', 'chapter_id', 'paid_to', 'type_of_payment', 'type_of_supporting'].sort(),
+      ['basic_value', 'chapter_id', 'paid_to', 'type_of_payment', 'type_of_supporting', 'voucher_no'].sort(),
     );
+  });
+
+  it('requires a voucher number', () => {
+    expect(paths(submitReadiness({ ...complete, voucher_no: '' }))).toContain('voucher_no');
+    expect(paths(submitReadiness({ ...complete, voucher_no: '   ' }))).toContain('voucher_no');
   });
 
   it('requires a grand total above zero', () => {
@@ -123,5 +146,10 @@ describe('submit readiness mirrors submit_voucher()', () => {
     const today = '2026-08-16';
     expect(paths(submitReadiness({ ...complete, date: '2026-08-17' }, today))).toContain('date');
     expect(submitReadiness({ ...complete, date: today }, today)).toHaveLength(0);
+  });
+
+  it('flags a voucher date before the FY 26-27 floor', () => {
+    const today = '2026-08-16';
+    expect(paths(submitReadiness({ ...complete, date: '2026-03-31' }, today))).toContain('date');
   });
 });

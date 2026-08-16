@@ -8,6 +8,7 @@ import {
   gstinMatchesPan,
   calcGrandTotal,
   voucherDateIssue,
+  dateFloorIssue,
 } from './voucher';
 import { istToday } from '@/lib/fiscal';
 
@@ -46,6 +47,7 @@ const text = (max = 200) =>
     .nullable();
 
 export const draftSchema = z.object({
+  voucher_no: text(60).optional(),
   date: isoDate.optional(),
   chapter_id: z.uuid().nullable().optional(),
   sponsored: z.enum(SPONSORSHIPS).nullable().optional(),
@@ -95,11 +97,22 @@ export const crossFieldIssues = (v: {
   igst?: unknown;
   pan_number?: string | null;
   gst_number?: string | null;
+  event_date?: string | null;
   invoice_date?: string | null;
+  invoice_received_date?: string | null;
   payment_date?: string | null;
 }): { path: string; message: string }[] => {
   const issues: { path: string; message: string }[] = [];
   const n = (x: unknown) => Number(x ?? 0) || 0;
+
+  // Every date on the form is floored at FY 26-27, not just the voucher date.
+  for (const path of ['event_date', 'invoice_date', 'invoice_received_date', 'payment_date'] as const) {
+    const val = v[path];
+    if (val) {
+      const issue = dateFloorIssue(val);
+      if (issue) issues.push({ path, message: issue });
+    }
+  }
 
   const intra = n(v.cgst) > 0 || n(v.sgst) > 0;
   const inter = n(v.igst) > 0;
@@ -147,6 +160,7 @@ export const submitReadiness = (
     paid_to?: string | null;
     type_of_supporting?: string | null;
     type_of_payment?: string | null;
+    voucher_no?: string | null;
     date?: string | null;
     basic_value?: unknown;
     cgst?: unknown;
@@ -170,11 +184,14 @@ export const submitReadiness = (
   if (!v.type_of_payment) {
     issues.push({ path: 'type_of_payment', message: 'Choose the payment type.' });
   }
+  if (!v.voucher_no?.trim()) {
+    issues.push({ path: 'voucher_no', message: 'Enter the voucher number.' });
+  }
   if (calcGrandTotal(v) <= 0) {
     issues.push({ path: 'basic_value', message: 'The grand total must be more than zero.' });
   }
   if (v.date) {
-    const dateIssue = voucherDateIssue(v.date, today);
+    const dateIssue = voucherDateIssue(v.date, today) ?? dateFloorIssue(v.date);
     if (dateIssue) issues.push({ path: 'date', message: dateIssue });
   }
 

@@ -16,6 +16,7 @@ import {
   PAYMENT_RULES,
   SPONSORSHIPS,
   SUPPORTING_TYPES,
+  MIN_VOUCHER_DATE,
   calcTax,
   calcNetTotal,
   calcGrandTotal,
@@ -152,6 +153,7 @@ export function VoucherForm({
   const persist = useCallback(async (snapshot: FormState) => {
     setSaveState('saving');
     const res = await saveDraft(voucher.id, {
+      voucher_no: snapshot.voucher_no,
       date: snapshot.date,
       chapter_id: snapshot.chapter_id || null,
       sponsored: snapshot.sponsored || null,
@@ -297,16 +299,6 @@ export function VoucherForm({
         <Card id="info">
           <SectionHead step={1} title="Voucher info" />
           <div className="grid gap-5 p-5 sm:grid-cols-2">
-            <Field label="Voucher date" htmlFor="f-date" error={errorFor('date')}>
-              <Input
-                id="f-date"
-                type="date"
-                max={today}
-                value={form.date ?? ''}
-                onChange={(e) => set('date', e.target.value)}
-              />
-            </Field>
-
             <Field label="Chapter" htmlFor="f-chapter_id" required error={errorFor('chapter_id')}>
               <Select
                 id="f-chapter_id"
@@ -324,13 +316,16 @@ export function VoucherForm({
 
             <Field
               label="Voucher number"
-              className="sm:col-span-2"
-              hint="Assigned automatically when you submit — FI/CHAPTER/FY/0001."
+              htmlFor="f-voucher_no"
+              required
+              error={errorFor('voucher_no')}
+              hint="Entered by hand — e.g. FI/HO/26-27/0001."
             >
               <Input
-                value={(voucher.voucher_no as string) || 'Not yet assigned'}
-                disabled
+                id="f-voucher_no"
                 className="numeric"
+                value={form.voucher_no ?? ''}
+                onChange={(e) => set('voucher_no', e.target.value)}
               />
             </Field>
 
@@ -368,9 +363,10 @@ export function VoucherForm({
                   pickEvent(ev);
                 }}
               />
-              <Field label="Event date" hint="Filled from the event; override if needed.">
+              <Field label="Event date" hint="Filled from the event; override if needed." error={errorFor('event_date')}>
                 <Input
                   type="date"
+                  min={MIN_VOUCHER_DATE}
                   value={form.event_date ?? ''}
                   onChange={(e) => set('event_date', e.target.value)}
                 />
@@ -439,23 +435,36 @@ export function VoucherForm({
               </div>
             )}
 
-            <div className="grid gap-5 sm:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <Field label="Invoice number">
                 <Input
                   value={form.invoice_no ?? ''}
                   onChange={(e) => set('invoice_no', e.target.value)}
                 />
               </Field>
-              <Field label="Invoice date">
+              <Field label="Invoice date" error={errorFor('invoice_date')}>
                 <Input
                   type="date"
+                  min={MIN_VOUCHER_DATE}
                   value={form.invoice_date ?? ''}
                   onChange={(e) => set('invoice_date', e.target.value)}
                 />
               </Field>
-              <Field label="Invoice received date">
+              {/* Both of these must come after Invoice date — that is the point of this row's order. */}
+              <Field label="Voucher date" htmlFor="f-date" error={errorFor('date')}>
+                <Input
+                  id="f-date"
+                  type="date"
+                  min={MIN_VOUCHER_DATE}
+                  max={today}
+                  value={form.date ?? ''}
+                  onChange={(e) => set('date', e.target.value)}
+                />
+              </Field>
+              <Field label="Invoice received date" error={errorFor('invoice_received_date')}>
                 <Input
                   type="date"
+                  min={MIN_VOUCHER_DATE}
                   value={form.invoice_received_date ?? ''}
                   onChange={(e) => set('invoice_received_date', e.target.value)}
                 />
@@ -608,6 +617,7 @@ export function VoucherForm({
               <Input
                 id="f-payment_date"
                 type="date"
+                min={MIN_VOUCHER_DATE}
                 value={form.payment_date ?? ''}
                 onChange={(e) => set('payment_date', e.target.value)}
               />
@@ -771,6 +781,7 @@ const BASE_CHECKS = [
   'paid_to',
   'type_of_supporting',
   'type_of_payment',
+  'voucher_no',
   'basic_value',
 ] as const;
 
