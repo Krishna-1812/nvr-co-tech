@@ -15,8 +15,6 @@ const LEGAL = [
 ] as const;
 
 export function SiteFooter() {
-  const year = new Date().getFullYear();
-
   return (
     <footer className="relative border-t border-[var(--m-line)]">
       <Container wide className="py-16">
@@ -57,9 +55,6 @@ export function SiteFooter() {
         </div>
 
         <div className="m-dim-2 mt-14 flex flex-col gap-3 border-t border-[var(--m-line)] pt-8 text-xs sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {year} {BRAND.name}. All rights reserved.
-          </p>
           <p className="m-mono tracking-[0.08em]">Hosted in Mumbai · ap-south-1</p>
         </div>
       </Container>

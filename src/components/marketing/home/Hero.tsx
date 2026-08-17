@@ -1,4 +1,4 @@
-import { ArrowDown, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowDown, Sparkles } from 'lucide-react';
 import { Aurora, CTA, Container, LineRise, Rise } from '../bits';
 import { Tilt } from '../motion';
 import { VoucherPanel } from './VoucherPanel';
@@ -58,13 +58,6 @@ export function Hero() {
                   See what we build
                 </CTA>
               </div>
-            </Rise>
-
-            <Rise delay={520}>
-              <p className="m-dim-2 mt-8 flex items-center gap-2 text-xs">
-                <ShieldCheck className="size-3.5 shrink-0 text-[var(--m-emerald)]" aria-hidden />
-                Built and run by chartered accountants. Your data stays in Mumbai.
-              </p>
             </Rise>
           </div>
 
