@@ -201,9 +201,29 @@ export const submitReadiness = (
     issues.push({ path: 'voucher_no', message: 'Enter the voucher number.' });
   }
   if (calcGrandTotal(v) <= 0) {
-    issues.push({ path: 'basic_value', message: 'The grand total must be more than zero.' });
+    /*
+     * Reported on basic_value, because that is the field to put a number in and
+     * the one the page can scroll to. So the message names it too: saying only
+     * "the grand total must be more than zero" sent somebody who had entered
+     * ₹1,000 against a ₹1,200 discount looking at the wrong end of the form.
+     */
+    issues.push({
+      path: 'basic_value',
+      message: 'The amounts come to zero or less. Check the basic value and the deductions.',
+    });
   }
-  if (v.date) {
+
+  /*
+   * The voucher date, required — not merely checked when present.
+   *
+   * submit_voucher() has always raised 'Date is required', but the mirror here
+   * only validated a date that existed. Clearing the pre-filled one therefore
+   * produced no blocker at all: the readiness ring showed a complete tick, the
+   * blocker list was empty, and Submit fired into a database exception.
+   */
+  if (!v.date) {
+    issues.push({ path: 'date', message: 'Give the voucher a date.' });
+  } else {
     const dateIssue = voucherDateIssue(v.date, today) ?? dateFloorIssue(v.date);
     if (dateIssue) issues.push({ path: 'date', message: dateIssue });
   }

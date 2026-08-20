@@ -8,6 +8,7 @@ import {
   Wallet,
   Trash2,
   Pencil,
+  Undo2,
 } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import type { AuditAction } from '@/lib/supabase/types';
@@ -44,6 +45,7 @@ const ACTION_META: Record<AuditAction, { icon: typeof Check; label: string; tone
   },
   rejected: { icon: X, label: 'Sent back', tone: 'var(--status-rejected)' },
   reopened: { icon: RotateCcw, label: 'Reopened', tone: 'var(--status-draft)' },
+  withdrawn: { icon: Undo2, label: 'Withdrawn by the raiser', tone: 'var(--status-draft)' },
   marked_paid: { icon: Wallet, label: 'Marked paid', tone: 'var(--status-paid)' },
   deleted: { icon: Trash2, label: 'Deleted', tone: 'var(--status-rejected)' },
   restored: { icon: RotateCcw, label: 'Restored', tone: 'var(--status-draft)' },

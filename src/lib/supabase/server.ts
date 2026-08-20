@@ -140,11 +140,33 @@ export const getCurrentUser = cache(async () => {
   };
 });
 
-/** Same, but redirects to /login instead of returning null. Use in protected pages. */
+/**
+ * Same, but redirects to /login instead of returning null. Use in protected pages.
+ *
+ * The `?error=` is not decoration. A session that cannot be resolved to a
+ * profile row also lands here, and a bare /login would be bounced straight back
+ * by the proxy — a valid session has no business on the sign-in screen — which
+ * is the loop described at the top of getCurrentUser(). The proxy leaves /login
+ * alone when it carries an error, so this is what turns an endless redirect into
+ * a screen that says what happened and offers a way out of it.
+ */
 export async function requireUser() {
   const user = await getCurrentUser();
   if (!user) {
     const { redirect } = await import('next/navigation');
+    const supabase = await createClient();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    if (authUser) {
+      redirect(
+        '/login?error=' +
+          encodeURIComponent(
+            'We could not open your profile. Sign out and in again, and tell us if it keeps happening.',
+          ),
+      );
+    }
     redirect('/login');
   }
   return user!;

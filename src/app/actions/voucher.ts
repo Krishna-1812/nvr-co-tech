@@ -92,6 +92,62 @@ export async function saveDraft(
   return { ok: true, data: { savedAt: new Date().toISOString() } };
 }
 
+/**
+ * The voucher number, saved on its own.
+ *
+ * It used to travel inside saveDraft's single UPDATE with the other twenty-odd
+ * columns, and the unique index on (organization_id, voucher_no) meant that
+ * while the typed number happened to collide with an existing voucher, *every
+ * other field stopped persisting too*. The reader carried on filling in a form
+ * that was saving none of it, under a sidebar blaming their connection. One
+ * statement for one field keeps a collision to the field that caused it.
+ */
+export async function saveVoucherNo(
+  id: string,
+  voucherNo: string,
+): Promise<ActionResult<{ savedAt: string }>> {
+  const trimmed = voucherNo.trim();
+  if (trimmed.length > 60) {
+    return { ok: false, error: 'A voucher number cannot be longer than 60 characters.' };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('vouchers')
+    .update({ voucher_no: trimmed || null })
+    .eq('id', id);
+
+  if (error) {
+    return { ok: false, error: toMessage(error, 'Could not save the voucher number.') };
+  }
+  return { ok: true, data: { savedAt: new Date().toISOString() } };
+}
+
+/**
+ * What the next voucher number would be for a chapter and date.
+ *
+ * The number is typed by hand (0019) and stays that way — but it encodes a
+ * prefix, the chapter's code and the financial year, none of which the form
+ * derived for the reader, so the only guidance was an example of somebody
+ * else's number. This offers the real next one as a starting point; it is a
+ * suggestion the field accepts or the reader overwrites, not an assignment.
+ */
+export async function suggestVoucherNo(
+  chapterId: string,
+  date: string | null,
+): Promise<ActionResult<{ voucherNo: string }>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('next_voucher_no', {
+    p_chapter_id: chapterId,
+    p_date: date || null,
+  });
+
+  if (error || !data) {
+    return { ok: false, error: toMessage(error, 'Could not work out the next number.') };
+  }
+  return { ok: true, data: { voucherNo: String(data) } };
+}
+
 /** Only the fields whose value actually moved, `before` → `after`. Null if none did. */
 function diffFields(
   before: Record<string, unknown> | null,

@@ -128,6 +128,8 @@ describe('cross-field rules', () => {
 });
 
 describe('submit readiness mirrors submit_voucher()', () => {
+  const TODAY = '2026-08-16';
+
   const complete = {
     chapter_id: 'c1',
     paid_to: 'Acme Ltd',
@@ -135,16 +137,33 @@ describe('submit readiness mirrors submit_voucher()', () => {
     type_of_payment: 'Full Payment',
     voucher_no: 'FI/HO/26-27/0001',
     basic_value: 10000,
+    // submit_voucher() raises 'Date is required', so a complete voucher has one.
+    date: TODAY,
   };
 
   it('passes a complete voucher', () => {
-    expect(submitReadiness(complete)).toHaveLength(0);
+    expect(submitReadiness(complete, TODAY)).toHaveLength(0);
   });
 
   it('names every missing requirement at once', () => {
     expect(paths(submitReadiness({}))).toEqual(
-      ['basic_value', 'chapter_id', 'paid_to', 'type_of_payment', 'type_of_supporting', 'voucher_no'].sort(),
+      [
+        'basic_value',
+        'chapter_id',
+        'date',
+        'paid_to',
+        'type_of_payment',
+        'type_of_supporting',
+        'voucher_no',
+      ].sort(),
     );
+  });
+
+  it('requires the voucher date, not merely a valid one', () => {
+    // The hole this closes: a blank date used to produce no blocker at all, so
+    // the form reported itself complete and submit failed at the database.
+    expect(paths(submitReadiness({ ...complete, date: '' }, TODAY))).toContain('date');
+    expect(paths(submitReadiness({ ...complete, date: null }, TODAY))).toContain('date');
   });
 
   it('requires a voucher number', () => {

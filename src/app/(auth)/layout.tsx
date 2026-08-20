@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Logo } from '@/components/marketing/Logo';
+import { AuthSignOut } from '@/components/auth/AuthSignOut';
 import { Aurora } from '@/components/marketing/bits';
 import { BRAND } from '@/lib/marketing/content';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * Shell for /login and /signup.
@@ -17,7 +19,18 @@ import { BRAND } from '@/lib/marketing/content';
  * is where the reader has just come from. What is left is the mark, a greeting,
  * and the form, sitting in the middle of a single continuous field of light.
  */
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  /*
+   * The auth session, not getCurrentUser(). A session whose `profiles` row
+   * cannot be read is precisely the state that needs a way out, and
+   * getCurrentUser() returns null for it — asking it whether anyone is signed
+   * in would hide the sign-out control exactly when it matters.
+   */
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <div
       data-skin="night"
@@ -35,7 +48,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {children}
 
-        <p className="mt-8 text-center">
+        <div className="mt-8 flex flex-col items-center gap-3 text-center">
           <Link
             href="/"
             className="m-dim-2 inline-flex items-center gap-1.5 text-xs transition hover:text-[var(--m-ink)]"
@@ -43,7 +56,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <ArrowLeft className="size-3" aria-hidden />
             Back to {BRAND.name}
           </Link>
-        </p>
+
+          {user && <AuthSignOut email={user.email ?? null} />}
+        </div>
       </div>
     </div>
   );

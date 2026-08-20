@@ -162,7 +162,15 @@ export const MIN_VOUCHER_DATE = '2026-04-01';
 
 export function dateFloorIssue(iso: string): string | null {
   if (!iso) return null;
-  if (iso < MIN_VOUCHER_DATE) return 'Dates cannot be earlier than 1 April 2026.';
+  /*
+   * Says why, not just no. The bare version — "Dates cannot be earlier than
+   * 1 April 2026" — reads as an arbitrary wall to somebody back-entering a
+   * March invoice, and the reason it exists was recorded only in this file's
+   * comments and a migration header.
+   */
+  if (iso < MIN_VOUCHER_DATE) {
+    return 'The desk starts at FY 26-27, so dates before 1 April 2026 cannot be used.';
+  }
   return null;
 }
 

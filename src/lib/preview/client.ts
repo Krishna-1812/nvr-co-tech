@@ -546,6 +546,37 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
     }
 
     /*
+     * 0021 — the suggestion behind the voucher-number field, and the raiser
+     * pulling their own voucher back. Both need to work here or the preview
+     * shows a form whose Suggest button and Withdraw button only ever error.
+     */
+    case 'next_voucher_no': {
+      const chapterId = String(args.p_chapter_id ?? '');
+      if (!chapterId) return fail('Unknown chapter');
+      return ok(
+        nextVoucherNo({ chapter_id: chapterId, date: args.p_date ?? null } as unknown as Row),
+      );
+    }
+
+    case 'withdraw_voucher': {
+      if (!v) return fail('Voucher not found.');
+      if (v.created_by !== PREVIEW_USER_ID) {
+        return fail('Only the person who raised this voucher can withdraw it.');
+      }
+      if (!['pending_first', 'pending_second'].includes(String(v.status))) {
+        return fail(`Only a voucher waiting for approval can be withdrawn (this one is ${v.status}).`);
+      }
+      if (v.approver_1 || v.approver_2) {
+        return fail('Somebody has already approved this voucher. Ask them to send it back instead.');
+      }
+      const from = String(v.status);
+      v.status = 'draft';
+      v.submitted_at = null;
+      audit(id, 'withdrawn', { from_status: from, to_status: 'draft' });
+      return ok(v);
+    }
+
+    /*
      * Analytics (0010). The three writers are no-ops here rather than pushing
      * rows: the sample traffic is a fortnight of other people's browsing, and a
      * preview user wandering the marketing site adding their own page views to

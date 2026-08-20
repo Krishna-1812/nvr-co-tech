@@ -152,7 +152,10 @@ export type VoucherWritable = Omit<
 
 export type AuditAction =
   | 'created' | 'updated' | 'submitted' | 'approved_first' | 'approved_second'
-  | 'rejected' | 'reopened' | 'marked_paid' | 'deleted' | 'restored' | 'purged';
+  | 'rejected' | 'reopened' | 'marked_paid' | 'deleted' | 'restored' | 'purged'
+  // 0021 — the raiser pulling a voucher back before anyone acted on it. Its
+  // own action rather than 'reopened', which is an admin undoing an approval.
+  | 'withdrawn';
 
 export type VoucherAudit = {
   id: number;
@@ -358,6 +361,13 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
+      /*
+       * Still here, and used again since 0021 — not to assign a number on
+       * submit (0019 made that manual on purpose) but to offer the next one as
+       * a starting point in a field the reader can still overwrite.
+       */
+      next_voucher_no: { Args: { p_chapter_id: string; p_date: string | null }; Returns: string };
+
       submit_voucher: { Args: { p_id: string }; Returns: Voucher };
       approve_voucher: { Args: { p_id: string; p_note?: string }; Returns: Voucher };
       reject_voucher: { Args: { p_id: string; p_reason: string }; Returns: Voucher };
@@ -426,13 +436,30 @@ export type Database = {
       };
       invite_preview: {
         Args: { p_token: string };
-        Returns: { organization_name: string | null; role: UserRole | null; email: string | null; valid: boolean }[];
+        Returns: {
+          organization_name: string | null;
+          role: UserRole | null;
+          email: string | null;
+          valid: boolean;
+          // 0021 — so the join screen can say when the link stops working.
+          expires_at: string | null;
+        }[];
       };
       accept_invite: { Args: { p_token: string }; Returns: OrganizationRow };
 
       // 0013 — owner-only toggle read by submit_voucher() to decide whether a
       // draft routes through approval or is paid immediately.
       set_requires_approval: { Args: { p_value: boolean }; Returns: OrganizationRow };
+
+      /*
+       * 0021 — the first-run and recovery gaps. rename_organization is the
+       * only way the name typed at onboarding can ever change; revoke_invite
+       * the only way one is withdrawn; withdraw_voucher lets the person who
+       * raised a voucher pull it back while nobody has acted on it.
+       */
+      rename_organization: { Args: { p_name: string }; Returns: OrganizationRow };
+      revoke_invite: { Args: { p_id: string }; Returns: void };
+      withdraw_voucher: { Args: { p_id: string }; Returns: Voucher };
     };
     Enums: {
       user_role: UserRole;

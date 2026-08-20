@@ -9,7 +9,18 @@ import { AuthCard } from './AuthCard';
  * AuthCard rather than imitating it, so the card itself can never drift out of
  * step; only the contents are placeholders, at the real heights.
  */
-export function AuthFormSkeleton({ fields = 2 }: { fields?: number }) {
+export function AuthFormSkeleton({
+  fields = 2,
+  /*
+   * Sign-in and sign-up both offer Google below a divider; /onboarding does
+   * not. A skeleton that promised a second way in would be replaced by a card
+   * that has none, which reads as something failing to load.
+   */
+  divider = true,
+}: {
+  fields?: number;
+  divider?: boolean;
+}) {
   return (
     <div aria-hidden className="animate-[fade_0.3s_ease-out]">
       <div className="mb-8 text-center">
@@ -30,13 +41,17 @@ export function AuthFormSkeleton({ fields = 2 }: { fields?: number }) {
           </div>
         </div>
 
-        <div className="my-6 flex items-center gap-3">
-          <span className="h-px flex-1 bg-[var(--m-line)]" />
-          <span className="m-mono m-dim-2 text-[10px] tracking-[0.16em] uppercase">or</span>
-          <span className="h-px flex-1 bg-[var(--m-line)]" />
-        </div>
+        {divider && (
+          <>
+            <div className="my-6 flex items-center gap-3">
+              <span className="h-px flex-1 bg-[var(--m-line)]" />
+              <span className="m-mono m-dim-2 text-[10px] tracking-[0.16em] uppercase">or</span>
+              <span className="h-px flex-1 bg-[var(--m-line)]" />
+            </div>
 
-        <Bar className="h-12 w-full rounded-xl" />
+            <Bar className="h-12 w-full rounded-xl" />
+          </>
+        )}
       </AuthCard>
     </div>
   );

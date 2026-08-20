@@ -10,7 +10,7 @@ import {
   type CSSProperties,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, Cloud, CloudOff, Loader2, Send, Trash2 } from 'lucide-react';
+import { Check, Cloud, CloudOff, Loader2, Send, Sparkles, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   PAYMENT_RULES,
@@ -29,7 +29,12 @@ import {
 } from '@/lib/domain/voucher';
 import { crossFieldIssues, submitReadiness } from '@/lib/domain/schema';
 import { istToday } from '@/lib/fiscal';
-import { saveDraft, deleteDraft } from '@/app/actions/voucher';
+import {
+  saveDraft,
+  saveVoucherNo,
+  suggestVoucherNo,
+  deleteDraft,
+} from '@/app/actions/voucher';
 import { submitVoucher } from '@/app/actions/workflow';
 import {
   Button,
@@ -41,6 +46,7 @@ import {
   Select,
   Textarea,
 } from '@/components/ui/primitives';
+import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/lib/utils';
 import { EventPicker } from './EventPicker';
 
@@ -105,10 +111,21 @@ export function VoucherForm({
   const [form, setForm] = useState<FormState>(() => toFormState(voucher));
   const [eventList, setEventList] = useState(events);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState('');
+  /*
+   * What the server said about the voucher number specifically — a duplicate,
+   * almost always. Kept apart from `saveError` so it can be shown on the field
+   * that caused it rather than as a verdict on the whole form.
+   */
+  const [numberIssue, setNumberIssue] = useState('');
   const [showErrors, setShowErrors] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [submitting, startSubmit] = useTransition();
 
   const dirty = useRef(false);
+  // True from a keystroke until the save carrying it returns. `dirty` only ever
+  // goes true, so it cannot answer "is there anything outstanding right now".
+  const pending = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Computed once per mount — good enough for a date picker's `max`, and for
   // the FY-boundary check submitReadiness runs against the same value.
@@ -116,6 +133,7 @@ export function VoucherForm({
 
   const set = useCallback((key: string, value: string) => {
     dirty.current = true;
+    pending.current = true;
     setForm((f) => ({ ...f, [key]: value }));
   }, []);
 
@@ -152,8 +170,19 @@ export function VoucherForm({
 
   const persist = useCallback(async (snapshot: FormState) => {
     setSaveState('saving');
+    pending.current = false;
+
+    /*
+     * Two statements, not one, and the voucher number goes in the second.
+     *
+     * A unique index covers (organization_id, voucher_no). While the typed
+     * number collides with an existing voucher the UPDATE carrying it fails —
+     * and when it carried every other column too, that meant nothing at all
+     * was being saved while the reader kept typing, with the rail blaming
+     * their connection for it. Split, a collision costs the number field and
+     * nothing else.
+     */
     const res = await saveDraft(voucher.id, {
-      voucher_no: snapshot.voucher_no,
       date: snapshot.date,
       chapter_id: snapshot.chapter_id || null,
       sponsored: snapshot.sponsored || null,
@@ -183,9 +212,23 @@ export function VoucherForm({
       pan_number: snapshot.pan_number,
       gst_number: snapshot.gst_number,
     });
+
     setSaveState(res.ok ? 'saved' : 'error');
+    setSaveError(res.ok ? '' : res.error);
     if (!res.ok) toast.error(res.error);
+
+    const numberRes = await saveVoucherNo(voucher.id, snapshot.voucher_no ?? '');
+    setNumberIssue(numberRes.ok ? '' : numberRes.error);
   }, [voucher.id]);
+
+  // Always the freshest state, for the flush on unmount below — which cannot
+  // read `form` from a closure without capturing whatever it was at mount.
+  // Written in an effect rather than during render: a ref mutated while
+  // rendering is torn under concurrent rendering, and React lints for it.
+  const latest = useRef(form);
+  useEffect(() => {
+    latest.current = form;
+  }, [form]);
 
   useEffect(() => {
     if (!dirty.current) return;
@@ -197,23 +240,46 @@ export function VoucherForm({
     };
   }, [form, persist]);
 
-  // Flush pending edits if the tab is closed or hidden mid-typing.
+  /*
+   * Flush on the way out.
+   *
+   * The debounce effect above clears its timer on cleanup, and that cleanup
+   * also runs when the component unmounts — so clicking "Back to vouchers"
+   * threw away up to 900ms of typing, silently, on the most ordinary
+   * navigation in the app. This effect has no reactive dependency on `form`,
+   * so its cleanup runs once, on unmount, and saves what the timer would have.
+   */
+  useEffect(
+    () => () => {
+      if (pending.current) void persist(latest.current);
+    },
+    [persist],
+  );
+
+  /*
+   * And on the way off the page entirely. A server action started here is not
+   * guaranteed to finish, which is why the browser is also asked to confirm —
+   * but only while something really is unsaved, so the prompt cannot appear on
+   * a form that is up to date.
+   */
   useEffect(() => {
-    const flush = () => {
-      if (dirty.current && timer.current) {
-        clearTimeout(timer.current);
-        void persist(form);
-      }
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!pending.current) return;
+      if (timer.current) clearTimeout(timer.current);
+      void persist(latest.current);
+      e.preventDefault();
+      e.returnValue = '';
     };
-    window.addEventListener('beforeunload', flush);
-    return () => window.removeEventListener('beforeunload', flush);
-  }, [form, persist]);
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [persist]);
 
   // ─── Dependent-field rules ─────────────────────────────────────────────────
 
   /** Choosing a supporting type resets the payment: auto for the fixed ones. */
   const pickSupporting = (value: SupportingType) => {
     dirty.current = true;
+    pending.current = true;
     setForm((f) => ({
       ...f,
       type_of_supporting: value,
@@ -237,6 +303,7 @@ export function VoucherForm({
   /** Selecting an event fills its name, date and chapter. */
   const pickEvent = (ev: EventOption | null) => {
     dirty.current = true;
+    pending.current = true;
     setForm((f) => ({
       ...f,
       event_id: ev?.id ?? '',
@@ -279,13 +346,41 @@ export function VoucherForm({
   };
 
   const onDelete = () => {
+    setConfirmDelete(false);
     startSubmit(async () => {
       const res = await deleteDraft(voucher.id);
       if (res.ok) {
-        toast.success('Draft deleted.');
+        // Names where it went. It is recoverable from Admin → Deleted, and a
+        // bare "Draft deleted." left somebody who misclicked believing the
+        // work was gone.
+        toast.success('Draft deleted. An admin can restore it from Admin → Deleted.');
         router.push('/vouchers');
       } else toast.error(res.error);
     });
+  };
+
+  /*
+   * Offer the next number for the chosen chapter.
+   *
+   * Only ever fills a blank field, and only on request — the number stays the
+   * reader's to type or change. Without this the form asked somebody to invent
+   * FI/HO/26-27/0001 from an example of a number belonging to a different
+   * chapter, with no way to know the code, the year format, or the sequence.
+   */
+  const [suggesting, setSuggesting] = useState(false);
+  const suggest = async () => {
+    if (!form.chapter_id) {
+      toast.error('Choose the chapter first — the number is built from its code.');
+      return;
+    }
+    setSuggesting(true);
+    const res = await suggestVoucherNo(form.chapter_id, form.date || null);
+    setSuggesting(false);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
+    }
+    set('voucher_no', res.data.voucherNo);
   };
 
   const rule = form.type_of_supporting
@@ -299,7 +394,7 @@ export function VoucherForm({
         <Card id="info">
           <SectionHead step={1} title="Voucher info" />
           <div className="grid gap-5 p-5 sm:grid-cols-2">
-            <Field label="Voucher date" htmlFor="f-date" error={errorFor('date')}>
+            <Field label="Voucher date" htmlFor="f-date" required error={errorFor('date')}>
               <Input
                 id="f-date"
                 type="date"
@@ -310,13 +405,29 @@ export function VoucherForm({
               />
             </Field>
 
-            <Field label="Chapter" htmlFor="f-chapter_id" required error={errorFor('chapter_id')}>
+            <Field
+              label="Chapter"
+              htmlFor="f-chapter_id"
+              required
+              error={errorFor('chapter_id')}
+              /*
+               * With no chapters at all this select held nothing but its own
+               * placeholder, on a required field, with nothing saying why — the
+               * point where a new organisation's first voucher stopped dead.
+               * 0021 seeds a head office so it should never be empty again;
+               * this says what to do if it somehow is.
+               */
+              hint={chapters.length === 0 ? 'No chapters yet — add one in Admin → Chapters.' : undefined}
+            >
               <Select
                 id="f-chapter_id"
                 value={form.chapter_id ?? ''}
                 onChange={(e) => pickChapter(e.target.value)}
+                disabled={chapters.length === 0}
               >
-                <option value="">Select chapter</option>
+                <option value="">
+                  {chapters.length === 0 ? 'No chapters available' : 'Select chapter'}
+                </option>
                 {chapters.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -330,8 +441,28 @@ export function VoucherForm({
               className="sm:col-span-2"
               htmlFor="f-voucher_no"
               required
-              error={errorFor('voucher_no')}
-              hint="Entered by hand — e.g. FI/HO/26-27/0001."
+              /*
+               * A duplicate is reported here, on the field that caused it,
+               * rather than only as a toast that expires while the rail claims
+               * the connection is at fault.
+               */
+              error={numberIssue || errorFor('voucher_no')}
+              hint="Typed by hand. Use the suggestion for the next number in this chapter's run."
+              action={
+                <button
+                  type="button"
+                  onClick={suggest}
+                  disabled={suggesting}
+                  className="text-muted inline-flex items-center gap-1 rounded text-xs font-medium transition hover:text-[var(--text-c)] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-500)] focus-visible:outline-none disabled:opacity-60"
+                >
+                  {suggesting ? (
+                    <Loader2 className="size-3 animate-spin" aria-hidden />
+                  ) : (
+                    <Sparkles className="size-3" aria-hidden />
+                  )}
+                  Suggest
+                </button>
+              }
             >
               <Input
                 id="f-voucher_no"
@@ -375,8 +506,14 @@ export function VoucherForm({
                   pickEvent(ev);
                 }}
               />
-              <Field label="Event date" hint="Filled from the event; override if needed." error={errorFor('event_date')}>
+              <Field
+                label="Event date"
+                htmlFor="f-event_date"
+                hint="Filled from the event; override if needed."
+                error={errorFor('event_date')}
+              >
                 <Input
+                  id="f-event_date"
                   type="date"
                   min={MIN_VOUCHER_DATE}
                   value={form.event_date ?? ''}
@@ -420,7 +557,12 @@ export function VoucherForm({
             {/* Payment type is constrained by the supporting document. */}
             {rule && (
               <div id="f-type_of_payment">
-                <p className="mb-2 text-sm font-medium">Type of payment</p>
+                {/* Required, and marked — it is a hard submit gate that carried
+                    no asterisk, and whose error was the one required-field
+                    message that never rendered anywhere near its field. */}
+                <p className="mb-2 text-sm font-medium">
+                  Type of payment <span className="text-red-500" aria-label="required">*</span>
+                </p>
                 {rule.auto ? (
                   <div className="inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3.5 py-2 text-sm font-semibold text-brand-700 dark:border-brand-800 dark:bg-brand-900/40 dark:text-brand-200">
                     <Check className="size-4" aria-hidden />
@@ -444,26 +586,51 @@ export function VoucherForm({
                     ))}
                   </div>
                 )}
+                {errorFor('type_of_payment') && (
+                  <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+                    {errorFor('type_of_payment')}
+                  </p>
+                )}
               </div>
             )}
 
+            {/*
+              The three invoice dates, with the order between them stated once.
+              Each carries an id and an htmlFor now: they render errors that name
+              a field, and without an id `scrollIntoView` had nothing to find, so
+              the reader got a message about a field the page would not move to —
+              and the labels were not tied to their inputs for a screen reader.
+            */}
             <div className="grid gap-5 sm:grid-cols-3">
-              <Field label="Invoice number">
+              <Field label="Invoice number" htmlFor="f-invoice_no">
                 <Input
+                  id="f-invoice_no"
                   value={form.invoice_no ?? ''}
                   onChange={(e) => set('invoice_no', e.target.value)}
                 />
               </Field>
-              <Field label="Invoice date" error={errorFor('invoice_date')}>
+              <Field
+                label="Invoice date"
+                htmlFor="f-invoice_date"
+                hint="The voucher and received dates must be on or after this."
+                error={errorFor('invoice_date')}
+              >
                 <Input
+                  id="f-invoice_date"
                   type="date"
                   min={MIN_VOUCHER_DATE}
                   value={form.invoice_date ?? ''}
                   onChange={(e) => set('invoice_date', e.target.value)}
                 />
               </Field>
-              <Field label="Invoice received date" error={errorFor('invoice_received_date')}>
+              <Field
+                label="Invoice received date"
+                htmlFor="f-invoice_received_date"
+                hint="When it reached you."
+                error={errorFor('invoice_received_date')}
+              >
                 <Input
+                  id="f-invoice_received_date"
                   type="date"
                   min={MIN_VOUCHER_DATE}
                   value={form.invoice_received_date ?? ''}
@@ -479,7 +646,12 @@ export function VoucherForm({
           <SectionHead step={3} title="Amount breakdown" />
           <div className="space-y-5 p-5">
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Basic value (A)" htmlFor="f-basic_value" error={errorFor('basic_value')}>
+              <Field
+                label="Basic value (A)"
+                htmlFor="f-basic_value"
+                required
+                error={errorFor('basic_value')}
+              >
                 <Input
                   id="f-basic_value"
                   type="number"
@@ -681,7 +853,7 @@ export function VoucherForm({
       <aside className="lg:sticky lg:top-20">
         <Card className="overflow-hidden rounded-2xl">
           <div className="flex items-center justify-between gap-3 border-b p-4">
-            <SaveIndicator state={saveState} />
+            <SaveIndicator state={saveState} message={saveError} />
             {/*
               How close this voucher is to being submittable, counted from the same
               blocker list the button uses. On a thirty-two field form the useful
@@ -742,7 +914,17 @@ export function VoucherForm({
               <Send className="size-4" aria-hidden />
               {requiresApproval ? 'Submit for approval' : 'Submit & pay'}
             </Button>
-            <Button variant="ghost" className="w-full" onClick={onDelete} disabled={submitting}>
+            {/*
+              Asks first. This fired immediately, directly beneath Submit, at
+              the same width, and stayed on screen while the page scrolled —
+              the only destructive action in the app that did not use a modal.
+            */}
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setConfirmDelete(true)}
+              disabled={submitting}
+            >
               <Trash2 className="size-4" aria-hidden />
               Delete draft
             </Button>
@@ -764,6 +946,23 @@ export function VoucherForm({
           ))}
         </nav>
       </aside>
+
+      <Modal
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        title="Delete this draft?"
+        description="It leaves your list straight away. An admin can restore it from Admin → Deleted if this was a mistake."
+      >
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
+            Keep it
+          </Button>
+          <Button variant="danger" onClick={onDelete} loading={submitting}>
+            <Trash2 className="size-4" aria-hidden />
+            Delete draft
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -784,6 +983,11 @@ const BASE_CHECKS = [
   'type_of_payment',
   'voucher_no',
   'basic_value',
+  // The voucher date is required too. It was missing from this list while
+  // submitReadiness only validated a date that existed, so clearing the
+  // pre-filled one left the ring showing a complete tick over a form the
+  // database would refuse.
+  'date',
 ] as const;
 
 /**
@@ -837,17 +1041,38 @@ function SectionHead({ step, title }: { step: number; title: string }) {
   );
 }
 
-function SaveIndicator({ state }: { state: 'idle' | 'saving' | 'saved' | 'error' }) {
+/**
+ * `message` is the server's own reason for a failed save.
+ *
+ * This used to read "Not saved — check your connection" for every failure,
+ * including a rejected value and a locked voucher — so the one persistent piece
+ * of status on the page confidently blamed the network for things the network
+ * had nothing to do with. The real reason was in a toast, which expires.
+ */
+function SaveIndicator({
+  state,
+  message,
+}: {
+  state: 'idle' | 'saving' | 'saved' | 'error';
+  message?: string;
+}) {
   const map = {
     idle: { icon: Cloud, text: 'Draft — changes save automatically', cls: 'text-[var(--text-subtle)]' },
     saving: { icon: Loader2, text: 'Saving…', cls: 'text-[var(--text-muted)]' },
     saved: { icon: Check, text: 'Saved', cls: 'text-emerald-600 dark:text-emerald-400' },
-    error: { icon: CloudOff, text: 'Not saved — check your connection', cls: 'text-red-600 dark:text-red-400' },
+    error: {
+      icon: CloudOff,
+      text: message || 'Not saved. Your last change may not have been kept.',
+      cls: 'text-red-600 dark:text-red-400',
+    },
   }[state];
 
   return (
-    <p className={cn('flex items-center gap-2 text-xs font-medium', map.cls)} aria-live="polite">
-      <map.icon className={cn('size-3.5', state === 'saving' && 'animate-spin')} aria-hidden />
+    <p className={cn('flex items-start gap-2 text-xs font-medium', map.cls)} aria-live="polite">
+      <map.icon
+        className={cn('mt-px size-3.5 shrink-0', state === 'saving' && 'animate-spin')}
+        aria-hidden
+      />
       {map.text}
     </p>
   );

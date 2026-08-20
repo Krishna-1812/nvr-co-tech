@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { ROLE_META } from '@/lib/domain/workflow';
@@ -38,7 +39,16 @@ export default async function OnboardingPage({
           title="You're already in an organisation."
           lead="An account can only belong to one at a time, so this invite cannot be accepted here."
         />
-        <AuthCard>
+        <AuthCard
+          footer={
+            <Link
+              href="/hub"
+              className="text-[13px] font-semibold text-[var(--m-ink)] underline-offset-4 transition hover:text-[var(--m-cyan)] hover:underline"
+            >
+              Go to your workspace
+            </Link>
+          }
+        >
           <p className="m-dim text-[14px] leading-relaxed">
             To join the organisation this invite is for, accept it from a different account — or ask
             whoever sent it to invite the address you are signed in with instead.
@@ -76,6 +86,39 @@ export default async function OnboardingPage({
       );
     }
 
+    /*
+     * The address the invite was actually sent to, checked here rather than
+     * left to accept_invite().
+     *
+     * The database has always refused a mismatch, with a good message naming
+     * the right address — but only after the button was pressed. Until then the
+     * screen said "Join <Org>", because invite_preview() returned the email and
+     * nothing looked at it. Somebody opening a work invite while signed in with
+     * a personal account was told they had been invited, allowed to accept, and
+     * only then sent away. The check is the same one; it has moved to before
+     * the click, where it can be acted on.
+     */
+    const invitedEmail = preview.email?.toLowerCase() ?? '';
+    const signedInAs = (user.authEmail ?? '').trim().toLowerCase();
+
+    if (invitedEmail && signedInAs && invitedEmail !== signedInAs) {
+      return (
+        <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
+          <AuthHeading
+            title="This invite is for a different address."
+            lead={`It was sent to ${preview.email}, and you are signed in as ${user.authEmail}.`}
+          />
+          <AuthCard>
+            <p className="m-dim text-[14px] leading-relaxed">
+              Sign out and back in as{' '}
+              <span className="font-semibold text-[var(--m-ink)]">{preview.email}</span> to accept
+              it, or ask whoever invited you to send a fresh one to this address instead.
+            </p>
+          </AuthCard>
+        </div>
+      );
+    }
+
     return (
       <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
         <AuthHeading
@@ -86,7 +129,7 @@ export default async function OnboardingPage({
           }
           lead={`You have been invited as ${ROLE_META[preview.role].label.toLowerCase()}.`}
         />
-        <AcceptInviteForm token={token} />
+        <AcceptInviteForm token={token} expiresAt={preview.expires_at} />
       </div>
     );
   }

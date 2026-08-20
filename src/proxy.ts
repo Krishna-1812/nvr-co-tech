@@ -99,7 +99,23 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname === '/login' || pathname === '/signup')) {
+  /*
+   * A signed-in browser has no use for the sign-in screens, so it is sent on to
+   * the app — unless it arrived carrying `?error=`, which is the one case where
+   * bouncing it is actively harmful.
+   *
+   * getCurrentUser() returns null when a session cannot be resolved to a
+   * profile row, and requireUser() answers that by redirecting to /login. With
+   * an unconditional bounce here, those two sent the browser round in a circle
+   * — /login to /hub to /login — until it gave up, which is how a single
+   * unreadable row became "the site will not open". The error carries the
+   * reason, and /login is where it can be read and signed out of.
+   */
+  if (
+    user &&
+    (pathname === '/login' || pathname === '/signup') &&
+    !request.nextUrl.searchParams.has('error')
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = AFTER_LOGIN;
     url.search = '';

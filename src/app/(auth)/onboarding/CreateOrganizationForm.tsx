@@ -33,7 +33,11 @@ export function CreateOrganizationForm() {
   return (
     <AuthCard>
       <form onSubmit={submit} className="space-y-4">
-        <AuthField label="Organisation name" htmlFor="org_name">
+        <AuthField
+          label="Organisation name"
+          htmlFor="org_name"
+          hint="You can change this later from Settings."
+        >
           <AuthInput
             id="org_name"
             icon={Building2}
