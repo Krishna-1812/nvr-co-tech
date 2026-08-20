@@ -9,6 +9,7 @@ import {
   Button,
   CardTitle,
   DataTable,
+  EmptyState,
   Field,
   Input,
   Td,
@@ -17,6 +18,7 @@ import {
   Tr,
 } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/Modal';
+import { fiscalYear, istToday } from '@/lib/fiscal';
 
 export type AdminChapter = {
   id: string;
@@ -56,6 +58,10 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
     setEditName(c.name);
   };
 
+  // The current financial year, so the worked example in the Add dialog cannot
+  // drift out of step with the voucher form the way a hard-coded one did.
+  const fy = fiscalYear(istToday()).label;
+
   return (
     <>
       <CardTitle
@@ -70,6 +76,25 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
         }
       />
 
+      {/*
+        Every voucher needs a chapter, so an organisation with none cannot raise
+        anything at all — and this screen used to render its five column headers
+        over nothing, above a footnote about retiring chapters that did not
+        exist. It is the one screen where an empty table was actively misleading.
+      */}
+      {chapters.length === 0 ? (
+        <EmptyState
+          icon={<Building2 className="size-5" aria-hidden />}
+          title="No chapters yet"
+          description="Every voucher belongs to a chapter, so nothing can be raised until one exists. Most organisations start with a head office and add branches as they need them."
+          action={
+            <Button variant="primary" onClick={() => setAdding(true)} disabled={busy}>
+              <Plus className="size-4" aria-hidden />
+              Add the first chapter
+            </Button>
+          }
+        />
+      ) : (
       <DataTable>
         <Thead>
           <tr>
@@ -180,18 +205,22 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
           ))}
         </tbody>
       </DataTable>
+      )}
 
-      <p className="text-subtle border-t px-5 py-3 text-xs text-pretty">
-        Chapters are retired rather than deleted — past vouchers reference them, and their history
-        has to stay intact. A retired chapter disappears from new vouchers but every existing one
-        keeps working.
-      </p>
+      {/* Only worth saying once there is something that could be retired. */}
+      {chapters.length > 0 && (
+        <p className="text-subtle border-t px-5 py-3 text-xs text-pretty">
+          Chapters are retired rather than deleted — past vouchers reference them, and their history
+          has to stay intact. A retired chapter disappears from new vouchers but every existing one
+          keeps working.
+        </p>
+      )}
 
       <Modal
         open={adding}
         onClose={() => setAdding(false)}
         title="Add a chapter"
-        description="The code appears in every voucher number this chapter issues, and cannot be changed afterwards."
+        description="The code is what the suggested voucher number is built from, and it cannot be changed afterwards."
       >
         <div className="space-y-4">
           <Field label="Chapter name" htmlFor="ch-name" required>
@@ -207,7 +236,7 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
             label="Code"
             htmlFor="ch-code"
             required
-            hint="2–6 letters or numbers. Used in voucher numbers: FI/CODE/25-26/0001"
+            hint={`2–6 letters or numbers. Used in voucher numbers: FI/CODE/${fy}/0001`}
           >
             <Input
               id="ch-code"
@@ -219,11 +248,19 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
             />
           </Field>
 
+          {/*
+            Says "suggested", because since 0019 the number is typed by hand and
+            this is what the Suggest button on the voucher form will offer. The
+            year is computed rather than written down: the old hard-coded 25-26
+            disagreed with the form's own hint the moment the year turned.
+          */}
           <div className="flex items-center gap-2 rounded-lg border border-dashed p-3">
             <Building2 className="text-subtle size-4 shrink-0" aria-hidden />
             <p className="text-muted text-xs">
-              Vouchers will be numbered{' '}
-              <span className="numeric font-semibold">FI/{code || 'CODE'}/25-26/0001</span>
+              Vouchers will be suggested as{' '}
+              <span className="numeric font-semibold">
+                FI/{code || 'CODE'}/{fy}/0001
+              </span>
             </p>
           </div>
 

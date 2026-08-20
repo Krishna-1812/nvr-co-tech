@@ -2,12 +2,13 @@ import type { CSSProperties } from 'react';
 import type { Metadata } from 'next';
 import { History } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
-import { canApprove, ROLE_META } from '@/lib/domain/workflow';
+import { canApprove, isOwner, ROLE_META } from '@/lib/domain/workflow';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
 import { SOLUTIONS } from '@/lib/solutions';
 import { LiveSolutionCard, type Reading } from '@/components/hub/LiveSolutionCard';
 import { RequestCard } from '@/components/hub/RequestCard';
 import { RosterMeter } from '@/components/hub/RosterMeter';
+import { SetupChecklist, type SetupState } from '@/components/hub/SetupChecklist';
 import { SolutionCard } from '@/components/hub/SolutionCard';
 
 export const metadata: Metadata = { title: 'Workspace' };
@@ -47,6 +48,7 @@ export default async function HubPage() {
   const fyStart = `${m >= 4 ? y : y - 1}-04-01T00:00:00+05:30`;
 
   const approver = canApprove(user.role);
+  const owner = isOwner(user.role);
   const count = () =>
     supabase.from('vouchers').select('id', { count: 'exact', head: true }).is('deleted_at', null);
 
@@ -67,33 +69,91 @@ export default async function HubPage() {
       .eq('created_by', user.id);
 
   /*
-   * Four head-count queries, no rows fetched. Everything here is deliberately
-   * scoped to "yours" except the approval queue, because the register itself is
-   * scoped by RLS — a member sees only their own vouchers, an approver sees every
-   * submitted one — and a figure whose meaning changes with the reader's role is
-   * worse than no figure.
+   * Head counts, no rows fetched. Every figure that reaches the instrument panel
+   * is deliberately scoped to "yours" except the approval queue, because the
+   * register itself is scoped by RLS — a member sees only their own vouchers, an
+   * approver sees every submitted one — and a figure whose meaning changes with
+   * the reader's role is worse than no figure.
+   *
+   * The last four are not displayed as figures at all. They decide which of two
+   * sentences the desk gets and whether the owner still needs a setup card, and
+   * each says below why it is scoped the way it is.
    */
-  const [drafts, withApprovers, queue, thisYear, reconciled, reconOpen, reconYear] =
-    await Promise.all([
-      count().eq('created_by', user.id).eq('status', 'draft'),
-      count().eq('created_by', user.id).in('status', [...PENDING]),
-      // You can never approve your own voucher, so it must not appear in your queue.
-      approver ? count().in('status', [...PENDING]).neq('created_by', user.id) : null,
-      count().eq('created_by', user.id).gte('created_at', fyStart),
-      recon(),
-      recon().neq('status', 'RECONCILED'),
-      recon().gte('created_at', fyStart),
-    ]);
+  const [
+    drafts,
+    withApprovers,
+    queue,
+    thisYear,
+    everRaised,
+    reconciled,
+    reconOpen,
+    reconYear,
+    chapters,
+    people,
+    org,
+  ] = await Promise.all([
+    count().eq('created_by', user.id).eq('status', 'draft'),
+    count().eq('created_by', user.id).in('status', [...PENDING]),
+    // You can never approve your own voucher, so it must not appear in your queue.
+    approver ? count().in('status', [...PENDING]).neq('created_by', user.id) : null,
+    count().eq('created_by', user.id).gte('created_at', fyStart),
+    /*
+     * Everything, at any status, from anybody — the one figure here that is not
+     * scoped to you, and the only thing that can tell a workspace nobody has
+     * used yet from a quiet one. None of the four above can stand in for it: a
+     * voucher raised and paid last March leaves no drafts and nothing pending,
+     * and shows up in no financial year but its own.
+     *
+     * RLS still narrows what "everything" means — an owner or admin sees the
+     * whole register, a member sees only their own — but zero reads the same
+     * either way: nothing this person could act on has ever been raised.
+     */
+    count(),
+    recon(),
+    recon().neq('status', 'RECONCILED'),
+    recon().gte('created_at', fyStart),
+    /*
+     * The last three are for the owner's setup checklist and nobody else's, so
+     * they are skipped for everybody else rather than fetched and thrown away —
+     * the same reason the approval queue above is only counted for an approver.
+     * Both tables are organization-scoped by 0012, and an owner can read every
+     * profile in their own organisation, so these are counts of the whole firm.
+     */
+    owner ? supabase.from('chapters').select('id', { count: 'exact', head: true }) : null,
+    owner ? supabase.from('profiles').select('id', { count: 'exact', head: true }) : null,
+    owner ? supabase.from('organizations').select('requires_approval').single() : null,
+  ]);
 
   const n = {
     drafts: drafts.count ?? 0,
     withApprovers: withApprovers.count ?? 0,
     queue: queue?.count ?? 0,
     thisYear: thisYear.count ?? 0,
+    everRaised: everRaised.count ?? 0,
     reconciled: reconciled.count ?? 0,
     reconOpen: reconOpen.count ?? 0,
     reconYear: reconYear.count ?? 0,
   };
+
+  /*
+   * Null for anybody who is not an owner, which is what keeps the card off their
+   * screen: chapters, roles and the approval setting are all owner business, and
+   * a member being shown a list of things they are not allowed to do would be
+   * worse than the empty screen this replaces.
+   *
+   * requires_approval falls back to false rather than to true, because false is
+   * what the column defaults to (0014) and because a failed read must not invent
+   * a step telling the owner to go and find an approver they do not need. The
+   * People screen, which warns about a real gap, is the one that errs the other
+   * way.
+   */
+  const setup: SetupState | null = owner
+    ? {
+        chapters: chapters?.count ?? 0,
+        people: people?.count ?? 0,
+        requiresApproval: org?.data?.requires_approval ?? false,
+      }
+    : null;
 
   const readings: Reading[] = [
     {
@@ -126,6 +186,12 @@ export default async function HubPage() {
    * One sentence saying why you are here, chosen in the order the work actually
    * needs doing: something waiting on you first, then something waiting on you to
    * finish, then something waiting on somebody else, then nothing.
+   *
+   * "Nothing" has two meanings and used to be told as one. A clear desk on a
+   * Friday afternoon is good news; a clear desk on the day the firm signs up is
+   * an empty tool nobody has been shown how to start. The first-run sentence can
+   * only be reached at the end of the chain, which is right — every count above
+   * it is necessarily zero if nothing has ever been raised.
    */
   const brief =
     approver && n.queue > 0
@@ -143,7 +209,19 @@ export default async function HubPage() {
               text: `${n.withApprovers} of yours ${plural(n.withApprovers, 'is', 'are')} with approvers.`,
               tone: 'var(--status-pending)',
             }
-          : { text: 'Nothing is waiting on you. The desk is clear.', tone: 'var(--status-approved)' };
+          : n.everRaised === 0
+            ? {
+                // Not "the number writes itself": since 0019 it is typed by
+                // hand, with the next one in the chapter's run offered as a
+                // suggestion. Promising otherwise here would be the first thing
+                // the product got wrong about itself.
+                text: 'Nothing raised yet. A chapter, a payee and an amount is most of it, and the voucher number is suggested for you.',
+                tone: 'var(--status-draft)',
+              }
+            : {
+                text: 'Nothing is waiting on you. The desk is clear.',
+                tone: 'var(--status-approved)',
+              };
 
   /*
    * The second tool's own instrumentation.
@@ -213,9 +291,15 @@ export default async function HubPage() {
               Good {partOfDay}, {firstName}.
             </h1>
 
+            {/*
+              "being built in the order below" was contradicted by everything
+              under it: the meter reads 0 in build and all four roadmap cards say
+              Not started yet. The order is real — it is the order they will be
+              taken in — so that is what it now claims.
+            */}
             <p className="text-muted mt-3 max-w-xl text-[15px] text-pretty">
               Everything the firm runs is here. Two of these are open for work today, and the rest
-              of the roster is being built in the order below.
+              are written down in the order they will be built.
             </p>
 
             <p className="mt-4">
@@ -239,6 +323,13 @@ export default async function HubPage() {
           className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,var(--border-strong),transparent_65%)]"
         />
       </header>
+
+      {/* ── What is not set up yet, while any of it is not ──
+          Above the tools rather than below them, because the tools are what it is
+          about: an owner who scrolls past this to open Voucher Desk and finds a
+          chapter dropdown with nothing in it has been told nothing. It removes
+          itself once there is nothing left to say. */}
+      {setup && <SetupChecklist state={setup} />}
 
       {/* ── The ones you can use ── */}
       <div className="space-y-5">

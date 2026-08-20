@@ -3,9 +3,12 @@ import { AlertTriangle, Users } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { tolerateMissingColumns, withAvatar } from '@/lib/supabase/columns';
 import { isOwner, type UserRole } from '@/lib/domain/workflow';
+import { listPendingInvites } from '@/app/actions/invites';
+import { emailConfigured } from '@/lib/notify';
 import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
 import { UserRow } from './UserRow';
 import { InviteForm } from './InviteForm';
+import { PendingInvites } from './PendingInvites';
 import { ApprovalPolicyCard } from './ApprovalPolicyCard';
 
 export const metadata = { title: 'People' };
@@ -32,7 +35,7 @@ export default async function AdminPeoplePage() {
   const me = await requireUser();
   const supabase = await createClient();
 
-  const [{ data: users }, { data: counts }, { data: org }] = await Promise.all([
+  const [{ data: users }, { data: counts }, { data: org }, invites] = await Promise.all([
     tolerateMissingColumns(() =>
       supabase
         .from('profiles')
@@ -41,6 +44,7 @@ export default async function AdminPeoplePage() {
     ),
     supabase.from('vouchers').select('created_by').is('deleted_at', null),
     supabase.from('organizations').select('requires_approval').single(),
+    listPendingInvites(),
   ]);
 
   const requiresApproval = org?.requires_approval ?? true;
@@ -62,7 +66,15 @@ export default async function AdminPeoplePage() {
 
   return (
     <div className="space-y-4">
-      <InviteForm />
+      <InviteForm emailEnabled={emailConfigured()} />
+
+      {/*
+        Only once there is something outstanding. An empty card above the People
+        table on every visit would be a permanent reminder of nothing.
+      */}
+      {invites.length > 0 && (
+        <PendingInvites invites={invites} emailEnabled={emailConfigured()} />
+      )}
 
       {isOwner(me.role) && <ApprovalPolicyCard requiresApproval={requiresApproval} />}
 
@@ -99,10 +111,15 @@ export default async function AdminPeoplePage() {
           description={`${rows.length} account${rows.length === 1 ? '' : 's'} · ${approvers} able to approve`}
         />
         {rows.length === 0 ? (
+          /*
+            Effectively unreachable — the viewer is always a row — but the copy
+            it used to carry was wrong as well as unused: people join an
+            organisation by accepting an invite, not by signing up into it.
+          */
           <EmptyState
             icon={<Users className="size-6" />}
-            title="No one has signed up yet"
-            description="People appear here once they create an account."
+            title="Nobody here yet"
+            description="People appear here once they accept an invite."
           />
         ) : (
           <DataTable>

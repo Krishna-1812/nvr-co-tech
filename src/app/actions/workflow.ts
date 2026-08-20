@@ -3,6 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { notify } from '@/lib/notify';
+import {
+  awaitingApproval,
+  sentBack,
+  approved as approvedMail,
+} from '@/lib/notify/templates';
+import { fmtRupees } from '@/lib/domain/voucher';
 
 /**
  * Workflow actions.
@@ -57,8 +64,61 @@ export async function submitVoucher(id: string): Promise<ActionResult<{ voucherN
   const { data, error } = await supabase.rpc('submit_voucher', { p_id: id });
 
   if (error) return { ok: false, error: toMessage(error, 'Could not submit this voucher.') };
+
+  // Only when it is actually waiting on somebody. With approval off (0014)
+  // submit pays the voucher outright, and there is nobody to tell.
+  if (data?.status === 'pending_first' || data?.status === 'pending_second') {
+    await tellApprovers(id);
+  }
+
   refresh(id);
   return { ok: true, data: { voucherNo: data?.voucher_no ?? '' } };
+}
+
+/**
+ * Tell everyone who could approve this that it is there.
+ *
+ * There is no assignment model — a submitted voucher enters a pool visible to
+ * anyone with approver rank or above — so the notification goes to the same
+ * pool, minus the person who raised it, who is not allowed to approve their own
+ * work and does not need telling about it either.
+ */
+async function tellApprovers(id: string): Promise<void> {
+  try {
+    const supabase = await createClient();
+
+    const { data: voucher } = await supabase
+      .from('vouchers')
+      .select(
+        'voucher_no, paid_to, grand_total, created_by, initiator:profiles!vouchers_initiated_by_fkey(full_name, email)',
+      )
+      .eq('id', id)
+      .maybeSingle();
+    if (!voucher) return;
+
+    const { data: people } = await supabase
+      .from('profiles')
+      .select('email, role')
+      .in('role', ['approver', 'admin', 'owner'])
+      .neq('id', voucher.created_by);
+
+    const to = (people ?? []).map((p) => p.email).filter((e): e is string => Boolean(e));
+    if (to.length === 0) return;
+
+    const raiser = voucher.initiator as { full_name?: string | null; email?: string | null } | null;
+
+    notify({
+      to,
+      ...awaitingApproval({
+        voucherNo: voucher.voucher_no,
+        raisedBy: raiser?.full_name || raiser?.email || 'Someone',
+        paidTo: voucher.paid_to,
+        amount: fmtRupees(Number(voucher.grand_total ?? 0)),
+      }),
+    });
+  } catch {
+    // Never at the expense of the submission itself, which has already happened.
+  }
 }
 
 // ─── Approve ─────────────────────────────────────────────────────────────────
@@ -82,8 +142,66 @@ export async function approveVoucher(input: {
   });
 
   if (error) return { ok: false, error: toMessage(error, 'Could not approve this voucher.') };
+
+  // Only once it is fully approved. Telling the raiser about a first approval
+  // that still needs a second one is a message about nothing they can act on.
+  if (data?.status === 'approved') await tellRaiser(parsed.data.id, 'approved');
+
   refresh(parsed.data.id);
   return { ok: true, data: { status: data?.status ?? '' } };
+}
+
+/**
+ * Tell the person who raised a voucher what just happened to it.
+ *
+ * Reads the actor from the row's own columns rather than taking a name from the
+ * caller, so the message can only ever say what the database recorded.
+ */
+async function tellRaiser(id: string, event: 'approved' | 'rejected'): Promise<void> {
+  try {
+    const supabase = await createClient();
+    // One string literal, not a concatenation: supabase-js infers the row shape
+    // from the select text itself, and cannot see through `+`.
+    const { data: v } = await supabase
+      .from('vouchers')
+      .select(
+        'voucher_no, rejection_reason, initiator:profiles!vouchers_initiated_by_fkey(full_name, email), raiser:profiles!vouchers_created_by_fkey(full_name, email), rejecter:profiles!vouchers_rejected_by_fkey(full_name, email), first_approver:profiles!vouchers_approver_1_fkey(full_name, email), second_approver:profiles!vouchers_approver_2_fkey(full_name, email)',
+      )
+      .eq('id', id)
+      .maybeSingle();
+    if (!v) return;
+
+    type Person = { full_name?: string | null; email?: string | null } | null;
+    const name = (p: Person) => p?.full_name || p?.email || 'Someone';
+
+    const raiser = (v.raiser ?? v.initiator) as Person;
+    const to = raiser?.email;
+    if (!to) return;
+
+    if (event === 'rejected') {
+      notify({
+        to,
+        ...sentBack({
+          voucherNo: v.voucher_no,
+          by: name(v.rejecter as Person),
+          reason: v.rejection_reason ?? 'No reason was recorded.',
+          id,
+        }),
+      });
+      return;
+    }
+
+    notify({
+      to,
+      ...approvedMail({
+        voucherNo: v.voucher_no,
+        by: name((v.second_approver ?? v.first_approver) as Person),
+        id,
+      }),
+    });
+  } catch {
+    // The decision stands regardless of whether the message about it went out.
+  }
 }
 
 // ─── Reject ──────────────────────────────────────────────────────────────────
@@ -110,7 +228,36 @@ export async function rejectVoucher(input: {
   });
 
   if (error) return { ok: false, error: toMessage(error, 'Could not send this voucher back.') };
+
+  // The one message in the product nobody else can clear for the reader: their
+  // voucher is back and only they can fix it.
+  await tellRaiser(parsed.data.id, 'rejected');
+
   refresh(parsed.data.id);
+  return { ok: true, data: undefined };
+}
+
+// ─── Withdraw ────────────────────────────────────────────────────────────────
+
+/**
+ * The raiser pulls their own voucher back out of the queue (0021).
+ *
+ * Until this existed, submitting was a one-way door: the person who raised a
+ * voucher could not recall, cancel, edit or delete it, and their only route was
+ * to find an approver out of band — there is no in-app channel — and ask to be
+ * rejected. The fields most likely to be wrong are the hand-typed number and
+ * the amounts, so it was a door people were always going to need back through.
+ *
+ * The database refuses once anybody has actually approved: from that point the
+ * record is more than one person's, and taking it back quietly would erase
+ * their part in it.
+ */
+export async function withdrawVoucher(id: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('withdraw_voucher', { p_id: id });
+
+  if (error) return { ok: false, error: toMessage(error, 'Could not withdraw this voucher.') };
+  refresh(id);
   return { ok: true, data: undefined };
 }
 

@@ -75,7 +75,10 @@ const inviteSchema = z.object({
 export async function inviteUser(input: {
   email: string;
   role: string;
-}): Promise<ActionResult<{ link: string; email: string }>> {
+  // `inviteId` so the caller can email or revoke this invite without having to
+  // look it up again by address — which would be ambiguous the moment somebody
+  // is invited twice.
+}): Promise<ActionResult<{ inviteId: string; link: string; email: string }>> {
   const parsed = inviteSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid invite.' };
@@ -91,9 +94,14 @@ export async function inviteUser(input: {
     return { ok: false, error: toMessage(error, 'Could not create that invite.') };
   }
 
+  refreshAdmin();
   return {
     ok: true,
-    data: { link: `${SITE_URL}/onboarding?invite=${data.token}`, email: data.email },
+    data: {
+      inviteId: data.id,
+      link: `${SITE_URL}/onboarding?invite=${data.token}`,
+      email: data.email,
+    },
   };
 }
 
@@ -191,6 +199,38 @@ export async function setChapterActive(input: {
   if (error) return { ok: false, error: toMessage(error, 'Could not update that chapter.') };
   refreshAdmin();
   revalidatePath('/vouchers');
+  return { ok: true, data: undefined };
+}
+
+// ─── The organisation itself ─────────────────────────────────────────────────
+
+const orgNameSchema = z.object({
+  name: z.string().trim().min(2, 'Give your organisation a name.').max(120),
+});
+
+/**
+ * Owner-only, enforced in `rename_organization` (migration 0021).
+ *
+ * The name was typed once at onboarding and was then permanent: a firm that
+ * rebranded, or an owner who mistyped it in the one box standing between them
+ * and the product, had no way back to it. It is also what the join screen calls
+ * this organisation, so a wrong name is a wrong name in front of everybody
+ * being invited.
+ */
+export async function renameOrganization(name: string): Promise<ActionResult> {
+  const parsed = orgNameSchema.safeParse({ name });
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid name.' };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('rename_organization', { p_name: parsed.data.name });
+
+  if (error) return { ok: false, error: toMessage(error, 'Could not rename your organisation.') };
+
+  // Not refreshAdmin(): the name is not printed on any admin screen. Settings is
+  // the one place it appears, and it is the screen that just renamed it.
+  revalidatePath('/settings');
   return { ok: true, data: undefined };
 }
 

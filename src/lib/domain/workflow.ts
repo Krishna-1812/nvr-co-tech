@@ -116,6 +116,13 @@ export type VoucherLike = {
   created_by: string;
   initiated_by: string | null;
   approver_1: string | null;
+  /*
+   * Optional because most callers build this from a narrow select that only
+   * needed the first approver. canWithdraw() is the one rule that has to know
+   * about the second, and treats an absent value the same as a null one — the
+   * database check in withdraw_voucher() is the authority either way.
+   */
+  approver_2?: string | null;
 };
 
 export const canEdit = (v: VoucherLike, me: VoucherActor): boolean =>
@@ -162,6 +169,23 @@ export const canReopen = (v: VoucherLike, me: VoucherActor): boolean => {
 
 export const canMarkPaid = (v: VoucherLike, me: VoucherActor): boolean =>
   v.status === 'approved' && isAdmin(me.role);
+
+/**
+ * Take your own voucher back out of the queue, while it is still only yours.
+ *
+ * Deliberately narrower than canReopen: the raiser only, and only before
+ * anybody has given an approval. Once somebody has acted, the record belongs to
+ * more than one person — undoing that is a rejection or an admin reopen, both of
+ * which require a reason. Not gated on role, because recalling something nobody
+ * has looked at is not a privileged act.
+ *
+ * Mirrors withdraw_voucher() in migration 0021; the database is the authority.
+ */
+export const canWithdraw = (v: VoucherLike, me: VoucherActor): boolean =>
+  (v.status === 'pending_first' || v.status === 'pending_second') &&
+  v.created_by === me.id &&
+  !v.approver_1 &&
+  !v.approver_2;
 
 export const canDelete = (v: VoucherLike, me: VoucherActor): boolean =>
   EDITABLE_STATUSES.includes(v.status) ? v.created_by === me.id || isAdmin(me.role) : isAdmin(me.role);

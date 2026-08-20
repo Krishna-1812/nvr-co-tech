@@ -1,24 +1,31 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Check, Copy, UserPlus } from 'lucide-react';
 import { inviteUser } from '@/app/actions/admin';
+import { emailInvite } from '@/app/actions/invites';
 import { ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
 import { Button, Card, CardTitle, Input, Select } from '@/components/ui/primitives';
 
 const INVITABLE_ROLES = USER_ROLES.filter((r) => r !== 'owner');
 
 /**
- * A generated link, not a sent email.
+ * Creating an invite — and, where email is configured, sending it.
  *
- * There is no transactional email provider wired into this project, so an
- * admin copies the link themselves and sends it however they already reach
- * people — email, chat, anything. The link is only as sensitive as its token:
- * accept_invite checks it against the accepting person's own verified address,
- * so whoever ends up holding it cannot join as someone else.
+ * The link is only as sensitive as its token: accept_invite checks it against
+ * the accepting person's own verified address, so whoever ends up holding it
+ * cannot join as somebody else. That is why copy-a-link is safe to offer even
+ * when mail is working, and it stays the fallback when it is not.
+ *
+ * `emailEnabled` comes from the server, because whether mail can be sent depends
+ * on environment variables this component cannot see. It changes what the card
+ * promises rather than what it does: claiming an email had been sent on a
+ * deployment with no provider would be the worst of the three states.
  */
-export function InviteForm() {
+export function InviteForm({ emailEnabled }: { emailEnabled: boolean }) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('member');
   const [busy, setBusy] = useState(false);
@@ -32,16 +39,30 @@ export function InviteForm() {
     setCopied(false);
 
     const res = await inviteUser({ email, role });
-    setBusy(false);
 
     if (!res.ok) {
+      setBusy(false);
       toast.error(res.error);
       return;
     }
 
     setLink(res.data.link);
+
+    if (emailEnabled) {
+      const sent = await emailInvite(res.data.inviteId);
+      toast[sent.ok ? 'success' : 'warning'](
+        sent.ok
+          ? `Invite emailed to ${res.data.email}.`
+          : `Invite created for ${res.data.email}, but the email did not go. Copy the link below.`,
+      );
+    } else {
+      toast.success(`Invite created for ${res.data.email}. Copy the link and send it on.`);
+    }
+
+    setBusy(false);
     setEmail('');
-    toast.success(`Invite created for ${res.data.email}.`);
+    // So the waiting-invites list below picks the new one up.
+    router.refresh();
   };
 
   const copy = async () => {
@@ -56,7 +77,11 @@ export function InviteForm() {
       <CardTitle
         icon={<UserPlus className="size-4" />}
         title="Invite a teammate"
-        description="Generates a link that joins your organisation. Copy it and send it however you like."
+        description={
+          emailEnabled
+            ? 'Emails them a link that joins your organisation. The link only works for the address you enter, and lasts fourteen days.'
+            : 'Generates a link that joins your organisation. Copy it and send it however you like — it only works for the address you enter, and lasts fourteen days.'
+        }
       />
       <form onSubmit={submit} className="flex flex-wrap items-end gap-3 px-5 py-4">
         <div className="min-w-[14rem] flex-1">
@@ -72,7 +97,7 @@ export function InviteForm() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <div className="w-36">
+        <div className="w-44">
           <label htmlFor="invite_role" className="text-subtle mb-1.5 block text-xs font-medium">
             Role
           </label>
@@ -87,6 +112,13 @@ export function InviteForm() {
               </option>
             ))}
           </Select>
+          {/*
+            What the chosen role actually permits, in the same words Settings
+            and the account menu use. The select offered three bare nouns, so
+            the person handing out authority had nothing to compare — and
+            "Approver" does not say that an approver also sees the whole queue.
+          */}
+          <p className="text-subtle mt-1.5 text-xs leading-snug">{ROLE_META[role].grants}</p>
         </div>
         <Button type="submit" variant="primary" loading={busy} disabled={!email.trim()}>
           Create invite link

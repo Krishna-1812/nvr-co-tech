@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Check, X, Pencil, RotateCcw, Wallet, Send } from 'lucide-react';
+import { Check, X, Pencil, RotateCcw, Wallet, Send, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   approveVoucher,
@@ -11,6 +11,7 @@ import {
   reopenVoucher,
   markVoucherPaid,
   submitVoucher,
+  withdrawVoucher,
 } from '@/app/actions/workflow';
 import {
   canApproveVoucher,
@@ -19,6 +20,7 @@ import {
   canReopen,
   canMarkPaid,
   canSubmit,
+  canWithdraw,
   type VoucherActor,
   type VoucherLike,
 } from '@/lib/domain/workflow';
@@ -43,7 +45,10 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
   const [rejectOpen, setRejectOpen] = useState(false);
   const [paidOpen, setPaidOpen] = useState(false);
   const [reopenOpen, setReopenOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [approveOpen, setApproveOpen] = useState(false);
   const [reason, setReason] = useState('');
+  const [note, setNote] = useState('');
   const [utr, setUtr] = useState('');
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, success: string) =>
@@ -54,7 +59,10 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
         setRejectOpen(false);
         setPaidOpen(false);
         setReopenOpen(false);
+        setWithdrawOpen(false);
+        setApproveOpen(false);
         setReason('');
+        setNote('');
         setUtr('');
         router.refresh();
       } else {
@@ -99,9 +107,16 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
 
         {showApprovalUi && approvable && (
           <>
-            <Button variant="success" loading={busy} onClick={() =>
-              run(() => approveVoucher({ id: voucher.id }), 'Approval recorded.')
-            }>
+            {/*
+              Approving opens a modal rather than firing, because approve_voucher
+              has always accepted a note that goes into the audit log and no
+              caller ever passed one. Without it the only two things an approver
+              could say were yes and no, so "which cost centre is this?" had to
+              be sent as a rejection. The note is optional: the button in the
+              modal is the same single click, plus a box if there is something
+              to record.
+            */}
+            <Button variant="success" onClick={() => setApproveOpen(true)} disabled={busy}>
               <Check className="size-4" aria-hidden />
               Approve
             </Button>
@@ -110,6 +125,14 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
               Send back
             </Button>
           </>
+        )}
+
+        {/* Your own voucher, back out of the queue, while it is still only yours. */}
+        {canWithdraw(voucher, me) && (
+          <Button onClick={() => setWithdrawOpen(true)} disabled={busy}>
+            <Undo2 className="size-4" aria-hidden />
+            Withdraw
+          </Button>
         )}
 
         {canReopen(voucher, me) && (
@@ -131,6 +154,70 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
       {showApprovalUi && blocked && (
         <p className="text-muted rounded-lg border border-dashed px-3 py-2 text-xs">{blocked}</p>
       )}
+
+      <Modal
+        open={approveOpen}
+        onClose={() => setApproveOpen(false)}
+        title="Approve this voucher"
+        description="Your approval is recorded against your name. Add a note if there is something worth putting on the record."
+      >
+        <div className="space-y-4">
+          <Field
+            label="Note"
+            htmlFor="approve-note"
+            hint="Optional, and kept in the voucher's history for good."
+          >
+            <Textarea
+              id="approve-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. Confirmed against the signed contract."
+              autoFocus
+            />
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button onClick={() => setApproveOpen(false)} disabled={busy}>
+              Cancel
+            </Button>
+            <Button
+              variant="success"
+              loading={busy}
+              onClick={() =>
+                run(
+                  () => approveVoucher({ id: voucher.id, note: note.trim() || undefined }),
+                  'Approval recorded.',
+                )
+              }
+            >
+              <Check className="size-4" aria-hidden />
+              Approve
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={withdrawOpen}
+        onClose={() => setWithdrawOpen(false)}
+        title="Withdraw this voucher?"
+        description="It leaves the approval queue and becomes your draft again, so you can correct it and resubmit. Nobody has approved it yet."
+      >
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button onClick={() => setWithdrawOpen(false)} disabled={busy}>
+            Leave it in the queue
+          </Button>
+          <Button
+            variant="primary"
+            loading={busy}
+            onClick={() =>
+              run(() => withdrawVoucher(voucher.id), 'Withdrawn. It is your draft again.')
+            }
+          >
+            <Undo2 className="size-4" aria-hidden />
+            Withdraw
+          </Button>
+        </div>
+      </Modal>
 
       <Modal
         open={rejectOpen}

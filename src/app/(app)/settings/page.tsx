@@ -1,6 +1,6 @@
 import { Check, Palette, ShieldCheck, ShieldOff, UserRound } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
-import { canApprove, ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
+import { canApprove, isOwner, ROLE_META, USER_ROLES, type UserRole } from '@/lib/domain/workflow';
 import { Card, CardBody, CardTitle, IconTile } from '@/components/ui/primitives';
 import { PageHeader } from '@/components/PageHeader';
 import { ProfileCard } from './ProfileCard';
@@ -8,6 +8,7 @@ import { ThemeChoice } from './ThemeChoice';
 import { SignOutButton, SignOutEverywhereButton } from './SignOutButton';
 import { ChangePasswordForm } from './ChangePasswordForm';
 import { ChangeEmailForm } from './ChangeEmailForm';
+import { OrganizationForm } from './OrganizationForm';
 
 export const metadata = { title: 'Settings' };
 
@@ -30,11 +31,16 @@ export default async function SettingsPage() {
    * vouchers only ever need one approval now (0015) — approver_2 stays populated
    * only on the rare voucher that entered the queue before that shipped.
    */
-  const [raised, approver1, approver2, profile] = await Promise.all([
+  const [raised, approver1, approver2, profile, org] = await Promise.all([
     count().eq('created_by', user.id),
     canApprove(user.role) ? count().eq('approver_1', user.id) : null,
     canApprove(user.role) ? count().eq('approver_2', user.id) : null,
     supabase.from('profiles').select('created_at').eq('id', user.id).maybeSingle(),
+    // One row, because the policies only ever show you your own (0012).
+    // maybeSingle rather than single: this layout guarantees a membership, so a
+    // missing row is not a state anybody reaches, and it is not worth failing
+    // the whole screen over if one ever does.
+    supabase.from('organizations').select('name').maybeSingle(),
   ]);
 
   const approved = canApprove(user.role)
@@ -68,6 +74,12 @@ export default async function SettingsPage() {
 
       <ChangeEmailForm email={user.authEmail} />
       <ChangePasswordForm email={user.authEmail} />
+
+      {/* Above "Your access", because the two answer the same question from
+          either end: which organisation this is, and what you can do inside it. */}
+      {org.data?.name && (
+        <OrganizationForm name={org.data.name} canRename={isOwner(user.role)} />
+      )}
 
       <Card className="overflow-hidden">
         <CardTitle
