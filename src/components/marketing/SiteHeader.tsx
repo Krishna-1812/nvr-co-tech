@@ -61,12 +61,12 @@ export function SiteHeader() {
       */}
       {scrolled && <ScrollProgressBar />}
       <Container wide>
-        <div className="flex h-[68px] items-center gap-6">
+        <div className="flex h-[68px] items-center gap-4 lg:gap-6">
           <Link href="/" className="shrink-0 transition hover:opacity-85">
             <Logo />
           </Link>
 
-          <nav className="ml-4 hidden items-center gap-1 md:flex">
+          <nav className="ml-1 hidden items-center gap-1 md:flex lg:ml-4">
             {NAV.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
@@ -90,7 +90,7 @@ export function SiteHeader() {
             <Link
               href="/login"
               data-signin=""
-              className="m-dim hidden rounded-full px-4 py-2 text-[13px] font-medium transition hover:text-[var(--m-ink)] sm:block"
+              className="m-dim hidden rounded-full px-4 py-2 text-[13px] font-medium whitespace-nowrap transition hover:text-[var(--m-ink)] sm:block"
             >
               Sign in
             </Link>
@@ -98,7 +98,7 @@ export function SiteHeader() {
               href="/contact"
               data-demo=""
               data-interest="Header"
-              className="hidden h-9 items-center rounded-full px-4 text-[13px] font-semibold text-white transition hover:brightness-110 active:scale-[0.98] sm:inline-flex"
+              className="hidden h-9 items-center rounded-full px-4 text-[13px] font-semibold whitespace-nowrap text-white transition hover:brightness-110 active:scale-[0.98] sm:inline-flex"
               style={{ backgroundImage: 'var(--m-grad)' }}
             >
               Book a walkthrough

@@ -236,8 +236,10 @@ export function ApprovalCard({
           Two decisions and a way to check first, which on a phone is the whole
           purpose of the screen — so they get a grid there instead of a row.
           Review spans the top, the two decisions sit side by side beneath it,
-          and each one is 40px rather than the 32px an `sm` button gives a thumb.
-          From `sm` up it collapses back to a single inline row.
+          and each one is 40px rather than the 32px an `sm` button gives a thumb —
+          up to `lg`, which is where MobileDock stops showing and a pointer can be
+          assumed. From `sm` up the three of them collapse back to one inline row,
+          which fits long before the sizes need to come down.
 
           "Send back" keeps its label at every width. It used to be a bare red X
           on a phone, eight pixels from the green tick, and an unlabelled icon is
@@ -250,7 +252,7 @@ export function ApprovalCard({
             className={buttonClass({
               variant: 'ghost',
               size: 'sm',
-              className: 'col-span-2 h-10 text-sm sm:col-span-1 sm:h-8 sm:text-xs',
+              className: 'col-span-2 h-10 text-sm sm:col-span-1 lg:h-8 lg:text-xs',
             })}
           >
             <ExternalLink className="size-4" aria-hidden />
@@ -262,7 +264,7 @@ export function ApprovalCard({
               <Button
                 variant="danger"
                 size="sm"
-                className="h-10 text-sm sm:h-8 sm:text-xs"
+                className="h-10 text-sm lg:h-8 lg:text-xs"
                 onClick={() => setRejecting((v) => !v)}
                 disabled={pending}
                 aria-expanded={rejecting}
@@ -273,7 +275,7 @@ export function ApprovalCard({
               <Button
                 variant="success"
                 size="sm"
-                className="h-10 text-sm sm:h-8 sm:text-xs"
+                className="h-10 text-sm lg:h-8 lg:text-xs"
                 onClick={onApprove}
                 loading={pending}
               >

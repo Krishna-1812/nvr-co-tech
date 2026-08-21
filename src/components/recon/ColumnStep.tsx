@@ -202,9 +202,9 @@ function LedgerColumns({
                       onRole(column, e.target.value === '' ? null : (e.target.value as ColumnField))
                     }
                     className={cn(
-                      // text-base on a phone, or iOS zooms the page in when the
-                      // picker opens and leaves it there.
-                      'w-40 shrink-0 py-2.5 text-base sm:py-1.5 sm:text-[13px]',
+                      // text-base while the dock is showing, or iOS zooms the page
+                      // in when the picker opens and leaves it there.
+                      'w-40 shrink-0 py-2.5 text-base lg:py-1.5 lg:text-[13px]',
                       required && 'font-semibold',
                       role === '' && 'text-[var(--text-subtle)]',
                     )}

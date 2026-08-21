@@ -65,7 +65,7 @@ export default async function AdminDeletedPage() {
             <Thead className="hidden sm:table-header-group">
               <tr>
                 <Th>Voucher</Th>
-                <Th className="hidden md:table-cell">Payee</Th>
+                <Th className="hidden lg:table-cell">Payee</Th>
                 <Th className="hidden lg:table-cell">Raised by</Th>
                 <Th className="hidden sm:table-cell">Deleted</Th>
                 <Th className="hidden sm:table-cell">Was</Th>

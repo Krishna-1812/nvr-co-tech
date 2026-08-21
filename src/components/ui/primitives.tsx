@@ -331,15 +331,20 @@ export function Field({
 }
 
 /*
- * text-base below sm, text-sm above.
+ * text-base below lg, text-sm from lg up.
  *
- * Not a design preference. iOS Safari zooms the whole page in when a field with
- * a font smaller than 16px takes focus, and it never zooms back out — the person
- * is left panned sideways on a form they were halfway through filling. 16px on
- * the phone is what stops that; the 14px desktop density is unchanged.
+ * Not a design preference, and the breakpoint is not arbitrary. iOS Safari zooms
+ * the whole page in when a field under 16px takes focus and never zooms back out,
+ * leaving somebody panned sideways on a form they were halfway through filling.
+ *
+ * `lg` rather than `sm` because that is where MobileDock stops showing, which is
+ * this app the only honest signal of whether it is being touched or pointed at.
+ * A tablet at 768px gets the dock, so it is a thumb, so it gets the bigger box —
+ * a 38px field under a bottom bar was the same mistake as a 32px button there.
+ * From `lg` the 14px density is exactly what it always was.
  */
 const CONTROL =
-  'w-full rounded-lg border bg-[var(--surface-raised)] px-3 py-2 text-base transition sm:text-sm ' +
+  'w-full rounded-lg border bg-[var(--surface-raised)] px-3 py-2 text-base transition lg:text-sm ' +
   'shadow-[var(--elev-1)] placeholder:text-[var(--text-subtle)] ' +
   'hover:border-[var(--border-strong)] ' +
   'focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 ' +

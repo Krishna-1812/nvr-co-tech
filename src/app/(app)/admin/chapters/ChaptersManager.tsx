@@ -100,7 +100,7 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
           <tr>
             <Th>Chapter</Th>
             <Th className="hidden sm:table-cell">Code</Th>
-            <Th align="right" className="hidden sm:table-cell">
+            <Th align="right" className="hidden lg:table-cell">
               Vouchers
             </Th>
             <Th>Status</Th>
@@ -168,7 +168,7 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
               </Td>
 
               <Td className="numeric text-muted hidden sm:table-cell">{c.code}</Td>
-              <Td align="right" className="numeric text-muted hidden sm:table-cell">
+              <Td align="right" className="numeric text-muted hidden lg:table-cell">
                 {c.voucherCount || '—'}
               </Td>
 
@@ -194,7 +194,7 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
                     <button
                       onClick={() => startEdit(c)}
                       disabled={busy}
-                      className="text-muted grid size-10 place-items-center rounded-lg transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)] disabled:opacity-40 sm:size-7"
+                      className="text-muted grid size-10 place-items-center rounded-lg transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)] disabled:opacity-40 lg:size-7"
                       aria-label={`Rename ${c.name}`}
                     >
                       <Pencil className="size-4" aria-hidden />
@@ -210,7 +210,7 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
                         )
                       }
                       disabled={busy}
-                      className="h-10 sm:h-8"
+                      className="h-10 lg:h-8"
                     >
                       {c.is_active ? 'Retire' : 'Reactivate'}
                     </Button>

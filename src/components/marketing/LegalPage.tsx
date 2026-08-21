@@ -135,7 +135,13 @@ export function LegalPage({
               </ol>
             </nav>
 
-            <div className="min-w-0">
+            {/*
+              The 64ch measure is a grid track from lg, but below it the column had
+              no cap at all and the clauses ran to about 92 characters a line on a
+              tablet. Same measure, stated twice, because only one of the two ways
+              of saying it is in force at a time.
+            */}
+            <div className="min-w-0 max-w-[64ch] lg:max-w-none">
               <ol className="border-t border-[var(--m-line)]">
                 {clauses.map((clause, i) => (
                   <Reveal

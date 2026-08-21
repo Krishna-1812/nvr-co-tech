@@ -29,9 +29,10 @@ export function NavLink({
   href: string;
   label?: string;
   /**
-   * Shown instead of `label` in a dock cell too narrow for the real one.
-   * `label` stays the accessible name, so a screen reader still says
-   * "Organisations" where the bar has room only for "Orgs".
+   * Shown instead of `label` in a dock cell too narrow for the real one, which
+   * is a phone at six destinations and nothing wider — a tablet cell is 125px
+   * and holds "Organisations" with room to spare, so the abbreviation stops at
+   * `sm`. `label` stays the accessible name at every width.
    */
   shortLabel?: string;
   /*
@@ -100,7 +101,14 @@ export function NavLink({
             active ? 'text-[var(--text-c)]' : 'text-subtle',
           )}
         >
-          {shortLabel ?? label}
+          {shortLabel && shortLabel !== label ? (
+            <>
+              <span className="sm:hidden">{shortLabel}</span>
+              <span className="hidden sm:inline">{label}</span>
+            </>
+          ) : (
+            label
+          )}
         </span>
         <Pending className="inset-x-2 top-0 rounded-full" />
       </Link>

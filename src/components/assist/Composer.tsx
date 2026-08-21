@@ -77,7 +77,7 @@ export function Composer({
             if (ready) onSend();
           }
         }}
-        className="max-h-42 w-full resize-none bg-transparent py-3 pr-13 pl-3.5 text-base sm:text-[14px] leading-relaxed outline-none placeholder:text-[var(--text-subtle)]"
+        className="max-h-42 w-full resize-none bg-transparent py-3 pr-13 pl-3.5 text-base lg:text-[14px] leading-relaxed outline-none placeholder:text-[var(--text-subtle)]"
       />
 
       {/* Anchored to the bottom of the box rather than centred, so it stays put

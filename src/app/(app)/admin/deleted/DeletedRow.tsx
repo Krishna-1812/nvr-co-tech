@@ -57,7 +57,7 @@ export function DeletedRow({
           <p className="text-subtle numeric text-xs">{fmtDate(voucher.date)}</p>
           {/* Payee is the only way to recognise a draft with no number, so it
               stays on the row even when its own column is gone. */}
-          <p className="text-subtle mt-0.5 max-w-36 truncate text-xs md:hidden">
+          <p className="text-subtle mt-0.5 max-w-36 truncate text-xs lg:hidden">
             {voucher.paid_to ?? '—'}
           </p>
           <div className="mt-1.5 sm:hidden">
@@ -65,7 +65,7 @@ export function DeletedRow({
           </div>
         </Td>
 
-        <Td className="text-muted hidden max-w-40 truncate md:table-cell">
+        <Td className="text-muted hidden max-w-40 truncate lg:table-cell">
           {voucher.paid_to ?? '—'}
         </Td>
 
@@ -115,7 +115,7 @@ export function DeletedRow({
           <div className="inline-flex items-center gap-1">
             <Button
               size="sm"
-              className="h-10 sm:h-8"
+              className="h-10 lg:h-8"
               onClick={() => run(() => restoreVoucher(voucher.id), `${label} restored.`)}
               disabled={busy}
             >
@@ -142,7 +142,7 @@ export function DeletedRow({
                 onClick={() => setConfirming(true)}
                 disabled={busy}
                 aria-label={`Permanently delete ${label}`}
-                className="text-muted grid size-10 place-items-center rounded-lg transition hover:bg-[color-mix(in_oklab,var(--status-rejected)_14%,transparent)] hover:text-[var(--status-rejected)] disabled:opacity-40 sm:size-7"
+                className="text-muted grid size-10 place-items-center rounded-lg transition hover:bg-[color-mix(in_oklab,var(--status-rejected)_14%,transparent)] hover:text-[var(--status-rejected)] disabled:opacity-40 lg:size-7"
               >
                 <Trash2 className="size-4" aria-hidden />
               </button>

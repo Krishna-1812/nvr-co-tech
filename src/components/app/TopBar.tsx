@@ -57,11 +57,20 @@ export function TopBar({
         <CommandPalette sectionSlug={section.slug} role={user.role} />
 
         {/*
-          Today's date and the financial year, both in Asia/Kolkata. On a phone
-          the rail's fiscal meter is not on screen, so this is the only place the
-          year appears — and the year is what all of this work is filed under.
+          Today's date and the financial year, both in Asia/Kolkata — and only in
+          the band where the rail is not there to say it.
+
+          The rail carries a FiscalMeter at its foot, with the year, the days left
+          in it and a progress bar, so from `lg` this said the same thing twice.
+          It also said it in 22px: at exactly 1024 the rail arrives *and* the
+          breadcrumb gains the platform name, and the bar had 73px more in it than
+          it had room for. Every signed-in page scrolled sideways on an iPad in
+          landscape, with "Sat, 22 Aug" wrapped into a column two characters wide.
+
+          So it shows from `md`, where the dock is still on and there is no rail,
+          and stops at `lg`, where the rail takes the job over.
         */}
-        <div className="ml-auto hidden items-center gap-3 md:flex">
+        <div className="ml-auto hidden items-center gap-3 md:flex lg:hidden">
           <span className="text-subtle numeric text-xs">{today}</span>
           <span aria-hidden className="h-4 w-px bg-[var(--border-c)]" />
           <span className="a-label" title={`${fiscal.daysLeft} days left in this financial year`}>

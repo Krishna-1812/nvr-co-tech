@@ -306,7 +306,7 @@ export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; rol
                   searchable ? 'Search actions, or type a voucher number…' : 'Search actions…'
                 }
                 aria-label="Search actions"
-                className="min-w-0 flex-1 bg-transparent text-base sm:text-[15px] outline-none placeholder:text-[var(--text-subtle)]"
+                className="min-w-0 flex-1 bg-transparent text-base lg:text-[15px] outline-none placeholder:text-[var(--text-subtle)]"
               />
               <Kbd>Esc</Kbd>
             </div>
@@ -400,7 +400,7 @@ function PaletteTrigger({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="text-subtle group flex h-9 items-center gap-2.5 rounded-xl border border-[var(--border-c)] bg-[var(--surface-sunken)] px-3 transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)] sm:w-72"
+      className="text-subtle group flex h-9 min-w-0 items-center gap-2.5 rounded-xl border border-[var(--border-c)] bg-[var(--surface-sunken)] px-3 transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)] sm:w-72"
     >
       <Search className="size-4 shrink-0" aria-hidden />
       <span className="hidden truncate text-[13px] sm:block">Search or jump to…</span>
