@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 /**
@@ -101,6 +102,7 @@ export function KpiCard({
   icon,
   variant = 'flat',
   onClick,
+  href,
   format = (n) => n.toLocaleString('en-IN'),
   className,
 }: {
@@ -113,6 +115,15 @@ export function KpiCard({
   icon?: ReactNode;
   variant?: KpiVariant;
   onClick?: () => void;
+  /**
+   * A whole screen as the drill-down, rather than a panel.
+   *
+   * Where a card's breakdown already exists as a page, sending somebody there
+   * beats rebuilding a lesser version of it in a drawer — and it keeps one
+   * implementation of those numbers rather than two that can disagree. Mutually
+   * exclusive with onClick: a card has one behaviour.
+   */
+  href?: string;
   format?: (n: number) => string;
   className?: string;
 }) {
@@ -121,19 +132,19 @@ export function KpiCard({
   const shown = numeric === null ? (value as string) : format(counted);
 
   const rich = variant === 'rich';
-  const clickable = Boolean(onClick);
+  const clickable = Boolean(onClick) || Boolean(href);
 
-  return (
+  const card = (
     <div
       // A card that drills down is a button; a card that doesn't is not. Rendering
       // the inert ones as buttons would put them in the tab order and promise an
       // interaction that never happens.
-      {...(clickable
+      {...(onClick
         ? { role: 'button' as const, tabIndex: 0, onClick, onKeyDown: (e: React.KeyboardEvent) => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); }
           } }
         : {})}
-      aria-label={clickable ? `${label}: ${shown}. Open breakdown` : undefined}
+      aria-label={onClick ? `${label}: ${shown}. Open breakdown` : undefined}
       style={{ ['--tone' as string]: accent }}
       className={cn(
         'group relative isolate overflow-hidden rounded-2xl border bg-[var(--surface-raised)] p-4',
@@ -230,5 +241,16 @@ export function KpiCard({
         <p className="text-subtle mt-2 text-[12px] leading-snug text-pretty">{caption}</p>
       )}
     </div>
+  );
+
+  // Wrapped rather than rendered as an anchor, so the card keeps one shape and
+  // the link keeps real link behaviour: middle-click, open in a new tab, and a
+  // status bar that shows where it goes.
+  return href ? (
+    <Link href={href} className="a-ring block rounded-2xl" aria-label={`${label}: ${shown}`}>
+      {card}
+    </Link>
+  ) : (
+    card
   );
 }
