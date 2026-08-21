@@ -130,19 +130,54 @@ export function PersonCell({
   );
 }
 
-export function CompanyCell({ company }: { company: string | null }) {
-  if (!company) return <span className="text-subtle">&mdash;</span>;
+/**
+ * Who this person belongs to.
+ *
+ * Two candidates, and the order between them is the point. `organisation` is the
+ * tenant on their profile row — a fact, and the thing that decides what data
+ * they can see. `company` is their email domain tidied up — deterministic, but a
+ * guess, and null for webmail.
+ *
+ * The fact wins, and the guess is shown underneath only when it disagrees, which
+ * is itself worth seeing: somebody at acme.com inside a workspace called
+ * Northwind is either a consultant or somebody who joined the wrong tenant.
+ *
+ * Until migration 0026 this cell was almost always empty for customers, because
+ * the directory feeding it read `profiles` directly and RLS scoped that to the
+ * operator's own organisation.
+ */
+export function CompanyCell({
+  company,
+  organisation = null,
+}: {
+  company: string | null;
+  organisation?: string | null;
+}) {
+  const primary = organisation ?? company;
+  if (!primary) return <span className="text-subtle">&mdash;</span>;
+
+  const alsoShow = organisation && company && company !== organisation ? company : null;
 
   return (
     <span className="flex items-center gap-2">
       <span
         aria-hidden
         className="grid size-5 shrink-0 place-items-center rounded text-[10px] font-bold text-white"
-        style={{ background: accentFor(company) }}
+        style={{ background: accentFor(primary) }}
       >
-        {company[0]?.toUpperCase()}
+        {primary[0]?.toUpperCase()}
       </span>
-      <span className="truncate text-[12.5px]">{company}</span>
+      <span className="min-w-0">
+        <span
+          className="block truncate text-[12.5px]"
+          title={organisation ? 'The workspace they belong to' : 'Guessed from their email domain'}
+        >
+          {primary}
+        </span>
+        {alsoShow && (
+          <span className="text-subtle block truncate text-[10.5px]">{alsoShow} address</span>
+        )}
+      </span>
     </span>
   );
 }

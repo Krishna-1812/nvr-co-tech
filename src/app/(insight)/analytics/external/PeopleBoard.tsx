@@ -386,7 +386,7 @@ export function PeopleBoard({
                       />
                     </RosterTd>
                     <RosterTd>
-                      <CompanyCell company={person.company} />
+                      <CompanyCell company={person.company} organisation={person.organisation} />
                     </RosterTd>
                     <RosterTd align="right">
                       <NumChip value={person.visits} tone="var(--h-indigo)" />

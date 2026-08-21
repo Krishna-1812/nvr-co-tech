@@ -27,6 +27,18 @@ export const dynamic = 'force-dynamic';
  * Tenants with no activity are kept and shown as such. An organisation that
  * signed up and never came back is the most actionable row here, and dropping it
  * for having nothing to plot would hide precisely the accounts worth a call.
+ *
+ * ── What the cards count, and what they used to ─────────────────────────────
+ *
+ * Page views, tool opens and time on page — which meant this list was ranking
+ * customers by how much of our own marketing they had read. A tenant that
+ * submits forty vouchers a month and never visits a public page came bottom.
+ *
+ * It now leads with work done: vouchers submitted and vouchers paid, from the
+ * activation counts that arrive with the tenant list. Page views are still read,
+ * because "last active" is better answered by them than by milestones — somebody
+ * signing in to look at the register generates a view and no event — but they no
+ * longer decide the order.
  */
 export default async function OrganisationsPage({
   searchParams,
@@ -56,16 +68,29 @@ export default async function OrganisationsPage({
     organizations: tenants.organizations,
     members: tenants.members,
     people,
+  }).sort((a, b) => {
+    const work = (id: string) => {
+      const row = tenants.counts.get(id);
+      return row ? row.vouchers_submitted * 10 + row.vouchers_paid : 0;
+    };
+    return work(b.id) - work(a.id) || b.pageViews - a.pageViews || a.name.localeCompare(b.name);
   });
 
-  const quiet = summaries.filter((t) => t.pageViews === 0).length;
+  // Organisations that have never done anything at all — no voucher, no
+  // reconciliation, nothing. Lifetime rather than windowed on purpose: a tenant
+  // that was busy in June and silent since is a different problem from one that
+  // never started, and only the second belongs in this count.
+  const quiet = summaries.filter((t) => {
+    const row = tenants.counts.get(t.id);
+    return !row || row.vouchers_drafted + row.reconciliations_saved === 0;
+  }).length;
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Tenants"
         title="Who is actually using it"
-        description="One card per organisation on the platform. Activity is attributed through the people who belong to it, since the page-view log is not tenant-scoped and should not be."
+        description="One card per organisation on the platform, ranked by work done rather than pages read. The counts come from a function that returns aggregates only — no voucher amount, vendor or number reaches this screen."
         action={<WindowTabs current={days as 7 | 30 | 90} base="/analytics/orgs" />}
       />
 
@@ -85,7 +110,7 @@ export default async function OrganisationsPage({
               <>
                 {' · '}
                 <span className="text-[var(--h-amber)]">
-                  {number(quiet)} with no activity in this window
+                  {number(quiet)} {quiet === 1 ? 'has' : 'have'} never drafted anything
                 </span>
               </>
             )}
@@ -132,20 +157,23 @@ export default async function OrganisationsPage({
                     </div>
 
                     <div className="mt-5 grid grid-cols-3 gap-2">
-                      <Box label="Views" value={number(tenant.pageViews)} />
-                      <Box label="People" value={number(tenant.people)} />
-                      <Box label="Tools" value={number(tenant.runs)} />
+                      <Box
+                        label="People"
+                        value={number(tenants.counts.get(tenant.id)?.members ?? tenant.people)}
+                      />
+                      <Box
+                        label="Sent"
+                        value={number(tenants.counts.get(tenant.id)?.vouchers_submitted ?? 0)}
+                      />
+                      <Box
+                        label="Paid"
+                        value={number(tenants.counts.get(tenant.id)?.vouchers_paid ?? 0)}
+                      />
                     </div>
 
                     <div className="mt-auto flex items-center justify-between gap-3 pt-5">
                       <span className="text-subtle text-[11px]">
-                        {tenant.lastSeen
-                          ? `Last active ${new Date(tenant.lastSeen).toLocaleDateString('en-IN', {
-                              day: 'numeric',
-                              month: 'short',
-                              timeZone: 'Asia/Kolkata',
-                            })}`
-                          : 'No activity yet'}
+                        {lastActive(tenant.lastSeen, tenants.counts.get(tenant.id)?.last_event)}
                         {tenant.seconds > 0 && ` · ${duration(tenant.seconds)}`}
                       </span>
                       <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold">
@@ -174,6 +202,27 @@ function Box({ label, value }: { label: string; value: string }) {
       <span className="a-label mt-0.5 block text-[9px]">{label}</span>
     </span>
   );
+}
+
+/**
+ * When this tenant was last seen doing anything.
+ *
+ * Two sources, because neither covers the other: a page view happens whenever
+ * somebody signs in and looks around, and a milestone happens when they get
+ * something done. Somebody reading the register all afternoon produces views and
+ * no milestone; a voucher approved from an email link could produce the reverse.
+ * The later of the two is the honest answer.
+ */
+function lastActive(seen: string | null, event: string | null | undefined): string {
+  const times = [seen, event].filter((v): v is string => Boolean(v)).map((v) => new Date(v));
+  if (times.length === 0) return 'Never active';
+
+  const latest = new Date(Math.max(...times.map((d) => d.getTime())));
+  return `Last active ${latest.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'Asia/Kolkata',
+  })}`;
 }
 
 /** Two letters from an organisation's name, for the mark on its card. */

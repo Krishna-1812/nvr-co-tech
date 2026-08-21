@@ -48,8 +48,18 @@ export type Person = {
   email: string;
   name: string | null;
   photo: string | null;
-  /** Their employer, or null. Never a webmail domain dressed up as one. */
+  /**
+   * Their employer as guessed from their email domain, or null for webmail.
+   * Deterministic, but still a guess: a consultant at acme.com may not work for
+   * Acme, and the two need distinguishing from the field below.
+   */
   company: string | null;
+  /**
+   * The organisation they actually belong to on this platform, from their
+   * profile row. Not a guess — it is the tenant whose data they can see.
+   * Null for anybody who signed up and never onboarded.
+   */
+  organisation: string | null;
   /** Runs of activity, not sign-ins. See the note at the top of this file. */
   visits: number;
   pageViews: number;
@@ -154,7 +164,12 @@ export function buildPeople({
   identities?: VisitorIdentityRow[];
   runs?: RunEvent[];
   /** Names and photos, which the page-view log does not carry. */
-  profiles?: { email: string | null; full_name: string | null; avatar_url: string | null }[];
+  profiles?: {
+    email: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+    organization_name?: string | null;
+  }[];
   /** Events per person. Capped here rather than in the browser so the payload stays small. */
   journeyCap?: number;
 }): Person[] {
@@ -194,12 +209,16 @@ export function buildPeople({
     slot(run.email).runs.push(run);
   }
 
-  const nameByEmail = new Map<string, { name: string | null; photo: string | null }>();
+  const nameByEmail = new Map<
+    string,
+    { name: string | null; photo: string | null; organisation: string | null }
+  >();
   for (const p of profiles) {
     if (!p.email) continue;
     nameByEmail.set(p.email.trim().toLowerCase(), {
       name: p.full_name,
       photo: p.avatar_url,
+      organisation: p.organization_name ?? null,
     });
   }
 
@@ -278,6 +297,7 @@ export function buildPeople({
       name: nameByEmail.get(email)?.name ?? identityName.get(email) ?? null,
       photo: nameByEmail.get(email)?.photo ?? null,
       company: companyFromEmail(email),
+      organisation: nameByEmail.get(email)?.organisation ?? null,
       visits: countVisits(rows.map((r) => ms(r.occurred_at))),
       pageViews: rows.length,
       seconds: rows.reduce((sum, r) => sum + (r.seconds || 0), 0),
@@ -331,7 +351,7 @@ export const byEngagement = (a: Person, b: Person): number =>
 
 /** Everything the roster's search box needs to match against, lowercased once. */
 export const haystack = (p: Person): string =>
-  [p.email, p.name, p.company, p.browser, p.os, p.device, p.source, ...p.features]
+  [p.email, p.name, p.company, p.organisation, p.browser, p.os, p.device, p.source, ...p.features]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();

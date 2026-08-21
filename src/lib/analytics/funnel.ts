@@ -327,3 +327,111 @@ export function span(hours: number | null): string {
   if (days < 14) return `${Math.round(days)} days`;
   return `${Math.round(days / 7)} weeks`;
 }
+
+// ─── Who is not acting ───────────────────────────────────────────────────────
+
+export type WaitingRow = {
+  organizationId: string;
+  organisation: string;
+  /** Vouchers sitting in a non-terminal state past the threshold. */
+  waiting: number;
+  oldestDays: number;
+  /** The states they are sitting in, largest first. */
+  states: { status: string; waiting: number }[];
+  /** When anybody from this organisation was last seen doing anything. */
+  lastSeen: string | null;
+  /** Days since then. Null when they have never been seen at all. */
+  silentDays: number | null;
+};
+
+/**
+ * Vouchers that have stopped moving, joined to whether anybody is there to move
+ * them.
+ *
+ * The counts alone are half an answer. Four vouchers waiting eleven days in an
+ * organisation whose people signed in this morning is a queue: somebody has seen
+ * it and has reasons. The same four in an organisation nobody has opened for
+ * three weeks is the failure this product currently has by design — notification
+ * email is switched off, so an approver who does not think to log in is never
+ * told, and nothing anywhere else would surface that.
+ *
+ * Sorted by silence rather than by volume, because the volume is not the
+ * problem. One voucher nobody has been told about outranks nine somebody is
+ * working through.
+ *
+ * Last-seen comes from page views rather than from milestones, deliberately:
+ * signing in and looking at the approvals queue produces a view and no
+ * milestone, and for this question "did they even come and look" is exactly what
+ * is being asked. The tenant's own `last_event` is the fallback for an
+ * organisation whose views fell outside the window being read.
+ */
+export function waitingOn({
+  stuck,
+  memberOrg,
+  views,
+  lastEventByOrg = new Map(),
+  now,
+}: {
+  stuck: {
+    organization_id: string;
+    organization_name: string;
+    status: string;
+    waiting: number;
+    oldest_days: number;
+  }[];
+  /** Lowercased email to organisation id. */
+  memberOrg: Map<string, string>;
+  views: { email: string | null; occurred_at: string }[];
+  lastEventByOrg?: Map<string, string | null>;
+  now: number;
+}): WaitingRow[] {
+  const seen = new Map<string, number>();
+  for (const view of views) {
+    if (!view.email) continue;
+    const org = memberOrg.get(view.email.trim().toLowerCase());
+    if (!org) continue;
+    const at = Date.parse(view.occurred_at);
+    if (Number.isNaN(at)) continue;
+    seen.set(org, Math.max(seen.get(org) ?? 0, at));
+  }
+
+  for (const [org, iso] of lastEventByOrg) {
+    if (!iso) continue;
+    const at = Date.parse(iso);
+    if (Number.isNaN(at)) continue;
+    seen.set(org, Math.max(seen.get(org) ?? 0, at));
+  }
+
+  const grouped = new Map<string, WaitingRow>();
+  for (const row of stuck) {
+    const existing = grouped.get(row.organization_id);
+    if (existing) {
+      existing.waiting += row.waiting;
+      existing.oldestDays = Math.max(existing.oldestDays, row.oldest_days);
+      existing.states.push({ status: row.status, waiting: row.waiting });
+      continue;
+    }
+
+    const at = seen.get(row.organization_id) ?? null;
+    grouped.set(row.organization_id, {
+      organizationId: row.organization_id,
+      organisation: row.organization_name,
+      waiting: row.waiting,
+      oldestDays: row.oldest_days,
+      states: [{ status: row.status, waiting: row.waiting }],
+      lastSeen: at === null ? null : new Date(at).toISOString(),
+      silentDays: at === null ? null : Math.floor((now - at) / 86_400_000),
+    });
+  }
+
+  const rows = [...grouped.values()];
+  for (const row of rows) row.states.sort((a, b) => b.waiting - a.waiting);
+
+  // Never-seen first, then longest silence, then most waiting. A null is the
+  // worst case here rather than a missing value, so it sorts to the top rather
+  // than to the bottom.
+  return rows.sort((a, b) => {
+    const silence = (row: WaitingRow) => (row.silentDays === null ? Infinity : row.silentDays);
+    return silence(b) - silence(a) || b.waiting - a.waiting;
+  });
+}

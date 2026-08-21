@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Card, CardTitle } from '@/components/ui/primitives';
 import { BarList } from '@/components/analytics/Charts';
+import { Fact } from '@/components/analytics/Activation';
+import { number } from '@/components/analytics/Figures';
 import { WindowTabs, windowFrom } from '@/components/analytics/Window';
 import { buildPeople, renderedAt, tally } from '@/lib/analytics/people';
 import { activityByDay, tenantDetail } from '@/lib/analytics/tenants';
@@ -53,6 +55,8 @@ export default async function TenantPage({
 
   const organization = tenants.organizations.find((o) => o.id === id);
   if (!organization) notFound();
+
+  const counts = tenants.counts.get(id);
 
   const people = buildPeople({
     signedIn,
@@ -109,6 +113,80 @@ export default async function TenantPage({
         days={days}
         now={now}
       />
+
+      {/*
+        * What they have actually done, as opposed to what they have looked at.
+        *
+        * Placed above the page-view breakdowns deliberately. Everything below is
+        * about reading; this is about working, and for a tenant screen the second
+        * is the question and the first is context. The figures are lifetime
+        * rather than windowed because "has this tenant ever submitted anything"
+        * does not become false when the date filter moves.
+        */}
+      <Card className="overflow-hidden">
+        <CardTitle
+          title="What they have done"
+          description="Milestones recorded by the database itself, for the life of this organisation. No voucher amount, vendor or number is exposed here — the function behind it returns counts only."
+        />
+        {counts ? (
+          <div className="grid gap-4 px-5 py-4 sm:grid-cols-3 lg:grid-cols-6">
+            <Fact label="People" value={number(counts.members)} />
+            <Fact
+              label="Drafted"
+              value={number(counts.vouchers_drafted)}
+              tone="var(--status-draft)"
+            />
+            <Fact
+              label="Submitted"
+              value={number(counts.vouchers_submitted)}
+              tone="var(--status-pending)"
+            />
+            <Fact
+              label="Approved"
+              value={number(counts.vouchers_approved)}
+              tone="var(--status-approved)"
+            />
+            <Fact label="Paid" value={number(counts.vouchers_paid)} tone="var(--status-paid)" />
+            <Fact label="Reconciled" value={number(counts.reconciliations_saved)} />
+          </div>
+        ) : (
+          <p className="text-subtle px-5 py-8 text-center text-sm">
+            No milestones recorded for this organisation.
+          </p>
+        )}
+        {counts && (
+          <div className="grid gap-4 border-t px-5 py-4 sm:grid-cols-3">
+            <Fact
+              label="Invites"
+              value={
+                counts.invites_sent === 0
+                  ? number(counts.invites_accepted)
+                  : `${counts.invites_accepted} of ${counts.invites_sent}`
+              }
+              says={
+                counts.invites_sent === 0
+                  ? 'Accepted. Sends were not recorded before migration 0026, so there is no rate yet.'
+                  : 'Links used, out of links generated. An admin copies and sends them by hand.'
+              }
+            />
+            <Fact
+              label="Chapters added"
+              value={number(counts.chapters_created)}
+              says="Beyond the head office every workspace is given on creation."
+            />
+            <Fact
+              label="Sent but never paid"
+              value={number(Math.max(0, counts.vouchers_submitted - counts.vouchers_paid))}
+              says="The gap between the two columns above. Some of it is work in progress; the rest is the queue nobody is being told about."
+              tone={
+                counts.vouchers_submitted - counts.vouchers_paid > 0
+                  ? 'var(--status-warn)'
+                  : undefined
+              }
+            />
+          </div>
+        )}
+      </Card>
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Card className="overflow-hidden">

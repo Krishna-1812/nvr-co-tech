@@ -10,9 +10,11 @@ import {
   UserPlus,
 } from 'lucide-react';
 import {
+  readOperatorMembers,
   readOperatorOnboarding,
   readOperatorTenants,
   readProductEvents,
+  readSignedInViews,
   readSpend,
   readStuckVouchers,
   readWorkflowStages,
@@ -26,6 +28,7 @@ import {
   setupDepth,
   span,
   timeToValue,
+  waitingOn,
 } from '@/lib/analytics/funnel';
 import { renderedAt } from '@/lib/analytics/people';
 import { PageHeader } from '@/components/PageHeader';
@@ -34,9 +37,27 @@ import { Split, Trend } from '@/components/analytics/Charts';
 import { ActivationFunnel, Fact } from '@/components/analytics/Activation';
 import { NUM, Pill, ago, number } from '@/components/analytics/Figures';
 import { WindowTabs, windowFrom } from '@/components/analytics/Window';
+import { cn } from '@/lib/utils';
 
 export const metadata = { title: 'Activation' };
 export const dynamic = 'force-dynamic';
+
+/**
+ * The status token for a voucher state.
+ *
+ * A lookup rather than a nested ternary at the point of use, which had reached
+ * four levels and was unreadable inside JSX.
+ */
+const STATE_TONE: Record<string, string> = {
+  draft: 'var(--status-draft)',
+  pending_first: 'var(--status-pending)',
+  pending_second: 'var(--status-pending)',
+  approved: 'var(--status-approved)',
+  rejected: 'var(--status-rejected)',
+  paid: 'var(--status-paid)',
+};
+
+const toneFor = (status: string): string => STATE_TONE[status] ?? 'var(--status-draft)';
 
 /**
  * Whether the product works.
@@ -80,12 +101,14 @@ export default async function ActivationPage({
 }) {
   const days = windowFrom((await searchParams).days);
 
-  const [events, tenants, onboarding, stages, stuck, spend] = await Promise.all([
+  const [events, tenants, members, onboarding, stages, stuck, views, spend] = await Promise.all([
     readProductEvents(),
     readOperatorTenants(),
+    readOperatorMembers(),
     readOperatorOnboarding(),
     readWorkflowStages(),
     readStuckVouchers(days === 7 ? 7 : 14),
+    readSignedInViews(days),
     readSpend(200),
   ]);
 
@@ -103,6 +126,26 @@ export default async function ActivationPage({
   const rejected = distinctVouchers(events, 'voucher_rejected');
 
   const waiting = stuck.reduce((n, row) => n + row.waiting, 0);
+
+  /*
+   * Stuck work, joined to whether anybody from that tenant has been around to
+   * unstick it. The counts alone cannot tell a queue somebody is working through
+   * from a queue nobody has been told about, and with notification email off the
+   * second is the failure mode this product actually has.
+   */
+  const stalled = waitingOn({
+    stuck,
+    memberOrg: new Map(
+      members
+        .filter((m) => m.organization_id)
+        .map((m) => [m.email.trim().toLowerCase(), m.organization_id!]),
+    ),
+    views,
+    lastEventByOrg: new Map(tenants.map((t) => [t.organization_id, t.last_event])),
+    now,
+  });
+
+  const unattended = stalled.filter((row) => row.silentDays === null || row.silentDays >= 3);
   const paidLookups = spend.length;
   const lookupsByOutcome: { label: string; count: number }[] = Object.entries(
     spend.reduce<Record<string, number>>((acc, row) => {
@@ -261,49 +304,82 @@ export default async function ActivationPage({
       <Card className="overflow-hidden">
         <CardTitle
           icon={<AlarmClock className="size-4" />}
-          title="Work that has stopped moving"
-          description={`Vouchers sitting in one state for more than ${days === 7 ? 'a week' : 'a fortnight'}, per organisation. Counts only — which voucher it is, and whose signature it is waiting for, is that tenant's own business and their approvals screen already tells them.`}
+          title="Waiting on somebody"
+          description={`Vouchers that have sat in one state for more than ${days === 7 ? 'a week' : 'a fortnight'}, ordered by how long it has been since anybody from that organisation was around rather than by how many are waiting. Nine somebody is working through is a queue; one nobody has been told about is the problem.`}
           action={
             waiting > 0 ? (
-              <Pill tone="var(--status-warn)">{number(waiting)} waiting</Pill>
+              <Pill tone={unattended.length > 0 ? 'var(--status-rejected)' : 'var(--status-warn)'}>
+                {number(waiting)} waiting
+              </Pill>
             ) : undefined
           }
         />
-        {stuck.length === 0 ? (
+        {stalled.length === 0 ? (
           <p className="text-subtle px-5 py-8 text-center text-sm text-pretty">
-            Nothing is stuck. Worth knowing that nothing currently tells an approver a voucher is
-            waiting either — notification email is switched off — so an empty table here is the
-            only place that absence would show up.
+            Nothing has stopped moving. Worth knowing what this table cannot catch: nothing
+            currently tells an approver a voucher is waiting, because notification email is switched
+            off. An empty table here is the only place that absence would ever show up.
           </p>
         ) : (
-          <DataTable>
-            <Thead>
-              <tr>
-                <Th>Organisation</Th>
-                <Th>State</Th>
-                <Th align="right">Waiting</Th>
-                <Th align="right">Oldest</Th>
-              </tr>
-            </Thead>
-            <tbody className="divide-y">
-              {stuck.map((row) => (
-                <Tr key={`${row.organization_id}-${row.status}`}>
-                  <Td className="text-[12.5px] font-medium">{row.organization_name}</Td>
-                  <Td>
-                    <Pill tone={`var(--status-${row.status === 'pending_first' || row.status === 'pending_second' ? 'pending' : row.status === 'approved' ? 'approved' : row.status === 'rejected' ? 'rejected' : 'draft'})`}>
-                      {row.status.replace('_', ' ')}
-                    </Pill>
-                  </Td>
-                  <Td align="right" className={NUM}>
-                    {number(row.waiting)}
-                  </Td>
-                  <Td align="right" className={NUM}>
-                    {number(row.oldest_days)} days
-                  </Td>
-                </Tr>
-              ))}
-            </tbody>
-          </DataTable>
+          <div className="scroll-x-hint">
+            <DataTable>
+              <Thead>
+                <tr>
+                  <Th>Organisation</Th>
+                  <Th>Sitting in</Th>
+                  <Th align="right">Waiting</Th>
+                  <Th align="right">Oldest</Th>
+                  <Th align="right">Last seen</Th>
+                </tr>
+              </Thead>
+              <tbody className="divide-y">
+                {stalled.map((row) => {
+                  // Three days is the line. Below it somebody plausibly has not
+                  // got to it yet; above it, in a product that sends no email,
+                  // the likeliest explanation is that nobody knows.
+                  const unseen = row.silentDays === null || row.silentDays >= 3;
+
+                  return (
+                    <Tr key={row.organizationId}>
+                      <Td className="text-[12.5px] font-medium">
+                        {row.organisation}
+                        {unseen && (
+                          <span
+                            className="mt-0.5 block text-[11px] font-normal"
+                            style={{ color: 'var(--status-rejected)' }}
+                          >
+                            nobody has been in to see it
+                          </span>
+                        )}
+                      </Td>
+                      <Td>
+                        <span className="flex flex-wrap gap-1">
+                          {row.states.map((state) => (
+                            <Pill key={state.status} tone={toneFor(state.status)}>
+                              {state.waiting} {state.status.replace('_', ' ')}
+                            </Pill>
+                          ))}
+                        </span>
+                      </Td>
+                      <Td align="right" className={NUM}>
+                        {number(row.waiting)}
+                      </Td>
+                      <Td align="right" className={NUM}>
+                        {number(row.oldestDays)} days
+                      </Td>
+                      <Td
+                        align="right"
+                        className={cn(NUM, 'whitespace-nowrap')}
+                        style={unseen ? { color: 'var(--status-rejected)' } : undefined}
+                      >
+                        {row.lastSeen === null ? 'never' : ago(row.lastSeen, now)}
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </tbody>
+            </DataTable>
+          </div>
         )}
       </Card>
 

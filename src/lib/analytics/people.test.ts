@@ -234,6 +234,42 @@ describe('buildPeople', () => {
     expect(person.photo).toBe('https://x.test/a.png');
   });
 
+  it('takes the workspace they belong to from the directory, alongside the domain guess', () => {
+    // Two different claims about the same person, and they are allowed to
+    // disagree: the organisation is the tenant on their profile row, the company
+    // is their email domain. A consultant at acme.com inside Northwind is a real
+    // shape and collapsing the two would hide it.
+    const [person] = buildPeople({
+      signedIn: [view({})],
+      profiles: [
+        {
+          email: 'raj@acme.com',
+          full_name: 'Raj Mehta',
+          avatar_url: null,
+          organization_name: 'Northwind Trading',
+        },
+      ],
+    });
+
+    expect(person.organisation).toBe('Northwind Trading');
+    expect(person.company).toBe('acme.com');
+  });
+
+  it('leaves the workspace null for somebody who signed up and never onboarded', () => {
+    // organization_id is null until create_organization or accept_invite runs,
+    // so the operator function hands back a null name. That state is the whole
+    // onboarding drop-off measure and must not be filled in with a guess.
+    const [person] = buildPeople({
+      signedIn: [view({})],
+      profiles: [
+        { email: 'raj@acme.com', full_name: 'Raj Mehta', avatar_url: null, organization_name: null },
+      ],
+    });
+
+    expect(person.organisation).toBeNull();
+    expect(person.company).toBe('acme.com');
+  });
+
   it('ignores page views with no address at all', () => {
     expect(buildPeople({ signedIn: [view({ email: null })] })).toHaveLength(0);
   });

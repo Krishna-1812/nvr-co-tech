@@ -10,19 +10,22 @@ import {
   Radar,
   Sparkles,
   TrendingUp,
-  Users,
 } from 'lucide-react';
 import {
   byDevice,
   conversionRate,
-  ctaBreakdown,
   daily,
   overview,
   topPages,
   topReferrers,
   webVitals,
 } from '@/lib/analytics/aggregate';
-import { readIdentities, readSignedInViews, readVisitorViews } from '@/lib/analytics/store';
+import {
+  readProductEvents,
+  readStuckVouchers,
+  readVisitorViews,
+} from '@/lib/analytics/store';
+import { activation } from '@/lib/analytics/funnel';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardTitle, EmptyState } from '@/components/ui/primitives';
 import { BarList, Split, Trend } from '@/components/analytics/Charts';
@@ -67,18 +70,68 @@ export default async function AnalyticsOverviewPage({
 }) {
   const days = windowFrom((await searchParams).days);
 
-  const [rows, signedIn, identities] = await Promise.all([
+  const [rows, events, stuck] = await Promise.all([
     readVisitorViews(days),
-    readSignedInViews(days),
-    readIdentities(),
+    readProductEvents(),
+    readStuckVouchers(14),
   ]);
 
   const totals = overview(rows);
+
+  /*
+   * The product row, computed before the early return below, because it is the
+   * half of this page that does not depend on there being any traffic. A brand
+   * new deployment with tenants and no marketing visitors used to render an
+   * empty state on this screen and say nothing about the tenants.
+   */
+  const funnel = activation(events);
+  const waiting = stuck.reduce((n, row) => n + row.waiting, 0);
+  const product = (
+    <KpiRow flow="flex">
+      <KpiCard
+        label="Signed up"
+        value={funnel[0]?.reached ?? 0}
+        caption="Accounts that exist, counted by the database itself rather than by the app."
+        accent="var(--h-indigo)"
+        href="/analytics/activation"
+      />
+      <KpiCard
+        label="Started a workspace"
+        value={funnel[1]?.reached ?? 0}
+        caption={
+          funnel[1]?.fromPrevious === null
+            ? 'Nobody has onboarded yet.'
+            : `${funnel[1]?.fromPrevious}% of the people who signed up.`
+        }
+        accent="var(--h-violet)"
+        href="/analytics/activation"
+      />
+      <KpiCard
+        label="Ever submitted a voucher"
+        value={funnel[3]?.reached ?? 0}
+        caption="Organisations that got past every validation. The line between trying it and using it."
+        accent="var(--h-emerald)"
+        href="/analytics/activation"
+      />
+      <KpiCard
+        label="Waiting on somebody"
+        value={waiting}
+        caption={
+          waiting === 0
+            ? 'Nothing has sat in one state for a fortnight.'
+            : 'Vouchers stuck for more than a fortnight. Nothing emails the person holding them.'
+        }
+        accent={waiting > 0 ? 'var(--status-rejected)' : 'var(--h-lime)'}
+        href="/analytics/activation"
+      />
+    </KpiRow>
+  );
 
   if (totals.pageViews === 0) {
     return (
       <div className="space-y-6">
         <Header days={days} />
+        {product}
         <Card className="overflow-hidden">
           <EmptyState
             icon={<Activity className="size-6" />}
@@ -98,99 +151,54 @@ export default async function AnalyticsOverviewPage({
 
   const conversion = conversionRate(rows);
 
-  const signUpClicks = ctaBreakdown(rows)
-    .filter((item) => /sign|start|try|create/i.test(item.label))
-    .reduce((n, item) => n + item.count, 0);
-
-  /*
-   * Anonymous visitors who later turned out to be somebody. Deterministic in
-   * both directions: either their tracking id appears against a signed-in page
-   * view, or an identity row names them outright. No inference.
-   */
-  const knownIds = new Set<string>([
-    ...signedIn.map((r) => r.visitor_id).filter((v): v is string => Boolean(v)),
-    ...identities.map((r) => r.visitor_id),
-  ]);
-  const signedInLater = new Set(
-    rows
-      .filter((r) => !r.is_bot && r.visitor_id && knownIds.has(r.visitor_id))
-      .map((r) => r.visitor_id),
-  ).size;
-
-  const namedPeople = new Set(
-    identities.map((r) => r.email?.toLowerCase()).filter(Boolean),
-  ).size;
-  const namedCompanies = new Set(
-    identities.map((r) => r.company?.trim().toLowerCase()).filter(Boolean),
-  ).size;
-
-  const share = (n: number): string =>
-    totals.visitors ? `${Math.round((n / totals.visitors) * 1000) / 10}% of visitors` : '—';
-
   return (
     <div className="space-y-6">
       <Header days={days} />
 
+      {product}
+
+      {/*
+        * Traffic, second and smaller.
+        *
+        * It used to be first and ten cards long, five of which could not move:
+        * two counted things that do not exist on the site, and three counted
+        * de-anonymisation that has since been switched off for being wrong. What
+        * is left is the four figures that describe the public site honestly, plus
+        * the one conversion it exists to produce.
+        */}
       <KpiRow flow="flex">
         <KpiCard
           label="Page views"
           value={totals.pageViews}
           caption={`${number(totals.botViews)} bot ${totals.botViews === 1 ? 'visit' : 'visits'} excluded from every figure here`}
-          accent="var(--h-indigo)"
+          accent="var(--h-cyan)"
         />
         <KpiCard
           label="People"
           value={totals.visitors}
           caption={`${number(totals.newVisitors)} new · ${number(totals.returningVisitors)} came back`}
-          accent="var(--h-violet)"
+          accent="var(--h-amber)"
           href={`/analytics/visitors?days=${days}`}
         />
         <KpiCard
           label="Visits"
           value={totals.sessions}
           caption={`${totals.bounceRate}% read one page and left`}
-          accent="var(--h-cyan)"
+          accent="var(--h-rose)"
           href={`/analytics/visitors?days=${days}`}
         />
         <KpiCard
           label="Attention per visit"
           value={duration(totals.averageEngaged)}
           caption="Counted only while the tab was in front and something was being touched"
-          accent="var(--h-amber)"
-        />
-        <KpiCard
-          label="Clicked sign up"
-          value={signUpClicks}
-          caption={share(signUpClicks)}
-          accent="var(--h-lime)"
-          href={`/analytics/behaviour?days=${days}`}
+          accent="var(--h-magenta)"
         />
         <KpiCard
           label="Asked to be contacted"
           value={conversion.converted}
           caption={`${conversion.rate}% of ${number(conversion.visitors)} people`}
-          accent="var(--h-emerald)"
+          accent="var(--h-lime)"
           href="/analytics/requests"
-        />
-        <KpiCard
-          label="Signed in later"
-          value={signedInLater}
-          caption={`${share(signedInLater)}, linked by their own tracking id`}
-          accent="var(--h-magenta)"
-          href={`/analytics/members?days=${days}`}
-        />
-        <KpiCard
-          label="Named outright"
-          value={namedPeople}
-          caption="From a form they filled in, never inferred from an address"
-          accent="var(--h-violet)"
-          href={`/analytics/visitors?days=${days}`}
-        />
-        <KpiCard
-          label="Companies named"
-          value={namedCompanies}
-          caption="Told to us directly, on a form. Never inferred from an address."
-          accent="var(--h-indigo)"
         />
       </KpiRow>
 
@@ -251,9 +259,9 @@ export default async function AnalyticsOverviewPage({
 function Header({ days }: { days: number }) {
   return (
     <PageHeader
-      eyebrow="Visitor Intelligence"
+      eyebrow="Overview"
       title="What is happening"
-      description="Measured by our own tracker, on our own origin, into our own database. No Google Analytics and no third-party pixel is involved at any point, and anybody sending Do Not Track is never recorded."
+      description="The product first, the public site second. Everything is measured by our own tracker on our own origin into our own database — no Google Analytics, no third-party pixel — and anybody sending Do Not Track is never recorded at all."
       action={<WindowTabs current={days as 7 | 30 | 90} base="/analytics" />}
     />
   );
@@ -284,7 +292,6 @@ const AREAS = [
   {
     group: 'Once they have an account',
     items: [
-      { href: '/analytics/members', label: 'Members', icon: Users, note: 'Everybody who signed up, and what they read before they did.' },
       { href: '/analytics/external', label: 'Customer usage', icon: Sparkles, note: 'The full roster, with enrichment, a written read and a ranking by who looks worth a conversation.' },
       { href: '/analytics/orgs', label: 'Organisations', icon: Building2, note: 'Per tenant, split into their people and ours, so adoption is not inflated by us.' },
       { href: '/analytics/internal', label: 'Staff usage', icon: Compass, note: 'What the team itself is doing. Allowlist only.' },

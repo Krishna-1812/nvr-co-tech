@@ -149,21 +149,45 @@ export async function readStaffEmails(): Promise<string[]> {
  * would then go stale. So the roster joins this on afterwards.
  */
 export async function readProfileDirectory(): Promise<
-  { email: string | null; full_name: string | null; avatar_url: string | null }[]
+  {
+    email: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+    organization_name: string | null;
+  }[]
 > {
-  const supabase = await createClient();
-  const { data } = await supabase.from('profiles').select('email, full_name, avatar_url');
-
-  return data ?? [];
+  const members = await readOperatorMembers();
+  return members.map((m) => ({
+    email: m.email,
+    full_name: m.full_name,
+    avatar_url: m.avatar_url,
+    organization_name: m.organization_name,
+  }));
 }
 
 /**
  * Every tenant, and who belongs to which.
  *
- * The page-view log has no tenant column and should not gain one: it is written
- * on every navigation by people who may not belong to an organisation yet, and a
- * column that is null for half its rows is worse than a join. So membership is
- * read from profiles and the attribution happens in the aggregation.
+ * ── Why this no longer reads the tables ─────────────────────────────────────
+ *
+ * It used to select straight from `organizations` and `profiles`, and it
+ * therefore returned exactly one organisation — the caller's own — however many
+ * tenants existed. `organizations_read` is `using (id = my_organization_id())`
+ * and `profiles_read_self` is scoped the same way, so an operator asking for
+ * the tenant list got their own row back and every screen built on this
+ * rendered it as though that were the whole platform. Nothing failed; the answer
+ * was just quietly wrong, which is the worst kind.
+ *
+ * It now goes through the operator functions from 0026, which check the
+ * analytics allowlist themselves and return counts rather than table rows. The
+ * activation figures come back with it, because they are free once the function
+ * has been called and because a tenant list ranked by page views was ranking
+ * customers by how much marketing they had read.
+ *
+ * The page-view log still has no tenant column and should not gain one: it is
+ * written on every navigation by people who may not belong to an organisation
+ * yet, and a column that is null for half its rows is worse than a join. So
+ * membership stays a lookup and the attribution happens in the aggregation.
  *
  * The consequence worth knowing: activity is attributed to whichever
  * organisation somebody belongs to *now*, not the one they belonged to when the
@@ -175,17 +199,24 @@ export async function readProfileDirectory(): Promise<
 export async function readTenants(): Promise<{
   organizations: { id: string; name: string; created_at: string }[];
   members: { email: string; organization_id: string | null; full_name: string | null; avatar_url: string | null }[];
+  /** The activation counts for each organisation, keyed by id. */
+  counts: Map<string, OperatorTenantRow>;
 }> {
-  const supabase = await createClient();
-
-  const [orgs, people] = await Promise.all([
-    supabase.from('organizations').select('id, name, created_at'),
-    supabase.from('profiles').select('email, organization_id, full_name, avatar_url'),
-  ]);
+  const [tenants, members] = await Promise.all([readOperatorTenants(), readOperatorMembers()]);
 
   return {
-    organizations: orgs.data ?? [],
-    members: (people.data ?? []).filter((p): p is typeof p & { email: string } => Boolean(p.email)),
+    organizations: tenants.map((t) => ({
+      id: t.organization_id,
+      name: t.name,
+      created_at: t.created_at,
+    })),
+    members: members.map((m) => ({
+      email: m.email,
+      organization_id: m.organization_id,
+      full_name: m.full_name,
+      avatar_url: m.avatar_url,
+    })),
+    counts: new Map(tenants.map((t) => [t.organization_id, t])),
   };
 }
 

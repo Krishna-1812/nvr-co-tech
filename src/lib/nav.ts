@@ -183,11 +183,18 @@ export function analyticsSection(): Section {
         icon: TrendingUp,
         hint: 'Signups, workspaces, first vouchers, and where the workflow stalls',
       },
+      /*
+       * Demoted to secondary in the same pass that stopped the resolver naming
+       * companies. It is an honest log of what hit the public site and it is no
+       * longer the second-most-important thing in the section — most of what made
+       * it feel that way was the company column, which was inventing its answers.
+       */
       {
         href: '/analytics/visitors',
         label: 'Visitors',
         icon: Radar,
-        hint: 'Every session, with who it was and where it came from',
+        hint: 'Every session on the public site, and where it came from',
+        secondary: true,
       },
       {
         href: '/analytics/behaviour',
@@ -215,13 +222,6 @@ export function analyticsSection(): Section {
         label: 'Customer usage',
         icon: Users,
         hint: 'Everyone using the product who is not on our own team',
-        secondary: true,
-      },
-      {
-        href: '/analytics/members',
-        label: 'Members',
-        icon: History,
-        hint: 'Everyone who signed up, and what they read beforehand',
         secondary: true,
       },
       {

@@ -11,6 +11,7 @@ import {
   span,
   tallyEvents,
   timeToValue,
+  waitingOn,
 } from './funnel';
 
 /**
@@ -313,5 +314,97 @@ describe('the small helpers', () => {
     expect(span(47)).toBe('47 hr');
     expect(span(72)).toBe('3 days');
     expect(span(24 * 30)).toBe('4 weeks');
+  });
+});
+
+describe('who is not acting', () => {
+  const NOW = Date.parse('2026-08-21T12:00:00.000Z');
+
+  const stuckRow = (over = {}) => ({
+    organization_id: 'a',
+    organization_name: 'Acme',
+    status: 'pending_first',
+    waiting: 1,
+    oldest_days: 3,
+    ...over,
+  });
+
+  it('folds several states of one organisation into one row', () => {
+    const [row] = waitingOn({
+      stuck: [
+        stuckRow({ status: 'pending_first', waiting: 2, oldest_days: 4 }),
+        stuckRow({ status: 'approved', waiting: 3, oldest_days: 11 }),
+      ],
+      memberOrg: new Map(),
+      views: [],
+      now: NOW,
+    });
+
+    expect(row.waiting).toBe(5);
+    expect(row.oldestDays).toBe(11);
+    expect(row.states.map((s) => s.status)).toEqual(['approved', 'pending_first']);
+  });
+
+  it('sorts by how long nobody has looked, not by how much is waiting', () => {
+    // The ordering that makes this screen worth having. Nine vouchers somebody
+    // is working through is a queue; one nobody has been told about is the bug.
+    const rows = waitingOn({
+      stuck: [
+        stuckRow({ organization_id: 'busy', organization_name: 'Busy', waiting: 9 }),
+        stuckRow({ organization_id: 'quiet', organization_name: 'Quiet', waiting: 1 }),
+      ],
+      memberOrg: new Map([['a@busy.test', 'busy'], ['b@quiet.test', 'quiet']]),
+      views: [
+        { email: 'a@busy.test', occurred_at: '2026-08-21T09:00:00.000Z' },
+        { email: 'b@quiet.test', occurred_at: '2026-08-01T09:00:00.000Z' },
+      ],
+      now: NOW,
+    });
+
+    expect(rows.map((r) => r.organisation)).toEqual(['Quiet', 'Busy']);
+    expect(rows[0].silentDays).toBe(20);
+    expect(rows[1].silentDays).toBe(0);
+  });
+
+  it('puts an organisation nobody has ever been seen in at the very top', () => {
+    // Null is the worst case here, not a missing value, so it must not sort last.
+    const rows = waitingOn({
+      stuck: [
+        stuckRow({ organization_id: 'seen', organization_name: 'Seen', waiting: 40 }),
+        stuckRow({ organization_id: 'never', organization_name: 'Never' }),
+      ],
+      memberOrg: new Map([['a@seen.test', 'seen']]),
+      views: [{ email: 'a@seen.test', occurred_at: '2026-07-01T09:00:00.000Z' }],
+      now: NOW,
+    });
+
+    expect(rows[0].organisation).toBe('Never');
+    expect(rows[0].silentDays).toBeNull();
+    expect(rows[0].lastSeen).toBeNull();
+  });
+
+  it('takes the later of a page view and a recorded milestone', () => {
+    // Signing in to read the register makes a view and no milestone; the reverse
+    // is possible too. Either one means somebody was there.
+    const [row] = waitingOn({
+      stuck: [stuckRow()],
+      memberOrg: new Map([['a@acme.test', 'a']]),
+      views: [{ email: 'a@acme.test', occurred_at: '2026-08-10T09:00:00.000Z' }],
+      lastEventByOrg: new Map([['a', '2026-08-20T09:00:00.000Z']]),
+      now: NOW,
+    });
+
+    expect(row.silentDays).toBe(1);
+  });
+
+  it('ignores a page view from somebody who belongs to no organisation', () => {
+    const [row] = waitingOn({
+      stuck: [stuckRow()],
+      memberOrg: new Map(),
+      views: [{ email: 'stranger@nowhere.test', occurred_at: '2026-08-21T09:00:00.000Z' }],
+      now: NOW,
+    });
+
+    expect(row.silentDays).toBeNull();
   });
 });
