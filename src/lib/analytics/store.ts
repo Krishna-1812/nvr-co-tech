@@ -7,6 +7,7 @@ import type {
   VisitorIdentityRow,
   VisitorViewRow,
 } from './types';
+import type { RunEvent } from './people';
 
 /**
  * Everything that touches the database.
@@ -110,6 +111,76 @@ export async function readIdentities(): Promise<VisitorIdentityRow[]> {
     .limit(2_000);
 
   return (data ?? []) as unknown as VisitorIdentityRow[];
+}
+
+/**
+ * The staff allowlist, as a list rather than a yes/no.
+ *
+ * `analyticsGate()` answers "am I allowed in". This answers "who counts as one
+ * of us", which is what splits the internal usage page from the external one.
+ * Both read the same table, so a person added to the allowlist moves from the
+ * customer view to the staff view on the next page load, with nothing else to
+ * update — which is the whole reason the split is defined by this table and not
+ * by an email domain.
+ */
+export async function readStaffEmails(): Promise<string[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.from('analytics_admins').select('email');
+
+  return (data ?? [])
+    .map((row) => (row as { email: string | null }).email)
+    .filter((email): email is string => Boolean(email))
+    .map((email) => email.trim().toLowerCase());
+}
+
+/**
+ * Names and photographs.
+ *
+ * The page-view log stores an address and nothing else, on purpose — it is
+ * written on every page load and has no business carrying a display name that
+ * would then go stale. So the roster joins this on afterwards.
+ */
+export async function readProfileDirectory(): Promise<
+  { email: string | null; full_name: string | null; avatar_url: string | null }[]
+> {
+  const supabase = await createClient();
+  const { data } = await supabase.from('profiles').select('email, full_name, avatar_url');
+
+  return data ?? [];
+}
+
+/** Opens of metered tools. The window matches whatever the page is showing. */
+export async function readAgentRuns(days = 30): Promise<RunEvent[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('agent_runs')
+    .select('email, feature_slug, created_at')
+    .gte('created_at', since.toISOString())
+    .order('created_at', { ascending: false })
+    .limit(ROW_LIMIT);
+
+  return data ?? [];
+}
+
+/**
+ * Every run there has ever been, for one person or for everyone.
+ *
+ * Separate from `readAgentRuns` because the cap is lifetime, not windowed:
+ * "seven of your ten" has to count every run ever made, or somebody's allowance
+ * would quietly reset whenever the dashboard's date filter moved.
+ */
+export async function readAllAgentRuns(): Promise<RunEvent[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('agent_runs')
+    .select('email, feature_slug, created_at')
+    .order('created_at', { ascending: false })
+    .limit(ROW_LIMIT);
+
+  return data ?? [];
 }
 
 // ─── The caches ──────────────────────────────────────────────────────────────

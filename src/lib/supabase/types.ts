@@ -299,6 +299,56 @@ export type EnrichmentSpendRow = {
 /** Row shapes for the append-only analytics tables, as the dashboard reads them. */
 type AnalyticsRow = Record<string, unknown>;
 
+/**
+ * 0022 — an activation milestone, written from the function that caused it.
+ *
+ * Named rather than left as an AnalyticsRow because the funnel screen selects
+ * specific columns off it and would otherwise have to assert every one.
+ */
+export type ProductEventRow = {
+  id: number;
+  name: string;
+  actor_id: string | null;
+  organization_id: string | null;
+  meta: Record<string, unknown> | null;
+  created_at: string;
+};
+
+/** 0023 — one open of a metered tool. */
+export type AgentRunRow = {
+  id: number;
+  actor_id: string | null;
+  email: string;
+  feature_slug: string;
+  organization_id: string | null;
+  created_at: string;
+};
+
+/** 0023 — the public request-access form. */
+export type AccessRequestRow = {
+  id: number;
+  created_at: string;
+  name: string;
+  email: string;
+  company: string | null;
+  interest: string | null;
+  message: string | null;
+  ip: string | null;
+  source: string | null;
+  visitor_id: string | null;
+};
+
+/** 0023 — a signed-in person asking for a tool that is not live yet. */
+export type FeatureRequestRow = {
+  id: number;
+  created_at: string;
+  actor_id: string | null;
+  email: string;
+  name: string | null;
+  feature_slug: string;
+  reason: string | null;
+};
+
 /** 0011 — a caught failure, as the errors admin screen reads it. */
 type ErrorLogRow = {
   id: number;
@@ -358,6 +408,10 @@ export type Database = {
 
       // 0011 — shared rate limiting and error logging.
       error_log: Table<ErrorLogRow>;
+      product_events: Table<ProductEventRow>;
+      agent_runs: Table<AgentRunRow>;
+      access_requests: Table<AccessRequestRow>;
+      feature_requests: Table<FeatureRequestRow>;
     };
     Views: Record<never, never>;
     Functions: {
@@ -460,6 +514,38 @@ export type Database = {
       rename_organization: { Args: { p_name: string }; Returns: OrganizationRow };
       revoke_invite: { Args: { p_id: string }; Returns: void };
       withdraw_voucher: { Args: { p_id: string }; Returns: Voucher };
+
+      /*
+       * 0023 — the three streams the analytics section needs.
+       *
+       * record_agent_run reports its outcome rather than raising when somebody
+       * is at their limit, because being at a cap is an ordinary state the
+       * calling screen has to render, not a fault. It returns a single-row set,
+       * which is why the shape is an array.
+       *
+       * submit_feature_request returns false to mean "you had already asked",
+       * which is a settled state and not an error either.
+       */
+      agent_run_cap: { Args: Record<string, never>; Returns: number };
+      record_agent_run: {
+        Args: { p_slug: string };
+        Returns: { allowed: boolean; used: number; cap: number }[];
+      };
+      submit_feature_request: { Args: { p_slug: string; p_reason?: string | null }; Returns: boolean };
+      requested_features: { Args: Record<string, never>; Returns: string[] };
+      submit_access_request: {
+        Args: {
+          p_name: string;
+          p_email: string;
+          p_company?: string | null;
+          p_interest?: string | null;
+          p_message?: string | null;
+          p_ip?: string | null;
+          p_source?: string | null;
+          p_visitor_id?: string | null;
+        };
+        Returns: AccessRequestRow;
+      };
     };
     Enums: {
       user_role: UserRole;

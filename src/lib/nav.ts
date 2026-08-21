@@ -188,6 +188,41 @@ export function analyticsSection(): Section {
         hint: 'Scrolling, clicking, searching, and the lead funnel',
         secondary: true,
       },
+      /*
+       * Usage, as opposed to traffic. The four items above are about people who
+       * are not signed in; these are about people who are. Keeping them adjacent
+       * but distinct matters because the two halves answer different questions
+       * and share almost no vocabulary: a visitor has an intent score and no
+       * name, a user has a name and no intent score.
+       */
+      {
+        href: '/analytics/internal',
+        label: 'Staff usage',
+        icon: Building2,
+        hint: 'What the team itself is using, allowlist only',
+        secondary: true,
+      },
+      {
+        href: '/analytics/external',
+        label: 'Customer usage',
+        icon: Users,
+        hint: 'Everyone using the product who is not on our own team',
+        secondary: true,
+      },
+      {
+        href: '/analytics/agents',
+        label: 'Tool usage',
+        icon: Sparkles,
+        hint: 'Runs per person per tool, against the cap',
+        secondary: true,
+      },
+      {
+        href: '/analytics/requests',
+        label: 'Access requests',
+        icon: Inbox,
+        hint: 'Who has asked to be let in, and what for',
+        secondary: true,
+      },
       {
         href: '/analytics/errors',
         label: 'Errors',
