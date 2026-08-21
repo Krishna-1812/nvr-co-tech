@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { STAGE_LABEL } from '@/lib/marketing/content';
 import { STAGE_NOTE, STAGE_TONE, type Solution } from '@/lib/solutions';
 import { cn } from '@/lib/utils';
+import { WantThis } from './WantThis';
 
 /**
  * A tool that is not built yet.
@@ -18,8 +19,13 @@ import { cn } from '@/lib/utils';
  * The one link is to the tool's page on the public site, where what it will do is
  * written down in specifics. That is a better answer to "when do I get this" than a
  * disabled button.
+ *
+ * There is now one control beside it, and it is not a disabled button either: an
+ * "I want this" that records the ask against this person and shows up on an
+ * internal screen. It earns its place because it does something — what gets built
+ * next is decided partly by this — where a greyed-out Open never would.
  */
-export function SolutionCard({ solution }: { solution: Solution }) {
+export function SolutionCard({ solution, asked = false }: { solution: Solution; asked?: boolean }) {
   const { icon: Icon, tone, stage } = solution;
 
   // In build gets its colour on the mark; on the roadmap does not. The same
@@ -84,16 +90,19 @@ export function SolutionCard({ solution }: { solution: Solution }) {
 
       <div className="surface-sunken relative flex items-center justify-between gap-3 border-t px-5 py-3">
         <span className="a-label truncate">{STAGE_NOTE[stage]}</span>
-        <Link
-          href={solution.plan}
-          className="group/l inline-flex shrink-0 items-center gap-1 text-xs font-semibold transition hover:text-brand-600 dark:hover:text-brand-300"
-        >
-          The plan
-          <ArrowUpRight
-            className="size-3.5 transition-transform duration-300 group-hover/l:translate-x-0.5 group-hover/l:-translate-y-0.5"
-            aria-hidden
-          />
-        </Link>
+        <span className="flex shrink-0 items-center gap-4">
+          <WantThis slug={solution.slug} asked={asked} />
+          <Link
+            href={solution.plan}
+            className="group/l inline-flex shrink-0 items-center gap-1 text-xs font-semibold transition hover:text-brand-600 dark:hover:text-brand-300"
+          >
+            The plan
+            <ArrowUpRight
+              className="size-3.5 transition-transform duration-300 group-hover/l:translate-x-0.5 group-hover/l:-translate-y-0.5"
+              aria-hidden
+            />
+          </Link>
+        </span>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import { RequestCard } from '@/components/hub/RequestCard';
 import { RosterMeter } from '@/components/hub/RosterMeter';
 import { SetupChecklist, type SetupState } from '@/components/hub/SetupChecklist';
 import { SolutionCard } from '@/components/hub/SolutionCard';
+import { myFeatureRequests } from '@/app/actions/access';
 
 export const metadata: Metadata = { title: 'Workspace' };
 
@@ -91,6 +92,9 @@ export default async function HubPage() {
     chapters,
     people,
     org,
+    // Which tools this person has already put their hand up for, so a card that
+    // has been asked for says so rather than inviting the same ask again.
+    asked,
   ] = await Promise.all([
     count().eq('created_by', user.id).eq('status', 'draft'),
     count().eq('created_by', user.id).in('status', [...PENDING]),
@@ -122,7 +126,10 @@ export default async function HubPage() {
     owner ? supabase.from('chapters').select('id', { count: 'exact', head: true }) : null,
     owner ? supabase.from('profiles').select('id', { count: 'exact', head: true }) : null,
     owner ? supabase.from('organizations').select('requires_approval').single() : null,
+    myFeatureRequests(),
   ]);
+
+  const askedSet = new Set(asked);
 
   const n = {
     drafts: drafts.count ?? 0,
@@ -370,7 +377,7 @@ export default async function HubPage() {
         <ul className="stagger mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((solution) => (
             <li key={solution.slug} className="h-full">
-              <SolutionCard solution={solution} />
+              <SolutionCard solution={solution} asked={askedSet.has(solution.slug)} />
             </li>
           ))}
           <li className="h-full">
