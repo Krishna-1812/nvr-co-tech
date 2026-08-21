@@ -1,15 +1,15 @@
 import Link from 'next/link';
 import {
   Activity,
+  AlertTriangle,
   ArrowUpRight,
   Building2,
   Compass,
   Gauge,
   Inbox,
-  MousePointerClick,
   Radar,
-  Sparkles,
   TrendingUp,
+  Users,
 } from 'lucide-react';
 import {
   byDevice,
@@ -279,24 +279,22 @@ const AREAS = [
   {
     group: 'Whether the product works',
     items: [
-      { href: '/analytics/activation', label: 'Activation', icon: TrendingUp, note: 'Signups to workspaces to first submitted voucher, how long each step of the workflow takes, and what has stopped moving.' },
+      { href: '/analytics/activation', label: 'Activation', icon: TrendingUp, note: 'Signups to workspaces to first submitted voucher, how long each step of the workflow takes, and what has stopped moving because nobody was told.' },
+      { href: '/analytics/external', label: 'Usage', icon: Users, note: 'Everyone signed in, with a toggle between customers and our own team. The two are never summed, because the combined figure is the misleading one.' },
+      { href: '/analytics/orgs', label: 'Organisations', icon: Building2, note: 'Per tenant, ranked by work done rather than pages read. Counts only — no voucher amount, vendor or number reaches these screens.' },
     ],
   },
   {
-    group: 'Before we know who they are',
+    group: 'Who is asking, and what is breaking',
     items: [
-      { href: '/analytics/visitors', label: 'Visitors', icon: Radar, note: 'Every anonymous session, with an intent score and whatever we could resolve about it.' },
-      { href: '/analytics/behaviour', label: 'Behaviour', icon: MousePointerClick, note: 'Scrolling, clicking, searching, rage clicks and the lead form funnel.' },
+      { href: '/analytics/requests', label: 'Access requests', icon: Inbox, note: 'Real inbound from people who typed their own details. The highest signal-to-noise screen here.' },
+      { href: '/analytics/errors', label: 'Errors', icon: AlertTriangle, note: 'Every failure a page boundary or a route handler caught, newest first.' },
     ],
   },
   {
-    group: 'Once they have an account',
+    group: 'The public site',
     items: [
-      { href: '/analytics/external', label: 'Customer usage', icon: Sparkles, note: 'The full roster, with enrichment, a written read and a ranking by who looks worth a conversation.' },
-      { href: '/analytics/orgs', label: 'Organisations', icon: Building2, note: 'Per tenant, split into their people and ours, so adoption is not inflated by us.' },
-      { href: '/analytics/internal', label: 'Staff usage', icon: Compass, note: 'What the team itself is doing. Allowlist only.' },
-      { href: '/analytics/agents', label: 'Tool usage', icon: Gauge, note: 'Opens per person per tool, against the allowance.' },
-      { href: '/analytics/requests', label: 'Access requests', icon: Inbox, note: 'Who has asked to be let in, and which tools people are asking for.' },
+      { href: '/analytics/visitors', label: 'Public site', icon: Radar, note: 'Anonymous sessions, the lead funnel, what got clicked and how far down people read. A company name appears only when the address itself named one.' },
     ],
   },
 ] as const;

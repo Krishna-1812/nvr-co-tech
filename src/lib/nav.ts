@@ -6,7 +6,6 @@ import {
   History,
   Inbox,
   LayoutDashboard,
-  MousePointerClick,
   Plus,
   Radar,
   Scale,
@@ -171,11 +170,11 @@ export function analyticsSection(): Section {
         hint: 'Traffic, where it came from and how the site is holding up',
       },
       /*
-       * Second, and deliberately ahead of everything about traffic. This is the
-       * only screen in the section that answers whether the product works; the
-       * rest answer who looked at the marketing for it. When the two competed
-       * for the top of the rail, the traffic screens won for two years and the
-       * activation data sat in a table nothing read.
+       * Second, and deliberately ahead of everything about the public site. This
+       * is the only screen in the section that answers whether the product
+       * works; the rest answer who looked at the marketing for it. When the two
+       * competed for the top of the rail the traffic screens won for two years,
+       * and the activation data sat in a table nothing read.
        */
       {
         href: '/analytics/activation',
@@ -183,66 +182,37 @@ export function analyticsSection(): Section {
         icon: TrendingUp,
         hint: 'Signups, workspaces, first vouchers, and where the workflow stalls',
       },
-      /*
-       * Demoted to secondary in the same pass that stopped the resolver naming
-       * companies. It is an honest log of what hit the public site and it is no
-       * longer the second-most-important thing in the section — most of what made
-       * it feel that way was the company column, which was inventing its answers.
-       */
-      {
-        href: '/analytics/visitors',
-        label: 'Visitors',
-        icon: Radar,
-        hint: 'Every session on the public site, and where it came from',
-        secondary: true,
-      },
-      {
-        href: '/analytics/behaviour',
-        label: 'Behaviour',
-        icon: MousePointerClick,
-        hint: 'Scrolling, clicking, searching, and the lead funnel',
-        secondary: true,
-      },
-      /*
-       * Usage, as opposed to traffic. The four items above are about people who
-       * are not signed in; these are about people who are. Keeping them adjacent
-       * but distinct matters because the two halves answer different questions
-       * and share almost no vocabulary: a visitor has an intent score and no
-       * name, a user has a name and no intent score.
-       */
-      {
-        href: '/analytics/internal',
-        label: 'Staff usage',
-        icon: Building2,
-        hint: 'What the team itself is using, allowlist only',
-        secondary: true,
-      },
       {
         href: '/analytics/external',
-        label: 'Customer usage',
+        label: 'Usage',
         icon: Users,
-        hint: 'Everyone using the product who is not on our own team',
-        secondary: true,
+        hint: 'Everyone signed in, customers or our own team',
       },
       {
         href: '/analytics/orgs',
         label: 'Organisations',
-        icon: Scale,
-        hint: 'Per tenant, and whether the activity is theirs or ours',
-        secondary: true,
-      },
-      {
-        href: '/analytics/agents',
-        label: 'Tool usage',
-        icon: Sparkles,
-        hint: 'Runs per person per tool, against the cap',
-        secondary: true,
+        icon: Building2,
+        hint: 'Per tenant: people, vouchers, and whether they have ever finished one',
       },
       {
         href: '/analytics/requests',
         label: 'Access requests',
         icon: Inbox,
         hint: 'Who has asked to be let in, and what for',
+      },
+      /*
+       * The public site, last of the substantive four and deliberately so.
+       *
+       * It was two screens and near the top. It is one screen and near the
+       * bottom, because most of what made it feel important was a company column
+       * that was inventing its answers — and because at this traffic the question
+       * it answers is the least commercially urgent one in the section.
+       */
+      {
+        href: '/analytics/visitors',
+        label: 'Public site',
+        icon: Radar,
+        hint: 'Anonymous sessions, the lead funnel, and how the marketing pages are read',
         secondary: true,
       },
       {

@@ -11,6 +11,7 @@ import { Card, CardTitle, EmptyState, Input, Select } from '@/components/ui/prim
 import { BarList } from '@/components/analytics/Charts';
 import { duration, number, NUM } from '@/components/analytics/Figures';
 import { KpiCard, KpiRow } from '@/components/analytics/Kpi';
+import type { Who } from '@/components/analytics/Window';
 import {
   ChipWithBar,
   CompanyCell,
@@ -81,10 +82,29 @@ export function PeopleBoard({
   devices,
   operating,
   companies,
+  facts,
+  who,
   days,
   now,
 }: {
   people: Person[];
+  /**
+   * The five things worth knowing without scrolling.
+   *
+   * Carried over from the staff screen when the two were merged. Computed on the
+   * page rather than here because most of them need the raw view log, which this
+   * component deliberately does not receive: it gets people, and people are what
+   * it renders.
+   */
+  facts: { label: string; value: string }[];
+  /**
+   * Which half of the signed-in population this is.
+   *
+   * Two things branch on it, and both are about not wasting money or attention:
+   * the paid enrichment and the model-ordered sort are pointless against our own
+   * team, so neither is offered there.
+   */
+  who: Who;
   totals: {
     people: number;
     visits: number;
@@ -117,6 +137,11 @@ export function PeopleBoard({
     if (people.length === 0) return;
 
     let live = true;
+    // Never for our own team. Enrichment is a paid lookup per address, and we
+    // already know who works here — spending credits to be told so is the kind
+    // of thing that only shows up later on an invoice.
+    if (who === 'us') return;
+
     void enrichPeople(people.map((p) => p.email)).then((result) => {
       if (live) setEnriched(result);
     });
@@ -124,7 +149,7 @@ export function PeopleBoard({
     return () => {
       live = false;
     };
-  }, [people]);
+  }, [people, who]);
 
   const searchable = useMemo(
     () => new Map(people.map((p) => [p.email, haystack(p)])),
@@ -245,9 +270,28 @@ export function PeopleBoard({
         />
       </KpiRow>
 
+      <Card className="overflow-hidden">
+        <CardTitle title="Quick facts" description="The things worth knowing without scrolling." />
+        <div className="grid gap-4 px-5 py-4 sm:grid-cols-3 lg:grid-cols-5">
+          {facts.map((fact) => (
+            <div key={fact.label}>
+              <p className="a-label">{fact.label}</p>
+              <p className={cn(NUM, 'mt-1 text-[1.05rem] font-semibold')}>{fact.value}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+
       <section className="grid gap-4 lg:grid-cols-3">
         <Card className="overflow-hidden">
-          <CardTitle title="Companies" description="By people, from the email domain." />
+          <CardTitle
+            title={who === 'us' ? 'Domains' : 'Workspaces'}
+            description={
+              who === 'us'
+                ? 'By people, from the email domain.'
+                : 'The workspace each person belongs to, falling back to their email domain.'
+            }
+          />
           <BarList items={companies} tone="var(--h-violet)" />
         </Card>
         <Card className="overflow-hidden">
@@ -293,6 +337,7 @@ export function PeopleBoard({
             <option value="linked">Linked to pre-signup</option>
           </Select>
 
+          {who === 'them' && (
           <Select
             value={enrichFilter}
             onChange={(e) => setEnrichFilter(e.target.value as typeof enrichFilter)}
@@ -304,6 +349,7 @@ export function PeopleBoard({
             <option value="company">Company only</option>
             <option value="none">No match</option>
           </Select>
+          )}
 
           <Select
             value={sort}
@@ -345,8 +391,16 @@ export function PeopleBoard({
         {people.length === 0 ? (
           <EmptyState
             icon={<Clock3 className="size-6" />}
-            title="Nobody outside the team has used it in this window"
-            description="Anyone signed in who is not on the analytics allowlist appears here, with everything we know about them. Widen the window above, or check that the tracker is running."
+            title={
+              who === 'us'
+                ? 'No activity from the team in this window'
+                : 'Nobody outside the team has used it in this window'
+            }
+            description={
+              who === 'us'
+                ? 'Everyone on the analytics allowlist appears here. Somebody on our own domain who is not on that list counts as a customer, which is the safer way round to be wrong.'
+                : 'Anyone signed in who is not on the analytics allowlist appears here, with everything we know about them. Widen the window above, or check that the tracker is running.'
+            }
           />
         ) : shown.length === 0 ? (
           <p className="text-subtle px-5 py-10 text-center text-sm">

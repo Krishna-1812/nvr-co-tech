@@ -1,5 +1,3 @@
-import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
 import { Card, CardTitle } from '@/components/ui/primitives';
 import { number, NUM } from '@/components/analytics/Figures';
 import { Avatar } from '@/components/analytics/People';
@@ -74,15 +72,11 @@ export function AgentDigest({
     <Card className="overflow-hidden">
       <CardTitle
         title="What they do once they are in"
-        description="A summary. The full breakdown, including everybody, is on the tool usage screen."
-        action={
-          <Link
-            href="/analytics/agents"
-            className="a-ring text-muted inline-flex items-center gap-1 text-[11.5px] font-semibold transition hover:text-[var(--text-c)]"
-          >
-            Open it
-            <ArrowUpRight className="size-3.5" aria-hidden />
-          </Link>
+        description={
+          'Tool opens for whichever half of the roster is showing above. This used to be a summary '
+          + 'with a link to a screen of its own; that screen reported an allowance against a cap '
+          + 'nobody enforces, in a product with no billing, so it is gone and this is now the whole '
+          + 'breakdown.'
         }
       />
 

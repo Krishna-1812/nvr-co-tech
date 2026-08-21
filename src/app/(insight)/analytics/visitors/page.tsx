@@ -1,22 +1,53 @@
 import Link from 'next/link';
-import { LogIn, Radar } from 'lucide-react';
-import { byVisitor, summarise } from '@/lib/analytics/aggregate';
+import {
+  ArrowDownWideNarrow,
+  Laptop,
+  LogIn,
+  MousePointerClick,
+  Radar,
+  Send,
+  Signpost,
+} from 'lucide-react';
+import {
+  byBrowser,
+  bySystem,
+  byVisitor,
+  ctaBreakdown,
+  formFunnel,
+  scrollDepth,
+  summarise,
+  topLandingPages,
+} from '@/lib/analytics/aggregate';
 import { readSignedInViews, readVisitorViews } from '@/lib/analytics/store';
 import { readGraph, resolveFromGraph } from '@/lib/analytics/graph';
 import { resolveVisitors } from '@/lib/analytics/resolve';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardTitle, DataTable, EmptyState, Td, Th, Thead, Tr } from '@/components/ui/primitives';
+import { BarList, Funnel, Split } from '@/components/analytics/Charts';
 import { Confidence, Identity } from '@/components/analytics/Company';
 import { IntentBadge } from '@/components/analytics/Intent';
 import { NUM, Pill, ago, duration, number } from '@/components/analytics/Figures';
 import { WindowTabs, windowFrom } from '@/components/analytics/Window';
 import { cn } from '@/lib/utils';
 
-export const metadata = { title: 'Visitors' };
+export const metadata = { title: 'Public site' };
 export const dynamic = 'force-dynamic';
 
 /**
- * Every person the site saw, with both overlays on the same row.
+ * The public site: who came, and what they did once they were here.
+ *
+ * ── Two screens became one ──────────────────────────────────────────────────
+ *
+ * Visitors listed the sessions; Behaviour described what happened inside them.
+ * Both read the same anonymous log, both were about the marketing site, and
+ * neither was large enough to justify its own place in the rail — particularly
+ * once the company column stopped naming companies, which was most of what made
+ * the first one feel important.
+ *
+ * The route did not move, so the per-session drill-down underneath it is
+ * untouched: /analytics/visitors/[id] is still where a single journey is read.
+ *
+ * ── Every person the site saw, with both overlays on the same row.
  *
  * The two questions are different and the answers come from different places.
  * "Who is this" is answered by the identity graph, and only ever from proof —
@@ -29,6 +60,17 @@ export const dynamic = 'force-dynamic';
  * post-login one, and it is the reason the visitor id lives in a cookie as well
  * as in localStorage — the server can read a cookie on the request that carries
  * the sign-in, and it cannot read localStorage at all.
+ *
+ * ── The behaviour half ──────────────────────────────────────────────────────
+ *
+ * Below the table, and in that order deliberately: the funnel is the only
+ * sequence on this screen that ends in somebody asking to be contacted, and the
+ * rest describe how the site is read. Three of Behaviour's cards did not come
+ * across, all for being unmeasurable rather than wrong — the walkthrough video
+ * (there is no video element on the site), search terms (the only search box is
+ * the command palette, which is behind authentication while this reads the
+ * anonymous log) and rage clicks (a real signal that needs traffic to rise above
+ * coincidence; the aggregation is still in aggregate.ts).
  */
 export default async function VisitorsPage({
   searchParams,
@@ -167,6 +209,60 @@ export default async function VisitorsPage({
           </tbody>
         </DataTable>
       </Card>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <Card className="overflow-hidden">
+          <CardTitle
+            icon={<Send className="size-4" />}
+            title="The lead funnel"
+            description="Counted per visit, and cumulative: anybody who sent the form also opened it."
+          />
+          <Funnel steps={formFunnel(rows)} />
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardTitle
+            icon={<MousePointerClick className="size-4" />}
+            title="What got clicked"
+            description="Every tracked call to action, summed across page views rather than counted per row."
+          />
+          <BarList items={ctaBreakdown(rows).slice(0, 10)} tone="var(--h-emerald)" />
+        </Card>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <Card className="overflow-hidden">
+          <CardTitle
+            icon={<ArrowDownWideNarrow className="size-4" />}
+            title="How far down they got"
+            description="The furthest point reached on a page, bucketed. A page with nothing to scroll counts as read."
+          />
+          <Split items={scrollDepth(rows)} />
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardTitle
+            icon={<Signpost className="size-4" />}
+            title="Where visits began"
+            description="One landing page per visit, so a long visit does not vote for its entrance repeatedly."
+          />
+          <BarList items={topLandingPages(rows, 8)} tone="var(--h-amber)" />
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardTitle
+            icon={<Laptop className="size-4" />}
+            title="Browsers"
+            description="Read from the request header rather than from anything the page claimed."
+          />
+          <Split items={byBrowser(rows)} />
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardTitle icon={<Laptop className="size-4" />} title="Systems" description="Same source." />
+          <Split items={bySystem(rows)} />
+        </Card>
+      </section>
     </div>
   );
 }
@@ -174,9 +270,9 @@ export default async function VisitorsPage({
 function Header({ days }: { days: number }) {
   return (
     <PageHeader
-      eyebrow="Visitor Intelligence"
-      title="Everyone who came by"
-      description="One row per browser. Who they are comes from proof they gave us; what company they are from comes from the address they came in on. Neither is guessed."
+      eyebrow="Public site"
+      title="Who came by, and what they did"
+      description="One row per browser, then how the site itself was used. Who somebody is comes only from proof they gave us. A company name appears only when the address itself named one — a reverse DNS record somebody configured on purpose — and never when it was reconstructed from an organisation name, which is what this screen used to do."
       action={<WindowTabs current={days as 7 | 30 | 90} base="/analytics/visitors" />}
     />
   );
