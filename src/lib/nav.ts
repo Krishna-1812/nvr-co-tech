@@ -210,6 +210,13 @@ export function analyticsSection(): Section {
         secondary: true,
       },
       {
+        href: '/analytics/members',
+        label: 'Members',
+        icon: History,
+        hint: 'Everyone who signed up, and what they read beforehand',
+        secondary: true,
+      },
+      {
         href: '/analytics/orgs',
         label: 'Organisations',
         icon: Scale,
