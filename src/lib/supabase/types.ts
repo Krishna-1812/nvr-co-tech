@@ -314,6 +314,64 @@ export type ProductEventRow = {
   created_at: string;
 };
 
+/*
+ * 0026 — what the operator functions hand back.
+ *
+ * These are not table rows. Each one is the return shape of a SECURITY DEFINER
+ * function that exists precisely so the operator does not read the underlying
+ * table, and the narrowness is the feature: if a screen wants a figure that is
+ * not in one of these shapes, the honest move is to go and widen a function
+ * body where somebody will see it, not to reach past them into `vouchers`.
+ */
+export type OperatorTenantRow = {
+  organization_id: string;
+  name: string;
+  created_at: string;
+  members: number;
+  first_event: string | null;
+  last_event: string | null;
+  chapters_created: number;
+  invites_sent: number;
+  invites_accepted: number;
+  vouchers_drafted: number;
+  vouchers_submitted: number;
+  vouchers_approved: number;
+  vouchers_rejected: number;
+  vouchers_paid: number;
+  reconciliations_saved: number;
+};
+
+export type OperatorMemberRow = {
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  organization_id: string | null;
+  organization_name: string | null;
+  joined_at: string;
+};
+
+export type OperatorOnboardingRow = {
+  email: string;
+  full_name: string | null;
+  signed_up_at: string;
+};
+
+export type OperatorWorkflowStageRow = {
+  stage: string;
+  samples: number;
+  /** Null when every span in the stage was unmeasurable. */
+  median_hours: number | null;
+  p90_hours: number | null;
+};
+
+export type OperatorStuckRow = {
+  organization_id: string;
+  organization_name: string;
+  status: VoucherStatus;
+  waiting: number;
+  oldest_days: number;
+};
+
 /** 0023 — one open of a metered tool. */
 export type AgentRunRow = {
   id: number;
@@ -575,6 +633,31 @@ export type Database = {
           p_visitor_id?: string | null;
         };
         Returns: AccessRequestRow;
+      };
+
+      /*
+       * 0026 — the operator's cross-tenant view.
+       *
+       * Every one of these is SECURITY DEFINER and checks the analytics
+       * allowlist inside its own body, so an unauthorised caller gets an empty
+       * set rather than an error. They exist because the RLS on organizations
+       * and profiles scopes both to the caller's own organisation, which left
+       * every tenant screen rendering exactly one row.
+       *
+       * The shapes are deliberately narrow. Nothing here returns a voucher
+       * amount, a vendor, a voucher number or a note, and nothing added later
+       * should either — see the header of the migration.
+       */
+      operator_tenants: { Args: Record<string, never>; Returns: OperatorTenantRow[] };
+      operator_members: { Args: Record<string, never>; Returns: OperatorMemberRow[] };
+      operator_onboarding: { Args: Record<string, never>; Returns: OperatorOnboardingRow[] };
+      operator_workflow_stages: {
+        Args: Record<string, never>;
+        Returns: OperatorWorkflowStageRow[];
+      };
+      operator_stuck_vouchers: {
+        Args: { p_days?: number };
+        Returns: OperatorStuckRow[];
       };
     };
     Enums: {

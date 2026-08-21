@@ -12,6 +12,7 @@ import {
   Scale,
   Settings,
   Sparkles,
+  TrendingUp,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -169,11 +170,18 @@ export function analyticsSection(): Section {
         icon: Activity,
         hint: 'Traffic, where it came from and how the site is holding up',
       },
+      /*
+       * Second, and deliberately ahead of everything about traffic. This is the
+       * only screen in the section that answers whether the product works; the
+       * rest answer who looked at the marketing for it. When the two competed
+       * for the top of the rail, the traffic screens won for two years and the
+       * activation data sat in a table nothing read.
+       */
       {
-        href: '/analytics/companies',
-        label: 'Companies',
-        icon: Building2,
-        hint: 'The accounts the traffic resolved to, ranked by how close they look',
+        href: '/analytics/activation',
+        label: 'Activation',
+        icon: TrendingUp,
+        hint: 'Signups, workspaces, first vouchers, and where the workflow stalls',
       },
       {
         href: '/analytics/visitors',

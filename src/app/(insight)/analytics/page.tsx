@@ -9,6 +9,7 @@ import {
   MousePointerClick,
   Radar,
   Sparkles,
+  TrendingUp,
   Users,
 } from 'lucide-react';
 import {
@@ -17,10 +18,8 @@ import {
   ctaBreakdown,
   daily,
   overview,
-  topCampaigns,
   topPages,
   topReferrers,
-  videoPlays,
   webVitals,
 } from '@/lib/analytics/aggregate';
 import { readIdentities, readSignedInViews, readVisitorViews } from '@/lib/analytics/store';
@@ -98,7 +97,6 @@ export default async function AnalyticsOverviewPage({
   }
 
   const conversion = conversionRate(rows);
-  const video = videoPlays(rows);
 
   const signUpClicks = ctaBreakdown(rows)
     .filter((item) => /sign|start|try|create/i.test(item.label))
@@ -175,13 +173,6 @@ export default async function AnalyticsOverviewPage({
           href="/analytics/requests"
         />
         <KpiCard
-          label="Watched the video"
-          value={video.sessions}
-          caption={share(video.sessions)}
-          accent="var(--h-rose)"
-          href={`/analytics/behaviour?days=${days}`}
-        />
-        <KpiCard
           label="Signed in later"
           value={signedInLater}
           caption={`${share(signedInLater)}, linked by their own tracking id`}
@@ -198,9 +189,8 @@ export default async function AnalyticsOverviewPage({
         <KpiCard
           label="Companies named"
           value={namedCompanies}
-          caption="Told to us directly. Resolved companies are on the Companies screen."
+          caption="Told to us directly, on a form. Never inferred from an address."
           accent="var(--h-indigo)"
-          href={`/analytics/companies?days=${days}`}
         />
       </KpiRow>
 
@@ -232,19 +222,6 @@ export default async function AnalyticsOverviewPage({
             description="Referring site, with www stripped so one source is one line."
           />
           <BarList items={topReferrers(rows, 8)} tone="var(--h-violet)" />
-        </Card>
-
-        <Card className="overflow-hidden">
-          <CardTitle
-            icon={<MousePointerClick className="size-4" />}
-            title="Campaigns"
-            description="Source and campaign, from the UTM tags on the landing URL."
-          />
-          <BarList
-            items={topCampaigns(rows, 6)}
-            tone="var(--h-emerald)"
-            empty="No visit in this window arrived with a UTM tag."
-          />
         </Card>
 
         <Card className="overflow-hidden">
@@ -292,10 +269,15 @@ function Header({ days }: { days: number }) {
  */
 const AREAS = [
   {
+    group: 'Whether the product works',
+    items: [
+      { href: '/analytics/activation', label: 'Activation', icon: TrendingUp, note: 'Signups to workspaces to first submitted voucher, how long each step of the workflow takes, and what has stopped moving.' },
+    ],
+  },
+  {
     group: 'Before we know who they are',
     items: [
       { href: '/analytics/visitors', label: 'Visitors', icon: Radar, note: 'Every anonymous session, with an intent score and whatever we could resolve about it.' },
-      { href: '/analytics/companies', label: 'Companies', icon: Building2, note: 'Addresses resolved to real organisations, and never for an ISP, mobile or hosting range.' },
       { href: '/analytics/behaviour', label: 'Behaviour', icon: MousePointerClick, note: 'Scrolling, clicking, searching, rage clicks and the lead form funnel.' },
     ],
   },

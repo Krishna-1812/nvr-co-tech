@@ -1,6 +1,5 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import {
@@ -95,8 +94,6 @@ export async function enrichAccount(domain: string): Promise<EnrichResult> {
     // legitimate retry for a week.
     data ? PAID_TTL_SECONDS : PAID_NEGATIVE_TTL_SECONDS,
   );
-
-  revalidatePath('/analytics/companies');
 
   return {
     ok: true,

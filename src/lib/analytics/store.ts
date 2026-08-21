@@ -7,6 +7,14 @@ import type {
   VisitorIdentityRow,
   VisitorViewRow,
 } from './types';
+import type {
+  OperatorMemberRow,
+  OperatorOnboardingRow,
+  OperatorStuckRow,
+  OperatorTenantRow,
+  OperatorWorkflowStageRow,
+  ProductEventRow,
+} from '@/lib/supabase/types';
 import type { RunEvent } from './people';
 
 /**
@@ -212,6 +220,78 @@ export async function readAllAgentRuns(): Promise<RunEvent[]> {
     .order('created_at', { ascending: false })
     .limit(ROW_LIMIT);
 
+  return data ?? [];
+}
+
+// ─── The activation funnel ───────────────────────────────────────────────────
+
+/**
+ * Every milestone the database has recorded about itself.
+ *
+ * Unwindowed on purpose, and it is the one reader here that is. The funnel asks
+ * how many organisations have *ever* got as far as submitting a voucher, and a
+ * thirty-day window would answer a different question — it would report a
+ * tenant that onboarded in June and is working happily today as never having
+ * activated, because their organisation_created event is outside the window.
+ * Activation is cumulative. Only the trend line is windowed, and it does its own
+ * filtering from this same list.
+ */
+export async function readProductEvents(): Promise<ProductEventRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('product_events')
+    .select('id, name, actor_id, organization_id, meta, created_at')
+    .order('created_at', { ascending: false })
+    .limit(ROW_LIMIT);
+
+  return data ?? [];
+}
+
+// ─── The operator's cross-tenant view ────────────────────────────────────────
+
+/**
+ * The five functions from migration 0026, and the reason they exist.
+ *
+ * `readTenants` and `readProfileDirectory` above read `organizations` and
+ * `profiles` directly, which sounds right and is almost useless: RLS scopes both
+ * to the caller's own organisation, so an operator gets exactly one tenant back
+ * however many have signed up. These go through SECURITY DEFINER functions that
+ * check the analytics allowlist themselves and return aggregates.
+ *
+ * Each returns an empty array on failure rather than throwing. An operator
+ * screen with one section missing is a better outcome than a section boundary
+ * swallowing the whole page, and there is nothing a caller could usefully do
+ * with the error that the empty state does not already say.
+ */
+export async function readOperatorTenants(): Promise<OperatorTenantRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc('operator_tenants');
+  return data ?? [];
+}
+
+export async function readOperatorMembers(): Promise<OperatorMemberRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc('operator_members');
+  return data ?? [];
+}
+
+export async function readOperatorOnboarding(): Promise<OperatorOnboardingRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc('operator_onboarding');
+  return data ?? [];
+}
+
+export async function readWorkflowStages(): Promise<OperatorWorkflowStageRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc('operator_workflow_stages');
+  return data ?? [];
+}
+
+/** Work that has stopped moving. The threshold is a parameter because seven days
+ *  is a guess, and the screen should be able to argue with it. */
+export async function readStuckVouchers(days = 7): Promise<OperatorStuckRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc('operator_stuck_vouchers', { p_days: days });
   return data ?? [];
 }
 
