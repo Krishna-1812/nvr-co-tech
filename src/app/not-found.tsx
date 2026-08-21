@@ -3,13 +3,25 @@ import { FileQuestion } from 'lucide-react';
 import { getCurrentUser } from '@/lib/supabase/server';
 
 /**
- * Also what you land on when a voucher id does not resolve — a page calling
- * notFound() renders this. Both readings are covered by the copy.
+ * Every 404 on the signed-in side of the app, and there are more kinds than
+ * there look to be. A mistyped URL, but also six deliberate `notFound()`
+ * calls: an unresolved voucher, organisation, visitor or reconciliation id,
+ * and the analytics gate.
+ *
+ * That last one is why the copy names nothing. `(insight)/layout.tsx` calls
+ * `notFound()` rather than redirecting a signed-in non-admin, precisely so
+ * that nothing tells them there is an /analytics — this page is their cover
+ * story. It used to say "the voucher may have been deleted" and offer them a
+ * voucher register, which was the wrong noun on four of the six routes and,
+ * for the fifth, an invention.
+ *
+ * So: say what is true of all of them, and hand back the one destination that
+ * is right whatever they were looking for.
  */
 export default async function NotFound() {
-  // A signed-out visitor can reach this too — any mistyped in-app URL
-  // resolves here regardless of session — and "Your workspace" / "All
-  // vouchers" sent them straight into a login redirect with no explanation.
+  // A signed-out visitor can reach this too — any mistyped in-app URL resolves
+  // here regardless of session — and "Your workspace" sent them straight into a
+  // login redirect with no explanation.
   const user = await getCurrentUser();
 
   return (
@@ -28,26 +40,18 @@ export default async function NotFound() {
         <p className="numeric text-subtle mt-6 text-sm font-semibold">404</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight">This page does not exist</h1>
         <p className="text-muted mt-2 text-sm leading-relaxed">
-          The link may be out of date, or the voucher may have been deleted or belong to someone
-          whose records you cannot see.
+          The link may be out of date. Whatever it pointed at may have been deleted, or it may
+          belong to somebody whose records you cannot see.
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-2">
           {user ? (
-            <>
-              <Link
-                href="/hub"
-                className="gradient-brand elev-brand inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-white transition hover:brightness-110"
-              >
-                Your workspace
-              </Link>
-              <Link
-                href="/vouchers"
-                className="surface elev-1 inline-flex h-10 items-center rounded-lg border-[var(--border-strong)] px-4 text-sm font-semibold transition hover:bg-[var(--surface-sunken)]"
-              >
-                All vouchers
-              </Link>
-            </>
+            <Link
+              href="/hub"
+              className="gradient-brand elev-brand inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-white transition hover:brightness-110"
+            >
+              Your workspace
+            </Link>
           ) : (
             <Link
               href="/login"
