@@ -210,6 +210,13 @@ export function analyticsSection(): Section {
         secondary: true,
       },
       {
+        href: '/analytics/orgs',
+        label: 'Organisations',
+        icon: Scale,
+        hint: 'Per tenant, and whether the activity is theirs or ours',
+        secondary: true,
+      },
+      {
         href: '/analytics/agents',
         label: 'Tool usage',
         icon: Sparkles,

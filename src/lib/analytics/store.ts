@@ -149,6 +149,38 @@ export async function readProfileDirectory(): Promise<
   return data ?? [];
 }
 
+/**
+ * Every tenant, and who belongs to which.
+ *
+ * The page-view log has no tenant column and should not gain one: it is written
+ * on every navigation by people who may not belong to an organisation yet, and a
+ * column that is null for half its rows is worse than a join. So membership is
+ * read from profiles and the attribution happens in the aggregation.
+ *
+ * The consequence worth knowing: activity is attributed to whichever
+ * organisation somebody belongs to *now*, not the one they belonged to when the
+ * page view happened. Nobody in this product has ever moved between tenants —
+ * `accept_invite` refuses anybody who already belongs to one — so today the two
+ * are the same thing. If moving is ever allowed, this becomes a real distinction
+ * and the log will not be able to answer it retrospectively.
+ */
+export async function readTenants(): Promise<{
+  organizations: { id: string; name: string; created_at: string }[];
+  members: { email: string; organization_id: string | null; full_name: string | null; avatar_url: string | null }[];
+}> {
+  const supabase = await createClient();
+
+  const [orgs, people] = await Promise.all([
+    supabase.from('organizations').select('id, name, created_at'),
+    supabase.from('profiles').select('email, organization_id, full_name, avatar_url'),
+  ]);
+
+  return {
+    organizations: orgs.data ?? [],
+    members: (people.data ?? []).filter((p): p is typeof p & { email: string } => Boolean(p.email)),
+  };
+}
+
 /** Opens of metered tools. The window matches whatever the page is showing. */
 export async function readAgentRuns(days = 30): Promise<RunEvent[]> {
   const since = new Date();
