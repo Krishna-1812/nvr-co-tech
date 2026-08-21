@@ -100,8 +100,8 @@ function SignupForm() {
               account is ready.
             </p>
             <p className="m-dim-2 mt-5 text-[12px] leading-relaxed">
-              Open it, and you will set up your own organisation — or join one, if you followed an
-              invite link to get here.
+              Open it and you will set up your own organisation. If you followed an invite link to
+              get here, you will join theirs instead.
             </p>
           </div>
         </AuthCard>
@@ -159,7 +159,7 @@ function SignupForm() {
               icon={Mail}
               type="email"
               autoComplete="email"
-              placeholder="you@thefinanceintelligence.com"
+              placeholder="you@yourfirm.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -201,8 +201,8 @@ function SignupForm() {
 
         {/* What happens right after this, before anyone has to grant anything. */}
         <p className="m-dim-2 mt-6 text-center text-[12px] leading-relaxed">
-          If you have an invite link, it will take you straight into your team&rsquo;s organisation.
-          Otherwise, you will set up your own — and start as its owner.
+          An invite link takes you straight into your team&rsquo;s organisation with the role they
+          chose for you. Without one you set up your own, and start as its owner.
         </p>
       </AuthCard>
     </div>

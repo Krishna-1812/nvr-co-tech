@@ -66,10 +66,11 @@ export function RulesPlayground() {
             Move the numbers. <span className="m-serif m-grad-text">See what happens.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
-            GST and TDS turn up in nearly every job on that list, so the working lives in one place
-            and every tool calls it. The sums below run that code, the same code the voucher form
-            uses, and the database checks the answer again when you save. This is not a pretend
-            calculator. It is the actual working.
+            The sums below run the same two functions the voucher form itself calls.
+            Saving does not trust them either: the totals are recomputed by the database as generated
+            columns, and a voucher claiming GST two ways at once is refused by a constraint on the
+            table. This is not a pretend calculator. It is the working, with the same two rules
+            standing behind it.
           </p>
         </Reveal>
 

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight } from 'lucide-react';
-import { AGENTS, BRAND, STAGE_LABEL } from '@/lib/marketing/content';
+import { AGENTS, BRAND, ROSTER, STAGE_LABEL } from '@/lib/marketing/content';
 import {
   ACCENT,
   Aurora,
@@ -40,6 +40,19 @@ const HOW_WE_BUILD = [
     body: 'When the database refuses something, the sentence it gives back is the sentence you read. Turning it into something friendlier but vaguer helps nobody at the end of a quarter.',
   },
 ];
+
+/**
+ * The stages that actually have an agent in them, in words.
+ *
+ * "in build or on the roadmap" was written when something was in build. A stage
+ * with nothing in it reads to a buyer as a gap in the plan rather than as a
+ * label nobody happens to need this month.
+ */
+const STAGES_IN_WAITING = [
+  ...new Set(
+    AGENTS.filter((a) => a.stage !== 'live').map((a) => STAGE_LABEL[a.stage].toLowerCase()),
+  ),
+].join(' or ');
 
 export default function AboutPage() {
   return (
@@ -161,11 +174,21 @@ export default function AboutPage() {
       <Section>
         <Container wide>
           <Reveal>
-            {/* Four figures that are all facts about the product rather than
-                claims about the business. Nothing here needs a footnote. */}
+            {/*
+              Four figures that are all facts about the product rather than
+              claims about the business.
+
+              The second one said 2 for months after the schema went down to a
+              single signature, which is the trouble with a stats band: a figure
+              in 3rem type is the most quotable thing on a page and the least
+              likely thing on it to be revisited. Each of these four now has a
+              line of SQL behind it — 32 columns in export/columns.ts, one
+              signature in submit_voucher, no UPDATE grant at all on the audit
+              table, and one region in vercel.json.
+            */}
             <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
               <Stat value="32" label="Voucher fields" hint="Every one from the form you already use" />
-              <Stat value="2" label="Approvals needed" hint="Never the same person twice" />
+              <Stat value="1" label="Signature to approve" hint="And never the person who raised it" />
               <Stat value="0" label="Ways to edit the history" hint="Not for any role, at any level" />
               <Stat value="1" label="Place your data sits" hint="Mumbai, ap-south-1" />
             </div>
@@ -228,12 +251,17 @@ export default function AboutPage() {
 
           <Reveal delay={80}>
             <p className="m-dim-2 mt-8 max-w-2xl text-[13.5px] leading-relaxed">
-              {/* "is" or "are", because the count changes as the roster ships. */}
-              {AGENTS.filter((a) => a.stage === 'live').length} of {AGENTS.length}{' '}
-              {AGENTS.filter((a) => a.stage === 'live').length === 1 ? 'is' : 'are'} up and running
-              today. The rest are marked {STAGE_LABEL.building.toLowerCase()} or{' '}
-              {STAGE_LABEL.planned.toLowerCase()}. We would rather say that here than have the
-              conversation after you have signed something.
+              {/*
+                Both halves are counted rather than written down. The verb has to
+                agree as the roster ships, and the stage names have to be the ones
+                somebody is actually standing on: this sentence promised the rest
+                were marked "in build or on the roadmap" while nothing at all was
+                in build, which is the same empty-stage claim the roster page was
+                making in its own hero.
+              */}
+              {ROSTER.liveOpen} of {ROSTER.totalWord} {ROSTER.liveVerb} up and running today. The
+              rest {ROSTER.comingVerb} marked {STAGES_IN_WAITING}. We would rather say that here
+              than have the conversation after you have signed something.
             </p>
           </Reveal>
         </Container>

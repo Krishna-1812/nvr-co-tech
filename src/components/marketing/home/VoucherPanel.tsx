@@ -11,6 +11,13 @@ import { fmtRupees } from '@/lib/domain/voucher';
  * It also earns its space by showing the rule that is hardest to explain in
  * prose: the person who raised the voucher is blocked from approving it, and the
  * interface says so in words rather than just greying a button out.
+ *
+ * The number is FI/BLR/26-27/0042 for two reasons. BLR because the chapter under
+ * it is Bengaluru, and the pair used to disagree: every worked example on the
+ * site carried CIO, the chapter code of the single client this was built for
+ * before it became multi-tenant. And 26-27 because the desk refuses any voucher
+ * dated before 1 April 2026, so a 25-26 example was one a reader could not
+ * reproduce even if they signed up to try.
  */
 
 const BASIC = 184_000;
@@ -30,19 +37,28 @@ export function VoucherPanel() {
       />
 
       <div className="m-card relative overflow-hidden rounded-2xl">
-        {/* ── Card head ── */}
-        <div className="flex items-center gap-3 border-b border-[var(--m-line)] px-5 py-4">
-          <span
-            className="grid size-8 shrink-0 place-items-center rounded-lg"
-            style={{ background: 'color-mix(in oklab, var(--m-indigo) 22%, transparent)' }}
-          >
-            <FileText className="size-4 text-[var(--m-indigo)]" aria-hidden />
-          </span>
-          <div className="min-w-0">
-            <p className="m-mono truncate text-[12px] tracking-[0.06em]">FI/CIO/25-26/0042</p>
-            <p className="m-dim-2 mt-0.5 text-[11px]">Bengaluru Chapter · Annual Summit</p>
+        {/*
+          ── Card head ──
+
+          Stacked below sm, a row above it. In one row at 375px the status pill
+          took enough of the width to truncate the voucher number to
+          "FI/BLR/26-2…", which is the one string on the card that identifies
+          what you are looking at. The pill can afford to drop to its own line.
+        */}
+        <div className="flex flex-col gap-3 border-b border-[var(--m-line)] px-5 py-4 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              className="grid size-8 shrink-0 place-items-center rounded-lg"
+              style={{ background: 'color-mix(in oklab, var(--m-indigo) 22%, transparent)' }}
+            >
+              <FileText className="size-4 text-[var(--m-indigo)]" aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="m-mono truncate text-[12px] tracking-[0.06em]">FI/BLR/26-27/0042</p>
+              <p className="m-dim-2 mt-0.5 text-[11px]">Bengaluru Chapter · Annual Summit</p>
+            </div>
           </div>
-          <span className="m-mono ml-auto shrink-0 rounded-full border border-[color-mix(in_oklab,var(--m-amber)_32%,transparent)] bg-[color-mix(in_oklab,var(--m-amber)_10%,transparent)] px-2.5 py-1 text-[10px] tracking-[0.1em] uppercase text-[var(--m-amber)]">
+          <span className="m-mono self-start shrink-0 rounded-full border border-[color-mix(in_oklab,var(--m-amber)_32%,transparent)] bg-[color-mix(in_oklab,var(--m-amber)_10%,transparent)] px-2.5 py-1 text-[10px] tracking-[0.1em] uppercase text-[var(--m-amber)] sm:ml-auto sm:self-auto">
             Awaiting approval
           </span>
         </div>

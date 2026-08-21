@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { AGENTS, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
+import { AGENTS, ROSTER, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
   ACCENT,
   Aurora,
@@ -19,7 +19,9 @@ import { RoadmapRail } from '@/components/marketing/agents/RoadmapRail';
 export const metadata: Metadata = {
   title: 'Agents',
   description:
-    'Six tools for finance teams: payments and approvals, closing the books, GST, TDS, reading invoices and answering audit questions. One is live today, and the page tells you which.',
+    `${ROSTER.total} tools for finance teams: payments and approvals, closing the books, GST, TDS, `
+    + `reading invoices and answering audit questions. ${ROSTER.liveOpen} ${ROSTER.liveVerb} live `
+    + 'today, and the page tells you which.',
 };
 
 /**
@@ -30,7 +32,7 @@ export const metadata: Metadata = {
 const GROUPS: { stage: AgentStage; lead: string }[] = [
   {
     stage: 'live',
-    lead: 'Up and running, with the approval steps built into the database. Sign in and you can raise a voucher today.',
+    lead: 'Up and running, with the rules held in the database rather than in the screens. Sign in and you can raise a voucher or reconcile two ledgers today.',
   },
   {
     stage: 'building',
@@ -43,10 +45,18 @@ const GROUPS: { stage: AgentStage; lead: string }[] = [
 ];
 
 export default function AgentsPage() {
+  /*
+   * Only stages that have something in them.
+   *
+   * Nothing is in build at the moment, and the unfiltered version of this line
+   * announced "0 in build" in the hero, which reads as a gap in the plan rather
+   * than as a stage nobody happens to be standing on. A count of zero is not a
+   * fact worth a line of the page.
+   */
   const counts = GROUPS.map(({ stage }) => ({
     stage,
     n: AGENTS.filter((a) => a.stage === stage).length,
-  }));
+  })).filter(({ n }) => n > 0);
 
   return (
     <>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Ban, Check, FileText, Lock, Scan, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Ban, Check, Lock, ShieldCheck } from 'lucide-react';
 import { fmtRupees } from '@/lib/domain/voucher';
 import { STEPS } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,20 @@ import { ScrollStage, StageFallback } from '../motion';
  *
  * Both layouts render the same four scene components. There is exactly one
  * definition of what step three looks like.
+ *
+ * ── Why scene one was replaced ──────────────────────────────────────────────
+ *
+ * It used to be an invoice being read: a document with a scanning line across
+ * it, fields arriving already filled in, and a tick saying the GSTIN had been
+ * checked before the reader ever saw the draft. That is Invoice Intake, which is
+ * on the roadmap, sitting inside a section whose own standfirst says it is
+ * showing you the tool you can use today.
+ *
+ * What replaced it is the thing that does happen: somebody types the voucher,
+ * and the form argues with them as they go. It is a less impressive picture and
+ * a much better one, because every line in it can be reproduced by a reader with
+ * an account, including the refusal, whose wording is the wording the product
+ * actually uses.
  */
 
 const BASIC = 184_000;
@@ -28,7 +42,7 @@ const NET = BASIC + IGST;
 const TDS = 3_680;
 const GRAND = NET - TDS;
 
-const SCENES = [ArriveScene, RulesScene, DecideScene, CloseScene] as const;
+const SCENES = [DraftScene, RulesScene, DecideScene, CloseScene] as const;
 
 export function Journey() {
   return (
@@ -40,13 +54,13 @@ export function Journey() {
             One job, <span className="m-serif m-grad-text">start to finish.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
-            Four steps. The software does the first two, because they are only rules. A person does
-            the third, because it is a decision. The fourth is the record, and after that nobody can
-            change it.
+            A person starts it and a person signs it off. Everything in between is rules, and the
+            rules are held by the database rather than by the page, so they hold whether the request
+            came from this website, from a script, or from anywhere else.
           </p>
           <p className="m-dim-2 mt-4 max-w-2xl text-[13.5px] leading-relaxed">
-            The example below is a payment going through Voucher Desk, since that is the tool you can
-            use today. Every one after it is built the same way, with different rules in step two.
+            The example below is a payment going through Voucher Desk. Every tool after it is built
+            the same way, with different rules in the middle.
           </p>
         </Reveal>
       </Container>
@@ -215,54 +229,64 @@ function Line({
   );
 }
 
-/* ── 01 · The work arrives ───────────────────────────────────────────────── */
+/* ── 01 · Somebody raises it ─────────────────────────────────────────────── */
 
-function ArriveScene() {
+/**
+ * The draft, arguing back.
+ *
+ * Three checks that pass and one that does not, because a column of ticks is a
+ * claim and a refusal is a demonstration. The sentence on the struck row is
+ * copied from the product: it is the exact message `domain/schema.ts` produces
+ * when a payment date pre-dates its invoice, so a reader who goes and tries it
+ * gets the same words back.
+ */
+function DraftScene() {
   return (
-    <Panel title="Invoice intake" meta="read from the invoice" accent="var(--m-magenta)">
-      <div className="grid gap-4 px-5 py-5 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-5">
-        {/* The document, abstracted to the shape of one. */}
-        <div className="relative mx-auto w-[7.5rem] shrink-0 rounded-lg border border-[var(--m-line-2)] bg-white/[0.03] p-3">
-          <FileText className="size-4 text-[var(--m-magenta)]" aria-hidden />
-          <div className="mt-2.5 space-y-1.5" aria-hidden>
-            {[100, 78, 92, 60, 84, 46].map((w, i) => (
-              <span
-                key={i}
-                className="block h-1 rounded-full bg-white/[0.09]"
-                style={{ width: `${w}%` }}
-              />
-            ))}
-          </div>
-          <span
-            aria-hidden
-            className="absolute inset-x-0 top-3 h-8 animate-[sweep_2.8s_ease-in-out_infinite] motion-reduce:hidden"
-            style={{
-              background:
-                'linear-gradient(to bottom, transparent, color-mix(in oklab, var(--m-magenta) 40%, transparent), transparent)',
-            }}
-          />
-          <span className="m-mono m-dim-2 mt-3 flex items-center gap-1 text-[9px] tracking-[0.1em] uppercase">
-            <Scan className="size-2.5" aria-hidden />
-            PDF
-          </span>
+    <Panel title="The draft" meta="checked as it is typed" accent="var(--m-cyan)">
+      <div className="space-y-2.5 px-5 py-5">
+        <Line label="Paid to" value="Meridian Events Pvt Ltd" delay={60} />
+        <Line label="PAN" value="AABCM1234K" tone="good" delay={130} />
+        <Line label="GSTIN" value="29AABCM1234K1ZQ" tone="good" delay={200} />
+
+        <p
+          className="m-dim-2 flex animate-[ticker_0.5s_backwards] items-start gap-2 pt-1 text-[11px] leading-relaxed"
+          style={{ animationDelay: '270ms' }}
+        >
+          <Check className="mt-px size-3 shrink-0 text-[var(--m-emerald)]" aria-hidden />
+          The GSTIN passes its own checksum, and the PAN inside it is the PAN entered above it. Both
+          checked here, and again by the database.
+        </p>
+
+        <div className="!mt-5 space-y-2.5 border-t border-[var(--m-line)] pt-4">
+          <Line label="Invoice date" value="04 Aug 2026" delay={340} />
+          <Line label="Voucher date" value="14 Aug 2026" delay={400} />
+          <Refused label="Payment date" value="28 Jul 2026" />
         </div>
 
-        <div className="space-y-2.5">
-          <Line label="Supplier" value="Meridian Events Pvt Ltd" delay={80} />
-          <Line label="GSTIN" value="29AABCM1234K1ZQ" tone="good" delay={160} />
-          <Line label="Invoice no." value="MER/24-25/0881" delay={240} />
-          <Line label="Basic value (A)" value={fmtRupees(BASIC)} delay={320} />
-          <p
-            className="m-dim-2 flex animate-[ticker_0.5s_backwards] items-start gap-2 pt-1.5 text-[11px] leading-relaxed"
-            style={{ animationDelay: '420ms' }}
-          >
-            <Check className="mt-px size-3 shrink-0 text-[var(--m-emerald)]" aria-hidden />
-            The GSTIN is valid and the PAN inside it matches the one on file. Both checked before you
-            see the draft.
-          </p>
-        </div>
+        <p
+          className="m-dim-2 flex animate-[ticker_0.5s_backwards] items-start gap-2 pt-1 text-[11px] leading-relaxed"
+          style={{ animationDelay: '540ms' }}
+        >
+          <Ban className="mt-px size-3.5 shrink-0 text-[var(--m-rose)]" aria-hidden />
+          <span>Payment cannot pre-date the invoice.</span>
+        </p>
       </div>
     </Panel>
+  );
+}
+
+/** A line the form will not accept, struck through with its own reason beneath. */
+function Refused({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      className="flex animate-[ticker_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] items-baseline justify-between gap-4"
+      style={{ animationDelay: '470ms' }}
+    >
+      <span className="m-dim-2 text-[12.5px]">{label}</span>
+      <span className="m-tabular text-[13px] font-medium text-[var(--m-rose)] line-through decoration-1">
+        {value}
+      </span>
+    </div>
   );
 }
 
@@ -270,23 +294,23 @@ function ArriveScene() {
 
 function RulesScene() {
   return (
-    <Panel title="Rules applied" meta="before anyone looks" accent="var(--m-cyan)">
+    <Panel title="Rules applied" meta="by the database, not the page" accent="var(--m-cyan)">
       <div className="space-y-3 px-5 py-5">
         <Rule
           input="Supplier in Karnataka · chapter in Maharashtra"
           decision="Between states, so IGST"
-          detail="CGST and SGST stay empty. A voucher with both is refused before you can submit it."
+          detail="CGST and SGST stay empty. A voucher carrying IGST and CGST together is refused by a constraint on the table itself, so it fails whether or not the form was willing to send it."
         />
         <Rule
-          input="Payment to an event contractor, and the payee is a company"
-          decision="TDS 194C at 2%"
-          detail={`That is ${fmtRupees(TDS)} deducted. You are told now, while the voucher is still a draft, not next quarter.`}
+          input={`Basic value, IGST, and ${fmtRupees(TDS)} of TDS`}
+          decision={`Net ${fmtRupees(NET)}, grand total ${fmtRupees(GRAND)}`}
+          detail="Both totals are generated columns. The page cannot send a total at all: it sends the parts, and the database does the addition. So the figure on screen is the figure on record."
           delay={110}
         />
         <Rule
-          input="Chapter CIO · date 14 Aug 2025"
-          decision="FY 25-26, number 0042"
-          detail="The database hands out the number when you submit. One run per chapter per year, and nobody types it by hand."
+          input="Bengaluru chapter · voucher dated 14 Aug 2026"
+          decision="FI/BLR/26-27/0042 offered"
+          detail="The number is yours to type, and the desk works out what the next one for that chapter and that year should be and puts it in the field. You can overwrite it. The software does not get to overrule you on your own numbering."
           delay={220}
         />
 
@@ -294,9 +318,9 @@ function RulesScene() {
           className="mt-4 flex animate-[settle_0.7s_ease-out_backwards] items-center justify-between gap-4 rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3.5"
           style={{ animationDelay: '340ms' }}
         >
-          <span className="m-eyebrow">Issued</span>
+          <span className="m-eyebrow">On the voucher</span>
           <span className="m-mono text-[13px] tracking-[0.04em] text-[var(--m-lime)]">
-            FI/CIO/25-26/0042
+            FI/BLR/26-27/0042
           </span>
         </div>
       </div>
@@ -358,8 +382,7 @@ function DecideScene() {
           <Ban className="mt-px size-3.5 shrink-0 text-[var(--m-rose)]" aria-hidden />
           <span>
             R. Menon raised this one, so the database will not take their approval. It has to come
-            from somebody else. Some organizations skip this step entirely and pay a voucher the
-            moment it is submitted.
+            from somebody else.
           </span>
         </p>
       </div>
@@ -431,8 +454,8 @@ function Connector({ filled }: { filled?: boolean }) {
 
 const TRAIL = [
   { at: '14 Aug · 10:12', who: 'R. Menon', what: 'Raised the voucher' },
-  { at: '14 Aug · 10:14', who: 'R. Menon', what: 'Submitted. Given number FI/CIO/25-26/0042' },
-  { at: '14 Aug · 11:40', who: 'A. Shah', what: 'Approved. Record locked' },
+  { at: '14 Aug · 10:14', who: 'R. Menon', what: 'Submitted as FI/BLR/26-27/0042. Figures locked' },
+  { at: '14 Aug · 11:40', who: 'A. Shah', what: 'Approved, and marked paid' },
 ] as const;
 
 function CloseScene() {
@@ -442,9 +465,10 @@ function CloseScene() {
         <div className="flex items-center gap-3 rounded-xl border border-[color-mix(in_oklab,var(--m-emerald)_28%,transparent)] bg-[color-mix(in_oklab,var(--m-emerald)_9%,transparent)] px-4 py-3">
           <Lock className="size-4 shrink-0 text-[var(--m-emerald)]" aria-hidden />
           <div className="min-w-0">
-            <p className="text-[12.5px] font-semibold">Approved and locked</p>
+            <p className="text-[12.5px] font-semibold">Locked on submission</p>
             <p className="m-dim-2 mt-0.5 text-[11px]">
-              The amounts, the payee and the voucher number cannot be changed by anyone now.
+              The amounts, the payee and the number stopped being editable the moment it was
+              submitted. Sending it back is the only way to reopen one.
             </p>
           </div>
         </div>

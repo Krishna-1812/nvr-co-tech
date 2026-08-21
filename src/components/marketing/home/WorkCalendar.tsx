@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { JOBS, agentBySlug } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
-import { ACCENT, Container, Eyebrow, StageBadge } from '../bits';
+import { ACCENT, ArrowLink, Container, Eyebrow, StageBadge } from '../bits';
 import { Reveal } from '../Reveal';
 
 /**
@@ -50,16 +50,28 @@ export function WorkCalendar() {
 
       <Container wide className="relative">
         <Reveal>
-          <Eyebrow className="mb-4">The work</Eyebrow>
-          <h2 className="m-display max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
-            Every month, the same jobs.{' '}
-            <span className="m-serif m-grad-text">Here is who does what.</span>
-          </h2>
-          <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
-            None of this is new work. It is the list your team already gets through between the 1st
-            and the 31st. What changes is how much of it somebody has to do by hand, and how much of
-            it is waiting for you when the date comes round.
-          </p>
+          <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+            <div className="max-w-3xl">
+              <Eyebrow className="mb-4">The work</Eyebrow>
+              <h2 className="m-display text-[clamp(1.9rem,4.2vw,3.25rem)]">
+                Every month, the same jobs.{' '}
+                <span className="m-serif m-grad-text">Here is who does what.</span>
+              </h2>
+              <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
+                None of this is new work. It is the list your team already gets through between the
+                1st and the 31st. What changes is how much of it somebody has to do by hand, and how
+                much of it is waiting for you when the date comes round.
+              </p>
+            </div>
+            {/*
+              The only way from this page into the roster, now that the grid of
+              six product cards two screens below it is gone. It belongs here
+              because this is the section that introduces them.
+            */}
+            <ArrowLink href="/agents" className="mb-2">
+              All agents
+            </ArrowLink>
+          </div>
         </Reveal>
 
         <Reveal delay={70}>

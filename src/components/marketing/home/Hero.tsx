@@ -1,4 +1,5 @@
 import { ArrowDown, Sparkles } from 'lucide-react';
+import { ROSTER } from '@/lib/marketing/content';
 import { Aurora, CTA, Container, LineRise, Rise } from '../bits';
 import { Tilt } from '../motion';
 import { VoucherPanel } from './VoucherPanel';
@@ -7,7 +8,7 @@ import { VoucherPanel } from './VoucherPanel';
  * Above the fold: one claim, one sentence of substantiation, two buttons, and
  * the product itself.
  *
- * Every entrance here is CSS — LineRise and Rise, never Reveal or WordReveal.
+ * Every entrance here is CSS: LineRise and Rise, never Reveal.
  * This is the first thing anyone sees, and a JavaScript-driven entrance means a
  * blank screen until the bundle lands. Below the fold that wait is invisible;
  * here it is the whole first impression.
@@ -42,10 +43,11 @@ export function Hero() {
 
             <Rise delay={380}>
               <p className="m-dim mt-7 max-w-lg text-[15px] leading-relaxed sm:text-[17px]">
-                One tool for each job your team repeats every month. Raising payments, matching GST,
-                working out TDS, agreeing the bank. They fill in the forms, do the arithmetic and
-                pass the work to the right person, then you decide. One is live today and the rest
-                are on the way.
+                One tool for each job your team repeats every month. Raising payments, agreeing the
+                bank, matching GST, working out TDS. They fill in the forms, do the arithmetic and
+                pass the work to the right person, then you decide.{' '}
+                {ROSTER.liveOpen} of them {ROSTER.liveVerb} running today and the rest are on the
+                way.
               </p>
             </Rise>
 
@@ -69,9 +71,15 @@ export function Hero() {
               Names what the panel is. Without this line the page opens on a
               voucher and reads as a voucher product, which is one sixth of
               what it is.
+
+              Counted from the roster rather than written out. This line said
+              "five more are on the way" for the whole of the month after Ledger
+              Reconciliation shipped, which is the direction of that mistake that
+              costs something: a live tool nobody was told about.
             */}
             <p className="m-dim-2 mt-5 text-center text-[11.5px] leading-relaxed">
-              Above: Voucher Desk, the one you can use today. Five more are on the way.
+              Above: Voucher Desk, one of the {ROSTER.liveWord} running today.{' '}
+              {ROSTER.comingOpen} more are on the way.
             </p>
           </Rise>
         </div>

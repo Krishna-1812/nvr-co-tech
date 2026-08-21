@@ -93,10 +93,11 @@ export const AGENTS: Agent[] = [
       'The approval step is not just a screen in an app. It is a rule inside the database, so it holds whether the request comes from the website, from a script, or from anywhere else.',
     does: [
       'All thirty-two fields from the voucher your team already uses, so the printed page looks the way it always has.',
-      'Approval, if you want it, needs one signature and never from the person who raised the voucher. Turn it off and a submission goes straight to paid. The database checks this, not the browser.',
-      'Voucher numbers are handed out when you submit, in the form FI/CHAPTER/25-26/0001. One run of numbers per chapter per financial year, and nobody types them by hand.',
+      'Approval is off until you switch it on. Switched on, a voucher needs one signature and it can never come from the person who raised it. Left off, a submission goes straight to paid. The database is what decides which, not the screen.',
+      'The voucher number is yours to type, in the form FI/CHAPTER/26-27/0001. The desk works out what the next one in that chapter and that year should be and offers it, so the run stays in order without the software overruling you.',
       'The database works out the totals itself, so the figure on screen is the figure on record.',
       'GST is sorted for you. CGST and SGST inside a state, IGST between states, never both at once. Checked before you can submit.',
+      'Submitting is what closes the figures. From that moment nobody can change them, including whoever raised it. Sending it back is the only way to reopen one, and that is a new line in the history rather than a quiet edit.',
       'Every step is added to a history that nobody can edit or delete, including the owner of the account.',
       'PDFs you can search, and an Excel export with the same thirty-two columns your team already works from.',
     ],
@@ -122,7 +123,7 @@ export const AGENTS: Agent[] = [
       'Builds the statement in the usual Add and Less form and says whether the two balances tie out.',
       'Says in plain words why each remaining line is there, and names the likely cause of an amount difference: rounding, a decimal point in the wrong place, or a multiple.',
       'A PDF for the file, an Excel workbook for the follow up, and a copy kept in your own history.',
-      'The two files are read inside your browser. They are never uploaded anywhere.',
+      'The two files are read inside your browser and never uploaded. What gets kept is the statement you produced, in a history only you can open.',
     ],
     inputs: 'Two ledgers, as Excel, CSV or a text PDF',
     outputs: 'A reconciliation statement, and the lines to look at',
@@ -211,6 +212,48 @@ export const AGENTS: Agent[] = [
 
 export const LIVE_AGENTS = AGENTS.filter((a) => a.stage === 'live');
 
+/**
+ * How many are running, said in words, derived rather than typed.
+ *
+ * Four places on the site said "one is live" in prose. Ledger Reconciliation
+ * shipped and every one of them went on saying it, which is the expensive
+ * direction for that error to run: a site that undersells is a site quietly
+ * hiding a product from the people who came to look at it. Counting the roster
+ * instead means there is nowhere left to forget.
+ *
+ * Words rather than figures because these appear mid-sentence, and a numeral in
+ * running prose reads as a specification. The table stops at six because the
+ * roster has six entries; a seventh would show up as a bare numeral, which is
+ * ugly enough to notice and fix rather than wrong enough to mislead.
+ */
+const WORDS = ['none', 'one', 'two', 'three', 'four', 'five', 'six'] as const;
+
+export function inWords(n: number): string {
+  return WORDS[n] ?? String(n);
+}
+
+/** For a word that has to start a sentence. */
+const opening = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1);
+
+export const ROSTER = {
+  /** Figures, for the mono micro-labels where a numeral is what reads well. */
+  live: LIVE_AGENTS.length,
+  coming: AGENTS.length - LIVE_AGENTS.length,
+  total: AGENTS.length,
+  /** "two", mid-sentence: "one of the **two** running today". */
+  liveWord: inWords(LIVE_AGENTS.length),
+  /** "four", mid-sentence: "and **four** more besides". */
+  comingWord: inWords(AGENTS.length - LIVE_AGENTS.length),
+  /** "six", mid-sentence: "buy **six** tools from six companies". */
+  totalWord: inWords(AGENTS.length),
+  /** The same three where the sentence starts on them. */
+  liveOpen: opening(inWords(LIVE_AGENTS.length)),
+  comingOpen: opening(inWords(AGENTS.length - LIVE_AGENTS.length)),
+  /** Agreement, so the sentence survives the roster shrinking to one. */
+  liveVerb: LIVE_AGENTS.length === 1 ? 'is' : 'are',
+  comingVerb: AGENTS.length - LIVE_AGENTS.length === 1 ? 'is' : 'are',
+} as const;
+
 export function agentBySlug(slug: string): Agent | undefined {
   return AGENTS.find((a) => a.slug === slug);
 }
@@ -225,39 +268,54 @@ export const NAV = [
 /**
  * The formats and rails a finance team in India already works in. Shown as a
  * strip under the hero. The point is recognition, not novelty.
+ *
+ * Only what works today. The strip used to carry GSTR-2B, 26Q, Tally exports
+ * and the payment rails, and under a heading that says "works with what your
+ * team already uses" every one of those was a promise: two of them belong to
+ * agents that are not built, one is an integration that does not exist, and the
+ * desk has never moved money in its life. A recognition strip is the cheapest
+ * possible place to lose a reader who checks, and the audience for this page
+ * checks for a living.
  */
 export const FORMATS = [
   'GSTIN',
   'PAN',
-  'GSTR-2B',
-  'TDS 26Q',
+  'CGST / SGST / IGST',
   'FY Apr–Mar',
-  'Tally exports',
-  'Excel',
-  'NEFT / RTGS / UPI',
+  'Excel (.xlsx)',
+  'CSV',
+  'Text PDF',
+  'Chapter-wise numbering',
 ] as const;
 
-/** The four steps on the home page. */
+/**
+ * The four steps on the home page.
+ *
+ * All four are Voucher Desk as it stands. The previous version opened on an
+ * invoice being read for you, which is Invoice Intake and is on the roadmap, and
+ * had two people signing off, which was true of a schema that no longer exists.
+ * Anything a reader can check has to be checkable in the running product.
+ */
 export const STEPS = [
   {
     n: '01',
-    title: 'Something needs paying',
-    body: 'An invoice turns up, or an event finishes and there are bills to settle. Someone starts a voucher. If we can read the invoice, most of it is filled in for them.',
+    title: 'Somebody raises it',
+    body: 'An invoice turns up, or an event finishes and there are bills to settle. Whoever has the paperwork fills in the voucher, and the form checks as they go rather than at the end.',
   },
   {
     n: '02',
-    title: 'The software applies the rules',
-    body: 'Which GST applies, which TDS section and rate, which chapter, which financial year, and what number the voucher gets. All of that is worked out before anyone has to look at it.',
+    title: 'The database does the arithmetic',
+    body: 'The totals are worked out by the database itself, not by the page, so the figure on screen is the figure on record. It also refuses a voucher whose GST is claimed two ways at once, whatever the browser was willing to send it.',
   },
   {
     n: '03',
-    title: 'Two people sign off',
-    body: 'The approver sees the whole voucher and the numbers behind it. Two different people have to approve it, and neither of them can be the person who raised it.',
+    title: 'Somebody signs it off, if you want that',
+    body: 'Approval is yours to switch on. With it on, a voucher needs one signature and it can never be the person who raised it. With it off, a submission goes straight to paid. Either way the rule is held a layer below the website.',
   },
   {
     n: '04',
-    title: 'The record is closed',
-    body: 'Once it is approved the voucher is locked. You can still print the PDF or pull the Excel, but the figures cannot be changed and the history cannot be edited.',
+    title: 'The figures close',
+    body: 'Submitting is what locks them. You can still print the PDF or pull the Excel, but nobody can change an amount after that, and sending it back is the only way to reopen it. That is a new line in the history, never an edit to an old one.',
   },
 ] as const;
 
@@ -308,7 +366,7 @@ export const JOBS: readonly Job[] = [
     when: 'All month',
     title: 'Payments have to be raised and signed off',
     now: 'A form, a print, two signatures chased over WhatsApp, and a folder somebody has to keep in case anyone asks later.',
-    ours: 'The voucher is raised on screen, the tax is worked out for you, and two people approve it. Neither of them can be the person who raised it, and the record keeps its own history.',
+    ours: 'The voucher is raised on screen and the database does the arithmetic. Ask for a signature and it can never be the person who raised it; skip it and the voucher goes straight to paid. Either way the record keeps a history nobody can edit.',
     agent: 'voucher-desk',
   },
   {
@@ -381,7 +439,7 @@ export const SHARED = [
   },
   {
     title: 'One set of records',
-    body: 'The GST match, the TDS working and the payment all point at the same invoice and the same payee. Nothing has to be kept in step by hand.',
+    body: 'A payment and the reconciliation that clears it are looking at the same chapter, the same people and the same organisation. Nothing has to be kept in step by hand, and nothing has to be typed in twice.',
   },
   {
     title: 'One history',

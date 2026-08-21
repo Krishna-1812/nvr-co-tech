@@ -50,7 +50,7 @@ export default async function OnboardingPage({
           }
         >
           <p className="m-dim text-[14px] leading-relaxed">
-            To join the organisation this invite is for, accept it from a different account — or ask
+            To join the organisation this invite is for, accept it from a different account. Or ask
             whoever sent it to invite the address you are signed in with instead.
           </p>
         </AuthCard>

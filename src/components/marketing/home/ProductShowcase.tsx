@@ -26,16 +26,24 @@ type Row = {
   no: string;
   payee: string;
   chapter: string;
+  /**
+   * The chapter's own code, which is what the number is built from.
+   *
+   * Every row used to read FI/CIO/…, one client's code against five different
+   * chapters, which is a detail nobody notices until it is the one person on the
+   * call who does.
+   */
+  code: string;
   amount: number;
   status: 'Paid' | 'Approved' | 'Pending approval' | 'Sent back' | 'Draft';
 };
 
 const ROWS: Row[] = [
-  { no: '0058', payee: 'Lumina Events Pvt Ltd', chapter: 'Hyderabad', amount: 61_800, status: 'Pending approval' },
-  { no: '0057', payee: 'Grid & Co Printing', chapter: 'Bengaluru', amount: 18_450, status: 'Approved' },
-  { no: '0056', payee: 'Sarvodaya Caterers', chapter: 'Chennai', amount: 142_000, status: 'Approved' },
-  { no: '0055', payee: 'Nirvana Travel Desk', chapter: 'Mumbai', amount: 27_300, status: 'Sent back' },
-  { no: '0054', payee: 'Axis Sound Systems', chapter: 'Bengaluru', amount: 96_500, status: 'Paid' },
+  { no: '0058', payee: 'Lumina Events Pvt Ltd', chapter: 'Hyderabad', code: 'HYD', amount: 61_800, status: 'Pending approval' },
+  { no: '0057', payee: 'Grid & Co Printing', chapter: 'Bengaluru', code: 'BLR', amount: 18_450, status: 'Approved' },
+  { no: '0056', payee: 'Sarvodaya Caterers', chapter: 'Chennai', code: 'MAA', amount: 142_000, status: 'Approved' },
+  { no: '0055', payee: 'Nirvana Travel Desk', chapter: 'Mumbai', code: 'BOM', amount: 27_300, status: 'Sent back' },
+  { no: '0054', payee: 'Axis Sound Systems', chapter: 'Bengaluru', code: 'BLR', amount: 96_500, status: 'Paid' },
 ];
 
 const STATUS_COLOR: Record<Row['status'], string> = {
@@ -89,7 +97,7 @@ export function ProductShowcase() {
               <span className="m-serif m-dim">Just a list you can get through.</span>
             </>
           }
-          lead="This is the tool that is live. The others will arrive in the same window, in the same list, so there is nothing new to learn each time one lands."
+          lead="This is the one most people arrive for. Everything else that ships arrives in the same window and the same list, so there is nothing new to learn each time one lands."
         />
 
         <Reveal delay={80} className="mt-14">
@@ -242,7 +250,9 @@ function Board() {
           <tbody>
             {ROWS.map((r) => (
               <tr key={r.no} className="border-b border-[var(--m-line)] last:border-0">
-                <Td className="m-mono whitespace-nowrap">FI/CIO/25-26/{r.no}</Td>
+                <Td className="m-mono whitespace-nowrap">
+                  FI/{r.code}/26-27/{r.no}
+                </Td>
                 <Td className="font-medium">{r.payee}</Td>
                 <Td className="m-dim-2">{r.chapter}</Td>
                 <Td className="numeric text-right tabular-nums">{fmtRupees(r.amount)}</Td>

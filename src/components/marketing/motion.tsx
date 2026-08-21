@@ -186,59 +186,6 @@ export function Counter({
 
 /* ── Type that arrives ───────────────────────────────────────────────────── */
 
-/**
- * Reveals a line word by word.
- *
- * Split on spaces and each word given its own delay, which is a great deal
- * cheaper than it sounds — one transition per word, all released by a single
- * class change on the parent. Each word keeps a normal space after it so the
- * text still selects, copies and wraps as one sentence.
- */
-export function WordReveal({
-  text,
-  className,
-  delay = 0,
-  step = 42,
-  as: Tag = 'span',
-}: {
-  text: string;
-  className?: string;
-  /** Milliseconds before the first word moves. */
-  delay?: number;
-  /** Milliseconds between consecutive words. */
-  step?: number;
-  as?: 'span' | 'h1' | 'h2' | 'p';
-}) {
-  const host = useRef<HTMLElement>(null);
-  const shown = useInView(host);
-
-  return (
-    <Tag
-      // One ref type cannot satisfy every tag this accepts; narrowing per-tag
-      // would mean generics for no behavioural gain.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ref={host as any}
-      className={className}
-    >
-      {text.split(' ').map((word, i) => (
-        <span key={`${word}-${i}`} className="inline-block overflow-hidden align-bottom">
-          <span
-            className={cn(
-              'inline-block transition-[transform,opacity] duration-[750ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
-              shown ? 'translate-y-0 opacity-100' : 'translate-y-[0.9em] opacity-0',
-            )}
-            style={{ transitionDelay: `${delay + i * step}ms` }}
-          >
-            {word}
-          </span>
-          {/* Outside the animated span so the gap does not slide with the word. */}
-          {' '}
-        </span>
-      ))}
-    </Tag>
-  );
-}
-
 /* ── Pointer-reactive surfaces ───────────────────────────────────────────── */
 
 /**
@@ -359,48 +306,5 @@ export function ScrollProgressBar({ className }: { className?: string }) {
       style={{ backgroundImage: 'var(--m-grad)' }}
       ref={bar}
     />
-  );
-}
-
-/**
- * Moves its children against the scroll as they cross the viewport.
- *
- * `distance` is in pixels of total travel across the whole crossing, applied
- * through a CSS variable so the transform stays on the compositor. Disabled
- * outright under prefers-reduced-motion rather than shortened — a parallax layer
- * that moves quickly instead of slowly is worse than one that does not move.
- */
-export function Parallax({
-  children,
-  distance = 60,
-  className,
-}: {
-  children: React.ReactNode;
-  distance?: number;
-  className?: string;
-}) {
-  const host = useRef<HTMLDivElement>(null);
-  const reduced = usePrefersReducedMotion();
-
-  useEffect(() => {
-    const el = host.current;
-    if (!el || reduced) return;
-
-    const read = () => {
-      const rect = el.getBoundingClientRect();
-      // -1 when the element is a viewport below, +1 when a viewport above.
-      const centre = (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
-      el.style.setProperty('--parallax', `${(clamp(centre, -1, 1) * distance).toFixed(2)}px`);
-    };
-
-    const stop = subscribe(read);
-    read();
-    return stop;
-  }, [distance, reduced]);
-
-  return (
-    <div ref={host} className={className} style={{ translate: '0 var(--parallax, 0px)' }}>
-      {children}
-    </div>
   );
 }

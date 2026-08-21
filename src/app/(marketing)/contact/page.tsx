@@ -93,8 +93,9 @@ export default function ContactPage() {
                 <div className="m-card p-6 sm:p-7">
                   <h2 className="m-eyebrow">Already using it</h2>
                   <p className="m-dim mt-4 text-[13.5px] leading-relaxed">
-                    If your firm is already on {BRAND.name} you do not need a call. Sign in, or create
-                    an account and ask your administrator to add you to a chapter.
+                    If your firm is already on {BRAND.name} you do not need a call. Sign in, or ask
+                    whoever set your organisation up to send you an invite link. Following one puts
+                    you straight into their workspace with the role they chose for you.
                   </p>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link
