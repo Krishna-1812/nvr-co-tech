@@ -338,6 +338,21 @@ export type AccessRequestRow = {
   visitor_id: string | null;
 };
 
+/**
+ * 0024 — a model-written read of a person, keyed by a hash of the facts that
+ * produced it rather than by time, so it is regenerated when it stops being
+ * true instead of when it gets old.
+ */
+export type AiSummaryRow = {
+  fact_hash: string;
+  subject: string;
+  headline: string;
+  summary: string;
+  intent: 'high' | 'medium' | 'low';
+  model: string | null;
+  created_at: string;
+};
+
 /** 0023 — a signed-in person asking for a tool that is not live yet. */
 export type FeatureRequestRow = {
   id: number;
@@ -412,6 +427,7 @@ export type Database = {
       agent_runs: Table<AgentRunRow>;
       access_requests: Table<AccessRequestRow>;
       feature_requests: Table<FeatureRequestRow>;
+      ai_summaries: Table<AiSummaryRow>;
     };
     Views: Record<never, never>;
     Functions: {
@@ -533,6 +549,20 @@ export type Database = {
       };
       submit_feature_request: { Args: { p_slug: string; p_reason?: string | null }; Returns: boolean };
       requested_features: { Args: Record<string, never>; Returns: string[] };
+
+      // 0024 — writing a generated summary into its cache. Gated on the
+      // analytics allowlist because each miss costs a model call.
+      cache_ai_summary: {
+        Args: {
+          p_hash: string;
+          p_subject: string;
+          p_headline: string;
+          p_summary: string;
+          p_intent: 'high' | 'medium' | 'low';
+          p_model?: string | null;
+        };
+        Returns: void;
+      };
       submit_access_request: {
         Args: {
           p_name: string;
