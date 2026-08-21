@@ -2,7 +2,7 @@ import { IDENTIFIABLE, type DomainVote, type IpIntel, type RdapInfo, type Resolu
 import { classify, needsRdap } from './classify';
 import { combine, qualifies } from './confidence';
 import { operatorExclusions } from './lists';
-import { cleanOrgName, guessDomain, isCleanOrgName, isGenericHostname, registrableDomain } from './names';
+import { cleanOrgName, guessDomain, isGenericHostname, registrableDomain } from './names';
 import { fetchRdap } from './rdap';
 import { fetchIntel, isPrivateIp, reverseDns } from './network';
 
@@ -33,8 +33,14 @@ import { fetchIntel, isPrivateIp, reverseDns } from './network';
  * Cached resolutions carry the version that produced them, so improving the
  * classification does not mean serving last month's wrong answer until the TTL
  * runs out — every stored row simply re-resolves once, on demand.
+ *
+ * Version 2 is the one that matters so far. `qualifies()` no longer accepts a
+ * domain that was derived from an organisation name, so every company that had
+ * been named off a guess re-resolves to "not identified" the next time it is
+ * read. Without the bump those rows would have kept their invented names for
+ * the remaining week of their TTL.
  */
-export const RESOLVER_VERSION = 1;
+export const RESOLVER_VERSION = 2;
 
 /** A week. Address assignments move, but not quickly. */
 export const RESOLUTION_TTL_SECONDS = 7 * 24 * 60 * 60;
@@ -127,12 +133,7 @@ export async function resolveIp(ip: string): Promise<Resolution> {
 
   reasons.push(...combined.reasons);
 
-  const gate = qualifies({
-    confidence: combined.confidence,
-    methods: combined.methods,
-    registrantIsClean: isCleanOrgName(rdap?.org),
-    blockSize: rdap?.blockSize ?? null,
-  });
+  const gate = qualifies({ confidence: combined.confidence, methods: combined.methods });
   reasons.push(gate.reason);
 
   /*

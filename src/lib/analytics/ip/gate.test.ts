@@ -74,6 +74,26 @@ describe('the connection-type gate', () => {
     }
   });
 
+  it('catches the leasing shells and scanners that used to read as businesses', () => {
+    // All four of these were reported as visiting accounts on the live site.
+    // HostRoyale sells hosting; the other three lease address space and hold
+    // blocks small enough that the netblock-size fallback called them companies.
+    for (const org of [
+      'Hostroyale Technologies Pvt Ltd',
+      'Stark Industries Solutions Ltd',
+      'IPXO Limited',
+      'Censys, Inc.',
+    ]) {
+      const { type } = classify({
+        intel: intel({ org }),
+        hostname: null,
+        rdap: { org, handle: null, blockSize: 1024 },
+      });
+
+      expect(type, org).toBe('hosting');
+    }
+  });
+
   it('honours an operator exclusion before every other rule', () => {
     const { type } = classify({
       intel: intel({ org: 'Some New Host Ltd', asnType: 'business' }),
@@ -308,52 +328,54 @@ describe('confidence and the tiered-trust policy', () => {
     expect(result?.domain).toBe('acme.com');
   });
 
-  it('refuses a lone guessed domain on a block that is not demonstrably dedicated', () => {
-    // The case the whole policy exists for. It clears no tier, so it is refused
-    // whatever the arithmetic said.
+  it('refuses a domain that was derived from a name rather than read off the address', () => {
+    // The case the whole policy exists for, and the one that put invented
+    // companies on the visitors screen: a name transformed into something
+    // domain-shaped, with nothing having observed the address at all.
+    const verdict = qualifies({ confidence: 0.75, methods: ['org_name_guess'] });
+
+    expect(verdict.ok).toBe(false);
+    expect(verdict.reason).toMatch(/instead of reading one off the address/);
+  });
+
+  it('refuses two derived methods agreeing, because that is one guess counted twice', () => {
+    // rdap_registrant and org_name_guess are both guessDomain() over an
+    // organisation name. Two spellings of the same name landing on the same
+    // invented domain is not corroboration, and this is exactly the shape that
+    // "steel-axis LLC" arrived in.
     const verdict = qualifies({
-      confidence: 0.75,
-      methods: ['org_name_guess'],
-      registrantIsClean: false,
-      blockSize: 4_194_304,
+      confidence: 0.8,
+      methods: ['rdap_registrant', 'org_name_guess'],
     });
 
     expect(verdict.ok).toBe(false);
-    expect(verdict.reason).toMatch(/not enough to name a company/);
+  });
+
+  it('refuses a clean registrant on a small block, which used to be enough', () => {
+    // The removed third tier, kept as a test so the regression is named. Every
+    // fabricated company came through here at exactly 0.60.
+    expect(qualifies({ confidence: 0.6, methods: ['rdap_registrant'] }).ok).toBe(false);
   });
 
   it('accepts a domain that came from the address itself, on its own', () => {
-    expect(
-      qualifies({
-        confidence: 0.8,
-        methods: ['reverse_dns'],
-        registrantIsClean: false,
-        blockSize: null,
-      }).ok,
-    ).toBe(true);
+    const verdict = qualifies({ confidence: 0.8, methods: ['reverse_dns'] });
+
+    expect(verdict.ok).toBe(true);
+    expect(verdict.reason).toMatch(/Domain-backed/);
   });
 
-  it('accepts two independent methods agreeing', () => {
-    expect(
-      qualifies({
-        confidence: 0.7,
-        methods: ['rdap_registrant', 'org_name_guess'],
-        registrantIsClean: false,
-        blockSize: null,
-      }).ok,
-    ).toBe(true);
+  it('accepts a provider naming the company outright', () => {
+    expect(qualifies({ confidence: 0.78, methods: ['ip_intel_company'] }).ok).toBe(true);
   });
 
-  it('accepts a clean registrant on a small block, and identifies off the name', () => {
+  it('says so when an observation and the registry agree', () => {
     const verdict = qualifies({
-      confidence: 0.6,
-      methods: ['org_name_guess'],
-      registrantIsClean: true,
-      blockSize: 4_096,
+      confidence: 0.9,
+      methods: ['reverse_dns', 'rdap_registrant'],
     });
 
     expect(verdict.ok).toBe(true);
-    expect(verdict.reason).toMatch(/Registrant-backed/);
+    expect(verdict.reason).toMatch(/the registry agrees/);
   });
 
   it('refuses everything below the floor, however it was arrived at', () => {
@@ -361,8 +383,6 @@ describe('confidence and the tiered-trust policy', () => {
       qualifies({
         confidence: MINIMUM_CONFIDENCE - 0.01,
         methods: ['reverse_dns', 'rdap_registrant'],
-        registrantIsClean: true,
-        blockSize: 256,
       }).ok,
     ).toBe(false);
   });

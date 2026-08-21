@@ -148,6 +148,40 @@ export const HOSTING_BRANDS = [
   'e2e networks', 'esds software', 'ctrls', 'netmagic', 'web werks', 'yotta',
   'hostdime', 'krystal', 'clouvider', 'melbicom', 'the constant company',
   'oracle svr', 'linode llc', 'upcloud', 'exoscale', 'clouding.io', 'time4vps',
+  /*
+   * Small resellers and IPv4-leasing shells.
+   *
+   * A distinct population from the hyperscalers above and the reason the
+   * netblock-size fallback in classify.ts used to misfire. These outfits lease
+   * or sublet address space, register it under a plain-sounding corporate name
+   * with no hosting word anywhere in it, and hold blocks small enough to look
+   * exactly like one company's own range. "steel-axis LLC", "truview LLC" and
+   * "IPPN HOLDINGS LTD" are all this, and all three were reported as visiting
+   * accounts before the trust gate was tightened.
+   *
+   * The gate now refuses to name anything without an observed domain, so this
+   * list is no longer what stands between a scanner and a salesperson. It still
+   * earns its place: it moves these rows from "Business" to "Cloud or hosting",
+   * which is the difference between a row that looks like a missed opportunity
+   * and one that reads as what it is.
+   */
+  'hostroyale', 'ipxo', 'interlir', 'ip volume', 'ecatel', 'novogara', 'ip4market',
+  'stark industries', 'aeza', 'chang way', 'pq hosting', 'flyservers', 'kaopu',
+  'combahton', 'baxet', 'mivocloud', 'zomro', 'dedipath', 'sharktech', 'tzulo',
+  'incrediserve', 'global layer', 'virtual systems', 'nybula', 'green floid',
+  'ddos-guard', 'ipserverone', 'servinga', 'inferno solutions', 'alviva',
+  /*
+   * Internet-wide scanners, which are the actual source of most of this
+   * traffic. They announce themselves in registry data and then arrive with an
+   * ordinary Chrome user-agent, so `isBot()` never sees them — the UA check
+   * happens at ingest, where the organisation name is not yet known. Catching
+   * them here is the only place left, and it stops them being named; it does
+   * not remove them from the page-view counts. That would need the address
+   * classified at ingest rather than at read.
+   */
+  'shodan', 'censys', 'onyphe', 'binaryedge', 'stretchoid', 'alpha strike labs',
+  'internet measurement', 'driftnet', 'netsystems research', 'security research',
+  'expanse, a palo alto', 'leakix', 'recyber', 'intrinsec',
 ] as const;
 
 /**

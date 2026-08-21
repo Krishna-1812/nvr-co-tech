@@ -33,6 +33,18 @@ export const STRENGTH: Record<SignalMethod, number> = {
   org_name_guess: 0.5,
 };
 
+/**
+ * The methods that read a domain off the address, rather than deriving one from
+ * a name.
+ *
+ * `qualifies()` refuses to name anybody without one of these, which makes this
+ * the most consequential line in the file. The distinction is not about how
+ * strong each signal feels — it is whether anything was actually observed about
+ * this address, or whether a string was transformed into something shaped like
+ * a domain.
+ */
+export const OBSERVED: readonly SignalMethod[] = ['reverse_dns', 'ip_intel_company'];
+
 /** Below a /20 or so. Small enough to suggest one dedicated tenant. */
 const DEDICATED = 4_096;
 /** A /12 or bigger. Certainly shared infrastructure. */
@@ -41,8 +53,6 @@ const SPRAWLING = 1_048_576;
 const INSTITUTION_CAP = 0.85;
 
 export const MINIMUM_CONFIDENCE = 0.6;
-/** A block this size or smaller can carry a registrant-backed identification. */
-export const REGISTRANT_BLOCK_LIMIT = 65_536;
 
 export type Combined = {
   domain: string;
@@ -139,37 +149,60 @@ export type Verdict = { ok: boolean; reason: string };
 /**
  * Whether an identification may actually be claimed.
  *
- * Clearing the confidence floor is necessary and nowhere near sufficient. One of
- * three independent things must also be true, and the three are ranked by how
- * much they rely on inference:
+ * Clearing the confidence floor is necessary and nowhere near sufficient. One
+ * further thing must be true, and it is the whole of the policy: at least one
+ * method must have **observed** a domain rather than derived one.
  *
- *   1. Domain-backed — the winning domain came from a PTR record or from the
- *      provider naming the company outright. That is an observation about this
- *      address, and it stands alone.
+ * The four methods split cleanly along that line, and the split matters far
+ * more than their individual weights:
  *
- *   2. Corroborated — two methods that could not have influenced each other
- *      arrived at the same domain.
+ *   observed   reverse_dns        a PTR record somebody configured on purpose
+ *              ip_intel_company   a provider naming the company outright
  *
- *   3. Registrant-backed — neither of the above, but the registry says a
- *      clean-looking organisation holds this block and the block is small
- *      enough to belong to one tenant. Here the *name* is trustworthy even
- *      though the domain is only a guess, so the identification is made off the
- *      name and the domain is left to be corrected later.
+ *   derived    rdap_registrant    guessDomain() over the registry's name
+ *              org_name_guess     guessDomain() over the provider's name
  *
- * What this rules out is the case the whole policy exists for: a single guessed
- * domain, from one organisation name, on a large shared block. That combination
- * can reach 0.6 on the arithmetic and it means nothing.
+ * Both derived methods are the same string transformation — strip the legal
+ * suffixes, delete the punctuation, append `.com` — applied to two spellings of
+ * what is usually the same name. They are therefore not independent in the way
+ * a corroboration rule needs them to be: "IPPN HOLDINGS LTD" and "IPPN Holdings
+ * Ltd" agreeing on `ippn.com` is one guess counted twice, not two sightings.
+ *
+ * ── Why this is stricter than it was ────────────────────────────────────────
+ *
+ * There were two weaker tiers here and both are gone.
+ *
+ * The first let a clean registrant name on a block small enough to be one
+ * tenant's identify off the name alone, with the domain left "to be corrected
+ * later". Every fabricated company on the visitors screen arrived through that
+ * tier, at exactly 0.60 — 0.55 for the registrant plus 0.05 for the small block
+ * — and no domain was ever corrected. The enrichment pass fetched them instead,
+ * found real unrelated websites at those invented addresses, and copied their
+ * branding onto strangers' rows.
+ *
+ * The second let any two methods agreeing stand as corroboration, which is
+ * right for two observations and wrong for two derivations, per the paragraph
+ * above.
+ *
+ * Neither tier existed because the evidence supported it. Both existed to cover
+ * a gap: without an `IPINFO_TOKEN` the provider signals that would have caught
+ * infrastructure earlier are unavailable, so the classifier's netblock-size
+ * fallback was calling every small hosting reseller a business, and these tiers
+ * were what let those names reach a screen. Widening what counts as proof is
+ * the wrong way to compensate for having less of it.
+ *
+ * The cost is recall, and it is the right cost. With no IP-intelligence token
+ * configured this leaves exactly one route to a name — a real corporate reverse
+ * DNS record — so there will be few identifications and each one will be a
+ * fact. Setting the token widens the gate again honestly, by adding an
+ * observation rather than by lowering the bar.
  */
 export function qualifies({
   confidence,
   methods,
-  registrantIsClean,
-  blockSize,
 }: {
   confidence: number;
   methods: SignalMethod[];
-  registrantIsClean: boolean;
-  blockSize: number | null;
 }): Verdict {
   if (confidence < MINIMUM_CONFIDENCE) {
     return {
@@ -178,27 +211,23 @@ export function qualifies({
     };
   }
 
-  if (methods.includes('reverse_dns') || methods.includes('ip_intel_company')) {
-    return { ok: true, reason: 'Domain-backed: the domain came from the address itself.' };
-  }
+  const observed = methods.filter((method) => OBSERVED.includes(method));
 
-  if (methods.length >= 2) {
-    return { ok: true, reason: 'Corroborated: two independent methods agree on the domain.' };
-  }
-
-  if (registrantIsClean && blockSize != null && blockSize <= REGISTRANT_BLOCK_LIMIT) {
+  if (observed.length === 0) {
     return {
-      ok: true,
+      ok: false,
       reason:
-        'Registrant-backed: a clean organisation name holds a block small enough to be its '
-        + 'own, so the name is trusted even though the domain is a guess.',
+        'Every signal here built a domain out of an organisation name instead of reading one '
+        + 'off the address. That is a guess however many times it agrees with itself, so no '
+        + 'company is named.',
     };
   }
 
   return {
-    ok: false,
+    ok: true,
     reason:
-      'One weak signal on a block that is not demonstrably dedicated. That is not enough to '
-      + 'name a company.',
+      methods.length > observed.length
+        ? 'Domain-backed, and the registry agrees: the domain came from the address itself.'
+        : 'Domain-backed: the domain came from the address itself.',
   };
 }
