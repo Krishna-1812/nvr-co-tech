@@ -19,6 +19,26 @@ import type { Firmographics, Resolution } from '@/lib/analytics/types';
  * None of this is evidence that the engine works. It is evidence that the
  * components render. The engine is tested separately, offline, in
  * lib/analytics/ip/gate.test.ts.
+ *
+ * ── One sample used to assert a rule the engine no longer has ───────────────
+ *
+ * "Northgate Logistics" was resolved here from ['rdap_registrant',
+ * 'org_name_guess'] and carried the reason "Corroborated: two independent
+ * methods agree on the domain". Both of those methods are `guessDomain()`
+ * applied to an organisation name, so they are not independent and never were:
+ * two derivations of one string agreeing is one guess, counted twice. The gate
+ * stopped accepting that pair, and the reason string was deleted with it.
+ *
+ * The fixture went on naming the company anyway, on the one screen built to
+ * show whether we name companies we cannot prove. Anybody shown this demo would
+ * have concluded the fabrication was still there, which is the worst possible
+ * thing for a stand-in to be wrong about.
+ *
+ * So that sample is now a refusal of exactly that kind, and it is the most
+ * interesting row in the set: a real business address, a registry block, an
+ * organisation name in plain sight, and no company named, because nothing read
+ * a domain off the address itself. resolutions.test.ts puts every sample below
+ * through the real `qualifies()`, so this cannot drift again.
  */
 
 type Sample = {
@@ -43,7 +63,7 @@ const COMPANIES: Sample[] = [
       'The registry allocated 4,096 addresses to a named organisation with no carrier or hosting markers against it.',
       'The reverse DNS record and the registry registrant point at example.co.in.',
       '2 independent methods agree, which adds a corroboration bonus.',
-      'Domain-backed: the domain came from the address itself.',
+      'Domain-backed, and the registry agrees: the domain came from the address itself.',
     ],
     tech: ['WordPress', 'Google Analytics', 'Cloudflare'],
     description:
@@ -63,24 +83,22 @@ const COMPANIES: Sample[] = [
     tech: ['Next.js', 'React', 'HubSpot', 'Stripe'],
     description: 'Boutique advisory. Twelve people, one financial controller, and a lot of spreadsheets.',
   },
-  {
-    name: 'Northgate Logistics',
-    domain: 'northgate.example',
-    city: 'Pune',
-    confidence: 0.66,
-    methods: ['rdap_registrant', 'org_name_guess'],
-    reasons: [
-      'The registry allocated 8,192 addresses to a named organisation with no carrier or hosting markers against it.',
-      'The registry registrant and a domain guessed from the organisation name point at northgate.example.',
-      '2 independent methods agree, which adds a corroboration bonus.',
-      'Corroborated: two independent methods agree on the domain.',
-    ],
-    tech: ['Webflow', 'Segment'],
-    description: 'Freight forwarding across four states. Reconciles carrier statements by hand, monthly.',
-  },
 ];
 
-const REFUSALS: { type: Resolution['connectionType']; reasons: string[]; asnOrg: string }[] = [
+/**
+ * The refusals, which are the ordinary case and have to read as answers.
+ *
+ * `hostname` and `blockSize` are optional because one of these is not a carrier
+ * or a cloud host at all: it is a business, with a registry allocation, that we
+ * still decline to name.
+ */
+const REFUSALS: {
+  type: Resolution['connectionType'];
+  reasons: string[];
+  asnOrg: string;
+  city?: string;
+  blockSize?: number;
+}[] = [
   {
     type: 'isp',
     asnOrg: 'Bharti Airtel Ltd',
@@ -108,6 +126,24 @@ const REFUSALS: { type: Resolution['connectionType']; reasons: string[]; asnOrg:
     asnOrg: 'Regional Fibre Communications',
     reasons: [
       'The name contains "fibre", which sounds like a carrier without proving one. Carriers register small blocks under their own name, so the block size is not allowed to call this a business.',
+    ],
+  },
+  /*
+   * A business we will not name, which is the state the screens most needed to
+   * be able to show. Everything about this address says a company: a small
+   * registry block, an organisation name, no carrier or hosting markers. What is
+   * missing is the one thing that counts, a domain read off the address itself,
+   * so the name stays in the ASN column where it was observed and never becomes
+   * a company on the row.
+   */
+  {
+    type: 'business',
+    asnOrg: 'Northgate Logistics Pvt Ltd',
+    city: 'Pune',
+    blockSize: 8_192,
+    reasons: [
+      'The registry allocated 8,192 addresses to a named organisation with no carrier or hosting markers against it.',
+      'Every signal here built a domain out of an organisation name instead of reading one off the address. That is a guess however many times it agrees with itself, so no company is named.',
     ],
   },
 ];
@@ -147,13 +183,16 @@ export function previewResolution(ip: string): Resolution {
     domain: null,
     confidence: 0,
     methods: [],
-    reasons: [...refusal.reasons, 'The registry was not consulted: it could not have changed this.'],
-    city: 'Bengaluru',
+    reasons:
+      refusal.type === 'business'
+        ? refusal.reasons
+        : [...refusal.reasons, 'The registry was not consulted: it could not have changed this.'],
+    city: refusal.city ?? 'Bengaluru',
     country: 'IN',
     asn: `AS${9000 + (n % 900)}`,
     asnOrg: refusal.asnOrg,
     hostname: null,
-    blockSize: null,
+    blockSize: refusal.blockSize ?? null,
   };
 }
 

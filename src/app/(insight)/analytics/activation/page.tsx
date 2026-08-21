@@ -255,7 +255,13 @@ export default async function ActivationPage({
             <Fact
               label="Chapters set up"
               value={number(depth.chapters)}
-              says={`Beyond the head office every workspace is given. ${number(depth.organisations)} ${depth.organisations === 1 ? 'organisation has' : 'organisations have'} added one.`}
+              /*
+               * Two different subjects, so the sentence has to name both. It read
+               * "7 ... 1 organisation has added one", where the figure counts
+               * chapters and the "one" counted a chapter as well, which put a 7
+               * and a one in the same breath about the same thing.
+               */
+              says={`Beyond the head office every workspace is given, across ${number(depth.organisations)} ${depth.organisations === 1 ? 'organisation' : 'organisations'}.`}
             />
           </div>
         </Card>

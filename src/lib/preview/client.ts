@@ -1,5 +1,6 @@
 import * as fixtures from './fixtures';
 import * as analytics from './analytics';
+import * as operator from './operator';
 import { PREVIEW_USER_ID } from './fixtures';
 import { financialYear } from '@/lib/domain/voucher';
 import {
@@ -69,6 +70,13 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   // being used rather than by being seeded.
   assist_conversations: [],
   assist_turns: [],
+  /*
+   * 0022, derived from the vouchers rather than written out. Three analytics
+   * screens read nothing but this, and with no stand-in they all rendered their
+   * empty states while the register beside them listed fourteen vouchers. See
+   * ./operator.ts for why it is computed rather than seeded.
+   */
+  product_events: operator.product_events as unknown as Row[],
   // Analytics (0010). Seeded, unlike the two above, because these screens are
   // the one part of the platform whose content cannot be produced by using it:
   // a preview visitor cannot generate a fortnight of somebody else's traffic.
@@ -588,6 +596,24 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
      */
     case 'is_analytics_admin':
       return ok(true);
+
+    /*
+     * 0026. The operator's cross-tenant view, which exists because RLS scopes
+     * organizations and profiles to the caller's own tenant, so reading those
+     * tables directly hands an operator exactly one row however many have signed
+     * up. Mirrored in ./operator.ts, close enough for the screens to render and
+     * no closer: Postgres is the authority on all five.
+     */
+    case 'operator_tenants':
+      return ok(operator.operatorTenants());
+    case 'operator_members':
+      return ok(operator.operatorMembers());
+    case 'operator_onboarding':
+      return ok(operator.operatorOnboarding());
+    case 'operator_workflow_stages':
+      return ok(operator.operatorWorkflowStages());
+    case 'operator_stuck_vouchers':
+      return ok(operator.operatorStuckVouchers(Number(args.p_days ?? 7)));
     case 'record_visitor_view':
     case 'record_page_view':
     case 'record_identity':

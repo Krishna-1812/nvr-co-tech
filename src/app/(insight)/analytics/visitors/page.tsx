@@ -272,7 +272,7 @@ function Header({ days }: { days: number }) {
     <PageHeader
       eyebrow="Public site"
       title="Who came by, and what they did"
-      description="One row per browser, then how the site itself was used. Who somebody is comes only from proof they gave us. A company name appears only when the address itself named one — a reverse DNS record somebody configured on purpose — and never when it was reconstructed from an organisation name, which is what this screen used to do."
+      description="One row per browser, then how the site itself was used. Who somebody is comes only from proof they gave us. A company is named only when something read a domain off the address itself, such as a reverse DNS record somebody configured on purpose. A domain rebuilt out of an organisation name is a guess, so that row stays unnamed however confident the guess looks."
       action={<WindowTabs current={days as 7 | 30 | 90} base="/analytics/visitors" />}
     />
   );

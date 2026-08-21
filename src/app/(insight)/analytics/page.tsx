@@ -261,7 +261,7 @@ function Header({ days }: { days: number }) {
     <PageHeader
       eyebrow="Overview"
       title="What is happening"
-      description="The product first, the public site second. Everything is measured by our own tracker on our own origin into our own database — no Google Analytics, no third-party pixel — and anybody sending Do Not Track is never recorded at all."
+      description="The product first, the public site second. Everything here is measured by our own tracker, on our own origin, into our own database. There is no Google Analytics and no third-party pixel, and anybody sending Do Not Track is never recorded at all."
       action={<WindowTabs current={days as 7 | 30 | 90} base="/analytics" />}
     />
   );
