@@ -5,28 +5,30 @@ import { buttonClass } from '@/components/ui/primitives';
 import type { Fiscal } from '@/lib/fiscal';
 
 /**
- * The top of the dashboard: who you are, what the day is, and the one thing to do
- * about it.
+ * The top of the dashboard: what the day is, where you stand, and the one thing
+ * to do about it.
  *
  * This replaced a plain title and a sentence. The case for giving it a whole
- * panel is that the sentence underneath is the most useful thing on the screen —
- * it is the difference between a dashboard you read and a dashboard you act on —
+ * panel is that the sentence underneath is the most useful thing on the screen.
+ * It is the difference between a dashboard you read and a dashboard you act on,
  * and a 14px line of grey text above four cards was not being read.
  *
- * `lead` is decided by the page, not here, because the ordering of what matters
- * (sent back, then the queue, then your own work in flight) is a business
- * judgement rather than a layout one.
+ * `title` was `greeting` and held "Good morning, Vivek". The workspace one click
+ * earlier says exactly that, so this said it twice; the headline is now the state
+ * of the desk, which is the thing somebody opened this screen to learn. Both it
+ * and `lead` are decided by lib/domain/desk rather than here, because which of
+ * six facts matters most is a business judgement and not a layout one.
  */
 export function Briefing({
-  greeting,
+  title,
   when,
   lead,
   cta,
   fiscal,
   inFlight,
 }: {
-  /** "Good morning, Vivek" — already assembled, because the name may be absent. */
-  greeting: string;
+  /** The state of the desk in one sentence: "3 vouchers need your approval." */
+  title: string;
   /** "Tuesday morning" */
   when: string;
   lead: string;
@@ -77,7 +79,7 @@ export function Briefing({
           </p>
 
           <h1 className="m-display mt-4 text-[clamp(1.75rem,4.4vw,2.75rem)] text-balance">
-            {greeting}
+            {title}
           </h1>
 
           <p className="text-muted mt-3 max-w-xl text-[15px] leading-relaxed text-pretty sm:text-base">

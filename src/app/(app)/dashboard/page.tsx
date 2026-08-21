@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { FileText, Inbox, AlertCircle, Wallet, Plus, Activity, GitBranch } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { canApprove } from '@/lib/domain/workflow';
+import { deskBrief } from '@/lib/domain/desk';
 import { ageInDays } from '@/lib/utils';
+import { fmtRupees } from '@/lib/domain/voucher';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
 import {
   buttonClass,
@@ -38,8 +40,20 @@ const UNSETTLED = ['draft', 'rejected', 'pending_first', 'pending_second'];
  * Role-aware, and organised around one question: what should this person do next.
  * A member cares about what has been sent back to them; an approver cares about
  * queue depth and how long the head of it has been sitting there. So the briefing
- * at the top picks its own sentence and its own primary button from the data, and
- * the four cards below it differ by role.
+ * at the top leads with the answer and carries the button for it, and the four
+ * cards below it differ by role.
+ *
+ * ── What the top of this screen no longer does ──────────────────────────────
+ *
+ * Greet you. Signing in lands on the workspace, which says good morning, names
+ * the day and gives you the tools; opening Voucher Desk from it then said good
+ * morning again, on the next screen, in the same words and the same size of
+ * type. Two hellos in two clicks reads as two applications stitched together.
+ *
+ * The headline is the work instead, which is what an h1 is for on a screen
+ * somebody opens to find out where they stand. It comes from lib/domain/desk,
+ * shared with the workspace card, because the two used to rank the same counts
+ * differently and could disagree about what mattered most.
  */
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -90,7 +104,6 @@ export default async function DashboardPage() {
 
   const { weekday, partOfDay } = istParts();
   const fiscal = fiscalYear(istToday());
-  const firstName = user.full_name?.trim().split(/\s+/)[0];
 
   const cards = [
     ...(canApprove(user.role)
@@ -98,7 +111,20 @@ export default async function DashboardPage() {
           {
             label: 'Waiting on you',
             value: pending,
-            hint: pending === 0 ? 'The queue is clear' : `${queueValue > 0 ? 'Worth ' : ''}${pending === 1 ? 'one voucher' : `${pending} vouchers`}`,
+            /*
+             * The value, or the count when there is no value to show.
+             *
+             * This read "Worth 4 vouchers". The 'Worth ' prefix was conditional
+             * on the queue having a rupee value and was then glued to the number
+             * of vouchers rather than to the money, so the one word that was
+             * meant to make it a sentence made it a wrong one.
+             */
+            hint:
+              pending === 0
+                ? 'The queue is clear'
+                : queueValue > 0
+                  ? `Worth ${fmtRupees(queueValue)}`
+                  : `${pending === 1 ? 'One voucher' : `${pending} vouchers`}, no value yet`,
             href: '/approvals',
             icon: Inbox,
             tone: 'var(--status-pending)',
@@ -137,47 +163,23 @@ export default async function DashboardPage() {
     },
   ];
 
-  /*
-   * The one sentence, and the button under it. Ordered by what a person can
-   * actually act on: something sent back to you is blocked on you alone, a queue
-   * is blocked on you but shared, your own drafts are blocked on you but not
-   * urgent, and anything with an approver is not yours to move at all.
-   */
-  const brief =
-    sentBack.length > 0
-      ? {
-          lead: `${count(sentBack.length, 'voucher')} came back for correction. That is the only thing here that nobody else can clear for you.`,
-          cta: { href: '/vouchers?status=rejected', label: 'See what came back', primary: true },
-        }
-      : pending > 0
-        ? {
-            lead:
-              oldestWait >= 3
-                ? `${count(pending, 'voucher')} ${pending === 1 ? 'is' : 'are'} waiting for your approval, and the oldest has been in the queue ${oldestWait} days.`
-                : `${count(pending, 'voucher')} ${pending === 1 ? 'is' : 'are'} waiting for your approval.`,
-            cta: { href: '/approvals', label: 'Open the queue', primary: true },
-          }
-        : awaiting.length > 0
-          ? {
-              lead: `${count(awaiting.length, 'of your vouchers', 'of your vouchers')} ${awaiting.length === 1 ? 'is' : 'are'} with approvers. Nothing is waiting on you.`,
-              cta: { href: '/vouchers?status=pending_first', label: 'See where they are', primary: false },
-            }
-          : drafts.length > 0
-            ? {
-                lead: `${count(drafts.length, 'draft')} ${drafts.length === 1 ? 'is' : 'are'} unfinished. Nothing else needs you today.`,
-                cta: { href: '/vouchers?status=draft', label: 'Finish your drafts', primary: true },
-              }
-            : {
-                lead: 'Nothing needs your attention. The queue is clear and nothing has come back.',
-                cta: { href: '/vouchers/new', label: 'Raise a voucher', primary: true },
-              };
+  const brief = deskBrief({
+    sentBack: sentBack.length,
+    queue: pending,
+    drafts: drafts.length,
+    withApprovers: awaiting.length,
+    // Bounded by OWN_LIMIT, which only matters at zero, and zero here is exact:
+    // an empty page of your own vouchers means you have never raised one.
+    everRaised: rows.length,
+    oldestQueueDays: oldestWait,
+  });
 
   return (
     <div className="space-y-6">
       <Briefing
-        greeting={firstName ? `Good ${partOfDay}, ${firstName}.` : `Good ${partOfDay}.`}
+        title={brief.headline}
         when={`${weekday} ${partOfDay}`}
-        lead={brief.lead}
+        lead={brief.detail}
         cta={brief.cta}
         fiscal={fiscal}
         inFlight={{
@@ -256,9 +258,4 @@ export default async function DashboardPage() {
       </Card>
     </div>
   );
-}
-
-/** "1 voucher" / "3 vouchers", without the caller assembling it each time. */
-function count(n: number, singular: string, plural = `${singular}s`) {
-  return `${n} ${n === 1 ? singular : plural}`;
 }

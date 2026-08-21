@@ -102,12 +102,3 @@ export const SOLUTIONS: Solution[] = AGENTS.map((agent) => ({
   open: agent.stage === 'live' ? agent.href : undefined,
   plan: `/agents/${agent.slug}`,
 }));
-
-/** How many tools are at each stage. The hub states this above the grid. */
-export function stageCounts(): { live: number; building: number; planned: number } {
-  return {
-    live: SOLUTIONS.filter((s) => s.stage === 'live').length,
-    building: SOLUTIONS.filter((s) => s.stage === 'building').length,
-    planned: SOLUTIONS.filter((s) => s.stage === 'planned').length,
-  };
-}

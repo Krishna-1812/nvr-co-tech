@@ -50,6 +50,9 @@ type Tables = Record<string, Row[]>;
 const globalForPreview = globalThis as typeof globalThis & { __fiPreviewTables?: Tables };
 
 const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
+  // One row. Read by the workspace and /admin for the approval setting, and by
+  // /settings for the name; written by the owner turning approval on or off.
+  organizations: fixtures.organizations as unknown as Row[],
   profiles: fixtures.profiles as unknown as Row[],
   chapters: fixtures.chapters as unknown as Row[],
   events: fixtures.events as unknown as Row[],

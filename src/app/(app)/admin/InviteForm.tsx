@@ -80,7 +80,7 @@ export function InviteForm({ emailEnabled }: { emailEnabled: boolean }) {
         description={
           emailEnabled
             ? 'Emails them a link that joins your organisation. The link only works for the address you enter, and lasts fourteen days.'
-            : 'Generates a link that joins your organisation. Copy it and send it however you like — it only works for the address you enter, and lasts fourteen days.'
+            : 'Generates a link that joins your organisation. Copy it and send it however you like. It only works for the address you enter, and lasts fourteen days.'
         }
       />
       <form onSubmit={submit} className="flex flex-wrap items-end gap-3 px-5 py-4">

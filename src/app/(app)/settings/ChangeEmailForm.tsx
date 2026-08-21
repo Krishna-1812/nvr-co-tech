@@ -65,7 +65,7 @@ export function ChangeEmailForm({ email }: { email: string }) {
       </form>
       {sent && (
         <p className="text-subtle border-t px-5 py-3 text-sm">
-          Check your inbox — the email only changes once you confirm it.
+          Check your inbox. The email only changes once you confirm it.
         </p>
       )}
     </Card>

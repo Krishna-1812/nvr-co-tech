@@ -136,7 +136,7 @@ export default async function SettingsPage() {
             <div className="min-w-0 pt-0.5">
               <p className="font-semibold tracking-tight">Sign out everywhere</p>
               <p className="text-muted mt-1 text-sm text-pretty">
-                Ends every session on every device — use this after a lost device or a password you
+                Ends every session on every device. Use it after a lost device, or a password you
                 think someone else may have.
               </p>
             </div>

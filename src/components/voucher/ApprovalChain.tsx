@@ -7,28 +7,40 @@ import { Avatar } from '@/components/Avatar';
 import { cn } from '@/lib/utils';
 
 /**
- * The chain of custody for one voucher, drawn as four rungs on a rail.
+ * The chain of custody for one voucher: raised, approved, paid.
  *
  * This replaced a stack of three labelled rows in a sidebar. The reason it is
  * worth the space is that a payment voucher is not a record with some approval
- * fields on it — it is a sequence of four acts by up to four different people,
- * and the thing anyone opening this page wants to know is which act is next and
- * who owes it. A row of rungs says that; a definition list does not.
+ * fields on it. It is a sequence of acts by different people, and the thing
+ * anyone opening this page wants to know is which act is next and who owes it. A
+ * row of rungs says that; a definition list does not.
  *
  * A rung that has not happened is drawn, not omitted. An outstanding approval is
  * the single most useful fact on this page, and it has to occupy space to be seen.
  *
- * A sent-back voucher gets a fifth state rather than a fifth rung: the two approval
- * rungs go back to empty (Postgres genuinely voids them) and a red marker sits where
- * the chain broke, because "returned to the start" is what actually happened.
+ * A sent-back voucher gets an extra state rather than an extra rung: the approval
+ * rung goes back to empty (Postgres genuinely voids it) and a red marker sits
+ * where the chain broke, because "returned to the start" is what actually
+ * happened.
  *
- * An organization can turn approval off entirely (0013), and even when it is
- * on, one signature is now all that is required (0015) — the second-approval
- * rung is only ever filled by a voucher that entered the queue before that
- * shipped. Either way, a rung nothing is ever going to fill is not the same
- * fact as "waiting on somebody" — there is nobody to wait on — so a voucher
- * that is already approved or paid marks any unfilled approval rung skipped
- * rather than drawing the pulsing "next" halo on it.
+ * ── Why there is no second-approval rung any more ───────────────────────────
+ *
+ * There was one, and it drew for every voucher. One signature has been all a
+ * voucher needs since 0015, so on anything raised since then that rung could
+ * never fill: a voucher waiting in the queue showed two outstanding approvals
+ * when one was outstanding, and a finished voucher spent a quarter of this
+ * component explaining that a step did not apply to it. A rung whose only
+ * possible caption is "not required" is not information.
+ *
+ * It is still drawn for a voucher that genuinely has a second approval, or is
+ * still sitting in pending_second, both of which mean it entered the queue
+ * before 0015. Those rows are real and their history has to be readable. The
+ * labels change with it: with one rung the act is "Approved", and only a chain
+ * that really has two calls them first and second.
+ *
+ * An organization can also turn approval off entirely (0013), and then the
+ * approval rung is marked skipped rather than waiting once the voucher settles,
+ * because there is nobody to wait on.
  */
 
 type Step = {
@@ -74,11 +86,18 @@ export function ApprovalChain({
   rejectedBy: PersonRef;
 }) {
   const rejected = status === 'rejected';
-  // Nothing further is coming once a voucher is approved or paid — whichever
-  // approval rung is still empty at that point was never going to fill.
+  // Nothing further is coming once a voucher is approved or paid, so an approval
+  // rung still empty at that point was never going to fill.
   const finalized = status === 'approved' || status === 'paid';
-  const firstSkipped = finalized && !firstApprover;
-  const secondSkipped = finalized && !secondApprover;
+
+  /*
+   * Only a voucher from before 0015 can have a second approval to show. Three
+   * separate signs of it, because a row can be at any point in that old flow: it
+   * has the approver, or it has the timestamp, or it is still sitting in the
+   * status that waits for one.
+   */
+  const twoStage =
+    Boolean(secondApprover) || Boolean(secondAt) || status === 'pending_second';
 
   const steps: Step[] = [
     {
@@ -92,24 +111,28 @@ export function ApprovalChain({
     },
     {
       key: 'first',
-      label: 'First approval',
+      label: twoStage ? 'First approval' : 'Approved',
       icon: Check,
       person: firstApprover,
       who: nameOf(firstApprover),
       when: fmtDate(firstAt),
       done: Boolean(firstApprover),
-      skip: firstSkipped,
+      skip: finalized && !firstApprover,
     },
-    {
-      key: 'second',
-      label: 'Second approval',
-      icon: Check,
-      person: secondApprover,
-      who: nameOf(secondApprover),
-      when: fmtDate(secondAt),
-      done: Boolean(secondApprover),
-      skip: secondSkipped,
-    },
+    ...(twoStage
+      ? [
+          {
+            key: 'second',
+            label: 'Second approval',
+            icon: Check,
+            person: secondApprover,
+            who: nameOf(secondApprover),
+            when: fmtDate(secondAt),
+            done: Boolean(secondApprover),
+            skip: finalized && !secondApprover,
+          },
+        ]
+      : []),
     {
       key: 'paid',
       /*
@@ -133,7 +156,15 @@ export function ApprovalChain({
 
   return (
     <div>
-      <ol className="grid gap-x-2 gap-y-5 sm:grid-cols-4">
+      {/* Three columns normally, four for a voucher old enough to have two
+          approvals. Written out rather than interpolated, because Tailwind reads
+          the class names out of the source. */}
+      <ol
+        className={cn(
+          'grid gap-x-2 gap-y-5',
+          steps.length === 4 ? 'sm:grid-cols-4' : 'sm:grid-cols-3',
+        )}
+      >
         {steps.map((step, i) => (
           <li key={step.key} className="relative min-w-0">
             {/*

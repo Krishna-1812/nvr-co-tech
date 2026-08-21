@@ -3,7 +3,9 @@ import type { Metadata } from 'next';
 import { History } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { canApprove, isOwner, ROLE_META } from '@/lib/domain/workflow';
+import { deskBrief } from '@/lib/domain/desk';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
+import { ROSTER } from '@/lib/marketing/content';
 import { SOLUTIONS } from '@/lib/solutions';
 import { LiveSolutionCard, type Reading } from '@/components/hub/LiveSolutionCard';
 import { RequestCard } from '@/components/hub/RequestCard';
@@ -82,6 +84,7 @@ export default async function HubPage() {
    */
   const [
     drafts,
+    sentBack,
     withApprovers,
     queue,
     thisYear,
@@ -97,6 +100,16 @@ export default async function HubPage() {
     asked,
   ] = await Promise.all([
     count().eq('created_by', user.id).eq('status', 'draft'),
+    /*
+     * Yours, sent back for correction.
+     *
+     * This card had no idea about rejections. Its sentence ran queue, drafts,
+     * with-approvers, nothing, so a member with two vouchers returned to them
+     * was told they had drafts to finish, or that the desk was clear. Sent back
+     * is the one state nobody else can clear for you, which is why the shared
+     * brief ranks it first, and it needed counting before it could be said.
+     */
+    count().eq('created_by', user.id).eq('status', 'rejected'),
     count().eq('created_by', user.id).in('status', [...PENDING]),
     // You can never approve your own voucher, so it must not appear in your queue.
     approver ? count().in('status', [...PENDING]).neq('created_by', user.id) : null,
@@ -133,6 +146,7 @@ export default async function HubPage() {
 
   const n = {
     drafts: drafts.count ?? 0,
+    sentBack: sentBack.count ?? 0,
     withApprovers: withApprovers.count ?? 0,
     queue: queue?.count ?? 0,
     thisYear: thisYear.count ?? 0,
@@ -190,45 +204,22 @@ export default async function HubPage() {
   ];
 
   /*
-   * One sentence saying why you are here, chosen in the order the work actually
-   * needs doing: something waiting on you first, then something waiting on you to
-   * finish, then something waiting on somebody else, then nothing.
+   * Why you are here, in one sentence, from the same ranking the dashboard uses.
    *
    * "Nothing" has two meanings and used to be told as one. A clear desk on a
    * Friday afternoon is good news; a clear desk on the day the firm signs up is
-   * an empty tool nobody has been shown how to start. The first-run sentence can
-   * only be reached at the end of the chain, which is right — every count above
-   * it is necessarily zero if nothing has ever been raised.
+   * an empty tool nobody has been shown how to start. Both sentences live in
+   * lib/domain/desk now, along with the argument about which of six facts wins.
    */
-  const brief =
-    approver && n.queue > 0
-      ? {
-          text: `${n.queue} ${plural(n.queue, 'voucher needs', 'vouchers need')} your approval.`,
-          tone: 'var(--status-pending)',
-        }
-      : n.drafts > 0
-        ? {
-            text: `${n.drafts} ${plural(n.drafts, 'draft', 'drafts')} still to finish and submit.`,
-            tone: 'var(--status-warn)',
-          }
-        : n.withApprovers > 0
-          ? {
-              text: `${n.withApprovers} of yours ${plural(n.withApprovers, 'is', 'are')} with approvers.`,
-              tone: 'var(--status-pending)',
-            }
-          : n.everRaised === 0
-            ? {
-                // Not "the number writes itself": since 0019 it is typed by
-                // hand, with the next one in the chapter's run offered as a
-                // suggestion. Promising otherwise here would be the first thing
-                // the product got wrong about itself.
-                text: 'Nothing raised yet. A chapter, a payee and an amount is most of it, and the voucher number is suggested for you.',
-                tone: 'var(--status-draft)',
-              }
-            : {
-                text: 'Nothing is waiting on you. The desk is clear.',
-                tone: 'var(--status-approved)',
-              };
+  const brief = deskBrief({
+    sentBack: n.sentBack,
+    // Only an approver has a queue. Anybody else has a zero here, which is what
+    // stops the shared ranking offering them a screen they cannot open.
+    queue: approver ? n.queue : 0,
+    drafts: n.drafts,
+    withApprovers: n.withApprovers,
+    everRaised: n.everRaised,
+  });
 
   /*
    * The second tool's own instrumentation.
@@ -299,14 +290,20 @@ export default async function HubPage() {
             </h1>
 
             {/*
-              "being built in the order below" was contradicted by everything
-              under it: the meter reads 0 in build and all four roadmap cards say
-              Not started yet. The order is real — it is the order they will be
-              taken in — so that is what it now claims.
+              Two corrections, both about not saying more than is true.
+
+              This claimed the rest were "being built in the order below", which
+              everything under it contradicted: nothing is in build and all four
+              roadmap cards say Not started yet. The order is real, so the order
+              is what it claims.
+
+              And the count is counted rather than written. It said "Two of
+              these" in prose, a few pixels from a meter that works the same
+              number out for itself.
             */}
             <p className="text-muted mt-3 max-w-xl text-[15px] text-pretty">
-              Everything the firm runs is here. Two of these are open for work today, and the rest
-              are written down in the order they will be built.
+              Everything the firm runs is here. {ROSTER.liveOpen} of these {ROSTER.liveVerb} open for
+              work today, and the rest are written down in the order they will be built.
             </p>
 
             <p className="mt-4">
@@ -345,7 +342,7 @@ export default async function HubPage() {
             <LiveSolutionCard
               solution={voucherDesk}
               readings={readings}
-              note={brief.text}
+              note={brief.note}
               noteTone={brief.tone}
               shortcut={{ href: '/vouchers/new', label: 'New voucher' }}
             />

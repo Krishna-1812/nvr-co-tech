@@ -63,11 +63,15 @@ export function ApprovalCard({
     startTransition(async () => {
       const res = await approveVoucher({ id: voucher.id });
       if (res.ok) {
-        toast.success(
-          res.data.status === 'approved'
-            ? `${voucher.voucher_no} fully approved.`
-            : `${voucher.voucher_no} approved — now waiting for a second approver.`,
-        );
+        /*
+         * One message, because there is only one outcome. approve_voucher has
+         * set the status to 'approved' from either pending status since 0015, so
+         * the second branch here could not be reached and was telling whoever
+         * did reach it that a second approver was still needed. "Fully approved"
+         * went with it: "fully" only means something next to a partial approval,
+         * and there is no longer such a thing.
+         */
+        toast.success(`${voucher.voucher_no} approved.`);
       } else {
         // The server messages are written for humans; show them as-is.
         toast.error(res.error);

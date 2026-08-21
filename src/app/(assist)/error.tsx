@@ -44,8 +44,8 @@ export default function AssistError({
 
         <h1 className="mt-6 text-2xl font-bold tracking-tight">The assistant stopped short</h1>
         <p className="text-muted mt-2 text-sm leading-relaxed">
-          Nothing of yours was touched — the assistant has no connection to your vouchers or your
-          ledgers, and it cannot change a record even when it is working. Asking again is safe.
+          Nothing of yours was touched. The assistant has no connection to your vouchers or your
+          ledgers, and it cannot change a record even when it is working, so asking again is safe.
         </p>
 
         {error.digest && (

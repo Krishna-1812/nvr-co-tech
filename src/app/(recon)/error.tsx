@@ -43,8 +43,8 @@ export default function ReconError({
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Something went wrong</h1>
         <p className="text-muted mt-2 text-sm leading-relaxed">
           Your ledgers are read in this browser and were never uploaded, so nothing left this
-          machine and nothing was saved. Trying again is safe — but the run went with the page, so
-          the two files have to be chosen again.
+          machine and nothing was saved. Trying again is safe. The run went with the page, though,
+          so the two files have to be chosen again.
         </p>
 
         {error.digest && (

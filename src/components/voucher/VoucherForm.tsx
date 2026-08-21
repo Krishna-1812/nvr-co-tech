@@ -370,7 +370,7 @@ export function VoucherForm({
   const [suggesting, setSuggesting] = useState(false);
   const suggest = async () => {
     if (!form.chapter_id) {
-      toast.error('Choose the chapter first — the number is built from its code.');
+      toast.error('Choose the chapter first. The number is built from its code.');
       return;
     }
     setSuggesting(true);
@@ -417,7 +417,7 @@ export function VoucherForm({
                * 0021 seeds a head office so it should never be empty again;
                * this says what to do if it somehow is.
                */
-              hint={chapters.length === 0 ? 'No chapters yet — add one in Admin → Chapters.' : undefined}
+              hint={chapters.length === 0 ? 'No chapters yet. Add one in Admin → Chapters.' : undefined}
             >
               <Select
                 id="f-chapter_id"
@@ -684,7 +684,7 @@ export function VoucherForm({
             <div className="surface-sunken rounded-lg p-4">
               <p className="text-muted text-xs">
                 Use <strong>CGST + SGST</strong> for the same state, or <strong>IGST</strong> for
-                another state — not both. Clear one side to switch.
+                another state. Never both. Clear one side to switch.
               </p>
               <div className="mt-3 grid gap-4 sm:grid-cols-3">
                 <Field label="CGST" htmlFor="f-cgst" error={errorFor('cgst')}>
@@ -836,14 +836,20 @@ export function VoucherForm({
         </Card>
 
         {/*
-          Approvals are no longer typed in by hand. v1 had three free-text name
-          boxes here; the workflow now records who actually acted, and when.
+          There is nothing to fill in here, and the card exists to say so.
+
+          It used to open with "You no longer type approver names", which is a
+          note about a system this firm has never used: v1 had three free-text
+          name boxes in this spot, and every customer who signed up since has
+          been told about their removal. What somebody filling in this form
+          actually needs to know is who signs it next, and that it will not be
+          them.
         */}
         <Card className="border-dashed p-5">
           <p className="text-sm font-medium">Approvals</p>
           <p className="text-muted mt-1 text-sm">
             {requiresApproval
-              ? 'You no longer type approver names. When you submit, this voucher enters the approval queue and records who approves it — never you.'
+              ? 'Nothing to fill in. Submitting puts this voucher in the approval queue, and it records whoever signs it. That can never be you.'
               : 'This organisation does not require approval. When you submit, this voucher is paid immediately.'}
           </p>
         </Card>
@@ -1057,7 +1063,7 @@ function SaveIndicator({
   message?: string;
 }) {
   const map = {
-    idle: { icon: Cloud, text: 'Draft — changes save automatically', cls: 'text-[var(--text-subtle)]' },
+    idle: { icon: Cloud, text: 'Draft. Changes save automatically', cls: 'text-[var(--text-subtle)]' },
     saving: { icon: Loader2, text: 'Saving…', cls: 'text-[var(--text-muted)]' },
     saved: { icon: Check, text: 'Saved', cls: 'text-emerald-600 dark:text-emerald-400' },
     error: {

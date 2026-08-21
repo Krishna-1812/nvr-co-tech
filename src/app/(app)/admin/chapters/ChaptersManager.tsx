@@ -210,9 +210,9 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
       {/* Only worth saying once there is something that could be retired. */}
       {chapters.length > 0 && (
         <p className="text-subtle border-t px-5 py-3 text-xs text-pretty">
-          Chapters are retired rather than deleted — past vouchers reference them, and their history
-          has to stay intact. A retired chapter disappears from new vouchers but every existing one
-          keeps working.
+          Chapters are retired rather than deleted. Past vouchers reference them and their history
+          has to stay intact, so a retired chapter disappears from new vouchers while every existing
+          one keeps working.
         </p>
       )}
 

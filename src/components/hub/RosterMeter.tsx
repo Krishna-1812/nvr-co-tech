@@ -1,5 +1,5 @@
-import { STAGE_LABEL } from '@/lib/marketing/content';
-import { SOLUTIONS, stageCounts } from '@/lib/solutions';
+import { STAGE_LABEL, type AgentStage } from '@/lib/marketing/content';
+import { SOLUTIONS } from '@/lib/solutions';
 
 /**
  * The whole roster as one instrument: a cell per tool, lit if you can use it,
@@ -10,8 +10,31 @@ import { SOLUTIONS, stageCounts } from '@/lib/solutions';
  * honest way to show how few of the six are live, which is the sort of thing a
  * launcher usually tries to hide behind uniform tiles.
  */
+/**
+ * The legend under the bar, naming only the stages something is standing on.
+ *
+ * It used to read "2 live · 0 in build · 4 on the roadmap". Nothing has been in
+ * build for months, and a zero in a legend does not describe the bar above it:
+ * there is no cell of that kind to describe. It reads instead as a stall, which
+ * is the opposite of what a roadmap meter is for. The same line on the public
+ * roster page had the same problem and was fixed the same way.
+ */
+function legend(): { stage: AgentStage; n: number }[] {
+  const order: AgentStage[] = ['live', 'building', 'planned'];
+  return order
+    .map((stage) => ({ stage, n: SOLUTIONS.filter((s) => s.stage === stage).length }))
+    .filter(({ n }) => n > 0);
+}
+
+/** What the legend calls each stage here, which is terser than the public site's. */
+const SHORT: Record<AgentStage, string> = {
+  live: 'live',
+  building: 'in build',
+  planned: 'on the roadmap',
+};
+
 export function RosterMeter() {
-  const counts = stageCounts();
+  const parts = legend();
 
   return (
     <div className="w-full sm:w-72">
@@ -21,7 +44,7 @@ export function RosterMeter() {
         {SOLUTIONS.map((s, i) => (
           <span
             key={s.slug}
-            title={`${s.name} — ${STAGE_LABEL[s.stage]}`}
+            title={`${s.name}: ${STAGE_LABEL[s.stage]}`}
             className="a-track relative h-2 flex-1 overflow-hidden rounded-full"
           >
             {s.stage === 'live' ? (
@@ -48,11 +71,16 @@ export function RosterMeter() {
       </div>
 
       <p className="text-subtle mt-2.5 text-[11px]">
-        <span className="font-semibold text-[var(--text-c)]">{counts.live} live</span>
-        <span className="px-1.5 opacity-50">·</span>
-        {counts.building} in build
-        <span className="px-1.5 opacity-50">·</span>
-        {counts.planned} on the roadmap
+        {parts.map(({ stage, n }, i) => (
+          <span key={stage}>
+            {i > 0 && <span className="px-1.5 opacity-50">·</span>}
+            {/* Only the live count is emphasised: it is the one figure here
+                somebody can act on today. */}
+            <span className={stage === 'live' ? 'font-semibold text-[var(--text-c)]' : undefined}>
+              {n} {SHORT[stage]}
+            </span>
+          </span>
+        ))}
       </p>
     </div>
   );

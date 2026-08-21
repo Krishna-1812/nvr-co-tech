@@ -257,7 +257,7 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
         open={paidOpen}
         onClose={() => setPaidOpen(false)}
         title="Mark as paid"
-        description="Records the bank reference. This is final — a paid voucher cannot be reopened."
+        description="Records the bank reference. This is final: a paid voucher cannot be reopened."
       >
         <div className="space-y-4">
           <Field label="UTR / reference number" htmlFor="paid-utr" required>
@@ -291,7 +291,7 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
         title="Reopen this voucher"
         description={
           voucher.status === 'approved'
-            ? 'This voids both approvals and returns the voucher to draft. It will be recorded.'
+            ? 'This voids the approval and returns the voucher to draft. It will be recorded.'
             : 'Returns the voucher to draft so it can be corrected and resubmitted.'
         }
       >

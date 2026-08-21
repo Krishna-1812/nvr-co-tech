@@ -46,8 +46,8 @@ export default function HubError({
           The workspace could not be drawn
         </h1>
         <p className="text-muted mt-2 text-sm leading-relaxed">
-          This is the screen failing rather than your records. Nothing here changes anything — the
-          workspace only counts what is already there — so trying again is safe.
+          This is the screen failing rather than your records. Nothing here changes anything, because
+          the workspace only counts what is already there, so trying again is safe.
         </p>
 
         {error.digest && (

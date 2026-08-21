@@ -15,8 +15,8 @@ export function PreviewBanner() {
     <div className="flex items-center justify-center gap-2 bg-amber-400 px-4 py-1.5 text-center text-xs font-semibold text-amber-950">
       <FlaskConical className="size-3.5 shrink-0" aria-hidden />
       <span>
-        Preview — sample data, no database. Every rule here is checked by the browser, not by
-        Postgres.
+        Preview mode: sample data, no database. Every rule here is checked by the browser rather
+        than by Postgres.
       </span>
     </div>
   );

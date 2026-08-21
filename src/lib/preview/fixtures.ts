@@ -16,6 +16,29 @@ const NOW = new Date('2026-08-02T09:30:00.000Z').getTime();
 const ago = (days: number, hours = 0) => new Date(NOW - days * DAY - hours * 3_600_000).toISOString();
 const dateOnly = (days: number) => new Date(NOW - days * DAY).toISOString().slice(0, 10);
 
+// ─── The organisation everything belongs to ──────────────────────────────────
+
+/**
+ * One tenant, because preview is one firm looking at its own workspace.
+ *
+ * `requires_approval` is true here even though 0014 made false the default for a
+ * real organisation. Preview exists to show the screens, and the approval queue,
+ * the chain of custody and half the dashboard have nothing to draw with approval
+ * switched off. A reader who wants to see the other configuration can turn it off
+ * on /admin, which is a real control in preview and writes to this row.
+ */
+export const PREVIEW_ORG_ID = 'org-fi';
+
+export const organizations = [
+  {
+    id: PREVIEW_ORG_ID,
+    name: 'Finance Intelligence LLP',
+    voucher_prefix: 'FI',
+    requires_approval: true,
+    created_at: ago(400),
+  },
+];
+
 // ─── People ──────────────────────────────────────────────────────────────────
 
 export const PREVIEW_USER_ID = 'p-owner';
@@ -27,6 +50,7 @@ export const profiles = [
     full_name: 'Vivek Gaggar',
     role: 'owner' as const,
     is_active: true,
+    organization_id: PREVIEW_ORG_ID,
     avatar_url: null,
     created_at: ago(400),
     updated_at: ago(400),
@@ -37,6 +61,7 @@ export const profiles = [
     full_name: 'Anjali Mehta',
     role: 'admin' as const,
     is_active: true,
+    organization_id: PREVIEW_ORG_ID,
     avatar_url: null,
     created_at: ago(360),
     updated_at: ago(360),
@@ -47,6 +72,7 @@ export const profiles = [
     full_name: 'Rohit Sharma',
     role: 'approver' as const,
     is_active: true,
+    organization_id: PREVIEW_ORG_ID,
     avatar_url: null,
     created_at: ago(300),
     updated_at: ago(300),
@@ -57,6 +83,7 @@ export const profiles = [
     full_name: 'Priya Nair',
     role: 'approver' as const,
     is_active: true,
+    organization_id: PREVIEW_ORG_ID,
     avatar_url: null,
     created_at: ago(280),
     updated_at: ago(280),
@@ -67,6 +94,7 @@ export const profiles = [
     full_name: 'Karthik Rao',
     role: 'member' as const,
     is_active: true,
+    organization_id: PREVIEW_ORG_ID,
     avatar_url: null,
     created_at: ago(120),
     updated_at: ago(120),
@@ -77,6 +105,7 @@ export const profiles = [
     full_name: 'Sneha Iyer',
     role: 'member' as const,
     is_active: true,
+    organization_id: PREVIEW_ORG_ID,
     avatar_url: null,
     created_at: ago(45),
     updated_at: ago(45),
@@ -161,10 +190,17 @@ export const vouchers: Voucher[] = [
     beneficiary_name: 'Taj Vivanta Events Pvt Ltd', utr_ref: 'HDFC26071900418823',
     pan_number: 'AABCT3518Q', gst_number: '29AABCT3518Q1ZR',
     initiated_by: PREVIEW_USER_ID, initiated_at: ago(34), submitted_at: ago(33),
-    approver_1: 'p-appr1', approved_1_at: ago(31), approver_2: 'p-admin', approved_2_at: ago(30),
+    approver_1: 'p-appr1', approved_1_at: ago(31), approver_2: null, approved_2_at: null,
     paid_marked_by: 'p-admin', paid_at: ago(20), created_at: ago(34), updated_at: ago(20),
   }),
   voucher({
+    /*
+     * The one voucher here old enough to carry two approvals.
+     *
+     * Kept that way on purpose. Rows like this are still in real databases from
+     * before 0015, so the chain of custody and the PDF both have to keep reading
+     * them, and preview is where that is checked by looking.
+     */
     id: 'v-02', status: 'approved', created_by: PREVIEW_USER_ID,
     voucher_no: 'FI/HO/26-27/0004', date: dateOnly(12), chapter_id: 'c-ho', sponsored: 'Non-Sponsored',
     event_id: 'e-3', event_name: 'Annual General Meeting', event_date: dateOnly(9),
@@ -179,7 +215,7 @@ export const vouchers: Voucher[] = [
     created_at: ago(12), updated_at: ago(8),
   }),
   voucher({
-    id: 'v-03', status: 'pending_second', created_by: PREVIEW_USER_ID,
+    id: 'v-03', status: 'pending_first', created_by: PREVIEW_USER_ID,
     voucher_no: 'FI/BOM/26-27/0009', date: dateOnly(6), chapter_id: 'c-bom', sponsored: 'Sponsored',
     event_id: 'e-2', event_name: 'CISO Round Table', event_date: dateOnly(18),
     event_narration: 'Catering for 120 delegates.',
@@ -189,7 +225,7 @@ export const vouchers: Voucher[] = [
     paid_to: 'Blue Ginger Hospitality LLP', paid_by_chapter_id: 'c-bom',
     beneficiary_name: 'Blue Ginger Hospitality LLP', pan_number: 'AAGFB8812M', gst_number: '27AAGFB8812M1ZK',
     initiated_by: PREVIEW_USER_ID, initiated_at: ago(6), submitted_at: ago(5),
-    approver_1: 'p-appr1', approved_1_at: ago(3),
+    approver_1: null, approved_1_at: null,
     created_at: ago(6), updated_at: ago(3),
   }),
   voucher({
@@ -233,7 +269,7 @@ export const vouchers: Voucher[] = [
     beneficiary_name: 'Northline Digital Agency', utr_ref: 'ICIC26061400291155',
     pan_number: 'AAECN2277J', gst_number: '27AAECN2277J1ZP',
     initiated_by: PREVIEW_USER_ID, initiated_at: ago(58), submitted_at: ago(57),
-    approver_1: 'p-appr1', approved_1_at: ago(55), approver_2: 'p-appr2', approved_2_at: ago(54),
+    approver_1: 'p-appr1', approved_1_at: ago(55), approver_2: null, approved_2_at: null,
     paid_marked_by: 'p-admin', paid_at: ago(44), created_at: ago(58), updated_at: ago(44),
   }),
 
@@ -265,7 +301,7 @@ export const vouchers: Voucher[] = [
     created_at: ago(2), updated_at: ago(2),
   }),
   voucher({
-    id: 'v-10', status: 'pending_second', created_by: 'p-mem1',
+    id: 'v-10', status: 'pending_first', created_by: 'p-mem1',
     voucher_no: 'FI/MAA/26-27/0007', date: dateOnly(16), chapter_id: 'c-maa', sponsored: 'Sponsored',
     event_narration: 'Printing of annual report, 500 copies.',
     type_of_supporting: 'Invoice', type_of_payment: 'Full Payment',
@@ -274,7 +310,7 @@ export const vouchers: Voucher[] = [
     paid_to: 'Southern Print House', paid_by_chapter_id: 'c-maa',
     beneficiary_name: 'Southern Print House', pan_number: 'AAHFS9021L', gst_number: '33AAHFS9021L1ZV',
     initiated_by: 'p-mem1', initiated_at: ago(16), submitted_at: ago(15),
-    approver_1: 'p-appr1', approved_1_at: ago(12),
+    approver_1: null, approved_1_at: null,
     created_at: ago(16), updated_at: ago(12),
   }),
   voucher({
@@ -300,7 +336,7 @@ export const vouchers: Voucher[] = [
     paid_to: 'Merchandise Craft Co', paid_by_chapter_id: 'c-bom',
     beneficiary_name: 'Merchandise Craft Co', pan_number: 'AAKFM3390D', gst_number: '27AAKFM3390D1ZY',
     initiated_by: 'p-mem2', initiated_at: ago(26), submitted_at: ago(25),
-    approver_1: 'p-appr2', approved_1_at: ago(23), approver_2: 'p-appr1', approved_2_at: ago(22),
+    approver_1: 'p-appr2', approved_1_at: ago(23), approver_2: null, approved_2_at: null,
     created_at: ago(26), updated_at: ago(22),
   }),
 
@@ -322,7 +358,7 @@ export const vouchers: Voucher[] = [
     paid_to: 'Coastline Resorts Pvt Ltd', paid_by_chapter_id: 'c-goa',
     beneficiary_name: 'Coastline Resorts Pvt Ltd', pan_number: 'AADCC7781R', gst_number: '30AADCC7781R1ZT',
     initiated_by: 'p-mem2', initiated_at: ago(90), submitted_at: ago(89),
-    approver_1: 'p-appr1', approved_1_at: ago(87), approver_2: 'p-admin', approved_2_at: ago(86),
+    approver_1: 'p-appr1', approved_1_at: ago(87), approver_2: null, approved_2_at: null,
     created_at: ago(90), updated_at: ago(80), deleted_at: ago(80),
   }),
 ];
@@ -360,8 +396,7 @@ const entry = (
 export const voucher_audit = [
   entry('v-01', PREVIEW_USER_ID, 'created', ago(34), { to_status: 'draft' }),
   entry('v-01', PREVIEW_USER_ID, 'submitted', ago(33), { from_status: 'draft', to_status: 'pending_first' }),
-  entry('v-01', 'p-appr1', 'approved_first', ago(31), { from_status: 'pending_first', to_status: 'pending_second' }),
-  entry('v-01', 'p-admin', 'approved_second', ago(30), { from_status: 'pending_second', to_status: 'approved' }),
+  entry('v-01', 'p-appr1', 'approved_first', ago(31), { from_status: 'pending_first', to_status: 'approved' }),
   entry('v-01', 'p-admin', 'marked_paid', ago(20), { from_status: 'approved', to_status: 'paid', note: 'UTR HDFC26071900418823' }),
 
   entry('v-02', PREVIEW_USER_ID, 'created', ago(12), { to_status: 'draft' }),
@@ -371,7 +406,6 @@ export const voucher_audit = [
 
   entry('v-03', PREVIEW_USER_ID, 'created', ago(6), { to_status: 'draft' }),
   entry('v-03', PREVIEW_USER_ID, 'submitted', ago(5), { from_status: 'draft', to_status: 'pending_first' }),
-  entry('v-03', 'p-appr1', 'approved_first', ago(3), { from_status: 'pending_first', to_status: 'pending_second' }),
 
   entry('v-04', PREVIEW_USER_ID, 'created', ago(4), { to_status: 'draft' }),
   entry('v-04', PREVIEW_USER_ID, 'submitted', ago(4), { from_status: 'draft', to_status: 'pending_first' }),
@@ -390,20 +424,17 @@ export const voucher_audit = [
   entry('v-09', 'p-mem2', 'submitted', ago(2), { from_status: 'draft', to_status: 'pending_first' }),
   entry('v-10', 'p-mem1', 'created', ago(16), { to_status: 'draft' }),
   entry('v-10', 'p-mem1', 'submitted', ago(15), { from_status: 'draft', to_status: 'pending_first' }),
-  entry('v-10', 'p-appr1', 'approved_first', ago(12), { from_status: 'pending_first', to_status: 'pending_second' }),
   entry('v-11', 'p-appr1', 'created', ago(21), { to_status: 'draft' }),
   entry('v-11', 'p-appr1', 'submitted', ago(20), { from_status: 'draft', to_status: 'pending_first' }),
   entry('v-12', 'p-mem2', 'created', ago(26), { to_status: 'draft' }),
   entry('v-12', 'p-mem2', 'submitted', ago(25), { from_status: 'draft', to_status: 'pending_first' }),
-  entry('v-12', 'p-appr2', 'approved_first', ago(23), { from_status: 'pending_first', to_status: 'pending_second' }),
-  entry('v-12', 'p-appr1', 'approved_second', ago(22), { from_status: 'pending_second', to_status: 'approved' }),
+  entry('v-12', 'p-appr2', 'approved_first', ago(23), { from_status: 'pending_first', to_status: 'approved' }),
 
   entry('v-13', 'p-mem1', 'created', ago(70), { to_status: 'draft' }),
   entry('v-13', 'p-admin', 'deleted', ago(66), { note: 'Raised twice by mistake.' }),
   entry('v-14', 'p-mem2', 'created', ago(90), { to_status: 'draft' }),
   entry('v-14', 'p-mem2', 'submitted', ago(89), { from_status: 'draft', to_status: 'pending_first' }),
-  entry('v-14', 'p-appr1', 'approved_first', ago(87), { from_status: 'pending_first', to_status: 'pending_second' }),
-  entry('v-14', 'p-admin', 'approved_second', ago(86), { from_status: 'pending_second', to_status: 'approved' }),
+  entry('v-14', 'p-appr1', 'approved_first', ago(87), { from_status: 'pending_first', to_status: 'approved' }),
   entry('v-14', 'p-admin', 'deleted', ago(80), { note: 'Chapter retired; event cancelled.' }),
 ];
 

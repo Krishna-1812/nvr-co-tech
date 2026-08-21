@@ -46,7 +46,7 @@ export default function VoucherDeskError({
 
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Something went wrong</h1>
         <p className="text-muted mt-2 text-sm leading-relaxed">
-          Nothing was saved. Trying again is safe — a voucher only moves when the database accepts
+          Nothing was saved. Trying again is safe: a voucher only moves when the database accepts
           the move, and this one never got that far.
         </p>
 

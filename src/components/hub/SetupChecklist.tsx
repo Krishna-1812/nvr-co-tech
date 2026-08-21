@@ -205,7 +205,7 @@ function buildSteps({ chapters, people, requiresApproval }: SetupState): Step[] 
           }
         : {
             title: 'Invite someone who can approve',
-            note: 'You are the only account here, and nobody can approve their own voucher — so as things stand, nothing you raise can be paid.',
+            note: 'You are the only account here, and nobody can approve their own voucher. As things stand, nothing you raise can be paid.',
             href: '/admin',
             action: 'Invite someone',
             done: false,

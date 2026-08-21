@@ -83,8 +83,8 @@ export default async function AdminDeletedPage() {
           </DataTable>
 
           <p className="text-subtle border-t px-5 py-3 text-xs text-pretty">
-            A voucher that was ever approved cannot be permanently deleted — removing it would erase
-            the record of who approved it. Those stay here indefinitely.
+            A voucher that was ever approved cannot be permanently deleted, because removing it
+            would erase the record of who approved it. Those stay here indefinitely.
           </p>
         </>
       )}
