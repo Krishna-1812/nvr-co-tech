@@ -109,7 +109,7 @@ export function RequestForm() {
             // Without this the native dropdown renders as a white sheet over a
             // near-black page in Chromium.
             style={{ colorScheme: 'dark' }}
-            className="mt-2.5 w-full appearance-none rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-[15px] text-[var(--m-ink)] transition hover:border-[var(--m-line-2)]"
+            className="mt-2.5 w-full appearance-none rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-base sm:text-[15px] text-[var(--m-ink)] transition hover:border-[var(--m-line-2)]"
           >
             <option value="Not sure yet">Not sure yet</option>
             <option value="Build something custom">Something built for us</option>
@@ -130,7 +130,7 @@ export function RequestForm() {
             name="message"
             rows={5}
             placeholder="How many vouchers you do in a month, who approves them at the moment, and what tends to go wrong."
-            className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-[15px] leading-relaxed text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
+            className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-base sm:text-[15px] leading-relaxed text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
           />
         </div>
       </div>
@@ -184,7 +184,7 @@ function Field({
       </label>
       <input
         id={id}
-        className="mt-2.5 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-[15px] text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
+        className="mt-2.5 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-base sm:text-[15px] text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
         {...input}
       />
     </div>

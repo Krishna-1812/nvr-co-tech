@@ -62,7 +62,7 @@ export default async function AdminDeletedPage() {
       ) : (
         <>
           <DataTable>
-            <Thead>
+            <Thead className="hidden sm:table-header-group">
               <tr>
                 <Th>Voucher</Th>
                 <Th className="hidden md:table-cell">Payee</Th>

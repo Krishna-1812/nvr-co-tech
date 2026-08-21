@@ -96,10 +96,10 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
         />
       ) : (
       <DataTable>
-        <Thead>
+        <Thead className="hidden sm:table-header-group">
           <tr>
             <Th>Chapter</Th>
-            <Th>Code</Th>
+            <Th className="hidden sm:table-cell">Code</Th>
             <Th align="right" className="hidden sm:table-cell">
               Vouchers
             </Th>
@@ -111,8 +111,11 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
         </Thead>
         <tbody className="divide-y">
           {chapters.map((c) => (
-            <Tr key={c.id}>
-              <Td>
+            <Tr
+              key={c.id}
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 px-4 py-3 sm:table-row sm:gap-0 sm:px-0 sm:py-0"
+            >
+              <Td className="col-start-1 row-span-2 row-start-1 px-0 py-0 sm:table-cell sm:px-4 sm:py-3">
                 {editingId === c.id ? (
                   <div className="flex items-center gap-2">
                     <Input
@@ -151,16 +154,25 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
                         Head office
                       </span>
                     )}
+                    {/*
+                      Four columns do not fit a phone. The code is three letters and
+                      belongs to the name anyway, so below `sm` it sits under it and
+                      gives its column back — without that, every chapter name broke
+                      across three lines and the Retire button sat off the screen edge.
+                    */}
+                    <span className="numeric text-subtle block w-full text-xs font-normal sm:hidden">
+                      {c.code}
+                    </span>
                   </span>
                 )}
               </Td>
 
-              <Td className="numeric text-muted">{c.code}</Td>
+              <Td className="numeric text-muted hidden sm:table-cell">{c.code}</Td>
               <Td align="right" className="numeric text-muted hidden sm:table-cell">
                 {c.voucherCount || '—'}
               </Td>
 
-              <Td>
+              <Td className="col-start-2 row-start-1 justify-self-end px-0 py-0 sm:table-cell sm:px-4 sm:py-3 sm:justify-self-auto">
                 <span
                   style={
                     {
@@ -173,13 +185,16 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
                 </span>
               </Td>
 
-              <Td align="right">
+              <Td
+                align="right"
+                className="col-start-2 row-start-2 justify-self-end px-0 py-0 sm:table-cell sm:px-4 sm:py-3 sm:justify-self-auto"
+              >
                 <div className="inline-flex items-center gap-1">
                   {editingId !== c.id && (
                     <button
                       onClick={() => startEdit(c)}
                       disabled={busy}
-                      className="text-muted rounded-lg p-1.5 transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)] disabled:opacity-40"
+                      className="text-muted grid size-10 place-items-center rounded-lg transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)] disabled:opacity-40 sm:size-7"
                       aria-label={`Rename ${c.name}`}
                     >
                       <Pencil className="size-4" aria-hidden />
@@ -195,6 +210,7 @@ export function ChaptersManager({ chapters }: { chapters: AdminChapter[] }) {
                         )
                       }
                       disabled={busy}
+                      className="h-10 sm:h-8"
                     >
                       {c.is_active ? 'Retire' : 'Reactivate'}
                     </Button>

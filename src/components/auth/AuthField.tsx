@@ -47,12 +47,17 @@ export function AuthField({
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & { icon?: LucideIcon };
 
 export function AuthInput({ icon: Icon, className, ...props }: InputProps) {
+  /*
+   * text-base below sm rather than 15px throughout: iOS Safari zooms the page
+   * in whenever a field under 16px takes focus and never zooms back out, which
+   * on a sign-in form leaves somebody panned sideways mid-password.
+   */
   return (
     <div className="relative">
       <input
         {...props}
         className={cn(
-          'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.035] text-[15px] text-[var(--m-ink)] transition',
+          'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.035] text-base sm:text-[15px] text-[var(--m-ink)] transition',
           'placeholder:text-[var(--m-dim-2)] placeholder:font-normal',
           'hover:border-[var(--m-line-2)]',
           // The ring replaces the border rather than sitting outside it, so the
@@ -93,7 +98,7 @@ export function AuthPassword({
         {...props}
         type={visible ? 'text' : 'password'}
         className={cn(
-          'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.035] text-[15px] text-[var(--m-ink)] transition',
+          'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.035] text-base sm:text-[15px] text-[var(--m-ink)] transition',
           'placeholder:text-[var(--m-dim-2)]',
           'hover:border-[var(--m-line-2)]',
           'focus:border-transparent focus:bg-white/[0.06] focus:ring-2 focus:ring-[var(--m-indigo)] focus:outline-none',

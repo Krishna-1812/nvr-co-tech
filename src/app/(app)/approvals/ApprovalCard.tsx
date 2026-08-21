@@ -232,10 +232,26 @@ export function ApprovalCard({
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        {/*
+          Two decisions and a way to check first, which on a phone is the whole
+          purpose of the screen — so they get a grid there instead of a row.
+          Review spans the top, the two decisions sit side by side beneath it,
+          and each one is 40px rather than the 32px an `sm` button gives a thumb.
+          From `sm` up it collapses back to a single inline row.
+
+          "Send back" keeps its label at every width. It used to be a bare red X
+          on a phone, eight pixels from the green tick, and an unlabelled icon is
+          the wrong way to say "this returns the voucher to whoever raised it"
+          when everything beside it is spelled out.
+        */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:items-center">
           <Link
             href={`/vouchers/${voucher.id}`}
-            className={buttonClass({ variant: 'ghost', size: 'sm' })}
+            className={buttonClass({
+              variant: 'ghost',
+              size: 'sm',
+              className: 'col-span-2 h-10 text-sm sm:col-span-1 sm:h-8 sm:text-xs',
+            })}
           >
             <ExternalLink className="size-4" aria-hidden />
             Review
@@ -246,14 +262,21 @@ export function ApprovalCard({
               <Button
                 variant="danger"
                 size="sm"
+                className="h-10 text-sm sm:h-8 sm:text-xs"
                 onClick={() => setRejecting((v) => !v)}
                 disabled={pending}
                 aria-expanded={rejecting}
               >
                 <X className="size-4" aria-hidden />
-                <span className="hidden sm:inline">Send back</span>
+                Send back
               </Button>
-              <Button variant="success" size="sm" onClick={onApprove} loading={pending}>
+              <Button
+                variant="success"
+                size="sm"
+                className="h-10 text-sm sm:h-8 sm:text-xs"
+                onClick={onApprove}
+                loading={pending}
+              >
                 <Check className="size-4" aria-hidden />
                 Approve
               </Button>

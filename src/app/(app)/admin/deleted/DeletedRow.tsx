@@ -46,8 +46,8 @@ export function DeletedRow({
 
   return (
     <>
-      <Tr className="group">
-        <Td>
+      <Tr className="group grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 px-4 py-3 sm:table-row sm:gap-0 sm:px-0 sm:py-0">
+        <Td className="col-start-1 row-span-2 row-start-1 px-0 py-0 sm:table-cell sm:px-4 sm:py-3">
           <Link
             href={`/vouchers/${voucher.id}`}
             className="numeric font-medium transition group-hover:text-brand-600 group-hover:underline dark:group-hover:text-brand-300"
@@ -101,14 +101,21 @@ export function DeletedRow({
           <StatusBadge status={voucher.status} size="sm" />
         </Td>
 
-        <Td align="right" className="amount font-semibold whitespace-nowrap">
+        <Td
+          align="right"
+          className="amount col-start-2 row-start-1 px-0 py-0 font-semibold whitespace-nowrap sm:table-cell sm:px-4 sm:py-3"
+        >
           {fmtRupees(voucher.grand_total)}
         </Td>
 
-        <Td align="right">
+        <Td
+          align="right"
+          className="col-start-2 row-start-2 px-0 py-0 sm:table-cell sm:px-4 sm:py-3"
+        >
           <div className="inline-flex items-center gap-1">
             <Button
               size="sm"
+              className="h-10 sm:h-8"
               onClick={() => run(() => restoreVoucher(voucher.id), `${label} restored.`)}
               disabled={busy}
             >
@@ -135,7 +142,7 @@ export function DeletedRow({
                 onClick={() => setConfirming(true)}
                 disabled={busy}
                 aria-label={`Permanently delete ${label}`}
-                className="text-muted rounded-lg p-1.5 transition hover:bg-[color-mix(in_oklab,var(--status-rejected)_14%,transparent)] hover:text-[var(--status-rejected)] disabled:opacity-40"
+                className="text-muted grid size-10 place-items-center rounded-lg transition hover:bg-[color-mix(in_oklab,var(--status-rejected)_14%,transparent)] hover:text-[var(--status-rejected)] disabled:opacity-40 sm:size-7"
               >
                 <Trash2 className="size-4" aria-hidden />
               </button>

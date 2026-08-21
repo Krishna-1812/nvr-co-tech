@@ -100,13 +100,13 @@ export default function ContactPage() {
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link
                       href="/login"
-                      className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-[var(--m-line-2)] px-5 text-sm font-semibold transition hover:border-[var(--m-ink)] hover:bg-white/5"
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line-2)] px-5 text-sm font-semibold transition hover:border-[var(--m-ink)] hover:bg-white/5 sm:flex-1"
                     >
                       Sign in
                     </Link>
                     <Link
                       href="/signup"
-                      className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-[var(--m-line)] px-5 text-sm font-semibold transition hover:border-[var(--m-line-2)] hover:bg-white/5"
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line)] px-5 text-sm font-semibold transition hover:border-[var(--m-line-2)] hover:bg-white/5 sm:flex-1"
                     >
                       Create an account
                     </Link>

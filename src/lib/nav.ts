@@ -45,6 +45,15 @@ export type NavItem = {
   badge?: number;
   /** Kept out of the phone dock, which has room for four things at most. */
   secondary?: boolean;
+  /**
+   * What the phone dock calls it, when the full label does not fit a cell.
+   *
+   * A dock cell is a sixth of a phone at worst, about 61px. "Organisations"
+   * needs 68 and spilled into its neighbours; "Access requests" was the only
+   * label in the bar that wrapped to two lines. Both now have a short form,
+   * and the rail and the palette go on using the full one.
+   */
+  short?: string;
 };
 
 export type Section = {
@@ -191,12 +200,14 @@ export function analyticsSection(): Section {
       {
         href: '/analytics/orgs',
         label: 'Organisations',
+        short: 'Orgs',
         icon: Building2,
         hint: 'Per tenant: people, vouchers, and whether they have ever finished one',
       },
       {
         href: '/analytics/requests',
         label: 'Access requests',
+        short: 'Access',
         icon: Inbox,
         hint: 'Who has asked to be let in, and what for',
       },

@@ -330,8 +330,16 @@ export function Field({
   );
 }
 
+/*
+ * text-base below sm, text-sm above.
+ *
+ * Not a design preference. iOS Safari zooms the whole page in when a field with
+ * a font smaller than 16px takes focus, and it never zooms back out — the person
+ * is left panned sideways on a form they were halfway through filling. 16px on
+ * the phone is what stops that; the 14px desktop density is unchanged.
+ */
 const CONTROL =
-  'w-full rounded-lg border bg-[var(--surface-raised)] px-3 py-2 text-sm transition ' +
+  'w-full rounded-lg border bg-[var(--surface-raised)] px-3 py-2 text-base transition sm:text-sm ' +
   'shadow-[var(--elev-1)] placeholder:text-[var(--text-subtle)] ' +
   'hover:border-[var(--border-strong)] ' +
   'focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 ' +

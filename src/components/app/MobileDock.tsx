@@ -40,8 +40,9 @@ export function MobileDock({ nav }: { nav: NavItem[] }) {
       {/*
         One column per destination rather than a fixed four, so a tool with two
         destinations spreads them across the width instead of huddling them at
-        the left. No section offers more than four once the secondary ones are
-        out.
+        the left. Most sections offer three or four once the secondary ones are
+        out; Visitor Intelligence offers six, which is why NavItem carries a
+        short label for the cells too narrow to hold the real one.
       */}
       <div
         className="grid px-1 py-1.5"
@@ -52,6 +53,7 @@ export function MobileDock({ nav }: { nav: NavItem[] }) {
             key={item.href}
             href={item.href}
             label={item.label}
+            shortLabel={item.short}
             icon={<item.icon className="size-4.5" aria-hidden />}
             badge={item.badge}
             exact={item.href === '/admin'}

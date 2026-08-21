@@ -306,7 +306,7 @@ export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; rol
                   searchable ? 'Search actions, or type a voucher number…' : 'Search actions…'
                 }
                 aria-label="Search actions"
-                className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[var(--text-subtle)]"
+                className="min-w-0 flex-1 bg-transparent text-base sm:text-[15px] outline-none placeholder:text-[var(--text-subtle)]"
               />
               <Kbd>Esc</Kbd>
             </div>

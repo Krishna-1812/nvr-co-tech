@@ -19,6 +19,7 @@ type Variant = 'rail' | 'dock' | 'tab';
 export function NavLink({
   href,
   label,
+  shortLabel,
   icon,
   badge,
   exact,
@@ -27,6 +28,12 @@ export function NavLink({
 }: {
   href: string;
   label?: string;
+  /**
+   * Shown instead of `label` in a dock cell too narrow for the real one.
+   * `label` stays the accessible name, so a screen reader still says
+   * "Organisations" where the bar has room only for "Orgs".
+   */
+  shortLabel?: string;
   /*
    * An already-rendered element, not a component.
    *
@@ -71,6 +78,7 @@ export function NavLink({
       <Link
         href={href}
         aria-current={active ? 'page' : undefined}
+        aria-label={shortLabel && shortLabel !== label ? label : undefined}
         className="group relative flex flex-col items-center gap-1 rounded-xl px-2 py-1.5"
       >
         <span className="relative">
@@ -92,7 +100,7 @@ export function NavLink({
             active ? 'text-[var(--text-c)]' : 'text-subtle',
           )}
         >
-          {label}
+          {shortLabel ?? label}
         </span>
         <Pending className="inset-x-2 top-0 rounded-full" />
       </Link>
