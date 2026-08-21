@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/supabase/server';
+import { recordRun } from '@/lib/analytics/meter';
 import { PREVIEW } from '@/lib/preview';
 import { MAX_QUESTION_CHARS, apiKey } from '@/lib/assist/config';
 import { NO_KEY } from '@/lib/assist/errors';
@@ -156,6 +157,7 @@ export async function POST(request: Request) {
   const hits = retrieveWithContext(retrievalQuery(turns), { agent });
   const sources = sourcesOf(hits);
 
+
   const key = apiKey();
   const offline = PREVIEW && !key;
 
@@ -163,6 +165,19 @@ export async function POST(request: Request) {
   if (!key && !offline) {
     return NextResponse.json({ error: NO_KEY }, { status: 503 });
   }
+
+  /*
+   * Counted here, and the position is the point: past validation, past the rate
+   * limit and past the no-key check, so every path that reaches this line is a
+   * question that is actually going to be answered. Counting at the top of the
+   * handler would score refusals as usage, and counting when somebody opens
+   * /ask would count arrivals, which the page-view log already has.
+   *
+   * Attributed to the tool the question was asked from when the browser named
+   * one, so a question asked inside reconciliation counts toward that tool
+   * rather than toward a generic assistant nobody can find on the roster.
+   */
+  void recordRun(agent ?? 'audit-copilot');
 
   const system = `${instructions({
     agent,

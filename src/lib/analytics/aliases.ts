@@ -32,5 +32,23 @@ export const CTA_ALIASES: Record<string, string> = {
   // 'lead:Talk to us': 'lead:Book a walkthrough',
 };
 
+/**
+ * Old tool slugs, folded into their current one.
+ *
+ * The sharpest case of the three, because a slug is tied to a usage allowance.
+ * If a tool is renamed and its history is left under the old slug, then every
+ * person who used it gets a fresh allowance under the new name and the screen
+ * reports them as having used nothing — while the old rows sit in the table
+ * counting toward a tool that no longer exists.
+ *
+ * Applied on the way in as well as on the way out, unlike the two above: a run
+ * is stored under the current slug so the allowance is correct at the moment it
+ * is checked, not only when it is later charted.
+ */
+export const AGENT_ALIASES: Record<string, string> = {
+  // 'nvr-recon': 'ledger-reconciliation',
+};
+
 export const aliasPage = (page: string): string => PAGE_ALIASES[page] ?? page;
 export const aliasCta = (label: string): string => CTA_ALIASES[label] ?? label;
+export const aliasAgent = (slug: string): string => AGENT_ALIASES[slug] ?? slug;

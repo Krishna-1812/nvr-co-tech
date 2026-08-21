@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { recordRun } from '@/lib/analytics/meter';
 import type { ReconResult } from '@/lib/recon/types';
 import type { ActionResult } from './workflow';
 
@@ -91,6 +92,18 @@ export async function saveReconciliation(
         : 'Could not save this reconciliation.',
     };
   }
+
+  /*
+   * Counted here rather than when somebody opens /reconcile, because this is the
+   * point at which the tool has actually done something. Arrivals are already in
+   * the page-view log; counting them again under a different name would produce
+   * a second, worse copy of it.
+   *
+   * Not awaited and its result ignored: a reconciliation that saved has saved,
+   * and a measurement that can fail the thing it measures is worse than no
+   * measurement. recordRun swallows its own errors for the same reason.
+   */
+  void recordRun('ledger-reconciliation');
 
   revalidatePath('/reconcile/history');
   return { ok: true, data: { id: data.id } };
