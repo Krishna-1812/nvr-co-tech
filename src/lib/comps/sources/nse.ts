@@ -24,6 +24,26 @@
  * return a bot-protection page rather than JSON, and the JSON parse fails with a
  * message about an unexpected `<`.
  *
+ * ── This is Akamai Bot Manager, confirmed, and that is a ceiling ──────────
+ *
+ * A real run from a residential connection got past the address-range block —
+ * new cookies came back that no datacentre attempt had ever received — and was
+ * still refused on the quote request itself. The jar it received named its own
+ * cause: `_abck` and `bm_sz` are Akamai Bot Manager's own cookies, and `_abck`
+ * only reaches a trusted value once a real browser has executed Akamai's sensor
+ * script and posted the computed payload back. No plain HTTP client — this one,
+ * curl, PowerShell's `Invoke-WebRequest` — can ever produce that, correct headers
+ * or not, because the check is not the headers.
+ *
+ * That is a hard ceiling on what this adapter can do, and it was tested to that
+ * ceiling rather than assumed: the Referer/User-Agent work above is real and
+ * correct — it fixed a genuine mismatch and is worth keeping — and it was never
+ * going to be sufficient on its own once the actual gate turned out to sit above
+ * the HTTP layer entirely. The honest response is a licensed data provider for
+ * Indian market data, not a browser automated well enough to compute Akamai's
+ * sensor payload — that is the same category of workaround as a rotating proxy,
+ * just heavier, and it is not going to be built here.
+ *
  * ── Which is why nothing here runs inside a request ───────────────────────
  *
  * The Vercel functions for this app run in `bom1`, which is a datacentre. Fetching
