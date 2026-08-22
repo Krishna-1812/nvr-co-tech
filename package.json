@@ -14,7 +14,8 @@
     "pdf:sample": "vite-node --config vitest.config.mts scripts/make-sample-pdf.tsx",
     "xlsx:sample": "vite-node --config vitest.config.mts scripts/make-sample-xlsx.mts",
     "recon:sample": "vite-node --config vitest.config.mts scripts/make-sample-recon.tsx",
-    "brand:icons": "vite-node --config vitest.config.mts scripts/build-brand.mts"
+    "brand:icons": "vite-node --config vitest.config.mts scripts/build-brand.mts",
+    "ingest:dry": "vite-node --config vitest.config.mts scripts/ingest-dry.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

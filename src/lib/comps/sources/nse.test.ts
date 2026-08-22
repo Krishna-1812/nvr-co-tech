@@ -233,6 +233,48 @@ describe('nseSession', () => {
     return expect(cookie).resolves.toBe('nsit=abc; bm_sv=def');
   });
 
+  it('warms the quote page as well as the home page', async () => {
+    // Two requests, and the second is not optional: the home page sets the
+    // bot-protection cookies, the quote page is what NSE expects to have been
+    // visited before its API is called. Home alone yields a jar that looks
+    // complete and is refused.
+    const urls: string[] = [];
+    await nseSession(async (url) => {
+      urls.push(url);
+      return response({ setCookie: 'a=1' });
+    }, 'TCS');
+
+    expect(urls).toEqual([
+      'https://www.nseindia.com',
+      'https://www.nseindia.com/get-quotes/equity?symbol=TCS',
+    ]);
+  });
+
+  it('merges cookies from both requests, later winning', async () => {
+    const cookie = await nseSession(async (url) =>
+      response({ setCookie: url.includes('get-quotes') ? 'b=2, a=9' : 'a=1' }),
+    );
+    expect(cookie).toBe('a=9; b=2');
+  });
+
+  it('sends the home cookies when warming the quote page', async () => {
+    const sent: (string | undefined)[] = [];
+    await nseSession(async (url, init) => {
+      sent.push((init?.headers as Record<string, string>).Cookie);
+      return response({ setCookie: url.includes('get-quotes') ? null : 'a=1' });
+    });
+    expect(sent).toEqual([undefined, 'a=1']);
+  });
+
+  it('still returns the home cookies when the quote page fails', async () => {
+    const cookie = await nseSession(async (url) =>
+      url.includes('get-quotes')
+        ? response({ ok: false, status: 500 })
+        : response({ setCookie: 'a=1' }),
+    );
+    expect(cookie).toBe('a=1');
+  });
+
   it('is null when the handshake yields no cookies, which is a real outcome', async () => {
     // From a blocked address range the home page answers 200 with a challenge
     // and no Set-Cookie. The caller has to be able to tell that from a network

@@ -81,29 +81,65 @@ export function nseHeaders(cookie?: string): Record<string, string> {
   return headers;
 }
 
-/**
- * Get cookies by asking for the home page, as a browser would.
- *
- * Returns null when the handshake did not yield cookies, which is a real outcome
- * rather than an error: from a blocked address range the home page answers 200
- * with a challenge and no `Set-Cookie`, and the caller needs to be able to tell
- * that apart from a network failure and say so in the ingest log.
- */
-export async function nseSession(fetcher: Fetcher): Promise<string | null> {
-  const response = await fetcher(HOME, { headers: nseHeaders() });
-  if (!response.ok) return null;
-
-  const raw = response.headers?.get('set-cookie');
-  if (!raw) return null;
+/** The name=value pairs out of one or more Set-Cookie headers. */
+export function cookiePairs(raw: string | null | undefined): Map<string, string> {
+  const jar = new Map<string, string>();
+  if (!raw) return jar;
 
   // One header may carry several cookies. Only the name=value pairs are wanted;
-  // the attributes (Path, Expires, HttpOnly) must not be sent back.
-  const pairs = raw
-    .split(/,(?=\s*[A-Za-z0-9_-]+=)/)
-    .map((part) => part.split(';')[0].trim())
-    .filter((part) => part.includes('='));
+  // the attributes (Path, Expires, HttpOnly) must not be sent back — a header
+  // with them in is malformed and the next request is refused.
+  for (const part of raw.split(/,(?=\s*[A-Za-z0-9_-]+=)/)) {
+    const pair = part.split(';')[0].trim();
+    const eq = pair.indexOf('=');
+    if (eq > 0) jar.set(pair.slice(0, eq), pair.slice(eq + 1));
+  }
+  return jar;
+}
 
-  return pairs.length > 0 ? pairs.join('; ') : null;
+/** A cookie jar as a header value. */
+export function cookieHeader(jar: Map<string, string>): string {
+  return [...jar.entries()].map(([name, value]) => `${name}=${value}`).join('; ');
+}
+
+/**
+ * Get cookies the way a browser arrives at a quote.
+ *
+ * **Two requests, not one**, and the second is not optional. The home page sets
+ * the bot-protection cookies; the quote page is what NSE expects to have been
+ * visited before its API is called, and it sets more. Asking for the home page
+ * alone yields a jar that looks complete and is refused — which is exactly the
+ * failure this function was written with one request and then corrected for.
+ *
+ * Returns null when no cookies came back at all, which is a real outcome rather
+ * than an error: from a challenged address range the pages answer 200 with a
+ * challenge and no `Set-Cookie`, and the caller needs to tell that apart from a
+ * network failure and say so in the log.
+ *
+ * A jar that is complete and still refused is a different answer again, and the
+ * one to expect from a datacentre. Nothing here can fix that: it is why ingest is
+ * a scheduled job writing to our own registry rather than a live fetch, and if it
+ * persists the honest response is a different source for Indian market caps, not
+ * a better disguise.
+ */
+export async function nseSession(fetcher: Fetcher, seedSymbol = 'RELIANCE'): Promise<string | null> {
+  const jar = new Map<string, string>();
+
+  const home = await fetcher(HOME, { headers: nseHeaders() });
+  if (!home.ok) return null;
+  for (const [name, value] of cookiePairs(home.headers?.get('set-cookie'))) jar.set(name, value);
+
+  // The page the Referer already claims we came from. Warming it is what the
+  // browser flow does, and the API expects it to have happened.
+  const page = await fetcher(
+    `${HOME}/get-quotes/equity?symbol=${encodeURIComponent(seedSymbol)}`,
+    { headers: nseHeaders(jar.size > 0 ? cookieHeader(jar) : undefined) },
+  );
+  if (page.ok) {
+    for (const [name, value] of cookiePairs(page.headers?.get('set-cookie'))) jar.set(name, value);
+  }
+
+  return jar.size > 0 ? cookieHeader(jar) : null;
 }
 
 /**
