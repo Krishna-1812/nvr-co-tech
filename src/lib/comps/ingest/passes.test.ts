@@ -53,6 +53,25 @@ describe('ingestNseSymbols', () => {
     expect(urls.filter((u) => u.includes('/api/'))).toHaveLength(6); // two per symbol
   });
 
+  it('warms the session on the first symbol actually requested, not a fixed one', async () => {
+    // The warm-up page's Referer names whichever symbol it visited. Seeding it
+    // with a symbol nobody asked for is a session that matches nothing the
+    // batch is about to do.
+    const urls: string[] = [];
+    const counting: Fetcher = async (url) => {
+      urls.push(url);
+      return fetcher(url);
+    };
+
+    await ingestNseSymbols(counting, ['TCS', 'INFY'], {
+      writer: new MemoryWriter(),
+      clock: NOWAIT,
+      asOf: '2026-08-21',
+    });
+
+    expect(urls[1]).toBe('https://www.nseindia.com/get-quotes/equity?symbol=TCS');
+  });
+
   it('writes a company and a quote per symbol', async () => {
     const writer = new MemoryWriter();
     const report = await ingestNseSymbols(fetcher, ['A', 'B'], {

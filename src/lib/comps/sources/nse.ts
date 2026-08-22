@@ -68,14 +68,25 @@ export function nseTradeInfoUrl(symbol: string): string {
  * figure — but its bot protection rejects anything that does not look like a
  * browser, and a request without a `Referer` from its own domain is refused even
  * with valid cookies.
+ *
+ * `symbol`, when given, is what a real browser's Referer actually carries: a
+ * person on `nseindia.com` looking at TCS has `get-quotes/equity?symbol=TCS`
+ * in their address bar, and every request that page's script fires — the two
+ * behind `fetchNseQuote` included — sends *that* URL back as Referer, not the
+ * bare path. A live run from outside a datacentre address got past the cookie
+ * handshake and was refused specifically on the quote request itself with a
+ * generic Referer in place; a symbol-matched one is the next thing to try
+ * before concluding NSE is unreachable outright.
  */
-export function nseHeaders(cookie?: string): Record<string, string> {
+export function nseHeaders(cookie?: string, symbol?: string): Record<string, string> {
   const headers: Record<string, string> = {
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36',
     Accept: 'application/json, text/plain, */*',
     'Accept-Language': 'en-GB,en;q=0.9',
-    Referer: `${HOME}/get-quotes/equity`,
+    Referer: symbol
+      ? `${HOME}/get-quotes/equity?symbol=${encodeURIComponent(symbol)}`
+      : `${HOME}/get-quotes/equity`,
   };
   if (cookie) headers.Cookie = cookie;
   return headers;
@@ -129,11 +140,11 @@ export async function nseSession(fetcher: Fetcher, seedSymbol = 'RELIANCE'): Pro
   if (!home.ok) return null;
   for (const [name, value] of cookiePairs(home.headers?.get('set-cookie'))) jar.set(name, value);
 
-  // The page the Referer already claims we came from. Warming it is what the
-  // browser flow does, and the API expects it to have happened.
+  // The page a browser would actually be on before the API answers anything —
+  // warming it, with a Referer that matches it, is what the real flow does.
   const page = await fetcher(
     `${HOME}/get-quotes/equity?symbol=${encodeURIComponent(seedSymbol)}`,
-    { headers: nseHeaders(jar.size > 0 ? cookieHeader(jar) : undefined) },
+    { headers: nseHeaders(jar.size > 0 ? cookieHeader(jar) : undefined, seedSymbol) },
   );
   if (page.ok) {
     for (const [name, value] of cookiePairs(page.headers?.get('set-cookie'))) jar.set(name, value);
@@ -343,7 +354,7 @@ export async function fetchNseQuote(
   { cookie, asOf }: { cookie: string; asOf: string },
 ): Promise<Harvest> {
   const at = symbol.toUpperCase();
-  const headers = nseHeaders(cookie);
+  const headers = nseHeaders(cookie, at);
 
   const [base, trade] = await Promise.all([
     fetcher(nseQuoteUrl(at), { headers }),

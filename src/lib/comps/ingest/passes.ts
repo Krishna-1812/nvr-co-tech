@@ -20,7 +20,10 @@ import type { IngestReport, RunOptions } from './types';
  *
  * The handshake happens once for the whole pass, not per symbol — it is a cookie,
  * and asking for a new one every time would double the request count against the
- * tightest rate limit of any source here.
+ * tightest rate limit of any source here. It is seeded with the first symbol in
+ * the batch rather than a fixed one, because the warm-up page's Referer names
+ * whatever symbol it visited — a session warmed on a symbol nobody asked for
+ * looks less like a real visit than one warmed on the first real request.
  *
  * A pass that cannot get cookies returns immediately with one skip saying so
  * rather than making a thousand requests that will all be refused. That refusal
@@ -33,7 +36,7 @@ export async function ingestNseSymbols(
   symbols: readonly string[],
   { asOf, ...options }: RunOptions & { asOf: string },
 ): Promise<IngestReport> {
-  const cookie = await nseSession(fetcher);
+  const cookie = await nseSession(fetcher, symbols[0]);
   if (!cookie) {
     const report = emptyReport(NSE.id, false);
     report.requested = symbols.length;

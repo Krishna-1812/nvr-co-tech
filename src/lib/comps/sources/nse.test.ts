@@ -206,6 +206,14 @@ describe('nseHeaders', () => {
     expect(nseHeaders().Referer).toBe('https://www.nseindia.com/get-quotes/equity');
   });
 
+  it('names the symbol in the Referer when there is one to name', () => {
+    // A browser looking at TCS has that in its address bar, and every request
+    // the page fires carries it back. A generic Referer on the API call is
+    // the one thing that was still wrong after a real run got past the
+    // cookie handshake and was refused only here.
+    expect(nseHeaders(undefined, 'TCS').Referer).toBe('https://www.nseindia.com/get-quotes/equity?symbol=TCS');
+  });
+
   it('only sets Cookie when there is one', () => {
     expect(nseHeaders().Cookie).toBeUndefined();
     expect(nseHeaders('a=1').Cookie).toBe('a=1');
@@ -246,6 +254,19 @@ describe('nseSession', () => {
 
     expect(urls).toEqual([
       'https://www.nseindia.com',
+      'https://www.nseindia.com/get-quotes/equity?symbol=TCS',
+    ]);
+  });
+
+  it('warms with a Referer matching the page it is visiting', async () => {
+    const referers: (string | undefined)[] = [];
+    await nseSession(async (url, init) => {
+      referers.push((init?.headers as Record<string, string>).Referer);
+      return response({ setCookie: 'a=1' });
+    }, 'TCS');
+
+    expect(referers).toEqual([
+      'https://www.nseindia.com/get-quotes/equity',
       'https://www.nseindia.com/get-quotes/equity?symbol=TCS',
     ]);
   });
@@ -328,6 +349,22 @@ describe('fetchNseQuote', () => {
       { cookie: 'nsit=abc', asOf: ASOF },
     );
     expect(seen).toEqual(['nsit=abc', 'nsit=abc']);
+  });
+
+  it('sends a Referer naming the symbol actually being asked for, uppercased', async () => {
+    const referers: string[] = [];
+    await fetchNseQuote(
+      async (url, init) => {
+        referers.push((init?.headers as Record<string, string>).Referer);
+        return ok(quote());
+      },
+      'tcs',
+      { cookie: 'a=1', asOf: ASOF },
+    );
+    expect(referers).toEqual([
+      'https://www.nseindia.com/get-quotes/equity?symbol=TCS',
+      'https://www.nseindia.com/get-quotes/equity?symbol=TCS',
+    ]);
   });
 
   it('explains a refusal rather than passing on the number', async () => {
