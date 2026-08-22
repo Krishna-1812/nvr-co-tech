@@ -1,6 +1,7 @@
 import { requireOrgMember } from '@/lib/supabase/server';
 import { fiscalYear, istLongDate, istToday } from '@/lib/fiscal';
 import { PREVIEW } from '@/lib/preview';
+import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { Backdrop } from '@/components/app/Backdrop';
 import { PreviewBanner } from '@/components/app/PreviewBanner';
 import { HubBar } from '@/components/hub/HubBar';
@@ -17,6 +18,13 @@ export default async function HubLayout({ children }: { children: React.ReactNod
   const user = await requireOrgMember();
   const fiscal = fiscalYear(istToday());
 
+  /*
+   * Resolves to the same Postgres function the row-level policies call, so
+   * the door cannot appear for somebody the database would then hand nothing
+   * to — and cannot stay hidden from somebody it would. Memoised per request.
+   */
+  const analyticsAdmin = await isAnalyticsAdmin();
+
   return (
     <div className="relative min-h-screen">
       <Backdrop />
@@ -30,7 +38,12 @@ export default async function HubLayout({ children }: { children: React.ReactNod
 
       {PREVIEW && <PreviewBanner />}
 
-      <HubBar user={user} fiscal={fiscal} today={istLongDate()} />
+      <HubBar
+        user={user}
+        fiscal={fiscal}
+        today={istLongDate()}
+        analyticsAdmin={analyticsAdmin}
+      />
 
       <main id="main" className="mx-auto max-w-[92rem] px-4 pt-6 pb-20 sm:px-6 sm:pt-8">
         {children}

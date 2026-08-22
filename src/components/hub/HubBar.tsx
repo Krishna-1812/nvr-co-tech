@@ -25,6 +25,7 @@ export function HubBar({
   user,
   fiscal,
   today,
+  analyticsAdmin = false,
 }: {
   user: {
     id: string;
@@ -36,6 +37,13 @@ export function HubBar({
   };
   fiscal: Fiscal;
   today: string;
+  /**
+   * Whether to offer Analytics in the account menu. The hub used to leave
+   * this at its default, so the one screen that exists to list everything
+   * you can reach was the one screen that did not offer Visitor
+   * Intelligence — you had to open a tool first to find the door.
+   */
+  analyticsAdmin?: boolean;
 }) {
   return (
     <header className="a-glass sticky top-0 z-30 border-b">
@@ -67,7 +75,7 @@ export function HubBar({
           {/* No tool is open here, so nothing is pinned and the question alone
               decides what the answer is built from. */}
           <AssistPanel agent={null} agentName={null} />
-          <UserMenu user={user} />
+          <UserMenu user={user} analyticsAdmin={analyticsAdmin} />
         </div>
       </div>
     </header>
