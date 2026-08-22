@@ -15,7 +15,7 @@ export default async function ValuationLayout({ children }: { children: React.Re
   const user = await requireOrgMember();
 
   return (
-    <AppShell user={user} section={valuationSection()}>
+    <AppShell user={user} section={valuationSection({ role: user.role })}>
       {children}
     </AppShell>
   );

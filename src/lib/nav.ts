@@ -13,6 +13,7 @@ import {
   Settings,
   Sparkles,
   TrendingUp,
+  UploadCloud,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -291,16 +292,22 @@ export function assistSection(): Section {
 /**
  * Valuation Desk.
  *
- * No role branch, like Ledger Reconciliation and unlike Voucher Desk: a peer
- * set is not approved or paid, so there is nothing an approver can do here that
- * a member cannot, and inventing a permission to make the tools look alike
- * would only be inventing a way to lock somebody out of their own work.
+ * `Comparables` has no role branch, like Ledger Reconciliation and unlike
+ * Voucher Desk: a peer set is not approved or paid, so there is nothing an
+ * approver can do here that a member cannot, and inventing a permission to
+ * make the tools look alike would only be inventing a way to lock somebody out
+ * of their own work.
  *
  * `Comparables` is the home rather than a list of saved peer sets, because the
  * first thing anybody wants is the table — the history is what you go back to
  * afterwards, and leading with it would mean an empty screen on day one.
+ *
+ * `Seed the registry` does branch on role, same reason `/admin` does in Voucher
+ * Desk: it writes into the shared registry every tenant reads, which is a
+ * different kind of action from assembling a peer set from what is already
+ * there.
  */
-export function valuationSection(): Section {
+export function valuationSection({ role }: { role: UserRole }): Section {
   return {
     slug: 'valuation-desk',
     name: 'Valuation Desk',
@@ -312,6 +319,17 @@ export function valuationSection(): Section {
         icon: Layers,
         hint: 'Peer companies, their multiples, and what they imply',
       },
+      ...(isAdmin(role)
+        ? [
+            {
+              href: '/comps/ingest',
+              label: 'Seed the registry',
+              icon: UploadCloud,
+              hint: 'Pull real companies from a source, so there is something to compare',
+              secondary: true,
+            },
+          ]
+        : []),
       {
         href: '/settings',
         label: 'Settings',
