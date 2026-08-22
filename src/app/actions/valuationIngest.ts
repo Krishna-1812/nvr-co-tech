@@ -5,7 +5,11 @@ import { requireUser, createClient } from '@/lib/supabase/server';
 import { isAdmin } from '@/lib/domain/workflow';
 import { ingestEdgarCiks, ingestNseSymbols } from '@/lib/comps/ingest/passes';
 import { makeRpcWriter } from '@/lib/comps/ingest/writers';
-import { skipLines, summarise } from '@/lib/comps/ingest/runner';
+import { skipLines, summarise, writeHarvest } from '@/lib/comps/ingest/runner';
+import { MCA_BATCH_SIZE } from '@/lib/comps/ingest/sheetRows';
+import type { Writer } from '@/lib/comps/ingest/types';
+import { mcaMasterBatch } from '@/lib/comps/sources/mcaMaster';
+import type { Skip } from '@/lib/comps/sources/types';
 import type { Fetcher, FetchResponse } from '@/lib/comps/sources/types';
 import type { ActionResult } from './workflow';
 
@@ -69,21 +73,17 @@ function lastSession(): string {
   return now.toISOString().slice(0, 10);
 }
 
-export async function runValuationIngest(input: {
-  source: 'edgar' | 'nse';
-  identifiers: string[];
-}): Promise<ActionResult<IngestSummary>> {
+/**
+ * The admin gate and the writer, in one place.
+ *
+ * Both `runValuationIngest` and `runValuationMcaBatch` need exactly this —
+ * check the caller is an admin, then hand back a `Writer` wired to their own
+ * session — and had begun to duplicate it. A third source added later gets
+ * this for free rather than a third copy to keep in sync.
+ */
+async function requireAdminWriter(): Promise<{ error: string } | { writer: Writer }> {
   const me = await requireUser();
-  if (!isAdmin(me.role)) return { ok: false, error: 'Only an admin can run an ingest pass.' };
-
-  const identifiers = [...new Set(input.identifiers.map((s) => s.trim().toUpperCase()).filter(Boolean))];
-  if (identifiers.length === 0) return { ok: false, error: 'Give it at least one identifier.' };
-  if (identifiers.length > MAX_ITEMS) {
-    return {
-      ok: false,
-      error: `That is ${identifiers.length} — send at most ${MAX_ITEMS} at a time, so the request finishes inside the page's own timeout. Run the rest as a second batch.`,
-    };
-  }
+  if (!isAdmin(me.role)) return { error: 'Only an admin can run an ingest pass.' };
 
   const supabase = await createClient();
 
@@ -106,13 +106,73 @@ export async function runValuationIngest(input: {
     },
   });
 
+  return { writer };
+}
+
+export async function runValuationIngest(input: {
+  source: 'edgar' | 'nse';
+  identifiers: string[];
+}): Promise<ActionResult<IngestSummary>> {
+  const admin = await requireAdminWriter();
+  if ('error' in admin) return { ok: false, error: admin.error };
+
+  const identifiers = [...new Set(input.identifiers.map((s) => s.trim().toUpperCase()).filter(Boolean))];
+  if (identifiers.length === 0) return { ok: false, error: 'Give it at least one identifier.' };
+  if (identifiers.length > MAX_ITEMS) {
+    return {
+      ok: false,
+      error: `That is ${identifiers.length} — send at most ${MAX_ITEMS} at a time, so the request finishes inside the page's own timeout. Run the rest as a second batch.`,
+    };
+  }
+
   const report =
     input.source === 'edgar'
-      ? await ingestEdgarCiks(fetcher, identifiers, { writer })
-      : await ingestNseSymbols(fetcher, identifiers, { writer, asOf: lastSession() });
+      ? await ingestEdgarCiks(fetcher, identifiers, { writer: admin.writer })
+      : await ingestNseSymbols(fetcher, identifiers, { writer: admin.writer, asOf: lastSession() });
 
   // The registry just changed; the comparables page reads it fresh next time.
   revalidatePath('/comps');
 
   return { ok: true, data: { headline: summarise(report), skipped: skipLines(report) } };
+}
+
+/**
+ * One batch of MCA company-master rows, written on the operator's session.
+ *
+ * The same session that seeds EDGAR and NSE, and the same reason: no service
+ * key exists here by design. What is different is the shape of the source —
+ * a bulk file the caller has already downloaded and parsed in their own
+ * browser, not a live endpoint this code fetches — so there is no `Fetcher`
+ * here and no pacing to speak of: `MCA_MASTER.politeness` already says a bulk
+ * file has no per-request budget to respect.
+ *
+ * The cap — `MCA_BATCH_SIZE`, 100 rows, not the 25 identifiers EDGAR and NSE
+ * get — exists because `upsert_company` is one Postgres round trip per
+ * company and this runs inside a web request with its own timeout. A
+ * genuinely national, 3.6 million row pass through this door would take a
+ * very long time, one small request after another; the honest fix for that,
+ * if it is ever needed, is a bulk upsert function in the database, not a
+ * bigger number here.
+ */
+export type McaBatchSummary = { companiesWritten: number; skipped: Skip[] };
+
+export async function runValuationMcaBatch(input: {
+  rows: Record<string, string>[];
+  /** 1-indexed position of the first row in this batch within the whole file, for skip messages. */
+  firstRowNumber: number;
+}): Promise<ActionResult<McaBatchSummary>> {
+  const admin = await requireAdminWriter();
+  if ('error' in admin) return { ok: false, error: admin.error };
+
+  if (input.rows.length === 0) return { ok: true, data: { companiesWritten: 0, skipped: [] } };
+  if (input.rows.length > MCA_BATCH_SIZE) {
+    return { ok: false, error: `That is ${input.rows.length} rows — send at most ${MCA_BATCH_SIZE} at a time.` };
+  }
+
+  const harvest = mcaMasterBatch(input.rows, { firstRowNumber: input.firstRowNumber });
+  const written = await writeHarvest(harvest, admin.writer, new Map());
+
+  revalidatePath('/comps');
+
+  return { ok: true, data: { companiesWritten: written.companies, skipped: written.skipped } };
 }

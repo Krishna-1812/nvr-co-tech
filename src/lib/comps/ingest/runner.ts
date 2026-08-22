@@ -76,6 +76,15 @@ export function keysOf(record: {
  * first page is still resolvable on the fiftieth without asking the database
  * again. It is a cache of things this process itself wrote, so it cannot be
  * stale in the way a read cache can.
+ *
+ * The company loop is wrapped per record rather than left to throw. For NSE
+ * and EDGAR a harvest never carries more than one company, so this changes
+ * nothing observable there — a throw was already equivalent to failing that
+ * one item, just reported by the caller's own try/catch instead of this
+ * function's. It matters once a harvest can carry hundreds, as a bulk MCA
+ * batch does: without this, company 37 failing to upsert would abandon
+ * companies 38 through 100 along with it, the opposite of "one item cannot
+ * break a run".
  */
 export async function writeHarvest(
   harvest: Harvest,
@@ -86,9 +95,13 @@ export async function writeHarvest(
   let companies = 0;
 
   for (const record of harvest.companies) {
-    const id = await writer.upsertCompany(record);
-    companies += 1;
-    for (const key of keysOf(record)) known.set(key, id);
+    try {
+      const id = await writer.upsertCompany(record);
+      companies += 1;
+      for (const key of keysOf(record)) known.set(key, id);
+    } catch (error) {
+      skipped.push({ at: record.cin ?? record.name, reason: `Threw: ${messageOf(error)}` });
+    }
   }
 
   const resolve = async (match: CompanyMatch, at: string): Promise<string | null> => {

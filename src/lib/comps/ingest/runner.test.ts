@@ -85,6 +85,41 @@ describe('writeHarvest', () => {
     expect(writer.quotes[0].companyId).toBe('mem-EXAMPLE');
   });
 
+  it('does not let one company failing to upsert abandon the rest of the batch', async () => {
+    // A bulk MCA batch can carry hundreds of companies in one harvest, unlike
+    // NSE or EDGAR which never carry more than one. Company 2 throwing must
+    // not cost company 3 its write.
+    const writer = new MemoryWriter();
+    const failing = {
+      ...writer,
+      recordFinancials: writer.recordFinancials.bind(writer),
+      recordQuote: writer.recordQuote.bind(writer),
+      resolve: writer.resolve.bind(writer),
+      recordLookup: writer.recordLookup.bind(writer),
+      async upsertCompany(record: CompanyRecord) {
+        if (record.cin === 'BAD') throw new Error('constraint violation');
+        return writer.upsertCompany(record);
+      },
+    };
+
+    const result = await writeHarvest(
+      harvest({
+        companies: [
+          company({ cin: 'U1', name: 'First' }),
+          company({ cin: 'BAD', name: 'Second' }),
+          company({ cin: 'U3', name: 'Third' }),
+        ],
+      }),
+      failing,
+      new Map(),
+    );
+
+    expect(result.companies).toBe(2);
+    expect(writer.companies.map((c) => c.name)).toEqual(['First', 'Third']);
+    expect(result.skipped).toHaveLength(1);
+    expect(result.skipped[0]).toEqual({ at: 'BAD', reason: 'Threw: constraint violation' });
+  });
+
   it('resolves a figure against the registry when it was not written this run', async () => {
     const writer = new MemoryWriter(new Map([['cik:320193', 'existing-id']]));
     const result = await writeHarvest(
@@ -385,7 +420,12 @@ describe('runBatched', () => {
     expect(report.skipped).toHaveLength(1);
   });
 
-  it('survives a batch that throws', async () => {
+  it('survives one company in a batch throwing, as a skip rather than a batch failure', async () => {
+    // writeHarvest now isolates a single company's upsert throwing (see its own
+    // doc comment) — this used to be indistinguishable from the whole batch
+    // exploding, and for a bulk MCA batch of hundreds of companies that
+    // distinction is the difference between losing one row and losing the rest
+    // of the file behind it.
     const exploding = {
       async upsertCompany(): Promise<string> {
         throw new Error('write failed');
@@ -398,8 +438,9 @@ describe('runBatched', () => {
     const report = await runBatched('mca_master', [harvest({ companies: [company()] })], {
       writer: exploding,
     });
-    expect(report.failed).toBe(1);
-    expect(report.skipped[0].reason).toBe('Threw: write failed');
+    expect(report.failed).toBe(0);
+    expect(report.companiesWritten).toBe(0);
+    expect(report.skipped[0]).toEqual({ at: 'Example Ltd', reason: 'Threw: write failed' });
   });
 
   it('accepts an async iterable, which is how a streamed file arrives', async () => {
