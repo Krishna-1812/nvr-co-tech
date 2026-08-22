@@ -132,7 +132,7 @@ export const AGENTS: Agent[] = [
   {
     slug: 'valuation-desk',
     name: 'Valuation Desk',
-    stage: 'building',
+    stage: 'live',
     category: 'Valuation & deals',
     accent: 'violet',
     summary:
@@ -150,6 +150,7 @@ export const AGENTS: Agent[] = [
     ],
     inputs: 'A company, or an industry',
     outputs: 'Peer set, multiples, implied value, and the filing behind each figure',
+    href: '/comps',
   },
   {
     slug: 'gst-reconciliation',
