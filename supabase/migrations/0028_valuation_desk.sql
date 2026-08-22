@@ -61,6 +61,20 @@
 -- genuinely comparable businesses that were filed under something else. The
 -- codes are still stored — they are how a reviewer expects to be able to check —
 -- but they are not what does the finding.
+--
+-- The dimension below is 1536 because the embeddings come from OpenAI's
+-- text-embedding-3-small, and that is worth writing down because it is the one
+-- number in this file that is expensive to change afterwards: HNSW needs a fixed
+-- dimension, so moving to another model means a column type change, an index
+-- rebuild and a re-embedding of every row.
+--
+-- It is also the one place this platform touches OpenAI, having deliberately
+-- moved its language model from OpenAI to Gemini to Anthropic. That is not a
+-- reversal — Anthropic publishes no embeddings endpoint, so there was nothing to
+-- move to. Voyage (1024) is the Anthropic-aligned alternative if a second vendor
+-- ever becomes the objection; at roughly $0.02 per million tokens, embedding
+-- every listed Indian company costs a few rupees, which is not enough money to
+-- organise a migration around.
 create extension if not exists vector;
 
 
