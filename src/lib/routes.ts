@@ -24,6 +24,9 @@ export const PROTECTED_PREFIXES = [
   '/settings',
   '/reconcile',
   '/ask',
+  // Valuation Desk. Reads the shared company registry, which every signed-in
+  // person may read and none may write — see migration 0028.
+  '/comps',
   // Signed in, but not yet a member of an organization — see requireOrgMember().
   '/onboarding',
   // Visitor intelligence. Gated a second time inside its own layout against the

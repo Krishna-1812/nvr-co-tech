@@ -5,6 +5,7 @@ import {
   FileText,
   History,
   Inbox,
+  Layers,
   LayoutDashboard,
   Plus,
   Radar,
@@ -287,6 +288,40 @@ export function assistSection(): Section {
  * permission to make the two tools look alike would only be inventing a way to
  * lock somebody out of their own work.
  */
+/**
+ * Valuation Desk.
+ *
+ * No role branch, like Ledger Reconciliation and unlike Voucher Desk: a peer
+ * set is not approved or paid, so there is nothing an approver can do here that
+ * a member cannot, and inventing a permission to make the tools look alike
+ * would only be inventing a way to lock somebody out of their own work.
+ *
+ * `Comparables` is the home rather than a list of saved peer sets, because the
+ * first thing anybody wants is the table — the history is what you go back to
+ * afterwards, and leading with it would mean an empty screen on day one.
+ */
+export function valuationSection(): Section {
+  return {
+    slug: 'valuation-desk',
+    name: 'Valuation Desk',
+    home: '/comps',
+    items: [
+      {
+        href: '/comps',
+        label: 'Comparables',
+        icon: Layers,
+        hint: 'Peer companies, their multiples, and what they imply',
+      },
+      {
+        href: '/settings',
+        label: 'Settings',
+        icon: Settings,
+        hint: 'Your account and appearance',
+      },
+    ],
+  };
+}
+
 export function reconSection(): Section {
   return {
     slug: 'ledger-reconciliation',

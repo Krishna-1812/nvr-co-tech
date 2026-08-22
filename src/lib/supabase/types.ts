@@ -443,6 +443,232 @@ type ErrorLogRow = {
  * Omitting any of them collapses queries to `never`, which is the confusing
  * "Property 'x' does not exist on type 'never'" error.
  */
+// --- Valuation Desk (0028) --------------------------------------------------
+
+/**
+ * A company somebody is valuing.
+ *
+ * Three things in this schema say "company" and they are different: an
+ * `organizations` row is a tenant, a `company_enrichment` row is a visitor's
+ * employer guessed from an IP, and this is a subject of research drawn from
+ * public record. Shared across every tenant, readable by all, writable by none —
+ * see the header of migration 0028 for why that is safe and, more importantly,
+ * for what must never be stored in it.
+ *
+ * `embedding` is deliberately typed `unknown`. It is a pgvector value, the app
+ * never reads it — nearest-neighbour search happens inside `find_peers`, where
+ * the index is — and giving it a number[] shape would invite somebody to pull
+ * 1,536 floats per row across the wire to do in JavaScript what Postgres has
+ * already done.
+ */
+export type CompanyRegistryRow = {
+  id: string;
+  cin: string | null;
+  isin: string | null;
+  nse_symbol: string | null;
+  bse_code: string | null;
+  cik: string | null;
+  lei: string | null;
+  name: string;
+  legal_name: string | null;
+  country: string;
+  listing_status: 'listed' | 'unlisted' | 'delisted' | 'unknown';
+  incorporated_on: string | null;
+  registered_state: string | null;
+  nic_code: string | null;
+  sic_code: string | null;
+  industry: string | null;
+  sector: string | null;
+  business_description: string | null;
+  embedding: unknown;
+  embedding_model: string | null;
+  source: string;
+  source_url: string | null;
+  first_seen: string;
+  last_refreshed: string;
+};
+
+/**
+ * One reporting period, one basis, one source.
+ *
+ * Every figure nullable, and that is the schema saying something rather than
+ * being lax: null is "not known" and zero is a claim that the company earned
+ * nothing. The same year genuinely arrives twice from two sources — an exchange
+ * result and an MCA filing will not agree to the rupee — which is why `source`
+ * is part of the uniqueness rule rather than one row overwriting the other.
+ */
+export type CompanyFinancialsRow = {
+  id: number;
+  company_id: string;
+  period_start: string | null;
+  period_end: string;
+  fy_label: string | null;
+  months: number | null;
+  basis: 'standalone' | 'consolidated';
+  revenue: number | null;
+  other_income: number | null;
+  ebitda: number | null;
+  ebit: number | null;
+  pat: number | null;
+  total_assets: number | null;
+  net_worth: number | null;
+  total_debt: number | null;
+  cash: number | null;
+  employees: number | null;
+  currency: string;
+  is_audited: boolean | null;
+  source: string;
+  source_url: string | null;
+  source_document_id: number | null;
+  as_of: string | null;
+  fetched_at: string;
+};
+
+/** A market capitalisation on a date. Moves on a different clock from a filing. */
+export type CompanyQuoteRow = {
+  id: number;
+  company_id: string;
+  as_of: string;
+  close_price: number | null;
+  shares_outstanding: number | null;
+  market_cap: number | null;
+  currency: string;
+  source: string;
+  source_url: string | null;
+  fetched_at: string;
+};
+
+/**
+ * An announced private round.
+ *
+ * `post_money_to_revenue` is a generated column, so it is read-only from here and
+ * cannot drift from the two figures it is made of. `disclosure` admits only
+ * 'disclosed' and 'reported': there is deliberately no estimated value, because
+ * once a modelled valuation is in the table nobody downstream can tell it from a
+ * number a founder actually announced.
+ */
+export type FundingRoundRow = {
+  id: number;
+  company_id: string;
+  round_label: string;
+  announced_on: string;
+  amount_raised: number | null;
+  pre_money: number | null;
+  post_money: number | null;
+  currency: string;
+  lead_investor: string | null;
+  investors: string[] | null;
+  revenue: number | null;
+  revenue_period: string | null;
+  revenue_basis: 'standalone' | 'consolidated' | null;
+  revenue_source: string | null;
+  /** Generated. Null unless both the valuation and the revenue are known. */
+  post_money_to_revenue: number | null;
+  disclosure: 'disclosed' | 'reported';
+  source: string;
+  source_url: string | null;
+  fetched_at: string;
+};
+
+/** That a filing was read, and where a reader can fetch it. Never a copy of it. */
+export type SourceDocumentRow = {
+  id: number;
+  company_id: string;
+  doc_type: string;
+  filed_on: string | null;
+  period_end: string | null;
+  provider: string;
+  external_id: string | null;
+  url: string | null;
+  retrieved_at: string;
+};
+
+/** A recorded judgement about what is comparable to a subject, on a date. */
+export type PeerSetRow = {
+  id: string;
+  organization_id: string;
+  created_by: string;
+  subject_company_id: string | null;
+  subject_name: string;
+  subject_description: string | null;
+  as_of: string;
+  basis: 'standalone' | 'consolidated';
+  screen: Record<string, unknown>;
+  method_note: string | null;
+  created_at: string;
+};
+
+/**
+ * One comparable, frozen as at the peer set's date.
+ *
+ * The four multiples are generated columns over the figures in the same row, so
+ * they are read-only here. `excluded_reason` is required whenever `included` is
+ * false: a peer set whose rejects are invisible is the one a reviewer cannot
+ * check.
+ */
+export type PeerSetMemberRow = {
+  id: number;
+  peer_set_id: string;
+  organization_id: string;
+  company_id: string;
+  included: boolean;
+  rationale: string;
+  decided_by: 'screen' | 'model' | 'person';
+  excluded_reason: string | null;
+  revenue: number | null;
+  ebitda: number | null;
+  ebit: number | null;
+  pat: number | null;
+  total_debt: number | null;
+  cash: number | null;
+  market_cap: number | null;
+  currency: string;
+  financials_id: number | null;
+  quote_id: number | null;
+  period_end: string | null;
+  /** Generated, all four. */
+  enterprise_value: number | null;
+  ev_to_revenue: number | null;
+  ev_to_ebitda: number | null;
+  price_to_earnings: number | null;
+  created_at: string;
+};
+
+/** A concluded valuation. Stores what was signed, not what would be recomputed. */
+export type ValuationRow = {
+  id: string;
+  organization_id: string;
+  created_by: string;
+  peer_set_id: string | null;
+  subject_name: string;
+  as_of: string;
+  concluded_value: number | null;
+  low_value: number | null;
+  high_value: number | null;
+  currency: string;
+  valuation_basis: 'minority_private' | 'control_private' | 'minority_listed' | 'control_listed';
+  methods: unknown[];
+  result: Record<string, unknown>;
+  created_at: string;
+};
+
+/** One line of the bill for a paid provider. Append-only, cache hits included. */
+export type DataLookupRow = {
+  id: number;
+  looked_up_at: string;
+  organization_id: string | null;
+  actor_id: string | null;
+  actor_email: string;
+  provider: string;
+  kind: string;
+  subject: string;
+  company_id: string | null;
+  cost_paise: number;
+  cache_hit: boolean;
+  outcome: 'hit' | 'miss' | 'error';
+  note: string | null;
+};
+
 type Table<Row> = {
   Row: Row;
   Insert: Partial<Row>;
@@ -486,6 +712,24 @@ export type Database = {
       access_requests: Table<AccessRequestRow>;
       feature_requests: Table<FeatureRequestRow>;
       ai_summaries: Table<AiSummaryRow>;
+
+      /*
+       * Valuation Desk (0028).
+       *
+       * The first five are the shared registry: every signed-in person may
+       * select from them and nobody may write, so their Insert and Update
+       * shapes exist only because Table<Row> supplies them and are unreachable
+       * — every write goes through a SECURITY DEFINER function.
+       */
+      companies: Table<CompanyRegistryRow>;
+      company_financials: Table<CompanyFinancialsRow>;
+      company_quotes: Table<CompanyQuoteRow>;
+      funding_rounds: Table<FundingRoundRow>;
+      source_documents: Table<SourceDocumentRow>;
+      peer_sets: Table<PeerSetRow>;
+      peer_set_members: Table<PeerSetMemberRow>;
+      valuations: Table<ValuationRow>;
+      data_lookups: Table<DataLookupRow>;
     };
     Views: Record<never, never>;
     Functions: {

@@ -5,6 +5,7 @@ import {
   Percent,
   ReceiptIndianRupee,
   ScanText,
+  Layers,
   type LucideIcon,
 } from 'lucide-react';
 import { AGENTS, type Agent, type AgentStage } from '@/lib/marketing/content';
@@ -33,6 +34,7 @@ import { AGENTS, type Agent, type AgentStage } from '@/lib/marketing/content';
 const ICON: Record<string, LucideIcon> = {
   'voucher-desk': ReceiptIndianRupee,
   'ledger-reconciliation': GitCompareArrows,
+  'valuation-desk': Layers,
   'gst-reconciliation': Percent,
   'tds-compliance': Landmark,
   'invoice-intake': ScanText,

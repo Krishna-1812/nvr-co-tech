@@ -130,6 +130,28 @@ export const AGENTS: Agent[] = [
     href: '/reconcile',
   },
   {
+    slug: 'valuation-desk',
+    name: 'Valuation Desk',
+    stage: 'building',
+    category: 'Valuation & deals',
+    accent: 'violet',
+    summary:
+      'Comparable companies, the multiples they trade at, and what those imply for a company that does not trade. Every figure links to the filing it came from.',
+    pitch:
+      'A comparable set is not a screen output. It is a judgement somebody will argue with, so the peers you left out are recorded with the reason you left them out, and every multiple is arithmetic on figures in the same row.',
+    does: [
+      'Finds peers by what a company says it does, not by the industry code it was filed under. One code holds cybersecurity, gaming and enterprise software, and none of those three is comparable to the others.',
+      'Shows the size band, the geography and the profitability screen it applied, and lists every company it rejected with the reason.',
+      'Computes EV/Revenue, EV/EBITDA and P/E in the database as generated columns, so a quoted multiple cannot drift from the figures it was built from.',
+      'Leaves a cell empty when the figure is not known. A blank is a question you can ask; a zero is a claim the company earned nothing.',
+      'Flags outliers and does not remove them. The peer trading at forty times may be the one that just transacted, at a price a buyer actually paid.',
+      'Keeps enterprise multiples and P/E apart. One implies a value for the whole business and needs the debt taken off; the other already implies the equity. Confusing them overstates a geared company by its whole net debt.',
+      'Reads the free public record: the exchanges, the MCA register, and the SEC for anything American. Where a private company has filed, the multiple it raised at is arithmetic rather than an estimate.',
+    ],
+    inputs: 'A company, or an industry',
+    outputs: 'Peer set, multiples, implied value, and the filing behind each figure',
+  },
+  {
     slug: 'gst-reconciliation',
     name: 'GST Reconciliation',
     stage: 'planned',

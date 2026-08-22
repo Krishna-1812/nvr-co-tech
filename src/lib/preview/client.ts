@@ -1,6 +1,7 @@
 import * as fixtures from './fixtures';
 import * as analytics from './analytics';
 import * as operator from './operator';
+import * as comps from './comps';
 import { PREVIEW_USER_ID } from './fixtures';
 import { financialYear } from '@/lib/domain/voucher';
 import {
@@ -88,6 +89,22 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   ip_resolutions: [],
   company_enrichment: [],
   enrichment_spend: [],
+  /*
+   * Valuation Desk (0028). Seeded, like the analytics tables and unlike the
+   * reconciliation and assistant histories: a peer set is assembled FROM a
+   * registry, so an empty registry gives an empty screen and there is nothing
+   * a preview reader could do to fill it. Every name in there is invented on
+   * purpose — see ./comps.ts.
+   */
+  companies: comps.companies as unknown as Row[],
+  company_financials: comps.company_financials as unknown as Row[],
+  company_quotes: comps.company_quotes as unknown as Row[],
+  funding_rounds: comps.funding_rounds as Row[],
+  source_documents: comps.source_documents as Row[],
+  peer_sets: comps.peer_sets as Row[],
+  peer_set_members: comps.peer_set_members as Row[],
+  valuations: comps.valuations as Row[],
+  data_lookups: comps.data_lookups as Row[],
 });
 
 const me = () => TABLES.profiles.find((p) => p.id === PREVIEW_USER_ID)!;

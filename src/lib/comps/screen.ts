@@ -176,19 +176,30 @@ export function applyScreen(
  * explanation rather than the reader having to reconstruct it from which
  * companies survived. An empty screen says so plainly instead of returning an
  * empty string that reads like a missing value.
+ *
+ * `money` is injected rather than chosen here. Figures are stored in rupees, so
+ * the default renders a size band as "revenue between 2,13,33,33,333.333 and
+ * 19,20,00,00,000" — which is what the first rendered version of this screen
+ * actually said, and is unreadable in a way that no test would have caught. The
+ * caller passes `crore` from lib/comps/format. It stays a parameter because a US
+ * peer set will want dollars and millions, and a display decision does not
+ * belong in the module that decides which companies are comparable.
  */
-export function describeScreen(s: Screen): string {
+export function describeScreen(
+  s: Screen,
+  { money = (n: number) => n.toLocaleString('en-IN') }: { money?: (n: number) => string } = {},
+): string {
   const parts: string[] = [];
 
   if (s.country) parts.push(`registered in ${s.country}`);
   if (s.listingStatus) parts.push(`${s.listingStatus} companies only`);
 
   if (s.minRevenue !== undefined && s.maxRevenue !== undefined) {
-    parts.push(`revenue between ${s.minRevenue.toLocaleString('en-IN')} and ${s.maxRevenue.toLocaleString('en-IN')}`);
+    parts.push(`revenue between ${money(s.minRevenue)} and ${money(s.maxRevenue)}`);
   } else if (s.minRevenue !== undefined) {
-    parts.push(`revenue at least ${s.minRevenue.toLocaleString('en-IN')}`);
+    parts.push(`revenue at least ${money(s.minRevenue)}`);
   } else if (s.maxRevenue !== undefined) {
-    parts.push(`revenue at most ${s.maxRevenue.toLocaleString('en-IN')}`);
+    parts.push(`revenue at most ${money(s.maxRevenue)}`);
   }
 
   if (s.minGrowth !== undefined) parts.push(`growth at least ${(s.minGrowth * 100).toFixed(0)}%`);
