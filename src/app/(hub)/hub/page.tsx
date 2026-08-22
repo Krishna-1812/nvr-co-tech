@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
 import type { Metadata } from 'next';
-import { History } from 'lucide-react';
+import { History, UploadCloud } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
-import { canApprove, isOwner, ROLE_META } from '@/lib/domain/workflow';
+import { canApprove, isAdmin, isOwner, ROLE_META } from '@/lib/domain/workflow';
 import { deskBrief } from '@/lib/domain/desk';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
 import { ROSTER } from '@/lib/marketing/content';
@@ -28,10 +28,19 @@ const PENDING = ['pending_first', 'pending_second'] as const;
  * application that happened to have an ambitious marketing site attached. A person
  * signing in should see what the firm runs, then choose.
  *
- * The screen is one live card and five cards for tools that do not exist yet, and it
- * says which is which in three separate ways (the meter, the badge, the footer note).
- * Somebody who reads only the colours should not come away thinking they have six
- * tools.
+ * The screen is a handful of live cards and a roadmap of the rest, and it says
+ * which is which in three separate ways (the meter, the badge, the footer
+ * note). Somebody who reads only the colours should not come away confused
+ * about how many tools they actually have.
+ *
+ * The live cards are hardcoded lookups by slug, not a loop over
+ * `SOLUTIONS.filter(stage === 'live')`, because each one's instrument panel
+ * reads different tables — Voucher Desk's queue is not shaped like Ledger
+ * Reconciliation's tie-out, which is not shaped like Valuation Desk's
+ * registry counts. The cost of that is real and already paid for once: flip a
+ * fourth tool's stage to 'live' in content.ts without adding its card here
+ * and it silently disappears from the workspace, counted by the roster meter
+ * but shown nowhere. See the comment on `rest` below.
  */
 export default async function HubPage() {
   const user = await requireUser();
@@ -143,6 +152,25 @@ export default async function HubPage() {
   ]);
 
   const askedSet = new Set(asked);
+
+  /*
+   * Valuation Desk's own instrumentation, and it reads differently from the
+   * two above it on purpose. A voucher and a reconciliation are yours; a
+   * comparable set today is not — there is no save button yet, so "peer sets
+   * you have made" would be a counter that can never move off zero, which
+   * reads as broken rather than as new. What is real and worth showing is the
+   * registry itself: how much of it exists, and how much of that is listed
+   * and can actually be picked as a subject on `/comps`.
+   */
+  const [companiesTotal, companiesListed] = await Promise.all([
+    supabase.from('companies').select('id', { count: 'exact', head: true }),
+    supabase.from('companies').select('id', { count: 'exact', head: true }).eq('listing_status', 'listed'),
+  ]);
+
+  const n2 = {
+    companiesTotal: companiesTotal.count ?? 0,
+    companiesListed: companiesListed.count ?? 0,
+  };
 
   const n = {
     drafts: drafts.count ?? 0,
@@ -263,8 +291,40 @@ export default async function HubPage() {
             tone: 'var(--status-draft)',
           };
 
+  const valuationReadings: Reading[] = [
+    {
+      label: 'Companies in the registry',
+      value: n2.companiesTotal,
+      hint: 'Shared across every workspace on the platform, not just yours.',
+    },
+    {
+      label: 'Ready to be a subject',
+      value: n2.companiesListed,
+      hint: 'Listed, so the market has already priced them and a peer set can be checked against it.',
+    },
+  ];
+
+  const valuationBrief =
+    n2.companiesTotal === 0
+      ? { text: 'Nothing in the registry yet. Seed a few companies to get started.', tone: 'var(--status-draft)' }
+      : {
+          text: `${n2.companiesTotal} ${plural(n2.companiesTotal, 'company', 'companies')} on file, ${n2.companiesListed} ready to be a subject.`,
+          tone: undefined,
+        };
+
   const voucherDesk = SOLUTIONS.find((s) => s.slug === 'voucher-desk');
   const reconciliation = SOLUTIONS.find((s) => s.slug === 'ledger-reconciliation');
+  const valuationDesk = SOLUTIONS.find((s) => s.slug === 'valuation-desk');
+  /*
+   * `rest` is every non-live tool, so it stays a roadmap and never gets a
+   * live tool mislabelled "Not started yet". The other side of that contract
+   * is this file's to keep: the day a fourth tool's stage becomes 'live' in
+   * content.ts, it needs a card of its own above, in the same breath — this
+   * filter alone cannot tell the difference between "no card yet" and
+   * "correctly on the roadmap", and a live tool with no card here simply
+   * vanishes from the workspace rather than showing up in the wrong place.
+   * That is exactly what happened to this one.
+   */
   const rest = SOLUTIONS.filter((s) => s.stage !== 'live');
   const firstName = (user.full_name ?? user.email).split(/[\s@.]+/)[0];
 
@@ -357,6 +417,27 @@ export default async function HubPage() {
               note={reconBrief.text}
               noteTone={reconBrief.tone}
               shortcut={{ href: '/reconcile/history', label: 'History', icon: History }}
+            />
+          </div>
+        )}
+
+        {valuationDesk && (
+          <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_180ms_backwards]">
+            <LiveSolutionCard
+              solution={valuationDesk}
+              readings={valuationReadings}
+              note={valuationBrief.text}
+              noteTone={valuationBrief.tone}
+              // Seeding writes into data every workspace on the platform reads,
+              // so the shortcut that does it is for an admin only — see
+              // src/app/actions/valuationIngest.ts for why. Anybody else has no
+              // second reason to come here beyond opening Comparables, which
+              // the card itself already is.
+              shortcut={
+                isAdmin(user.role)
+                  ? { href: '/comps/ingest', label: 'Seed the registry', icon: UploadCloud }
+                  : undefined
+              }
             />
           </div>
         )}
