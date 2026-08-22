@@ -4,12 +4,15 @@ import {
   companyFactsUrl,
   factsForTag,
   fetchCompanyFacts,
+  fetchCompanyProfile,
   isAnnual,
   isInstant,
   latestFiled,
   monthsBetween,
   padCik,
   parseCompanyFacts,
+  parseSubmissions,
+  submissionsUrl,
 } from './edgar';
 import type { Fact } from './edgar';
 
@@ -329,20 +332,25 @@ describe('parseCompanyFacts', () => {
 describe('fetchCompanyFacts', () => {
   const ok = (json: unknown) => ({ ok: true, status: 200, json: async () => json });
 
-  it('sends the User-Agent EDGAR requires', async () => {
+  it('sends the User-Agent EDGAR requires, on both requests', async () => {
     const seen: { url: string; init?: RequestInit }[] = [];
     await fetchCompanyFacts(
       async (url, init) => {
         seen.push({ url, init });
-        return ok(facts({ Revenues: [year('2026-03-31', 1)] }));
+        return url.includes('/submissions/')
+          ? ok({}) // No profile fields — irrelevant to what this test checks.
+          : ok(facts({ Revenues: [year('2026-03-31', 1)] }));
       },
       '320193',
       'Someone someone@example.com',
     );
 
+    expect(seen).toHaveLength(2);
     expect(seen[0].url).toBe('https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json');
-    const headers = seen[0].init?.headers as Record<string, string>;
-    expect(headers['User-Agent']).toBe('Someone someone@example.com');
+    expect(seen[1].url).toBe('https://data.sec.gov/submissions/CIK0000320193.json');
+    for (const { init } of seen) {
+      expect((init?.headers as Record<string, string>)['User-Agent']).toBe('Someone someone@example.com');
+    }
   });
 
   it('explains a 403 rather than passing on the number', async () => {
@@ -362,5 +370,165 @@ describe('fetchCompanyFacts', () => {
     );
     expect(harvest.skipped[0].reason).toBe('EDGAR answered 404');
     expect(harvest.skipped[0].at).toBe('320193');
+  });
+
+  it('merges a listed profile into the company it just wrote', async () => {
+    const harvest = await fetchCompanyFacts(
+      async (url) =>
+        url.includes('/submissions/')
+          ? ok({ sic: '3571', sicDescription: 'Electronic Computers', tickers: ['AAPL'], exchanges: ['Nasdaq'] })
+          : ok(facts({ Revenues: [year('2026-03-31', 1)] })),
+      '320193',
+      'ua',
+    );
+
+    expect(harvest.companies[0]).toMatchObject({
+      sic_code: '3571',
+      industry: 'Electronic Computers',
+      listing_status: 'listed',
+    });
+  });
+
+  it('leaves listing status unknown for a filer with no exchange', async () => {
+    // PACCAR Financial Corp's real shape: it files only because it registers
+    // public debt, never because it is listed.
+    const harvest = await fetchCompanyFacts(
+      async (url) =>
+        url.includes('/submissions/')
+          ? ok({ sic: '6153', sicDescription: 'Short-Term Business Credit Institutions', tickers: [], exchanges: [] })
+          : ok(facts({ Revenues: [year('2026-03-31', 1)] })),
+      '320193',
+      'ua',
+    );
+
+    expect(harvest.companies[0]).toMatchObject({
+      sic_code: '6153',
+      industry: 'Short-Term Business Credit Institutions',
+      listing_status: 'unknown',
+    });
+  });
+
+  it('prefers the submissions name over a stale companyfacts entityName', async () => {
+    // CIK 70858's real shape: companyfacts names it "BofA Finance LLC",
+    // submissions — and the ticker BAC — say "BANK OF AMERICA CORP /DE/".
+    const harvest = await fetchCompanyFacts(
+      async (url) =>
+        url.includes('/submissions/')
+          ? ok({ name: 'BANK OF AMERICA CORP /DE/', sic: '6021', sicDescription: 'National Commercial Banks', exchanges: ['NYSE'] })
+          : ok(facts({ Revenues: [year('2026-03-31', 1)] }, { entityName: 'BofA Finance LLC' })),
+      '70858',
+      'ua',
+    );
+
+    expect(harvest.companies[0]?.name).toBe('BANK OF AMERICA CORP /DE/');
+  });
+
+  it('keeps the figures when the profile fetch fails', async () => {
+    const harvest = await fetchCompanyFacts(
+      async (url) =>
+        url.includes('/submissions/')
+          ? { ok: false, status: 503, json: async () => ({}) }
+          : ok(facts({ Revenues: [year('2026-03-31', 1)] })),
+      '320193',
+      'ua',
+    );
+
+    expect(harvest.companies[0]).toMatchObject({
+      name: 'Example Inc.',
+      listing_status: 'unknown',
+    });
+    expect(harvest.financials).toHaveLength(1);
+  });
+});
+
+describe('parseSubmissions', () => {
+  it('reads the sic, industry, name and listing status', () => {
+    expect(
+      parseSubmissions({
+        name: 'Apple Inc.',
+        sic: '3571',
+        sicDescription: 'Electronic Computers',
+        tickers: ['AAPL'],
+        exchanges: ['Nasdaq'],
+      }),
+    ).toEqual({ sicCode: '3571', industry: 'Electronic Computers', listed: true, name: 'Apple Inc.' });
+  });
+
+  it('reports unlisted when exchanges is empty, not just absent tickers', () => {
+    expect(
+      parseSubmissions({
+        name: 'PACCAR FINANCIAL CORP',
+        sic: '6153',
+        sicDescription: 'Short-Term Business Credit Institutions',
+        tickers: [],
+        exchanges: [],
+      }),
+    ).toEqual({
+      sicCode: '6153',
+      industry: 'Short-Term Business Credit Institutions',
+      listed: false,
+      name: 'PACCAR FINANCIAL CORP',
+    });
+  });
+
+  it('is null for a response with no shape to read', () => {
+    expect(parseSubmissions('not an object')).toBeNull();
+    expect(parseSubmissions(null)).toBeNull();
+  });
+
+  it('is null-fielded rather than throwing on blank strings', () => {
+    expect(parseSubmissions({ name: '  ', sic: '', sicDescription: '  ', exchanges: [''] })).toEqual({
+      sicCode: null,
+      industry: null,
+      listed: false,
+      name: null,
+    });
+  });
+});
+
+describe('submissionsUrl', () => {
+  it('zero-pads the same way companyFactsUrl does', () => {
+    expect(submissionsUrl('320193')).toBe('https://data.sec.gov/submissions/CIK0000320193.json');
+  });
+});
+
+describe('fetchCompanyProfile', () => {
+  const ok = (json: unknown) => ({ ok: true, status: 200, json: async () => json });
+
+  it('is null on a non-ok response, not a thrown error', async () => {
+    const profile = await fetchCompanyProfile(
+      async () => ({ ok: false, status: 403, json: async () => ({}) }),
+      '320193',
+      'ua',
+    );
+    expect(profile).toBeNull();
+  });
+
+  it('is null when the body is not valid JSON, not a thrown error', async () => {
+    const profile = await fetchCompanyProfile(
+      async () => ({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected token');
+        },
+      }),
+      '320193',
+      'ua',
+    );
+    expect(profile).toBeNull();
+  });
+
+  it('sends the same User-Agent contract as the figures request', async () => {
+    let seenHeaders: Record<string, string> | undefined;
+    await fetchCompanyProfile(
+      async (_url, init) => {
+        seenHeaders = init?.headers as Record<string, string>;
+        return ok({ exchanges: [] });
+      },
+      '320193',
+      'Someone someone@example.com',
+    );
+    expect(seenHeaders?.['User-Agent']).toBe('Someone someone@example.com');
   });
 });

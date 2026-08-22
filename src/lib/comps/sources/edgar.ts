@@ -44,6 +44,20 @@
  * income on its own quietly relabelled. A peer whose EBITDA is unknown drops out
  * of the EV/EBITDA column and stays in EV/Revenue, which is the honest outcome and
  * exactly what the null-means-unknown rule in `types.ts` is for.
+ *
+ * **Five: `companyfacts` alone cannot make two filers comparable.** It carries
+ * figures and no industry, so two registrants ingested from it never share
+ * anything to group them by, however alike their businesses — and it does not
+ * distinguish a listed company from one that only ever registered debt.
+ * `fetchCompanyFacts` also reads the free `submissions` endpoint for exactly two
+ * facts it does carry: `sicDescription`, the one industry classification EDGAR
+ * offers, and `exchanges`, which is empty for a filer with no listing. Verified
+ * against real responses for both cases — Apple's carries `exchanges: ["Nasdaq"]`,
+ * PACCAR Financial Corp's (a wholly owned finance subsidiary that files only
+ * because it registers public debt) carries `exchanges: []` — rather than assumed
+ * from the shape of the companyfacts response, which says nothing about either.
+ * A submissions fetch failing does not fail the item: the figures already came
+ * back, and losing an industry label is a worse peer set, not a wrong one.
  */
 
 import type { CompanyRecord, FinancialsRecord, Harvest, Skip } from './types';
@@ -54,6 +68,11 @@ const SOURCE = 'sec_edgar' as const;
 /** One company's facts. Ten-digit zero-padded CIK. */
 export function companyFactsUrl(cik: string): string {
   return `https://data.sec.gov/api/xbrl/companyfacts/CIK${padCik(cik)}.json`;
+}
+
+/** One company's filer profile — industry and exchange listing, not figures. */
+export function submissionsUrl(cik: string): string {
+  return `https://data.sec.gov/submissions/CIK${padCik(cik)}.json`;
 }
 
 /** EDGAR wants the CIK zero-padded to ten digits in a URL, bare elsewhere. */
@@ -402,12 +421,79 @@ export function parseCompanyFacts(
   return harvest;
 }
 
+/** What the submissions endpoint tells us that companyfacts never does. */
+export type EdgarProfile = {
+  sicCode: string | null;
+  industry: string | null;
+  /** Whether `exchanges` names at least one exchange. Empty means unlisted. */
+  listed: boolean;
+  /** The registrant name submissions carries, when it says anything at all. */
+  name: string | null;
+};
+
+/**
+ * The pure half of the profile fetch: given the JSON, what does it say.
+ *
+ * Verified against real responses rather than guessed from documentation.
+ * Apple's carries `sic: "3571"`, `sicDescription: "Electronic Computers"`,
+ * `exchanges: ["Nasdaq"]`; PACCAR Financial Corp's — a finance subsidiary that
+ * files only because it registers public debt, not because it is listed —
+ * carries the same shape with `exchanges: []`. That contrast is what `listed`
+ * exists to read.
+ *
+ * `name` earns its place here for a reason found the same way: CIK 70858's
+ * `companyfacts` response names the filer `entityName: "BofA Finance LLC"`,
+ * but its `submissions` response — and the ticker `BAC` — say `"BANK OF
+ * AMERICA CORP /DE/"`. The two SEC endpoints disagree about the same
+ * registrant, and `submissions` is the one that matches what the company is
+ * actually called, so `fetchCompanyFacts` prefers it when it says anything.
+ */
+export function parseSubmissions(json: unknown): EdgarProfile | null {
+  if (!isRecord(json)) return null;
+
+  const sicCode = typeof json.sic === 'string' && json.sic.trim() !== '' ? json.sic.trim() : null;
+  const industry =
+    typeof json.sicDescription === 'string' && json.sicDescription.trim() !== ''
+      ? json.sicDescription.trim()
+      : null;
+  const name = typeof json.name === 'string' && json.name.trim() !== '' ? json.name.trim() : null;
+  const exchanges = Array.isArray(json.exchanges) ? json.exchanges : [];
+  const listed = exchanges.some((e) => typeof e === 'string' && e.trim() !== '');
+
+  return { sicCode, industry, listed, name };
+}
+
+/**
+ * Fetch a filer's profile. Null on any failure — network, status or shape.
+ *
+ * Deliberately swallowed rather than turned into a `Skip`: this is enrichment on
+ * top of figures that already arrived, not a second chance for the item to fail.
+ * `fetchCompanyFacts` below treats null exactly as "learned nothing new."
+ */
+export async function fetchCompanyProfile(
+  fetcher: (url: string, init?: RequestInit) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>,
+  cik: string,
+  userAgent: string,
+): Promise<EdgarProfile | null> {
+  try {
+    const response = await fetcher(submissionsUrl(cik), {
+      headers: { 'User-Agent': userAgent, Accept: 'application/json' },
+    });
+    if (!response.ok) return null;
+    return parseSubmissions(await response.json());
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetch and parse one company.
  *
- * The whole of the network handling, and there is deliberately almost nothing in
- * it: a URL, a header, and a status check. Everything with a decision in it is
- * above this line and tested without a network.
+ * Two requests, not the one the name suggests: the figures from companyfacts,
+ * then the industry and listing status from submissions — see point five above
+ * for why companyfacts cannot answer either. The second is best-effort, so a
+ * company whose profile fetch fails still comes back with its figures and an
+ * unknown industry, not skipped entirely.
  */
 export async function fetchCompanyFacts(
   fetcher: (url: string, init?: RequestInit) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>,
@@ -430,17 +516,37 @@ export async function fetchCompanyFacts(
     return harvest;
   }
 
-  return parseCompanyFacts(await response.json());
+  const harvest = parseCompanyFacts(await response.json());
+
+  const company = harvest.companies[0];
+  if (company) {
+    const profile = await fetchCompanyProfile(fetcher, cik, userAgent);
+    if (profile) {
+      company.sic_code = profile.sicCode;
+      company.industry = profile.industry;
+      if (profile.listed) company.listing_status = 'listed';
+      // See the doc comment on EdgarProfile: submissions and companyfacts have
+      // been observed to disagree about the same registrant's name, and
+      // submissions is the one that matches what the company is actually
+      // called.
+      if (profile.name) company.name = profile.name;
+    }
+  }
+
+  return harvest;
 }
 
 export const EDGAR = {
   id: SOURCE,
   label: 'SEC EDGAR XBRL companyfacts',
   politeness: {
-    // Both stated policy rather than observed behaviour. Ten per second is the
-    // published ceiling across all EDGAR domains; the User-Agent is required and
-    // its absence is answered with 403 rather than with an explanation.
-    requestsPerSecond: 10,
+    // Stated policy, not observed behaviour: ten requests a second is EDGAR's
+    // published ceiling across all its domains, and every ingested company now
+    // costs two of them (companyfacts, then submissions) rather than one — so
+    // five items a second keeps the aggregate at the same ten. The User-Agent is
+    // required on both, and its absence is answered with 403 rather than an
+    // explanation.
+    requestsPerSecond: 5,
     userAgent: 'The Finance Intelligence team@thefinanceintelligence.com',
   },
 } as const;

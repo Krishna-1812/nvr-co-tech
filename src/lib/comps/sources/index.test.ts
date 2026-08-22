@@ -33,8 +33,8 @@ describe('INGEST_ORDER', () => {
 
 describe('minimumGapMs', () => {
   it('turns a rate into a gap', () => {
-    expect(minimumGapMs(SOURCES.sec_edgar)).toBe(100); // 10/s
-    expect(minimumGapMs(SOURCES.nse)).toBe(334); //       3/s, rounded up
+    expect(minimumGapMs(SOURCES.sec_edgar)).toBe(200); // 5/s — two requests per company now
+    expect(minimumGapMs(SOURCES.nse)).toBe(334); //         3/s, rounded up
   });
 
   it('rounds up rather than down, so the ceiling is never exceeded', () => {
@@ -49,8 +49,8 @@ describe('minimumGapMs', () => {
 });
 
 describe('politeness', () => {
-  it('records the two things EDGAR states as policy', () => {
-    expect(SOURCES.sec_edgar.politeness.requestsPerSecond).toBe(10);
+  it('paces at half the stated EDGAR ceiling, because each company now costs two requests', () => {
+    expect(SOURCES.sec_edgar.politeness.requestsPerSecond).toBe(5);
     expect(SOURCES.sec_edgar.politeness.userAgent).toContain('@');
   });
 
