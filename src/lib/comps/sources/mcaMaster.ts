@@ -108,8 +108,24 @@ function pick(row: NormalisedRow, aliases: readonly string[]): string | null {
  * multiple it once traded at describes a business that is not there any more.
  * Those rows are skipped with the status as the reason, which is also how the
  * ingest log ends up reporting roughly how much of the register is dormant.
+ *
+ * `ACTV` and `NAEF` are here because a 500-row pull of the live register — via
+ * data.gov.in's own public API, not a guess — carried both a spelled-out status
+ * and an abbreviated code for the same thing on different rows: `Active` (242
+ * rows) beside `ACTV` (121 rows), `Not Available for eFiling` (8 rows) beside
+ * `NAEF` (13 rows, the more common of the two spellings in that sample). Every
+ * `ACTV` row was being read as dormant and dropped before this — roughly a third
+ * of the live companies in that pull, gone for a code the register itself uses
+ * more often than the words it stands for.
  */
-const LIVE_STATUSES = new Set(['ACTIVE', 'ACTIVEINPROGRESS', 'DORMANTUNDER455', 'NOTAVAILABLEFOREFILING']);
+const LIVE_STATUSES = new Set([
+  'ACTIVE',
+  'ACTV',
+  'ACTIVEINPROGRESS',
+  'DORMANTUNDER455',
+  'NOTAVAILABLEFOREFILING',
+  'NAEF',
+]);
 
 /**
  * Whether a status counts as live.

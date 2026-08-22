@@ -165,6 +165,18 @@ describe('isLiveStatus', () => {
     expect(isLiveStatus('  Active  ')).toBe(true);
     expect(isLiveStatus('Strike Off')).toBe(false);
   });
+
+  it('reads the abbreviated codes the register uses alongside the spelled-out ones', () => {
+    // Found against a real 500-row pull of the live register via data.gov.in's
+    // own public API, not guessed: that sample carried 242 rows of `Active`
+    // and 121 more of `ACTV` for the same status, plus 8 rows of `Not
+    // Available for eFiling` and 13 of `NAEF` — the abbreviation was the more
+    // common spelling of the two. Every `ACTV` row was being read as dormant
+    // before this: roughly a quarter of that pull, dropped for a code the
+    // register uses constantly.
+    expect(isLiveStatus('ACTV')).toBe(true);
+    expect(isLiveStatus('NAEF')).toBe(true);
+  });
 });
 
 describe('parseMcaDate', () => {
