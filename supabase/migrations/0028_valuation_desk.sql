@@ -980,7 +980,13 @@ create or replace function set_company_embedding(
   p_embedding vector(1536),
   p_model text
 ) returns void
-language sql security definer set search_path = public as $$
+-- `extensions` is on the path as well as `public`, and it has to be: Supabase
+-- installs pgvector into the extensions schema, so with `public` alone the
+-- `vector` type and the `<=>` operator are not visible inside a function that
+-- pins its search_path. The table definition resolves them because the SQL
+-- editor's own path includes extensions — which is exactly why this would have
+-- created cleanly and then failed the first time anybody searched for a peer.
+language sql security definer set search_path = public, extensions as $$
   update companies
      set embedding = p_embedding,
          embedding_model = p_model,
@@ -1273,7 +1279,9 @@ returns table (
   latest_revenue numeric,
   latest_period date
 )
-language sql stable security definer set search_path = public as $$
+-- `extensions` on the path for the same reason as set_company_embedding above:
+-- the `<=>` operator lives there on Supabase.
+language sql stable security definer set search_path = public, extensions as $$
   with latest as (
     select distinct on (f.company_id)
            f.company_id, f.revenue, f.period_end
