@@ -536,6 +536,81 @@ export async function fetchCompanyFacts(
   return harvest;
 }
 
+/** One row of the bulk ticker file — enough to drive a full-universe ingest. */
+export type TickerEntry = { cik: string; name: string; ticker: string; exchange: string | null };
+
+/**
+ * Every SEC-registered ticker, free and keyless.
+ *
+ * `https://www.sec.gov/files/company_tickers_exchange.json` is the whole universe
+ * of public companies this source can ever reach — 10,403 rows verified live this
+ * session (Nasdaq 4,365, NYSE 3,302, OTC 2,504, CBOE 34, 198 with no exchange on
+ * record). It is what turns "paste some CIKs" into "ingest all of them": every
+ * `cik` here can go straight into `fetchCompanyFacts`.
+ *
+ * The file's own shape is a compact `fields`/`data` pair rather than one object
+ * per row — presumably because a per-row object would triple the file size at
+ * ten thousand rows — so `parseTickerUniverse` reads the field order rather than
+ * assuming it, the same caution `factsForTag` above takes with `companyfacts`.
+ */
+export function tickerUniverseUrl(): string {
+  return 'https://www.sec.gov/files/company_tickers_exchange.json';
+}
+
+/** The pure half: given the JSON, what rows does it contain. */
+export function parseTickerUniverse(json: unknown): TickerEntry[] {
+  if (!isRecord(json)) return [];
+  const fields = json.fields;
+  const data = json.data;
+  if (!Array.isArray(fields) || !Array.isArray(data)) return [];
+
+  const cikIdx = fields.indexOf('cik');
+  const nameIdx = fields.indexOf('name');
+  const tickerIdx = fields.indexOf('ticker');
+  const exchangeIdx = fields.indexOf('exchange');
+  if (cikIdx === -1 || nameIdx === -1 || tickerIdx === -1) return [];
+
+  const out: TickerEntry[] = [];
+  for (const row of data) {
+    if (!Array.isArray(row)) continue;
+    const cikRaw = row[cikIdx];
+    const name = row[nameIdx];
+    const ticker = row[tickerIdx];
+    if ((typeof cikRaw !== 'number' && typeof cikRaw !== 'string') || typeof name !== 'string' || typeof ticker !== 'string') {
+      continue;
+    }
+    const exchangeRaw = exchangeIdx === -1 ? null : row[exchangeIdx];
+    out.push({
+      cik: bareCik(String(cikRaw)),
+      name,
+      ticker,
+      exchange: typeof exchangeRaw === 'string' && exchangeRaw.trim() !== '' ? exchangeRaw : null,
+    });
+  }
+  return out;
+}
+
+/**
+ * Fetch and parse the bulk ticker file.
+ *
+ * Throws rather than returning a `Skip`, unlike every per-company fetch in this
+ * file: this is one request for the whole universe, not one of many, so a
+ * failure here means the run cannot start at all and the caller should say that
+ * once rather than reporting ten thousand identical skips.
+ */
+export async function fetchTickerUniverse(
+  fetcher: (url: string, init?: RequestInit) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>,
+  userAgent: string,
+): Promise<TickerEntry[]> {
+  const response = await fetcher(tickerUniverseUrl(), {
+    headers: { 'User-Agent': userAgent, Accept: 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error(`SEC answered ${response.status} for the ticker universe file.`);
+  }
+  return parseTickerUniverse(await response.json());
+}
+
 export const EDGAR = {
   id: SOURCE,
   label: 'SEC EDGAR XBRL companyfacts',

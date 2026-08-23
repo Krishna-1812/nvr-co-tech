@@ -8,6 +8,9 @@ import { makeRpcWriter } from '@/lib/comps/ingest/writers';
 import { skipLines, summarise, writeHarvest } from '@/lib/comps/ingest/runner';
 import { MCA_BATCH_SIZE } from '@/lib/comps/ingest/sheetRows';
 import type { Writer } from '@/lib/comps/ingest/types';
+import { EDGAR } from '@/lib/comps/sources';
+import { fetchTickerUniverse } from '@/lib/comps/sources/edgar';
+import { fetchMcaLivePage, KNOWN_STATES, reachableCount } from '@/lib/comps/sources/mcaLive';
 import { mcaMasterBatch } from '@/lib/comps/sources/mcaMaster';
 import type { Skip } from '@/lib/comps/sources/types';
 import type { Fetcher, FetchResponse } from '@/lib/comps/sources/types';
@@ -33,7 +36,8 @@ import type { ActionResult } from './workflow';
  * admins using it.
  */
 
-const MAX_ITEMS = 25;
+/** Exported so a client-side loop (the full-universe sync) can chunk to match. */
+export const MAX_ITEMS = 25;
 
 export type IngestSummary = { headline: string; skipped: string[] };
 
@@ -175,4 +179,82 @@ export async function runValuationMcaBatch(input: {
   revalidatePath('/comps');
 
   return { ok: true, data: { companiesWritten: written.companies, skipped: written.skipped } };
+}
+
+/**
+ * The whole SEC ticker universe, for the client to chunk and feed back through
+ * `runValuationIngest`.
+ *
+ * Returns identifiers only, not a harvest — the actual fetching and writing
+ * happens exactly where it already does, one `MAX_ITEMS`-sized call at a time, so
+ * a "sync everything" button is the existing manual flow driven automatically
+ * rather than a second ingest path to keep in sync with the first.
+ */
+export type TickerUniverseEntry = { cik: string; name: string; ticker: string };
+
+export async function fetchEdgarUniverse(): Promise<ActionResult<TickerUniverseEntry[]>> {
+  const me = await requireUser();
+  if (!isAdmin(me.role)) return { ok: false, error: 'Only an admin can run an ingest pass.' };
+
+  try {
+    const universe = await fetchTickerUniverse(fetcher, EDGAR.politeness.userAgent ?? 'The Finance Intelligence');
+    return { ok: true, data: universe.map(({ cik, name, ticker }) => ({ cik, name, ticker })) };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Could not fetch the SEC ticker universe.',
+    };
+  }
+}
+
+/**
+ * One page of one state, fetched live from data.gov.in and written straight
+ * through — no file, no upload, the same `MCA_BATCH_SIZE` cap as
+ * `runValuationMcaBatch` and the same reason for it.
+ *
+ * `stateTotal` and `reachable` come back on every call so the caller always knows
+ * how much of the state exists versus how much of it this door can ever reach —
+ * see `mcaLive.ts` for why those two numbers are not the same for most states.
+ */
+export type McaLiveBatchSummary = {
+  companiesWritten: number;
+  skipped: Skip[];
+  state: string;
+  stateTotal: number;
+  reachable: number;
+};
+
+export async function runValuationMcaLiveBatch(input: {
+  state: string;
+  offset: number;
+}): Promise<ActionResult<McaLiveBatchSummary>> {
+  const admin = await requireAdminWriter();
+  if ('error' in admin) return { ok: false, error: admin.error };
+
+  if (!KNOWN_STATES.includes(input.state)) {
+    return { ok: false, error: `"${input.state}" is not one of the states this sync knows how to ask for.` };
+  }
+
+  let page;
+  try {
+    page = await fetchMcaLivePage(fetcher, { state: input.state, offset: input.offset, limit: MCA_BATCH_SIZE });
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'data.gov.in request failed.' };
+  }
+
+  const harvest = mcaMasterBatch(page.rows, { firstRowNumber: input.offset + 1 });
+  const written = await writeHarvest(harvest, admin.writer, new Map());
+
+  revalidatePath('/comps');
+
+  return {
+    ok: true,
+    data: {
+      companiesWritten: written.companies,
+      skipped: written.skipped,
+      state: input.state,
+      stateTotal: page.total,
+      reachable: reachableCount(page.total),
+    },
+  };
 }

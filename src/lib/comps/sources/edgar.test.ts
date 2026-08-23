@@ -5,6 +5,7 @@ import {
   factsForTag,
   fetchCompanyFacts,
   fetchCompanyProfile,
+  fetchTickerUniverse,
   isAnnual,
   isInstant,
   latestFiled,
@@ -12,7 +13,9 @@ import {
   padCik,
   parseCompanyFacts,
   parseSubmissions,
+  parseTickerUniverse,
   submissionsUrl,
+  tickerUniverseUrl,
 } from './edgar';
 import type { Fact } from './edgar';
 
@@ -530,5 +533,100 @@ describe('fetchCompanyProfile', () => {
       'Someone someone@example.com',
     );
     expect(seenHeaders?.['User-Agent']).toBe('Someone someone@example.com');
+  });
+});
+
+describe('tickerUniverseUrl', () => {
+  it('points at the real bulk file', () => {
+    expect(tickerUniverseUrl()).toBe('https://www.sec.gov/files/company_tickers_exchange.json');
+  });
+});
+
+describe('parseTickerUniverse', () => {
+  /** The real shape, verified live this session: a compact fields/data pair. */
+  const REAL_SHAPE = {
+    fields: ['cik', 'name', 'ticker', 'exchange'],
+    data: [
+      [320193, 'Apple Inc.', 'AAPL', 'Nasdaq'],
+      [1045810, 'NVIDIA CORP', 'NVDA', 'Nasdaq'],
+      [70858, 'BANK OF AMERICA CORP /DE/', 'BAC', 'NYSE'],
+    ],
+  };
+
+  it('reads the field order rather than assuming it', () => {
+    const rows = parseTickerUniverse(REAL_SHAPE);
+    expect(rows).toEqual([
+      { cik: '320193', name: 'Apple Inc.', ticker: 'AAPL', exchange: 'Nasdaq' },
+      { cik: '1045810', name: 'NVIDIA CORP', ticker: 'NVDA', exchange: 'Nasdaq' },
+      { cik: '70858', name: 'BANK OF AMERICA CORP /DE/', ticker: 'BAC', exchange: 'NYSE' },
+    ]);
+  });
+
+  it('still reads correctly if the field order in the file changes', () => {
+    const reordered = {
+      fields: ['exchange', 'ticker', 'name', 'cik'],
+      data: [['NYSE', 'BAC', 'BANK OF AMERICA CORP /DE/', 70858]],
+    };
+    expect(parseTickerUniverse(reordered)).toEqual([
+      { cik: '70858', name: 'BANK OF AMERICA CORP /DE/', ticker: 'BAC', exchange: 'NYSE' },
+    ]);
+  });
+
+  it('reads a row with no exchange on record as null, not a missing field', () => {
+    const rows = parseTickerUniverse({
+      fields: ['cik', 'name', 'ticker', 'exchange'],
+      data: [[1, 'Nobody Listed Inc.', 'NADA', null]],
+    });
+    expect(rows).toEqual([{ cik: '1', name: 'Nobody Listed Inc.', ticker: 'NADA', exchange: null }]);
+  });
+
+  it('returns nothing rather than throwing on a response that is not this shape', () => {
+    expect(parseTickerUniverse(null)).toEqual([]);
+    expect(parseTickerUniverse({})).toEqual([]);
+    expect(parseTickerUniverse({ fields: ['cik'], data: 'not an array' })).toEqual([]);
+    expect(parseTickerUniverse({ fields: ['name', 'ticker'], data: [['Only Name', 'ONLY']] })).toEqual([]);
+  });
+
+  it('skips a row missing a required field rather than failing the whole file', () => {
+    const rows = parseTickerUniverse({
+      fields: ['cik', 'name', 'ticker', 'exchange'],
+      data: [
+        [1, 'Good Co', 'GOOD', 'Nasdaq'],
+        ['not-an-object-row'],
+        [2, 'Also Good', 'ALSO', 'NYSE'],
+      ],
+    });
+    expect(rows.map((r) => r.ticker)).toEqual(['GOOD', 'ALSO']);
+  });
+});
+
+describe('fetchTickerUniverse', () => {
+  const ok = (json: unknown) => ({ ok: true, status: 200, json: async () => json });
+
+  it('sends the required User-Agent', async () => {
+    let seenHeaders: Record<string, string> | undefined;
+    await fetchTickerUniverse(async (_url, init) => {
+      seenHeaders = init?.headers as Record<string, string>;
+      return ok({ fields: ['cik', 'name', 'ticker', 'exchange'], data: [] });
+    }, 'Someone someone@example.com');
+    expect(seenHeaders?.['User-Agent']).toBe('Someone someone@example.com');
+  });
+
+  it('throws once on a failed fetch rather than returning an empty universe silently', async () => {
+    await expect(
+      fetchTickerUniverse(async () => ({ ok: false, status: 403, json: async () => ({}) }), 'ua'),
+    ).rejects.toThrow('403');
+  });
+
+  it('parses a real response shape end to end', async () => {
+    const rows = await fetchTickerUniverse(
+      async () =>
+        ok({
+          fields: ['cik', 'name', 'ticker', 'exchange'],
+          data: [[320193, 'Apple Inc.', 'AAPL', 'Nasdaq']],
+        }),
+      'ua',
+    );
+    expect(rows).toEqual([{ cik: '320193', name: 'Apple Inc.', ticker: 'AAPL', exchange: 'Nasdaq' }]);
   });
 });
