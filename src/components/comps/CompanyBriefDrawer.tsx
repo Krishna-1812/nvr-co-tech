@@ -1,24 +1,37 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react';
-import { Drawer } from '@/components/ui/Drawer';
-import { Markdown } from '@/components/assist/Markdown';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  AlertTriangle,
+  ExternalLink,
+  RefreshCw,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react';
+import { WideModal } from '@/components/ui/Drawer';
 import { Skeleton } from '@/components/ui/primitives';
 import { crore, percent, shortDate } from '@/lib/comps/format';
 import { formatMultiple, isKnown, revenueGrowth } from '@/lib/comps/multiples';
 import { METHOD_LABEL, PICK } from '@/lib/comps/view';
 import type { Comparable, MethodKey } from '@/lib/comps/types';
+import type { BriefContent, Severity, Tone } from '@/lib/comps/brief';
+import { cn } from '@/lib/utils';
 
 /**
  * A peer, opened up.
  *
+ * Centred, like Profile.tsx's person modal, and for the same reason: this is
+ * the richest surface the screen offers, setting the registry's own numbers
+ * against a researched read of the business, and it is meant to be studied
+ * rather than glanced at beside a table — a side drawer is right for a
+ * drill-down list, not for the thing you came here to read.
+ *
  * The registry section renders the instant a row is clicked — every figure it
- * needs is already sitting in the `Comparable` the table built, so there is
- * nothing to wait for. Only the AI section calls the network, because it is
- * the only part that costs money and can be wrong: it is clearly separated
- * from the figures above it, sourced, and dated, so a reader never mistakes a
- * model's sentence for a number this platform stands behind.
+ * needs is already sitting in the `Comparable` the table built. Only the AI
+ * section calls the network, because it is the only part that costs money and
+ * can be wrong: it is rendered as tiles, a timeline and tagged lists rather
+ * than a wall of markdown, because a reviewer scanning six peers in a row
+ * needs to find the one fact that matters, not read four paragraphs six times.
  */
 
 const MULTIPLES: MethodKey[] = ['ev_revenue', 'ev_ebitda', 'pe'];
@@ -28,30 +41,32 @@ type Citation = { title: string; url: string };
 type BriefState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; markdown: string; citations: Citation[]; generatedAt: string; cached: boolean };
+  | { status: 'ready'; content: BriefContent; citations: Citation[]; generatedAt: string; cached: boolean };
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-subtle text-[11px]">{label}</dt>
-      <dd className="tabular-nums font-medium">{value}</dd>
-    </div>
-  );
-}
+const TONE_COLOR: Record<Tone, string> = {
+  positive: 'var(--h-emerald)',
+  neutral: 'var(--text-subtle)',
+  negative: 'var(--h-rose)',
+};
 
-function BriefSkeleton() {
-  return (
-    <div className="space-y-2.5">
-      <Skeleton className="h-3.5 w-2/3" />
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-4/5" />
-      <Skeleton className="mt-4 h-3.5 w-1/2" />
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-3/5" />
-    </div>
-  );
-}
+const SEVERITY_COLOR: Record<Severity, string> = {
+  low: 'var(--h-emerald)',
+  medium: 'var(--h-amber)',
+  high: 'var(--h-rose)',
+};
+
+const REGISTRY_TILE_ACCENT = [
+  'var(--h-indigo)',
+  'var(--h-emerald)',
+  'var(--h-cyan)',
+  'var(--h-violet)',
+  'var(--h-amber)',
+  'var(--h-indigo)',
+  'var(--h-lime)',
+  'var(--h-cyan)',
+  'var(--h-violet)',
+  'var(--h-magenta)',
+];
 
 export function CompanyBriefDrawer({
   comparable,
@@ -66,11 +81,10 @@ export function CompanyBriefDrawer({
   /*
    * The last company shown, kept a beat past `comparable` going null.
    *
-   * `Drawer` plays a close animation, and that only happens if it stays
+   * `WideModal` plays a close animation, and that only happens if it stays
    * mounted with `open` going from true to false — unmounting it outright the
-   * instant a row is deselected would make it vanish rather than slide away,
-   * and for the same beat its title and figures would already be gone. This is
-   * the same pattern TenantBoard's own drawer uses for a person's profile.
+   * instant a row is deselected would make it vanish rather than fade away,
+   * and for the same beat its title and figures would already be gone.
    */
   const [shown, setShown] = useState<Comparable | null>(null);
   if (comparable && comparable !== shown) setShown(comparable);
@@ -84,13 +98,13 @@ export function CompanyBriefDrawer({
         body: JSON.stringify({ companyId, force }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok || !data) {
+      if (!res.ok || !data?.content) {
         setState({ status: 'error', message: data?.error ?? 'Something went wrong while researching this company.' });
         return;
       }
       setState({
         status: 'ready',
-        markdown: data.markdown,
+        content: data.content as BriefContent,
         citations: Array.isArray(data.citations) ? data.citations : [],
         generatedAt: data.generatedAt,
         cached: !!data.cached,
@@ -116,57 +130,57 @@ export function CompanyBriefDrawer({
       ? (isKnown(c.totalDebt) ? c.totalDebt : 0) - (isKnown(c.cash) ? c.cash : 0)
       : null;
 
+  const registryTiles = c
+    ? [
+        { label: 'Period', value: shortDate(c.periodEnd) },
+        { label: 'Revenue', value: crore(c.revenue, { symbol: false }) },
+        { label: 'Growth', value: percent(revenueGrowth(c)) },
+        { label: 'EBITDA', value: crore(c.ebitda, { symbol: false }) },
+        { label: 'Market cap', value: crore(c.marketCap, { symbol: false }) },
+        { label: 'Net debt', value: crore(netDebt, { symbol: false }) },
+        { label: 'EV', value: crore(c.multiples.enterpriseValue, { symbol: false }) },
+        ...MULTIPLES.map((m) => ({ label: METHOD_LABEL[m], value: formatMultiple(PICK[m](c)) })),
+      ]
+    : [];
+
   return (
-    <Drawer
-      open={!!comparable}
-      onClose={() => {
-        loadedFor.current = null;
-        onClose();
-      }}
-      title={c?.name ?? ''}
-      width="lg"
-      header={
-        c && (
-          <div className="text-muted mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs">
-            <span className="tinted rounded-full border px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase">
-              {c.listingStatus}
-            </span>
-            <span>{c.country}</span>
-            {c.industry && (
-              <>
-                <span aria-hidden className="text-subtle">
-                  ·
-                </span>
-                <span>{c.industry}</span>
-              </>
-            )}
-          </div>
-        )
-      }
-    >
+    <WideModal open={!!comparable} onClose={onClose} title={c?.name ?? ''}>
       {c && (
         <>
-          <section className="mb-6">
-            <h3 className="text-subtle mb-2.5 text-[11px] font-semibold tracking-[0.06em] uppercase">
-              From the registry
-            </h3>
-            <dl className="surface-sunken grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl border p-4 text-sm sm:grid-cols-3">
-              <Stat label="Period" value={shortDate(c.periodEnd)} />
-              <Stat label="Revenue" value={crore(c.revenue, { symbol: false })} />
-              <Stat label="Growth" value={percent(revenueGrowth(c))} />
-              <Stat label="EBITDA" value={crore(c.ebitda, { symbol: false })} />
-              <Stat label="Market cap" value={crore(c.marketCap, { symbol: false })} />
-              <Stat label="Net debt" value={crore(netDebt, { symbol: false })} />
-              <Stat label="EV" value={crore(c.multiples.enterpriseValue, { symbol: false })} />
-              {MULTIPLES.map((m) => (
-                <Stat key={m} label={METHOD_LABEL[m]} value={formatMultiple(PICK[m](c))} />
-              ))}
-            </dl>
-          </section>
+          {/* ── Hero ───────────────────────────────────────────────────────── */}
+          <div
+            className="border-b px-6 py-6"
+            style={{
+              background: 'linear-gradient(160deg, color-mix(in oklab, var(--h-violet) 9%, transparent), transparent 60%)',
+            }}
+          >
+            <h2 className="text-[1.5rem] leading-tight font-semibold tracking-tight text-pretty pr-10">
+              {c.name}
+            </h2>
+            <div className="text-muted mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
+              <span className="tinted rounded-full border px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase" style={{ ['--tone' as string]: 'var(--h-violet)' }}>
+                {c.listingStatus}
+              </span>
+              <span>{c.country}</span>
+              {c.industry && (
+                <>
+                  <span aria-hidden className="text-subtle">·</span>
+                  <span>{c.industry}</span>
+                </>
+              )}
+            </div>
 
-          <section>
-            <div className="mb-2.5 flex items-center justify-between">
-              <h3 className="text-subtle text-[11px] font-semibold tracking-[0.06em] uppercase">AI research</h3>
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+              {registryTiles.map((t, i) => (
+                <Tile key={t.label} label={t.label} value={t.value} accent={REGISTRY_TILE_ACCENT[i % REGISTRY_TILE_ACCENT.length]} />
+              ))}
+            </div>
+          </div>
+
+          {/* ── AI research ────────────────────────────────────────────────── */}
+          <div className="px-6 py-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="a-label">AI research</h3>
               {state.status === 'ready' && (
                 <button
                   type="button"
@@ -188,42 +202,211 @@ export function CompanyBriefDrawer({
               </div>
             )}
 
-            {state.status === 'ready' && (
-              <>
-                <Markdown source={state.markdown} />
+            {state.status === 'ready' && <Brief content={state.content} />}
+          </div>
 
-                {state.citations.length > 0 && (
-                  <div className="mt-4 border-t pt-3.5">
-                    <p className="text-subtle mb-1.5 text-[11px] font-semibold tracking-[0.06em] uppercase">
-                      Sources
-                    </p>
-                    <ul className="space-y-1">
-                      {state.citations.map((cite) => (
-                        <li key={cite.url}>
-                          <a
-                            href={cite.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-brand-600 dark:text-brand-300 inline-flex max-w-full items-center gap-1 text-xs hover:underline"
-                          >
-                            <ExternalLink className="size-3 shrink-0" aria-hidden />
-                            <span className="truncate">{cite.title}</span>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <p className="text-subtle mt-4 text-[11px] leading-relaxed">
-                  {state.cached ? 'Cached brief, generated' : 'Generated'} {shortDate(state.generatedAt)} by an AI
-                  model with web search. Check the sources before relying on it — this section is not registry data.
-                </p>
-              </>
-            )}
-          </section>
+          {state.status === 'ready' && (
+            <div className="border-t px-6 py-4">
+              {state.citations.length > 0 && (
+                <>
+                  <p className="text-subtle mb-1.5 text-[11px] font-semibold tracking-[0.06em] uppercase">
+                    Sources
+                  </p>
+                  <ul className="mb-3 space-y-1">
+                    {state.citations.map((cite) => (
+                      <li key={cite.url}>
+                        <a
+                          href={cite.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-brand-600 dark:text-brand-300 inline-flex max-w-full items-center gap-1 text-xs hover:underline"
+                        >
+                          <ExternalLink className="size-3 shrink-0" aria-hidden />
+                          <span className="truncate">{cite.title}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <p className="text-subtle text-[11px] leading-relaxed">
+                {state.cached ? 'Cached brief, generated' : 'Generated'} {shortDate(state.generatedAt)} by an AI
+                model with web search. Check the sources before relying on it — this section is not registry data.
+              </p>
+            </div>
+          )}
         </>
       )}
-    </Drawer>
+    </WideModal>
+  );
+}
+
+/** The structured brief, in full: quick facts, a timeline, a two-column read
+ *  on competitors, and tagged risks — never a paragraph on its own. */
+function Brief({ content }: { content: BriefContent }) {
+  const hasCompetitive =
+    content.competitivePosition.summary ||
+    content.competitivePosition.strengths.length > 0 ||
+    content.competitivePosition.challenges.length > 0;
+
+  return (
+    <div className="space-y-6">
+      <p className="text-[13.5px] leading-relaxed text-pretty">{content.overview}</p>
+
+      {content.highlights.length > 0 && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {content.highlights.map((h) => (
+            <div key={h.label} className="surface-sunken rounded-xl border px-3 py-2.5">
+              <p className="a-label text-[9.5px]">{h.label}</p>
+              <p className="mt-0.5 truncate text-[13px] font-semibold" title={h.value}>
+                {h.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {content.recentDevelopments.length > 0 && (
+        <section>
+          <h4 className="a-label mb-2.5">Recent developments</h4>
+          <ol className="space-y-2">
+            {content.recentDevelopments.map((d, i) => (
+              <li
+                key={i}
+                className="rounded-xl border border-l-[3px] py-2.5 pr-3 pl-3.5"
+                style={{ borderLeftColor: TONE_COLOR[d.tone] }}
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                  <p className="text-[13px] font-semibold text-pretty">{d.title}</p>
+                  {d.when && <p className={cn('text-subtle shrink-0 text-[11px]', 'numeric')}>{d.when}</p>}
+                </div>
+                <p className="text-muted mt-1 text-[12.5px] leading-relaxed text-pretty">{d.detail}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {hasCompetitive && (
+        <section>
+          <h4 className="a-label mb-2.5">Competitive position</h4>
+          {content.competitivePosition.summary && (
+            <p className="text-muted mb-3 text-[12.5px] leading-relaxed text-pretty">
+              {content.competitivePosition.summary}
+            </p>
+          )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <PointList
+              label="Strengths"
+              icon={<TrendingUp className="size-3.5" aria-hidden />}
+              tone="var(--h-emerald)"
+              items={content.competitivePosition.strengths}
+            />
+            <PointList
+              label="Challenges"
+              icon={<TrendingDown className="size-3.5" aria-hidden />}
+              tone="var(--h-amber)"
+              items={content.competitivePosition.challenges}
+            />
+          </div>
+        </section>
+      )}
+
+      {content.keyRisks.length > 0 && (
+        <section>
+          <h4 className="a-label mb-2.5">Key risks</h4>
+          <ul className="space-y-2">
+            {content.keyRisks.map((r, i) => (
+              <li key={i} className="rounded-xl border px-3.5 py-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                  <p className="text-[13px] font-semibold text-pretty">{r.risk}</p>
+                  <span
+                    className="tinted shrink-0 rounded-full border px-2 py-px text-[10px] font-semibold tracking-wide uppercase"
+                    style={{ ['--tone' as string]: SEVERITY_COLOR[r.severity] }}
+                  >
+                    {r.severity}
+                  </span>
+                </div>
+                <p className="text-muted mt-1 text-[12.5px] leading-relaxed text-pretty">{r.detail}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function PointList({
+  label,
+  icon,
+  tone,
+  items,
+}: {
+  label: string;
+  icon: ReactNode;
+  tone: string;
+  items: string[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="rounded-xl border p-3">
+      <p
+        className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase"
+        style={{ color: tone }}
+      >
+        {icon}
+        {label}
+      </p>
+      <ul className="space-y-1.5">
+        {items.map((item, i) => (
+          <li key={i} className="text-muted flex gap-2 text-[12.5px] leading-relaxed text-pretty">
+            <span aria-hidden className="mt-[7px] size-1 shrink-0 rounded-full" style={{ background: tone }} />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Tile({ label, value, accent }: { label: string; value: string; accent: string }) {
+  return (
+    <div className="surface-lit rounded-xl border p-2.5">
+      <p
+        className="numeric truncate text-[1.05rem] font-semibold"
+        style={{
+          background: `linear-gradient(135deg, var(--text-c) 15%, color-mix(in oklab, ${accent} 85%, var(--text-c)) 95%)`,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+        }}
+        title={value}
+      >
+        {value}
+      </p>
+      <p className="a-label mt-0.5 text-[9px]">{label}</p>
+    </div>
+  );
+}
+
+function BriefSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <Skeleton className="h-3.5 w-full" />
+        <Skeleton className="h-3.5 w-4/5" />
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <Skeleton className="h-14 rounded-xl" />
+        <Skeleton className="h-14 rounded-xl" />
+        <Skeleton className="h-14 rounded-xl" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-1/3" />
+        <Skeleton className="h-12 rounded-xl" />
+        <Skeleton className="h-12 rounded-xl" />
+      </div>
+    </div>
   );
 }

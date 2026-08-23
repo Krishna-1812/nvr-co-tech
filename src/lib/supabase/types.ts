@@ -673,7 +673,7 @@ export type DataLookupRow = {
 export type CompanyBriefRow = {
   id: number;
   company_id: string;
-  markdown: string;
+  content: unknown;
   citations: unknown;
   model: string;
   input_tokens: number | null;

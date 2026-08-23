@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { PREVIEW } from '@/lib/preview';
-import { BriefFailure, generateCompanyBrief, type CompanyContext } from '@/lib/comps/brief';
+import { BriefFailure, generateCompanyBrief, parseBriefContent, type CompanyContext } from '@/lib/comps/brief';
 import { logServerError } from '@/lib/errors/server';
 
 /**
- * One company's brief: the registry's own figures, read alongside one call to
- * Anthropic with web search.
+ * One company's brief: the registry's own figures, read alongside two calls to
+ * Anthropic — one with web search, one that structures the result. See
+ * `brief.ts` for why it is two calls rather than one.
  *
  * Cached in `company_briefs` — see that table's comment. This route decides
  * whether the cache still holds, not the client, because the client only ever
@@ -20,6 +21,14 @@ import { logServerError } from '@/lib/errors/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/**
+ * Two sequential Anthropic calls, one of them searching the web, comfortably
+ * exceed a default serverless timeout. Same reasoning as `maxDuration` on the
+ * ingest page: a Vercel default is not built for a multi-second LLM call, let
+ * alone two of them back to back.
+ */
+export const maxDuration = 90;
 
 /** A brief older than this is offered again rather than trusted outright. */
 const STALE_AFTER_DAYS = 30;
@@ -81,7 +90,7 @@ type FinancialsRow = {
 type QuoteRow = { as_of: string; market_cap: number | null; currency: string };
 
 type BriefRow = {
-  markdown: string;
+  content: unknown;
   citations: unknown;
   model: string;
   generated_at: string;
@@ -159,13 +168,18 @@ export async function POST(request: Request) {
   if (!force) {
     const { data: cached } = await supabase
       .from('company_briefs')
-      .select('markdown, citations, model, generated_at')
+      .select('content, citations, model, generated_at')
       .eq('company_id', companyId)
       .maybeSingle<BriefRow>();
 
-    if (cached && isFresh(cached.generated_at)) {
+    // A row from before 0030 (or any other shape mismatch) parses to null,
+    // which is treated exactly like no row at all — regenerated below rather
+    // than rendered as an empty card.
+    const content = cached ? parseBriefContent(cached.content) : null;
+
+    if (cached && content && isFresh(cached.generated_at)) {
       return NextResponse.json({
-        markdown: cached.markdown,
+        content,
         citations: citationsOf(cached.citations),
         model: cached.model,
         generatedAt: cached.generated_at,
@@ -206,7 +220,7 @@ export async function POST(request: Request) {
     const { error: rpcError } = await supabase.rpc('record_company_brief' as Parameters<typeof supabase.rpc>[0], {
       p: {
         company_id: companyId,
-        markdown: brief.markdown,
+        content: brief.content,
         citations: brief.citations,
         model: brief.model,
         input_tokens: brief.inputTokens,
@@ -226,7 +240,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      markdown: brief.markdown,
+      content: brief.content,
       citations: brief.citations,
       model: brief.model,
       generatedAt: new Date().toISOString(),
