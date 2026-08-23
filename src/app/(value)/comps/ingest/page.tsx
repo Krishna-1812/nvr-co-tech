@@ -9,6 +9,18 @@ import { IngestForm } from './IngestForm';
 export const metadata = { title: 'Seed the registry' };
 
 /**
+ * A `maxDuration` export can't live in `valuationIngest.ts` itself — that file
+ * has a top-level `'use server'` directive, which restricts it to exporting
+ * only async functions, and a plain number breaks the whole module (confirmed
+ * by a real build failure, the same class of error `MAX_ITEMS` hit earlier for
+ * the same reason). Next.js does honor `maxDuration` set on the page that
+ * calls a Server Action, which is this page for every action `IngestForm`
+ * uses — see `sheetRows.ts`'s comment on `MAX_ITEMS` for why a longer budget
+ * matters here at all.
+ */
+export const maxDuration = 60;
+
+/**
  * Where the shared registry gets its first rows.
  *
  * Admin-only, checked here as well as in the server action and in the nav —
