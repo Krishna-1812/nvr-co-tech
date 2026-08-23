@@ -6,7 +6,7 @@ import { isAdmin } from '@/lib/domain/workflow';
 import { ingestEdgarCiks, ingestNseSymbols } from '@/lib/comps/ingest/passes';
 import { makeRpcWriter } from '@/lib/comps/ingest/writers';
 import { skipLines, summarise, writeHarvest } from '@/lib/comps/ingest/runner';
-import { MCA_BATCH_SIZE } from '@/lib/comps/ingest/sheetRows';
+import { MAX_ITEMS, MCA_BATCH_SIZE } from '@/lib/comps/ingest/sheetRows';
 import type { Writer } from '@/lib/comps/ingest/types';
 import { EDGAR } from '@/lib/comps/sources';
 import { fetchTickerUniverse } from '@/lib/comps/sources/edgar';
@@ -35,9 +35,6 @@ import type { ActionResult } from './workflow';
  * tightening in the database itself before this goes further than a handful of
  * admins using it.
  */
-
-/** Exported so a client-side loop (the full-universe sync) can chunk to match. */
-export const MAX_ITEMS = 25;
 
 export type IngestSummary = { headline: string; skipped: string[] };
 

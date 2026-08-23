@@ -29,6 +29,13 @@ import type { RawSheet } from '../../recon/parse/sheet';
 export const MCA_BATCH_SIZE = 100;
 
 /**
+ * Identifiers per EDGAR/NSE batch, shared by the manual form, the full-universe
+ * sync loop, and the action that runs them — same reasoning and the same
+ * `'use server'` restriction as `MCA_BATCH_SIZE` above.
+ */
+export const MAX_ITEMS = 25;
+
+/**
  * Rows keyed by header, blank rows dropped.
  *
  * A row shorter than the header (a trailing blank column MCA's export left

@@ -6,12 +6,11 @@ import { toast } from 'sonner';
 import { UploadCloud } from 'lucide-react';
 import {
   fetchEdgarUniverse,
-  MAX_ITEMS,
   runValuationIngest,
   runValuationMcaBatch,
   runValuationMcaLiveBatch,
 } from '@/app/actions/valuationIngest';
-import { batch, MCA_BATCH_SIZE, sheetRowsToRecords } from '@/lib/comps/ingest/sheetRows';
+import { batch, MAX_ITEMS, MCA_BATCH_SIZE, sheetRowsToRecords } from '@/lib/comps/ingest/sheetRows';
 import { KNOWN_STATES } from '@/lib/comps/sources/mcaLive';
 import { tallySkips } from '@/lib/comps/sources/mcaMaster';
 import type { Skip } from '@/lib/comps/sources/types';
