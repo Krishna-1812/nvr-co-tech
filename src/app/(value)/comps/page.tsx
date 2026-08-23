@@ -1,11 +1,14 @@
 import { Layers } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/PageHeader';
-import { Card, CardBody, EmptyState } from '@/components/ui/primitives';
+import { Card, EmptyState } from '@/components/ui/primitives';
 import { ComparablesTable } from '@/components/comps/ComparablesTable';
-import { Conclusion } from '@/components/comps/Conclusion';
+import { Verdict } from '@/components/comps/Verdict';
+import { MethodBreakdown } from '@/components/comps/MethodBreakdown';
+import { DetailTabs } from '@/components/comps/DetailTabs';
 import { Rejected } from '@/components/comps/Rejected';
-import { SubjectBar, STATISTICS } from '@/components/comps/SubjectBar';
+import { DeskControls } from '@/components/comps/DeskControls';
+import { STATISTICS } from '@/lib/comps/statistics';
 import { count, shortDate } from '@/lib/comps/format';
 import { buildCompsView, type CompanyRow, type FinancialsRow, type QuoteRow } from '@/lib/comps/view';
 import type { Statistic } from '@/lib/comps/types';
@@ -16,7 +19,19 @@ const COMPANY_COLUMNS =
   'id, name, listing_status, country, industry, business_description, nse_symbol, cin, nic_code';
 
 /**
- * Comparable companies.
+ * Comparable companies — the valuation, first.
+ *
+ * ── The screen leads with the answer now ──────────────────────────────────
+ *
+ * The pieces this page assembles are unchanged — the same pool query, the same
+ * `buildCompsView`, the same table. What changed is the order they are read in.
+ * The old desk opened on the eleven-column table and left "what the peers imply"
+ * for the bottom of the page; a person came here to value a company and had to
+ * scroll past the working to reach the number. So the number leads (`Verdict`),
+ * the methods that produced it come next (`MethodBreakdown`), and the table, the
+ * rejects and the provenance — the evidence — fold into one set of tabs below
+ * (`DetailTabs`). The subject is chosen from a searchable box rather than a
+ * thousand-row `<select>`, which is the other half of "easy to use".
  *
  * ── How the pool is chosen, and what will replace it ──────────────────────
  *
@@ -29,15 +44,7 @@ const COMPANY_COLUMNS =
  * rejection is on screen with its reason.
  *
  * When embeddings land, this query becomes a `find_peers` call and the rest of the
- * page does not change. The cap is here because the alternative on a real registry
- * is selecting three and a half million rows to render nine.
- *
- * ── Why the subject is a listed company ───────────────────────────────────
- *
- * Because then the market has already stated an answer, and the screen can check
- * itself against it. See the note in lib/comps/view.ts: that gap is the
- * ten-company hand check made continuous, and it is worth more on day one than a
- * form for typing an unlisted client's figures in.
+ * page does not change.
  */
 export default async function CompsPage({
   searchParams,
@@ -47,8 +54,7 @@ export default async function CompsPage({
   const { subject: subjectId, stat } = await searchParams;
   const supabase = await createClient();
 
-  const statistic: Statistic =
-    STATISTICS.find((s) => s.value === stat)?.value ?? 'median';
+  const statistic: Statistic = STATISTICS.find((s) => s.value === stat)?.value ?? 'median';
 
   // The picker, and the default subject. Listed only: an unlisted company has no
   // market capitalisation, so it can be a peer but not yet a subject here.
@@ -66,7 +72,7 @@ export default async function CompsPage({
         <PageHeader
           eyebrow="Valuation Desk"
           title="Comparables"
-          description="Peer companies, the multiples they trade at, and what those imply."
+          description="Value a company against its listed peers, then check the answer against the market."
         />
         <Card>
           <EmptyState
@@ -81,6 +87,23 @@ export default async function CompsPage({
 
   const chosen = choices.find((c) => c.id === subjectId) ?? choices[0];
 
+  const header = (
+    <PageHeader
+      eyebrow="Valuation Desk"
+      title="Comparables"
+      description="Value a company against its listed peers, then check the answer against the market."
+    />
+  );
+
+  const controls = (
+    <DeskControls
+      choices={choices}
+      subjectId={chosen.id}
+      subjectName={chosen.name}
+      statistic={statistic}
+    />
+  );
+
   const { data: subjectRows } = await supabase
     .from('companies')
     .select(COMPANY_COLUMNS)
@@ -90,12 +113,13 @@ export default async function CompsPage({
 
   if (!subjectCompany) {
     return (
-      <>
-        <PageHeader eyebrow="Valuation Desk" title="Comparables" />
+      <div className="space-y-5">
+        {header}
+        {controls}
         <Card>
-          <EmptyState title="That company is no longer in the registry" />
+          <EmptyState title="That company is no longer in the registry" description="Pick another from the box above." />
         </Card>
-      </>
+      </div>
     );
   }
 
@@ -157,77 +181,97 @@ export default async function CompsPage({
 
   if (!view) {
     return (
-      <>
-        <PageHeader eyebrow="Valuation Desk" title="Comparables" />
+      <div className="space-y-5">
+        {header}
+        {controls}
         <Card>
           <EmptyState
             icon={<Layers className="size-6" aria-hidden />}
             title={`No consolidated financials for ${subjectCompany.name}`}
-            description="A subject needs its own figures before peers mean anything. Pick another company, or ingest a filing for this one."
+            description="A subject needs its own figures before peers mean anything. Pick another company above, or ingest a filing for this one."
           />
         </Card>
-      </>
+      </div>
     );
   }
 
-  return (
-    <div className="space-y-8">
-      <PageHeader
-        eyebrow="Valuation Desk"
-        title="Comparables"
-        description={
-          <>
-            {view.subject.name} against {count(view.comparables.length, 'peer')}, as at{' '}
-            {shortDate(view.asOf)}. {view.screenNote}.
-          </>
-        }
+  const peerSetPane = (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-4">
+        <p className="text-muted text-sm">
+          {view.subject.name} against {count(view.comparables.length, 'peer')}, as at{' '}
+          {shortDate(view.asOf)}.
+        </p>
+        <p className="text-subtle text-xs">{view.screenNote}.</p>
+      </div>
+      <ComparablesTable
+        comparables={view.comparables}
+        spreads={view.spreads}
+        statistic={view.statistic}
       />
+    </div>
+  );
 
-      {/*
-        The bar sits in the card it filters, not in the header's action slot.
-        That slot is `shrink-0` and is for one primary control; three controls in
-        it pushed the whole page 170px wider than a phone. See SubjectBar.
-      */}
-      <Card className="overflow-hidden">
-        <SubjectBar choices={choices} subjectId={chosen.id} statistic={statistic} />
-        <ComparablesTable
-          comparables={view.comparables}
-          spreads={view.spreads}
-          statistic={view.statistic}
-        />
-      </Card>
+  const basisPane = (
+    <div className="text-muted space-y-3 px-5 py-5 text-xs leading-relaxed">
+      <p>
+        Figures are {view.basis} and are the newest period each company has filed, which is not
+        necessarily the same period for every company on the schedule — the date beside each row is
+        the one its figures are for.
+      </p>
+      <p>
+        {view.sources.length > 0 ? (
+          <>Sources on this schedule: {view.sources.join(', ')}.</>
+        ) : (
+          <>No source is recorded against these figures, which should not happen.</>
+        )}{' '}
+        An empty cell means the figure is not in the registry. It does not mean zero.
+      </p>
+      <p>
+        A multiple marked with an asterisk is outside the 1.5 × IQR fence. It has been kept in every
+        statistic on this page: excluding a peer is a judgement, and this screen does not make it for
+        you. Enterprise multiples imply the whole business, so this company&rsquo;s own debt and cash
+        are taken off once to reach equity; P/E already implies equity and is not bridged again. No
+        marketability or control discount has been applied.
+      </p>
+    </div>
+  );
 
-      <Conclusion
+  const tabs = [
+    { id: 'peers', label: 'Peer set', badge: view.comparables.length, content: peerSetPane },
+    ...(view.rejected.length > 0
+      ? [
+          {
+            id: 'excluded',
+            label: 'Considered & excluded',
+            badge: view.rejected.length,
+            content: <Rejected rejected={view.rejected} />,
+          },
+        ]
+      : []),
+    { id: 'basis', label: 'Basis & sources', content: basisPane },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {header}
+      {controls}
+
+      <Verdict
         conclusion={view.conclusion}
         subjectName={view.subject.name}
+        industry={subjectCompany.industry}
+        basis={view.basis}
+        periodEnd={view.subject.periodEnd}
+        asOf={view.asOf}
+        peerCount={view.comparables.length}
         marketCap={view.subjectMarketCap}
         quoteAsOf={view.subjectQuoteAsOf}
       />
 
-      <Rejected rejected={view.rejected} />
+      <MethodBreakdown conclusion={view.conclusion} />
 
-      <Card>
-        <CardBody className="text-muted space-y-2 text-xs leading-relaxed">
-          <p>
-            Figures are {view.basis} and are the newest period each company has filed, which is not
-            necessarily the same period for every company on the schedule — the date beside each row
-            is the one its figures are for.
-          </p>
-          <p>
-            {view.sources.length > 0 ? (
-              <>Sources on this schedule: {view.sources.join(', ')}.</>
-            ) : (
-              <>No source is recorded against these figures, which should not happen.</>
-            )}{' '}
-            An empty cell means the figure is not in the registry. It does not mean zero.
-          </p>
-          <p>
-            A multiple marked with an asterisk is outside the 1.5 × IQR fence. It has been kept in
-            every statistic on this page: excluding a peer is a judgement, and this screen does not
-            make it for you.
-          </p>
-        </CardBody>
-      </Card>
+      <DetailTabs tabs={tabs} />
     </div>
   );
 }
