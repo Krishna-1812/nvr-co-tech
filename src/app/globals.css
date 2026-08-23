@@ -220,8 +220,11 @@
   --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.85);
   --a-hover: 0 8px 18px oklch(0.24 0.02 271 / 0.08), 0 24px 56px oklch(0.24 0.02 271 / 0.10);
 
-  /* Chrome: the rail, the top bar, the dock and the command palette. */
-  --a-chrome: oklch(0.99 0.002 271 / 0.72);
+  /* Chrome: the rail, the top bar, the dock and the command palette.
+     High opacity on purpose — this is a sticky/fixed surface with content
+     scrolling directly behind it, and the blur alone was not enough to keep
+     that content from reading through at the seam. */
+  --a-chrome: oklch(0.99 0.002 271 / 0.94);
   --a-chrome-line: oklch(0.90 0.008 271 / 0.9);
 
   /* Where a figure is plotted against a track — magnitude bars, heat strips. */
@@ -290,7 +293,7 @@
     --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.07);
     --a-hover: 0 10px 24px oklch(0 0 0 / 0.5), 0 30px 64px oklch(0 0 0 / 0.5);
 
-    --a-chrome: oklch(0.19 0.014 271 / 0.72);
+    --a-chrome: oklch(0.19 0.014 271 / 0.94);
     --a-chrome-line: oklch(0.32 0.018 271 / 0.9);
 
     --a-track: oklch(0.72 0.05 274 / 0.14);
@@ -313,7 +316,7 @@
   --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.07);
   --a-hover: 0 10px 24px oklch(0 0 0 / 0.5), 0 30px 64px oklch(0 0 0 / 0.5);
 
-  --a-chrome: oklch(0.19 0.014 271 / 0.72);
+  --a-chrome: oklch(0.19 0.014 271 / 0.94);
   --a-chrome-line: oklch(0.32 0.018 271 / 0.9);
 
   --a-track: oklch(0.72 0.05 274 / 0.14);
@@ -694,7 +697,7 @@ body:has([data-skin='night']) {
   --a-hover: 0 10px 24px oklch(0 0 0 / 0.5), 0 30px 64px oklch(0 0 0 / 0.5);
   --a-grain: 0.07;
   --a-track: oklch(0.72 0.05 274 / 0.16);
-  --a-chrome: oklch(0.145 0.021 274 / 0.72);
+  --a-chrome: oklch(0.145 0.021 274 / 0.94);
   --a-chrome-line: var(--m-line);
 }
 
@@ -1136,6 +1139,10 @@ body:has([data-skin='night']) {
     backdrop-filter: saturate(1.6) blur(18px);
     -webkit-backdrop-filter: saturate(1.6) blur(18px);
     border-color: var(--a-chrome-line);
+    /* Its own compositing layer. Without this, a sticky/fixed element with a
+       backdrop-filter can share a paint layer with whatever scrolls behind
+       it, and a sliver of that content shows through right at its edge. */
+    isolation: isolate;
   }
 
   /* A panel's own top highlight, without the shadow that .surface-lit adds. */

@@ -42,7 +42,7 @@ export function TopBar({
   const Primary = section.primary?.icon;
 
   return (
-    <header className="a-glass sticky top-0 z-30 border-b">
+    <header className="a-glass elev-1 sticky top-0 z-30 border-b">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
         {/*
           At every width, not just where the rail is missing. A tool is something
