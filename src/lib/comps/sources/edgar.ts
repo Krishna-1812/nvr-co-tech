@@ -60,7 +60,7 @@
  * back, and losing an industry label is a worse peer set, not a wrong one.
  */
 
-import type { CompanyRecord, FinancialsRecord, Harvest, Skip } from './types';
+import type { CompanyRecord, FinancialsRecord, Harvest, QuoteRecord, Skip } from './types';
 import { emptyHarvest } from './types';
 
 const SOURCE = 'sec_edgar' as const;
@@ -429,6 +429,12 @@ export type EdgarProfile = {
   listed: boolean;
   /** The registrant name submissions carries, when it says anything at all. */
   name: string | null;
+  /**
+   * The primary ticker, when the filer is listed. Needed to ask a market source
+   * for a price — companyfacts carries the share count but never the symbol, and
+   * submissions is the one SEC endpoint that does.
+   */
+  ticker: string | null;
 };
 
 /**
@@ -460,7 +466,11 @@ export function parseSubmissions(json: unknown): EdgarProfile | null {
   const exchanges = Array.isArray(json.exchanges) ? json.exchanges : [];
   const listed = exchanges.some((e) => typeof e === 'string' && e.trim() !== '');
 
-  return { sicCode, industry, listed, name };
+  const tickers = Array.isArray(json.tickers) ? json.tickers : [];
+  const tickerRaw = tickers.find((t) => typeof t === 'string' && t.trim() !== '');
+  const ticker = typeof tickerRaw === 'string' ? tickerRaw.trim() : null;
+
+  return { sicCode, industry, listed, name, ticker };
 }
 
 /**
@@ -486,19 +496,143 @@ export async function fetchCompanyProfile(
   }
 }
 
+// ─── Market capitalisation ────────────────────────────────────────────────────
+//
+// companyfacts carries a share count and no price; submissions carries a ticker
+// and no price. So a market cap — which every multiple on the desk needs, and
+// which the desk had for no EDGAR company until now — is the share count from SEC
+// times a last price from a market source. It is derived and best-effort: a
+// company keeps its figures whether or not a price comes back, exactly as the
+// industry profile is treated, because a missing market cap is a blank multiple
+// column, not a wrong one.
+
+/** The share-count tags, dei first (cover-page) then the us-gaap fallback. */
+const SHARES_TAGS = [
+  { taxonomy: 'dei', tag: 'EntityCommonStockSharesOutstanding' },
+  { taxonomy: 'us-gaap', tag: 'CommonStockSharesOutstanding' },
+] as const;
+
+/**
+ * The most recent shares-outstanding figure a filer has reported.
+ *
+ * Newest period end wins, latest filing breaking a tie — the same "truest recent
+ * statement" rule the financials use. Read straight from the raw companyfacts
+ * JSON rather than the `us-gaap` slice `parseCompanyFacts` keeps, because the
+ * primary tag lives under the separate `dei` taxonomy.
+ *
+ * A caveat worth stating: for a dual-class company this cover-page tag is often
+ * only one class, so the market cap derived from it can understate. That is a
+ * known limit of a free share count, not a bug — and still far better than the
+ * blank every EDGAR company showed before.
+ */
+export function latestSharesOutstanding(json: unknown): { shares: number; at: string } | null {
+  if (!isRecord(json)) return null;
+  const facts = json.facts;
+  if (!isRecord(facts)) return null;
+
+  let best: Fact | null = null;
+  for (const { taxonomy, tag } of SHARES_TAGS) {
+    const slice = facts[taxonomy];
+    if (!isRecord(slice)) continue;
+    const entry = slice[tag];
+    if (!isRecord(entry) || !isRecord(entry.units)) continue;
+    const list = asFacts(entry.units.shares);
+    for (const fact of list) {
+      if (fact.val <= 0) continue;
+      if (
+        !best ||
+        fact.end > best.end ||
+        (fact.end === best.end && (fact.filed ?? '') > (best.filed ?? ''))
+      ) {
+        best = fact;
+      }
+    }
+    if (best) break; // dei answered; do not let the fallback override it.
+  }
+
+  return best ? { shares: best.val, at: best.end } : null;
+}
+
+/** A last price for a ticker, from Yahoo's free chart endpoint. */
+export function yahooChartUrl(ticker: string): string {
+  return `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=5d`;
+}
+
+/**
+ * The pure half of the price fetch: what the chart response says.
+ *
+ * Only `meta` is read — the last price, its currency, and the timestamp it was
+ * true at — because that is all a market cap needs and the candle arrays are
+ * large. The timestamp becomes the quote's `as_of` so a market cap is stamped
+ * with the day the market set it, not the day it was ingested.
+ */
+export function parseYahooChart(json: unknown): { price: number; currency: string; asOf: string | null } | null {
+  if (!isRecord(json)) return null;
+  const chart = json.chart;
+  if (!isRecord(chart) || !Array.isArray(chart.result)) return null;
+  const first = chart.result[0];
+  if (!isRecord(first) || !isRecord(first.meta)) return null;
+  const meta = first.meta;
+
+  const price = meta.regularMarketPrice;
+  if (typeof price !== 'number' || !Number.isFinite(price) || price <= 0) return null;
+
+  const currency = typeof meta.currency === 'string' && meta.currency.trim() !== '' ? meta.currency : 'USD';
+  const time = meta.regularMarketTime;
+  const asOf =
+    typeof time === 'number' && Number.isFinite(time)
+      ? new Date(time * 1000).toISOString().slice(0, 10)
+      : null;
+
+  return { price, currency, asOf };
+}
+
+/**
+ * Fetch a last price. Null on any failure — network, status or shape.
+ *
+ * Swallowed like the profile fetch, and for the same reason: it is enrichment on
+ * top of figures that already arrived. Yahoo is unofficial and challenges some
+ * clients — most relevantly, it may refuse the datacentre address the ingest runs
+ * from in production — so a null here has to mean "no market cap for this one",
+ * never "fail the company".
+ */
+export async function fetchYahooQuote(
+  fetcher: (url: string, init?: RequestInit) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>,
+  ticker: string,
+): Promise<{ price: number; currency: string; asOf: string | null } | null> {
+  try {
+    const response = await fetcher(yahooChartUrl(ticker), {
+      // A browser-shaped User-Agent: Yahoo answers 401/429 to some non-browser
+      // clients, and this endpoint takes no key.
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+        Accept: 'application/json',
+      },
+    });
+    if (!response.ok) return null;
+    return parseYahooChart(await response.json());
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetch and parse one company.
  *
- * Two requests, not the one the name suggests: the figures from companyfacts,
- * then the industry and listing status from submissions — see point five above
- * for why companyfacts cannot answer either. The second is best-effort, so a
- * company whose profile fetch fails still comes back with its figures and an
- * unknown industry, not skipped entirely.
+ * Up to three requests, not the one the name suggests: the figures from
+ * companyfacts, then the industry, listing status and ticker from submissions —
+ * see point five above for why companyfacts answers none of those — and then,
+ * only for a listed filer whose share count is known, a last price from a market
+ * source to turn that share count into a market capitalisation. Both extra steps
+ * are best-effort: a company whose profile or price fetch fails still comes back
+ * with its figures, just without an industry or without a market cap.
  */
 export async function fetchCompanyFacts(
   fetcher: (url: string, init?: RequestInit) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>,
   cik: string,
   userAgent: string,
+  { asOf }: { asOf?: string } = {},
 ): Promise<EdgarHarvest> {
   const url = companyFactsUrl(cik);
   const response = await fetcher(url, { headers: { 'User-Agent': userAgent, Accept: 'application/json' } });
@@ -516,7 +650,8 @@ export async function fetchCompanyFacts(
     return harvest;
   }
 
-  const harvest = parseCompanyFacts(await response.json());
+  const json = await response.json();
+  const harvest = parseCompanyFacts(json);
 
   const company = harvest.companies[0];
   if (company) {
@@ -530,6 +665,29 @@ export async function fetchCompanyFacts(
       // submissions is the one that matches what the company is actually
       // called.
       if (profile.name) company.name = profile.name;
+    }
+
+    // The market cap. Only for a listed filer with a ticker and a share count —
+    // an unlisted registrant has no price to fetch, and without shares there is
+    // nothing to multiply a price by.
+    const shares = latestSharesOutstanding(json);
+    if (profile?.listed && profile.ticker && shares) {
+      const quote = await fetchYahooQuote(fetcher, profile.ticker);
+      if (quote) {
+        harvest.quotes.push({
+          match: { by: 'cik', value: bareCik(cik) },
+          as_of: quote.asOf ?? asOf ?? new Date().toISOString().slice(0, 10),
+          close_price: quote.price,
+          shares_outstanding: shares.shares,
+          market_cap: quote.price * shares.shares,
+          currency: quote.currency,
+          source: SOURCE,
+          source_url: yahooChartUrl(profile.ticker),
+        } satisfies QuoteRecord);
+        // A price came back, so it trades — settle listing status even if the
+        // exchanges array was empty or the profile fetch had failed.
+        company.listing_status = 'listed';
+      }
     }
   }
 

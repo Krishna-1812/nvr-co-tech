@@ -9,11 +9,13 @@ import {
   isAnnual,
   isInstant,
   latestFiled,
+  latestSharesOutstanding,
   monthsBetween,
   padCik,
   parseCompanyFacts,
   parseSubmissions,
   parseTickerUniverse,
+  parseYahooChart,
   submissionsUrl,
   tickerUniverseUrl,
 } from './edgar';
@@ -442,6 +444,93 @@ describe('fetchCompanyFacts', () => {
     });
     expect(harvest.financials).toHaveLength(1);
   });
+
+  /** companyfacts carrying both a revenue history and a dei share count. */
+  const factsWithShares = (sharesList: { end: string; val: number; filed?: string }[]) => ({
+    cik: 771497,
+    entityName: 'ABM INDUSTRIES INC /DE/',
+    facts: {
+      'us-gaap': { Revenues: { units: { USD: [year('2026-10-31', 1_000)] } } },
+      dei: { EntityCommonStockSharesOutstanding: { units: { shares: sharesList } } },
+    },
+  });
+
+  it('derives a market cap for a listed filer with a ticker and shares', async () => {
+    const seen: string[] = [];
+    const harvest = await fetchCompanyFacts(
+      async (url) => {
+        seen.push(url);
+        if (url.includes('/submissions/')) {
+          return ok({ tickers: ['ABM'], exchanges: ['NYSE'], sicDescription: 'Services-To Dwellings' });
+        }
+        if (url.includes('finance.yahoo.com')) {
+          return ok({
+            chart: { result: [{ meta: { regularMarketPrice: 46.81, currency: 'USD', regularMarketTime: 1755734400 } }] },
+          });
+        }
+        return ok(factsWithShares([{ end: '2026-06-04', val: 58_580_923 }]));
+      },
+      '771497',
+      'ua',
+    );
+
+    expect(seen.some((u) => u.includes('finance.yahoo.com/v8/finance/chart/ABM'))).toBe(true);
+    expect(harvest.quotes).toHaveLength(1);
+    expect(harvest.quotes[0]).toMatchObject({
+      match: { by: 'cik', value: '771497' },
+      close_price: 46.81,
+      shares_outstanding: 58_580_923,
+      currency: 'USD',
+      as_of: '2025-08-21',
+      source: 'sec_edgar',
+    });
+    expect(harvest.quotes[0].market_cap).toBeCloseTo(58_580_923 * 46.81, 2);
+    expect(harvest.companies[0]?.listing_status).toBe('listed');
+  });
+
+  it('asks for no price, and writes no quote, for an unlisted filer', async () => {
+    const seen: string[] = [];
+    const harvest = await fetchCompanyFacts(
+      async (url) => {
+        seen.push(url);
+        if (url.includes('/submissions/')) return ok({ tickers: [], exchanges: [] });
+        return ok(factsWithShares([{ end: '2026-06-04', val: 58_580_923 }]));
+      },
+      '771497',
+      'ua',
+    );
+
+    expect(seen.some((u) => u.includes('finance.yahoo.com'))).toBe(false);
+    expect(harvest.quotes).toHaveLength(0);
+  });
+
+  it('writes no quote when the share count is unknown', async () => {
+    const harvest = await fetchCompanyFacts(
+      async (url) =>
+        url.includes('/submissions/')
+          ? ok({ tickers: ['ABM'], exchanges: ['NYSE'] })
+          : ok(facts({ Revenues: [year('2026-03-31', 1)] })), // no dei shares
+      '771497',
+      'ua',
+    );
+    expect(harvest.quotes).toHaveLength(0);
+  });
+
+  it('keeps the figures when the price fetch fails', async () => {
+    const harvest = await fetchCompanyFacts(
+      async (url) => {
+        if (url.includes('/submissions/')) return ok({ tickers: ['ABM'], exchanges: ['NYSE'] });
+        if (url.includes('finance.yahoo.com')) return { ok: false, status: 429, json: async () => ({}) };
+        return ok(factsWithShares([{ end: '2026-06-04', val: 58_580_923 }]));
+      },
+      '771497',
+      'ua',
+    );
+    expect(harvest.quotes).toHaveLength(0);
+    expect(harvest.financials).toHaveLength(1);
+    // The exchange said listed, so it stays listed even though the price failed.
+    expect(harvest.companies[0]?.listing_status).toBe('listed');
+  });
 });
 
 describe('parseSubmissions', () => {
@@ -454,7 +543,13 @@ describe('parseSubmissions', () => {
         tickers: ['AAPL'],
         exchanges: ['Nasdaq'],
       }),
-    ).toEqual({ sicCode: '3571', industry: 'Electronic Computers', listed: true, name: 'Apple Inc.' });
+    ).toEqual({
+      sicCode: '3571',
+      industry: 'Electronic Computers',
+      listed: true,
+      name: 'Apple Inc.',
+      ticker: 'AAPL',
+    });
   });
 
   it('reports unlisted when exchanges is empty, not just absent tickers', () => {
@@ -471,6 +566,7 @@ describe('parseSubmissions', () => {
       industry: 'Short-Term Business Credit Institutions',
       listed: false,
       name: 'PACCAR FINANCIAL CORP',
+      ticker: null,
     });
   });
 
@@ -485,7 +581,73 @@ describe('parseSubmissions', () => {
       industry: null,
       listed: false,
       name: null,
+      ticker: null,
     });
+  });
+
+  it('reads the primary ticker, skipping blanks', () => {
+    expect(parseSubmissions({ exchanges: ['NYSE'], tickers: ['', 'ABM'] })?.ticker).toBe('ABM');
+    expect(parseSubmissions({ exchanges: ['NYSE'], tickers: [] })?.ticker).toBeNull();
+  });
+});
+
+describe('latestSharesOutstanding', () => {
+  const shares = (list: { end: string; val: number; filed?: string }[], taxonomy = 'dei') => ({
+    facts: { [taxonomy]: { EntityCommonStockSharesOutstanding: { units: { shares: list } } } },
+  });
+
+  it('takes the newest period end', () => {
+    const json = shares([
+      { end: '2025-06-04', val: 60_000_000 },
+      { end: '2026-06-04', val: 58_580_923 },
+    ]);
+    expect(latestSharesOutstanding(json)).toEqual({ shares: 58_580_923, at: '2026-06-04' });
+  });
+
+  it('breaks a same-date tie on the latest filing', () => {
+    const json = shares([
+      { end: '2026-06-04', val: 58_000_000, filed: '2026-06-10' },
+      { end: '2026-06-04', val: 58_580_923, filed: '2026-07-01' },
+    ]);
+    expect(latestSharesOutstanding(json)?.shares).toBe(58_580_923);
+  });
+
+  it('falls back to the us-gaap tag when dei is absent', () => {
+    const json = {
+      facts: { 'us-gaap': { CommonStockSharesOutstanding: { units: { shares: [{ end: '2026-03-31', val: 1_000 }] } } } },
+    };
+    expect(latestSharesOutstanding(json)?.shares).toBe(1_000);
+  });
+
+  it('ignores non-positive counts and is null when there are none', () => {
+    expect(latestSharesOutstanding(shares([{ end: '2026-03-31', val: 0 }]))).toBeNull();
+    expect(latestSharesOutstanding({ facts: {} })).toBeNull();
+    expect(latestSharesOutstanding('nope')).toBeNull();
+  });
+});
+
+describe('parseYahooChart', () => {
+  const chart = (meta: Record<string, unknown>) => ({ chart: { result: [{ meta }], error: null } });
+
+  it('reads the last price, currency and date', () => {
+    expect(
+      parseYahooChart(chart({ regularMarketPrice: 46.81, currency: 'USD', regularMarketTime: 1755734400 })),
+    ).toEqual({ price: 46.81, currency: 'USD', asOf: '2025-08-21' });
+  });
+
+  it('defaults the currency and tolerates a missing timestamp', () => {
+    expect(parseYahooChart(chart({ regularMarketPrice: 10 }))).toEqual({
+      price: 10,
+      currency: 'USD',
+      asOf: null,
+    });
+  });
+
+  it('is null when the price is missing, non-positive or the shape is wrong', () => {
+    expect(parseYahooChart(chart({ currency: 'USD' }))).toBeNull();
+    expect(parseYahooChart(chart({ regularMarketPrice: 0 }))).toBeNull();
+    expect(parseYahooChart({ chart: { result: [] } })).toBeNull();
+    expect(parseYahooChart('nope')).toBeNull();
   });
 });
 
