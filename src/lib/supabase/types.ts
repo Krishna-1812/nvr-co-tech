@@ -669,6 +669,18 @@ export type DataLookupRow = {
   note: string | null;
 };
 
+/** A cached AI research note for one company (0029). One row per company. */
+export type CompanyBriefRow = {
+  id: number;
+  company_id: string;
+  markdown: string;
+  citations: unknown;
+  model: string;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  generated_at: string;
+};
+
 type Table<Row> = {
   Row: Row;
   Insert: Partial<Row>;
@@ -730,6 +742,9 @@ export type Database = {
       peer_set_members: Table<PeerSetMemberRow>;
       valuations: Table<ValuationRow>;
       data_lookups: Table<DataLookupRow>;
+
+      // 0029 — a cached research note per company, alongside the registry.
+      company_briefs: Table<CompanyBriefRow>;
     };
     Views: Record<never, never>;
     Functions: {

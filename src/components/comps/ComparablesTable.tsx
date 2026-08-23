@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import { DataTable, Td, Th, Thead, Tr } from '@/components/ui/primitives';
+import { CompanyBriefDrawer } from '@/components/comps/CompanyBriefDrawer';
 import { crore, coverage, percent, shortDate } from '@/lib/comps/format';
 import { formatMultiple, isKnown, revenueGrowth } from '@/lib/comps/multiples';
 import { METHOD_LABEL, PICK } from '@/lib/comps/view';
@@ -61,7 +65,10 @@ export function ComparablesTable({
     MULTIPLES.map((m) => [m, new Set(spreads[m].outliers)]),
   );
 
+  const [opened, setOpened] = useState<Comparable | null>(null);
+
   return (
+    <>
     <DataTable>
       <Thead>
         <tr>
@@ -91,7 +98,13 @@ export function ComparablesTable({
           return (
             <Tr key={c.companyId}>
               <Td>
-                <span className="font-medium">{c.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setOpened(c)}
+                  className="cursor-pointer font-medium underline decoration-[var(--border-c)] underline-offset-2 transition hover:decoration-current"
+                >
+                  {c.name}
+                </button>
                 {c.listingStatus !== 'listed' && (
                   /*
                    * Said on the row rather than only in a legend. An unlisted
@@ -189,6 +202,9 @@ export function ComparablesTable({
           ))}
         </tr>
       </tfoot>
-  </DataTable>
+    </DataTable>
+
+    <CompanyBriefDrawer comparable={opened} onClose={() => setOpened(null)} />
+    </>
   );
 }
