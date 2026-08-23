@@ -98,9 +98,13 @@ export function DeskControls({
  *
  * Matching is the same subsequence test the command palette uses — "hdfc" finds
  * "HDFC Bank", "reli" finds "Reliance Industries" — which is all a list of names
- * needs and is one function rather than a fuzzy-search dependency. The list is
- * capped as it renders so a registry of ten thousand names never mounts ten
- * thousand rows; the count of what is hidden is shown so the cap is honest.
+ * needs and is one function rather than a fuzzy-search dependency. Every match
+ * is rendered — a few thousand plain buttons in a scrolling region costs
+ * nothing a browser notices — rather than capped with a "keep typing" wall, which
+ * used to make an untyped, alphabetically-sorted registry unbrowsable past
+ * whatever the cap's first letters happened to be. If the registry ever reaches
+ * a size where that stops being true, the fix is windowing the list, not
+ * hiding rows behind a count.
  */
 function SubjectCombobox({
   choices,
@@ -120,12 +124,9 @@ function SubjectCombobox({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const CAP = 50;
-  const { results, hidden } = useMemo(() => {
+  const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) {
-      return { results: choices.slice(0, CAP), hidden: Math.max(0, choices.length - CAP) };
-    }
+    if (!q) return choices;
     const matches = (name: string) => {
       const hay = name.toLowerCase();
       let i = 0;
@@ -136,8 +137,7 @@ function SubjectCombobox({
       }
       return true;
     };
-    const found = choices.filter((c) => matches(c.name));
-    return { results: found.slice(0, CAP), hidden: Math.max(0, found.length - CAP) };
+    return choices.filter((c) => matches(c.name));
   }, [choices, query]);
 
   // Any change to the query invalidates where the cursor points — back to the top.
@@ -268,13 +268,7 @@ function SubjectCombobox({
 
             {results.length === 0 && (
               <p className="text-subtle px-3 py-8 text-center text-sm">
-                No company matches “{query.trim()}”.
-              </p>
-            )}
-
-            {hidden > 0 && (
-              <p className="text-subtle px-3 py-2 text-center text-xs">
-                {hidden.toLocaleString('en-IN')} more — keep typing to narrow the list.
+                No company matches &ldquo;{query.trim()}&rdquo;.
               </p>
             )}
           </div>
