@@ -67,6 +67,8 @@ export function Verdict({
   periodEnd,
   asOf,
   peerCount,
+  consideredCount,
+  listingStatus,
   marketCap,
   quoteAsOf,
 }: {
@@ -77,19 +79,29 @@ export function Verdict({
   periodEnd: string | null;
   asOf: string;
   peerCount: number;
+  /** How many companies the screen looked at and ruled out. */
+  consideredCount: number;
+  /** The subject's own `listing_status`, so "no quote" is not misread as "unlisted". */
+  listingStatus: string | null;
   marketCap: Figure;
   quoteAsOf: string | null;
 }) {
   const { low, high, weighted, dispersion } = conclusion;
   const haveRange = isKnown(low) && isKnown(high) && isKnown(weighted);
-  const listed = isKnown(marketCap);
-  const gap = listed && isKnown(weighted) ? gapPercent(marketCap, weighted) : null;
+
+  // Two different facts, kept apart. A company can be listed and still have no
+  // quote in the registry yet — "no market price on file" is not "not listed",
+  // and the picker only ever offers listed subjects, so the second reading is
+  // almost always the wrong one.
+  const hasQuote = isKnown(marketCap);
+  const isListed = listingStatus === 'listed';
+  const gap = hasQuote && isKnown(weighted) ? gapPercent(marketCap, weighted) : null;
   const verdict = isKnown(gap) ? verdictOf(gap) : null;
 
-  // The track spans the peer range and, when listed, the market price too — so a
-  // market cap that falls outside the implied range is still on screen where a
-  // reader can see how far outside it is.
-  const points = [low, high, weighted, listed ? marketCap : null].filter(isKnown) as number[];
+  // The track spans the peer range and, when there is one, the market price too —
+  // so a market cap that falls outside the implied range is still on screen where
+  // a reader can see how far outside it is.
+  const points = [low, high, weighted, hasQuote ? marketCap : null].filter(isKnown) as number[];
   const rawMin = points.length ? Math.min(...points) : 0;
   const rawMax = points.length ? Math.max(...points) : 1;
   const pad = (rawMax - rawMin) * 0.08 || Math.abs(rawMax) * 0.08 || 1;
@@ -138,24 +150,39 @@ export function Verdict({
                 low={low as number}
                 high={high as number}
                 weighted={weighted as number}
-                marketCap={listed ? (marketCap as number) : null}
+                marketCap={hasQuote ? (marketCap as number) : null}
                 domainMin={domainMin}
                 domainMax={domainMax}
                 verdictTone={verdict?.tone ?? 'agree'}
               />
             </>
+          ) : peerCount === 0 ? (
+            <p className="text-muted mt-6 max-w-md text-sm leading-relaxed">
+              No comparable companies survived the screen, so there is nothing to value {subjectName}{' '}
+              against yet.{' '}
+              {consideredCount > 0 ? (
+                <>
+                  The screen looked at {consideredCount}{' '}
+                  {consideredCount === 1 ? 'company' : 'companies'} and ruled every one out — open{' '}
+                  <span className="font-medium">Considered &amp; excluded</span> below to see why.
+                </>
+              ) : (
+                <>Nothing in the registry shares this company&rsquo;s industry and country yet.</>
+              )}{' '}
+              Seed more of this industry and country, and the valuation fills itself in.
+            </p>
           ) : (
             <p className="text-muted mt-6 max-w-md text-sm leading-relaxed">
-              No method could be applied to {subjectName} from this peer set — every multiple needed a
-              subject figure the registry does not have yet. The peer table below still stands; the
-              conclusion cannot until the subject&rsquo;s own figures are in.
+              A peer set formed, but no multiple could be applied to it — see the reason against each
+              method below. The peer table still stands; the conclusion needs at least one peer with a
+              usable multiple.
             </p>
           )}
         </div>
 
         {/* ── The market check — the reason a listed subject leads here ──── */}
         <div className="surface-sunken flex flex-col justify-center gap-4 p-6 sm:p-8">
-          {verdict && listed ? (
+          {verdict && hasQuote ? (
             <>
               <div className="flex items-center gap-2">
                 <span
@@ -186,21 +213,31 @@ export function Verdict({
 
               <p className="text-muted text-xs leading-relaxed">{verdict.blurb}</p>
             </>
-          ) : listed ? (
+          ) : hasQuote ? (
             <p className="text-muted text-sm leading-relaxed">
-              This company is listed, so a market price exists to check against — but no method could
-              be applied, so there is nothing to compare it with yet.
+              A market price exists to check against — but no method could be applied, so there is
+              nothing to compare it with yet.
             </p>
           ) : (
             <div className="flex flex-col items-start gap-3">
               <span className="surface-raised text-subtle grid size-9 place-items-center rounded-lg border">
                 <ShieldCheck className="size-4" aria-hidden />
               </span>
-              <p className="a-label">No market to check against</p>
+              <p className="a-label">No market check yet</p>
               <p className="text-muted text-sm leading-relaxed">
-                {subjectName} is not listed, so there is no market capitalisation to test the peer
-                estimate against. The range on the left is the answer; a listed subject would also get
-                a live check on it.
+                {isListed ? (
+                  <>
+                    {subjectName} is listed, but no market price has been ingested for it yet, so there
+                    is nothing to test the peer estimate against. Seed a quote for it and the check
+                    appears here.
+                  </>
+                ) : (
+                  <>
+                    {subjectName} is not listed, so there is no market capitalisation to test the peer
+                    estimate against. The range on the left is the answer; a listed subject would also
+                    get a live check on it.
+                  </>
+                )}
               </p>
             </div>
           )}

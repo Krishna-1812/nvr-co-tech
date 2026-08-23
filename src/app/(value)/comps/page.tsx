@@ -265,6 +265,8 @@ export default async function CompsPage({
         periodEnd={view.subject.periodEnd}
         asOf={view.asOf}
         peerCount={view.comparables.length}
+        consideredCount={view.rejected.length}
+        listingStatus={subjectCompany.listing_status}
         marketCap={view.subjectMarketCap}
         quoteAsOf={view.subjectQuoteAsOf}
       />
