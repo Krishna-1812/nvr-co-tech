@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireUser, createClient } from '@/lib/supabase/server';
-import { isAdmin } from '@/lib/domain/workflow';
+import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { ingestEdgarCiks, ingestNseSymbols } from '@/lib/comps/ingest/passes';
 import { makeRpcWriter } from '@/lib/comps/ingest/writers';
 import { skipLines, summarise, writeHarvest } from '@/lib/comps/ingest/runner';
@@ -27,13 +27,19 @@ import type { ActionResult } from './workflow';
  * MCA file. It is exactly enough to seed a peer set and prove the pipeline
  * against real data, which is what this exists for today.
  *
- * Restricted to admins in the application layer, not just the nav: the
+ * Restricted to platform admins in the application layer, not just the nav: the
  * migration 0028 write functions are granted to every authenticated user (any
  * signed-in member of any tenant), because RLS has no per-function role concept
- * — so this check is the only thing standing between "an admin seeds the shared
- * registry" and "any member of any customer's team can write into it". Worth
- * tightening in the database itself before this goes further than a handful of
- * admins using it.
+ * — so this check is the only thing standing between "a platform admin seeds
+ * the shared registry" and "any member of any customer's team can write into
+ * it". Worth tightening in the database itself before this goes further than a
+ * handful of admins using it.
+ *
+ * The gate is `isAnalyticsAdmin()` (the `analytics_admins` allowlist), not
+ * `isAdmin(me.role)`. `role` is per-organisation — every tenant has its own
+ * admin/owner — and this writes into the one registry every tenant reads, so
+ * "admin of your own org" was the wrong permission to check: it let any
+ * customer's admin run an ingest pass against shared data.
  */
 
 export type IngestSummary = { headline: string; skipped: string[] };
@@ -83,8 +89,8 @@ function lastSession(): string {
  * this for free rather than a third copy to keep in sync.
  */
 async function requireAdminWriter(): Promise<{ error: string } | { writer: Writer }> {
-  const me = await requireUser();
-  if (!isAdmin(me.role)) return { error: 'Only an admin can run an ingest pass.' };
+  await requireUser();
+  if (!(await isAnalyticsAdmin())) return { error: 'Only a platform admin can run an ingest pass.' };
 
   const supabase = await createClient();
 
@@ -190,8 +196,8 @@ export async function runValuationMcaBatch(input: {
 export type TickerUniverseEntry = { cik: string; name: string; ticker: string };
 
 export async function fetchEdgarUniverse(): Promise<ActionResult<TickerUniverseEntry[]>> {
-  const me = await requireUser();
-  if (!isAdmin(me.role)) return { ok: false, error: 'Only an admin can run an ingest pass.' };
+  await requireUser();
+  if (!(await isAnalyticsAdmin())) return { ok: false, error: 'Only a platform admin can run an ingest pass.' };
 
   try {
     const universe = await fetchTickerUniverse(fetcher, EDGAR.politeness.userAgent ?? 'The Finance Intelligence');

@@ -1,7 +1,7 @@
 import { ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { requireUser } from '@/lib/supabase/server';
-import { isAdmin } from '@/lib/domain/workflow';
+import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, EmptyState } from '@/components/ui/primitives';
 import { IngestForm } from './IngestForm';
@@ -23,16 +23,21 @@ export const maxDuration = 60;
 /**
  * Where the shared registry gets its first rows.
  *
- * Admin-only, checked here as well as in the server action and in the nav —
- * three layers because the database layer has none: every write function in
- * migration 0028 is granted to `authenticated`, not to a role, so this page and
- * the action behind it are what actually stop a non-admin from writing into
- * data every tenant on the platform reads.
+ * Gated on `isAnalyticsAdmin()` — the platform-wide allowlist backed by
+ * `analytics_admins` — not on the signed-in user's organisation role. This
+ * used to check `isAdmin(me.role)`, which is a per-tenant permission: *any*
+ * organisation's own admin or owner cleared it, so every customer's admin saw
+ * and could use a page that writes into the one registry every tenant on the
+ * platform reads. Checked here as well as in the server action and in the
+ * nav — three layers because the database layer has none: every write
+ * function in migration 0028 is granted to `authenticated`, not to a role, so
+ * this page and the action behind it are what actually stop a non-admin from
+ * writing into data every tenant on the platform reads.
  */
 export default async function ValuationIngestPage() {
-  const me = await requireUser();
+  await requireUser();
 
-  if (!isAdmin(me.role)) {
+  if (!(await isAnalyticsAdmin())) {
     return (
       <>
         <PageHeader eyebrow="Valuation Desk" title="Seed the registry" />
@@ -40,7 +45,7 @@ export default async function ValuationIngestPage() {
           <EmptyState
             icon={<ShieldAlert className="size-6" aria-hidden />}
             title="Admins only"
-            description="Seeding the shared company registry is restricted to admins, because it writes data every tenant on the platform will read."
+            description="Seeding the shared company registry is restricted to platform admins, because it writes data every tenant on the platform will read."
           />
         </Card>
       </>

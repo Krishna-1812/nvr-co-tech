@@ -302,12 +302,17 @@ export function assistSection(): Section {
  * first thing anybody wants is the table — the history is what you go back to
  * afterwards, and leading with it would mean an empty screen on day one.
  *
- * `Seed the registry` does branch on role, same reason `/admin` does in Voucher
- * Desk: it writes into the shared registry every tenant reads, which is a
- * different kind of action from assembling a peer set from what is already
- * there.
+ * `Seed the registry` does NOT branch on `role` the way `/admin` does in
+ * Voucher Desk — a tenant's own admin is not the right gate. It writes into
+ * the *shared* registry every tenant on the platform reads, so the list that
+ * decides who sees it has to be the platform-wide one (`analytics_admins`,
+ * via `isAnalyticsAdmin()`), not "admin of your own organisation". Every
+ * customer's admin/owner would otherwise clear `isAdmin(role)`, which is
+ * exactly the bug this replaced: the link (and the page and action behind
+ * it) were visible to any tenant's admin, not just the two platform
+ * operators.
  */
-export function valuationSection({ role }: { role: UserRole }): Section {
+export function valuationSection({ canSeed }: { canSeed: boolean }): Section {
   return {
     slug: 'valuation-desk',
     name: 'Valuation Desk',
@@ -319,7 +324,7 @@ export function valuationSection({ role }: { role: UserRole }): Section {
         icon: Layers,
         hint: 'Peer companies, their multiples, and what they imply',
       },
-      ...(isAdmin(role)
+      ...(canSeed
         ? [
             {
               href: '/comps/ingest',
