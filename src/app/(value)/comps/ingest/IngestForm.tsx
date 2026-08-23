@@ -263,51 +263,67 @@ export function IngestForm() {
     setEdgarSyncing(true);
     setResult(null);
 
-    const universeRes = await fetchEdgarUniverse();
-    if (!universeRes.ok) {
-      toast.error(universeRes.error);
+    try {
+      const universeRes = await fetchEdgarUniverse();
+      if (!universeRes.ok) {
+        toast.error(universeRes.error);
+        return;
+      }
+
+      const universe = universeRes.data;
+      const remaining = universe.slice(resumeFrom).map((c) => c.cik);
+      const chunks = batch(remaining, MAX_ITEMS);
+      let done = resumeFrom;
+      const tally = new Map<string, number>();
+
+      for (const chunk of chunks) {
+        // A chunk that throws (a dropped connection, a host-side timeout) is
+        // exactly as much a stop as one that resolves with ok:false — both
+        // leave `done` at the last successfully written company, which is
+        // what's on screen and in localStorage for "Resume" to pick up from.
+        let res;
+        try {
+          res = await runValuationIngest({ source: 'edgar', identifiers: chunk });
+        } catch (error) {
+          toast.error(
+            `Stopped at company ${done + 1} of ${universe.length}: ${error instanceof Error ? error.message : 'the request failed.'} Resume picks up from here.`,
+          );
+          break;
+        }
+        if (!res.ok) {
+          toast.error(`Stopped at company ${done + 1} of ${universe.length}: ${res.error}`);
+          break;
+        }
+        mergeFormattedTally(tally, res.data.skipped);
+        done += chunk.length;
+        setEdgarSyncProgress({ done, total: universe.length });
+        try {
+          localStorage.setItem(EDGAR_UNIVERSE_KEY, JSON.stringify({ done }));
+        } catch {
+          // Best-effort only — a restart is always safe, just slower.
+        }
+      }
+
+      if (done >= universe.length) {
+        try {
+          localStorage.removeItem(EDGAR_UNIVERSE_KEY);
+        } catch {
+          // Nothing to do if storage is unavailable; the stale entry is harmless.
+        }
+      }
+
+      setResult({
+        headline: `sec_edgar · ${done.toLocaleString('en-US')} of ${universe.length.toLocaleString('en-US')} companies attempted this session`,
+        skipped: tallyLines(tally),
+      });
+      toast.success(`Reached ${done.toLocaleString('en-US')} of ${universe.length.toLocaleString('en-US')} SEC companies.`);
+      router.refresh();
+    } finally {
+      // Always, even on a thrown error above — a stuck spinner with no way
+      // back but a page reload is worse than an early stop the user can retry.
       setEdgarSyncing(false);
-      return;
+      setEdgarSyncProgress(null);
     }
-
-    const universe = universeRes.data;
-    const remaining = universe.slice(resumeFrom).map((c) => c.cik);
-    const chunks = batch(remaining, MAX_ITEMS);
-    let done = resumeFrom;
-    const tally = new Map<string, number>();
-
-    for (const chunk of chunks) {
-      const res = await runValuationIngest({ source: 'edgar', identifiers: chunk });
-      if (!res.ok) {
-        toast.error(`Stopped at company ${done + 1} of ${universe.length}: ${res.error}`);
-        break;
-      }
-      mergeFormattedTally(tally, res.data.skipped);
-      done += chunk.length;
-      setEdgarSyncProgress({ done, total: universe.length });
-      try {
-        localStorage.setItem(EDGAR_UNIVERSE_KEY, JSON.stringify({ done }));
-      } catch {
-        // Best-effort only — a restart is always safe, just slower.
-      }
-    }
-
-    if (done >= universe.length) {
-      try {
-        localStorage.removeItem(EDGAR_UNIVERSE_KEY);
-      } catch {
-        // Nothing to do if storage is unavailable; the stale entry is harmless.
-      }
-    }
-
-    setResult({
-      headline: `sec_edgar · ${done.toLocaleString('en-US')} of ${universe.length.toLocaleString('en-US')} companies attempted this session`,
-      skipped: tallyLines(tally),
-    });
-    toast.success(`Reached ${done.toLocaleString('en-US')} of ${universe.length.toLocaleString('en-US')} SEC companies.`);
-    setEdgarSyncing(false);
-    setEdgarSyncProgress(null);
-    router.refresh();
   };
 
   /**
@@ -323,55 +339,70 @@ export function IngestForm() {
     let companiesWritten = 0;
     const tally = new Map<string, number>();
 
-    for (let i = 0; i < KNOWN_STATES.length; i++) {
-      const state = KNOWN_STATES[i];
-      if (alreadyDone.has(state)) continue;
+    try {
+      for (let i = 0; i < KNOWN_STATES.length; i++) {
+        const state = KNOWN_STATES[i];
+        if (alreadyDone.has(state)) continue;
 
-      let offset = 0;
-      let reachable = MCA_BATCH_SIZE; // Corrected once the first page reports a real total.
-      let stopped = false;
+        let offset = 0;
+        let reachable = MCA_BATCH_SIZE; // Corrected once the first page reports a real total.
+        let stopped = false;
 
-      while (offset < reachable) {
-        const res = await runValuationMcaLiveBatch({ state, offset });
-        if (!res.ok) {
-          toast.error(`Stopped at ${state}, row ${offset + 1}: ${res.error}`);
-          stopped = true;
-          break;
+        while (offset < reachable) {
+          // Same reasoning as the EDGAR loop above: a thrown error (a dropped
+          // connection, a host-side timeout) has to stop the loop and surface,
+          // not hang the button forever — see the `finally` below.
+          let res;
+          try {
+            res = await runValuationMcaLiveBatch({ state, offset });
+          } catch (error) {
+            toast.error(
+              `Stopped at ${state}, row ${offset + 1}: ${error instanceof Error ? error.message : 'the request failed.'}`,
+            );
+            stopped = true;
+            break;
+          }
+          if (!res.ok) {
+            toast.error(`Stopped at ${state}, row ${offset + 1}: ${res.error}`);
+            stopped = true;
+            break;
+          }
+          companiesWritten += res.data.companiesWritten;
+          mergeTally(tally, res.data.skipped);
+          reachable = res.data.reachable;
+          offset += MCA_BATCH_SIZE;
+          setMcaSyncProgress({ stateIndex: i, stateName: state, rowsDone: Math.min(offset, reachable), reachable });
         }
-        companiesWritten += res.data.companiesWritten;
-        mergeTally(tally, res.data.skipped);
-        reachable = res.data.reachable;
-        offset += MCA_BATCH_SIZE;
-        setMcaSyncProgress({ stateIndex: i, stateName: state, rowsDone: Math.min(offset, reachable), reachable });
+
+        if (stopped) break;
+
+        alreadyDone.add(state);
+        try {
+          localStorage.setItem(MCA_LIVE_KEY, JSON.stringify({ completedStates: [...alreadyDone] }));
+        } catch {
+          // Best-effort only — a restart just re-runs completed states, which is safe.
+        }
       }
 
-      if (stopped) break;
-
-      alreadyDone.add(state);
-      try {
-        localStorage.setItem(MCA_LIVE_KEY, JSON.stringify({ completedStates: [...alreadyDone] }));
-      } catch {
-        // Best-effort only — a restart just re-runs completed states, which is safe.
+      if (alreadyDone.size >= KNOWN_STATES.length) {
+        try {
+          localStorage.removeItem(MCA_LIVE_KEY);
+        } catch {
+          // Harmless if it lingers.
+        }
       }
+
+      const skippedTotal = [...tally.values()].reduce((a, b) => a + b, 0);
+      setResult({
+        headline: `mca_master (live) · ${alreadyDone.size} of ${KNOWN_STATES.length} states · ${companiesWritten.toLocaleString('en-IN')} companies · ${skippedTotal.toLocaleString('en-IN')} skipped`,
+        skipped: tallyLines(tally),
+      });
+      toast.success(`${companiesWritten.toLocaleString('en-IN')} companies written from the live MCA sync.`);
+      router.refresh();
+    } finally {
+      setMcaSyncing(false);
+      setMcaSyncProgress(null);
     }
-
-    if (alreadyDone.size >= KNOWN_STATES.length) {
-      try {
-        localStorage.removeItem(MCA_LIVE_KEY);
-      } catch {
-        // Harmless if it lingers.
-      }
-    }
-
-    const skippedTotal = [...tally.values()].reduce((a, b) => a + b, 0);
-    setResult({
-      headline: `mca_master (live) · ${alreadyDone.size} of ${KNOWN_STATES.length} states · ${companiesWritten.toLocaleString('en-IN')} companies · ${skippedTotal.toLocaleString('en-IN')} skipped`,
-      skipped: tallyLines(tally),
-    });
-    toast.success(`${companiesWritten.toLocaleString('en-IN')} companies written from the live MCA sync.`);
-    setMcaSyncing(false);
-    setMcaSyncProgress(null);
-    router.refresh();
   };
 
   return (

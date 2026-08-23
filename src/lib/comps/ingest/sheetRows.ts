@@ -32,8 +32,18 @@ export const MCA_BATCH_SIZE = 100;
  * Identifiers per EDGAR/NSE batch, shared by the manual form, the full-universe
  * sync loop, and the action that runs them — same reasoning and the same
  * `'use server'` restriction as `MCA_BATCH_SIZE` above.
+ *
+ * EDGAR costs two requests per identifier at `EDGAR.politeness.requestsPerSecond`
+ * (5/s), so this used to sit at 25 — 50 requests, ~10s of pacing alone before a
+ * single byte of the (sometimes multi-MB) companyfacts response is counted. On a
+ * host with a default serverless timeout that is already the whole budget, and a
+ * slow SEC response tips it over: the function gets killed mid-chunk, the
+ * browser sees a bare connection failure, and the full-universe sync loop hangs
+ * forever with no error (see `valuationIngest.ts`'s `maxDuration` for the other
+ * half of that fix). 10 keeps a chunk's worst case well inside even a
+ * conservative timeout.
  */
-export const MAX_ITEMS = 25;
+export const MAX_ITEMS = 10;
 
 /**
  * Rows keyed by header, blank rows dropped.

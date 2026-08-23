@@ -17,6 +17,19 @@ import type { Fetcher, FetchResponse } from '@/lib/comps/sources/types';
 import type { ActionResult } from './workflow';
 
 /**
+ * A chunk of `MAX_ITEMS` EDGAR CIKs is two SEC requests each, paced at
+ * `EDGAR.politeness.requestsPerSecond` — comfortably past the 10s a serverless
+ * function gets by default on most hosts. Without this, the platform kills the
+ * function mid-chunk, the browser sees a bare connection failure with no HTTP
+ * response to parse, and the sync loop in `IngestForm.tsx` — which had no
+ * catch around that fetch — hung forever with the button still spinning and
+ * no error shown. Raising the ceiling here is the other half of that fix; see
+ * the try/catch added around the loop bodies there for the half that makes a
+ * timeout (this or any other) fail loudly instead of silently.
+ */
+export const maxDuration = 60;
+
+/**
  * Ingest, triggered from the operator's own session.
  *
  * This is option 1 of the three in `src/lib/comps/ingest/types.ts`: no service
