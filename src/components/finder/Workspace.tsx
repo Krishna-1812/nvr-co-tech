@@ -1,14 +1,25 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { Building2, Coins, LayoutGrid, Rows3, Search, Sparkles, Users } from 'lucide-react';
+import {
+  Building2,
+  Clock,
+  Download,
+  LayoutGrid,
+  ListPlus,
+  Rows3,
+  Search,
+  Sparkles,
+  Users,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/primitives';
 import { InvalidCodes, QueryBar, RejectionBanner } from './Banners';
+import { CreditLine, HistoryDrawer, ListDrawer } from './Drawers';
 import { FilterPanel } from './FilterPanel';
 import { ProfilePanel } from './Profile';
 import { Results } from './Results';
-import { toFilters, type Entity } from './filters';
+import { toFilters, type Entity, type PanelValues } from './filters';
 import { INITIAL, reducer, rowId, type RevealOutcome, type Row, type SearchOutcome } from './store';
 
 /**
@@ -71,8 +82,45 @@ export function Workspace() {
       }
 
       dispatch({ type: 'result', out, reset, entity });
+
+      /*
+       * Saved after the rows are drawn, never before, and never awaited by
+       * anything the reader is waiting on. History is a convenience; a database
+       * that is slow or unhappy must not hold up a result that has already
+       * arrived, and must never turn one into an error.
+       */
+      const fresh = out.results ?? [];
+      if (out.search_failed || out.needs_company_choice || fresh.length === 0) return;
+
+      const rows = reset ? fresh : [...state.results, ...fresh];
+      try {
+        const saved = await fetch('/api/finder/history', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            entity,
+            rows,
+            total: out.total ?? null,
+            // The panel's own state travels alongside the Apollo filters so a
+            // reopened entry puts the controls back where they were. The export
+            // sheet knows to ignore it.
+            filters: { ...toFilters(entity, values), panel: values },
+            replace_id: reset ? null : state.historyId,
+          }),
+        }).then((r) => r.json() as Promise<{ id?: number; truncated?: boolean; kept?: number; of?: number }>);
+
+        dispatch({
+          type: 'saved',
+          id: saved.id ?? null,
+          truncated:
+            saved.truncated && saved.kept && saved.of ? { kept: saved.kept, of: saved.of } : null,
+        });
+      } catch {
+        // Nothing to tell anybody: the rows are on screen either way, and the
+        // only loss is being able to come back to them without searching again.
+      }
     },
-    [state.entity, state.values, state.page],
+    [state.entity, state.values, state.page, state.results, state.historyId],
   );
 
   /*
@@ -239,9 +287,120 @@ export function Workspace() {
     }
   }, [state.selected]);
 
+  /**
+   * Put rows on the working list.
+   *
+   * Sent as the rows themselves rather than as ids, so a row somebody has
+   * already revealed carries its contact details onto the list. Re-fetching by
+   * id later would either lose the reveal or charge for it a second time.
+   */
+  const addToList = useCallback(
+    async (rows: Row[], entity: Entity) => {
+      if (rows.length === 0) return;
+      try {
+        const out = await fetch('/api/finder/list', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ entity, rows }),
+        }).then((r) => r.json() as Promise<{ count?: number }>);
+        dispatch({ type: 'listCount', count: out.count ?? 0 });
+      } catch {
+        // The list is a convenience; failing to add to it is not worth an alarm.
+      }
+    },
+    [],
+  );
+
+  /**
+   * Build the file in the browser's own download.
+   *
+   * A form post rather than a fetch, because a fetch would hand the bytes to
+   * JavaScript and leave it to reconstruct a download from a blob — and the
+   * rows are already a large POST body that has no business being held twice
+   * in memory.
+   */
+  const exportRows = useCallback(
+    (entity: Entity, rows: Row[], format: 'xlsx' | 'csv') => {
+      if (rows.length === 0) return;
+      const body = {
+        entity,
+        rows,
+        format,
+        filters: toFilters(entity, state.values),
+        meta: {
+          total: state.total,
+          rejected: state.rejected ?? {},
+        },
+      };
+
+      void fetch('/api/finder/export', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error('export failed');
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download =
+            response.headers
+              .get('content-disposition')
+              ?.match(/filename="([^"]+)"/)?.[1] ?? `contact-finder.${format}`;
+          link.click();
+          URL.revokeObjectURL(url);
+        })
+        .catch(() => {});
+    },
+    [state.values, state.total, state.rejected],
+  );
+
+  /** Reopen a saved entry. Costs nothing, which is the entire point of it. */
+  const reopen = useCallback(async (id: number) => {
+    try {
+      const entry = await fetch(`/api/finder/history/${id}`).then(
+        (r) =>
+          r.json() as Promise<{
+            entity?: string;
+            filters?: Record<string, unknown>;
+            rows?: Row[];
+            total?: number | null;
+          }>,
+      );
+      const entity: Entity = entry.entity === 'companies' ? 'companies' : 'people';
+      const panel = (entry.filters?.panel ?? {}) as PanelValues;
+
+      dispatch({
+        type: 'reopen',
+        entity,
+        // Falls back to the defaults rather than to an empty object: a panel
+        // with no `include_similar_titles` reads as somebody having turned it
+        // off, which is a different search from one saved before it was stored.
+        values: Object.keys(panel).length > 0 ? panel : INITIAL.values,
+        rows: entry.rows ?? [],
+        total: entry.total ?? null,
+        id,
+      });
+    } catch {
+      dispatch({ type: 'drawer', drawer: null });
+    }
+  }, []);
+
   const ids = state.results.map(rowId).filter(Boolean);
   const selectedCount = Object.keys(state.selected).length;
   const shown = state.shownEntity ?? 'people';
+
+  /**
+   * What the free actions operate on: the ticked rows, or all of them.
+   *
+   * Deliberately not "the ticked rows, or nothing". Adding a whole page to the
+   * list and exporting a whole page are both ordinary things to want, and making
+   * somebody tick twenty-four boxes first is a toll rather than a safeguard —
+   * neither action costs anything or can be got wrong expensively.
+   */
+  const pickedRows =
+    selectedCount > 0 ? state.results.filter((r) => state.selected[rowId(r)]) : state.results;
 
   return (
     <div className="grid min-h-0 gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
@@ -304,6 +463,73 @@ export function Workspace() {
 
       {/* ── The results ── */}
       <section className="min-w-0 space-y-3">
+        {/*
+          The workspace bar. Everything here is free — nothing on this row can
+          spend a credit — which is why it sits above the results rather than
+          among the buttons that can.
+        */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'drawer', drawer: 'history' })}
+            className="surface-lit a-ring text-muted inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+          >
+            <Clock className="size-3.5" aria-hidden />
+            History
+          </button>
+
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'drawer', drawer: 'list' })}
+            className="surface-lit a-ring text-muted inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+          >
+            <ListPlus className="size-3.5" aria-hidden />
+            List
+            {state.listCount > 0 && (
+              <span className="numeric tinted rounded px-1 text-[10px] font-semibold">
+                {state.listCount}
+              </span>
+            )}
+          </button>
+
+          <span className="flex-1" />
+
+          {state.results.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={() => void addToList(pickedRows, shown)}
+                className="surface-lit a-ring text-muted inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+              >
+                <ListPlus className="size-3.5" aria-hidden />
+                {selectedCount > 0 ? `Add ${selectedCount} to list` : 'Add all to list'}
+              </button>
+
+              {(
+                [
+                  ['xlsx', 'Excel'],
+                  ['csv', 'CSV'],
+                ] as const
+              ).map(([format, label]) => (
+                <button
+                  key={format}
+                  type="button"
+                  onClick={() => exportRows(shown, pickedRows, format)}
+                  title={
+                    format === 'xlsx'
+                      ? 'A workbook, with a second sheet saying what search produced these rows'
+                      : 'A flat table, no second sheet, for importing somewhere else'
+                  }
+                  className="surface-lit a-ring text-muted inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+                >
+                  <Download className="size-3.5" aria-hidden />
+                  {label}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+
         <QueryBar
           values={state.values}
           onRemove={(key) => dispatch({ type: 'set', key, value: undefined })}
@@ -493,17 +719,22 @@ export function Workspace() {
           </button>
         )}
 
-        {state.spent > 0 && (
-          <p className="text-subtle flex items-center gap-1.5 text-xs">
-            <Coins className="size-3.5" aria-hidden />
-            {/*
-              What this browser watched being spent since the page loaded. Not a
-              balance: nothing reachable with this key reports the account total,
-              so a number called "remaining" would be a guess.
-            */}
-            {state.spent} {state.spent === 1 ? 'credit' : 'credits'} spent on this page
+        {state.historyTruncated && (
+          /*
+           * A paged search that outgrew what one history entry holds. Said here
+           * rather than left silent: without it the drawer reopens 120 rows and
+           * calls that the whole search, and the only clue is a reader noticing
+           * the count is short.
+           */
+          <p className="text-subtle text-xs leading-relaxed">
+            History keeps the first{' '}
+            <span className="numeric font-semibold">{state.historyTruncated.kept}</span> of these{' '}
+            <span className="numeric font-semibold">{state.historyTruncated.of}</span> rows.
+            Reopening this later will show that many; export now to keep all of them.
           </p>
         )}
+
+        <CreditLine watched={state.spent} />
       </section>
 
       {state.profile && (
@@ -513,6 +744,19 @@ export function Workspace() {
           onClose={() => dispatch({ type: 'closeProfile' })}
         />
       )}
+
+      <HistoryDrawer
+        open={state.drawer === 'history'}
+        onClose={() => dispatch({ type: 'drawer', drawer: null })}
+        onReopen={(id) => void reopen(id)}
+      />
+
+      <ListDrawer
+        open={state.drawer === 'list'}
+        onClose={() => dispatch({ type: 'drawer', drawer: null })}
+        onCount={(count) => dispatch({ type: 'listCount', count })}
+        onExport={(entity, rows) => exportRows(entity, rows, 'xlsx')}
+      />
     </div>
   );
 }

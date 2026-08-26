@@ -116,6 +116,20 @@ export type State = {
   /** Apollo's own free count for the filters as they stand, and whether it is a bound. */
   count: { value: number | null; approx: boolean; reason?: string } | null;
   counting: boolean;
+  /**
+   * The history entry the rows on screen belong to.
+   *
+   * A "Load more" is the same search getting longer, not a new one, so this id
+   * goes back with the save and the entry grows in place. Without it, paging
+   * three deep wrote three entries holding 24, 48 and 72 rows and evicted real
+   * history against the 60-entry cap.
+   */
+  historyId: number | null;
+  /** Set when a paged search outgrew what one entry can hold. */
+  historyTruncated: { kept: number; of: number } | null;
+  /** How many rows are on the working list, so the button can say. */
+  listCount: number;
+  drawer: 'history' | 'list' | null;
   /** The open profile panel, or nothing. */
   profile: ProfileState | null;
   /** A bulk reveal in flight. Separate from `loading`, which is the search. */
@@ -151,6 +165,10 @@ export const INITIAL: State = {
   view: 'cards',
   count: null,
   counting: false,
+  historyId: null,
+  historyTruncated: null,
+  listCount: 0,
+  drawer: null,
   profile: null,
   revealing: false,
   reveal: null,
@@ -168,6 +186,17 @@ export type Action =
   | { type: 'clearSelection' }
   | { type: 'counting' }
   | { type: 'count'; count: State['count'] }
+  | { type: 'saved'; id: number | null; truncated: { kept: number; of: number } | null }
+  | { type: 'listCount'; count: number }
+  | { type: 'drawer'; drawer: State['drawer'] }
+  | {
+      type: 'reopen';
+      entity: Entity;
+      values: PanelValues;
+      rows: Row[];
+      total: number | null;
+      id: number;
+    }
   | { type: 'openProfile'; kind: 'person' | 'company'; subject: ProfileState['subject'] }
   | { type: 'profile'; data: Record<string, unknown> | null; error?: string; credits?: number }
   | { type: 'closeProfile' }
@@ -219,7 +248,10 @@ export function reducer(state: State, action: Action): State {
         failure: null,
         notice: null,
         choices: null,
-        ...(action.reset ? { page: 1 } : {}),
+        reveal: null,
+        // A fresh search owns no history entry yet, so the next save writes a
+        // new one instead of overwriting the last search's rows with these.
+        ...(action.reset ? { page: 1, historyId: null, historyTruncated: null } : {}),
       };
 
     case 'result': {
@@ -300,6 +332,48 @@ export function reducer(state: State, action: Action): State {
 
     case 'count':
       return { ...state, counting: false, count: action.count };
+
+    case 'saved':
+      return { ...state, historyId: action.id, historyTruncated: action.truncated };
+
+    case 'listCount':
+      return { ...state, listCount: action.count };
+
+    case 'drawer':
+      return { ...state, drawer: action.drawer };
+
+    case 'reopen':
+      /*
+       * A reopened entry is a snapshot, not a live search. `hasMore` is false
+       * and the page is 1 on purpose: "Load more" against a stored result set
+       * would fetch page 2 of a search nobody has re-run and staple it to rows
+       * that may be months old.
+       */
+      return {
+        ...state,
+        drawer: null,
+        loading: false,
+        failure: null,
+        notice: null,
+        choices: null,
+        entity: action.entity,
+        shownEntity: action.entity,
+        values: action.values,
+        results: action.rows,
+        selected: {},
+        total: action.total,
+        page: 1,
+        hasMore: false,
+        historyId: action.id,
+        historyTruncated: null,
+        rejected: null,
+        rejectedLabels: {},
+        rejectedTotal: 0,
+        unconfirmed: 0,
+        described: null,
+        reveal: null,
+        count: null,
+      };
 
     case 'openProfile':
       return {
