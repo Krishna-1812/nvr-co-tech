@@ -143,8 +143,17 @@ export function Workspace() {
 
   return (
     <div className="grid min-h-0 gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
-      {/* ── The filters ── */}
-      <aside className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5 xl:sticky xl:top-4">
+      {/*
+        ── The filters ──
+
+        The sticky lives on this wrapper rather than on the panel itself.
+        `.a-ring` sets `position: relative` on anything not carrying `.fixed`,
+        `.absolute` or `.sticky`, and a responsive `xl:sticky` is not that class,
+        so putting both on one element left the rail scrolling away with the
+        page while looking like it should not.
+      */}
+      <div className="xl:sticky xl:top-4 xl:self-start">
+      <aside className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5">
         <div
           role="radiogroup"
           aria-label="What to search for"
@@ -189,6 +198,7 @@ export function Workspace() {
           counting={state.counting}
         />
       </aside>
+      </div>
 
       {/* ── The results ── */}
       <section className="min-w-0 space-y-3">

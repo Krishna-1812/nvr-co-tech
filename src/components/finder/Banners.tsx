@@ -23,15 +23,23 @@ function readable(key: string, value: unknown): string {
   const field = FIELD_BY_KEY.get(key);
   const label = field?.label ?? key.replace(/_/g, ' ');
 
+  /*
+   * Several filters are sent as the value Apollo wants and shown as the words a
+   * person picked. The chip has to say the words: a bar reading
+   * "Seniority: c_suite" beside a button reading "C-Suite" makes the reader
+   * check whether they are the same thing.
+   */
+  const say = (v: string) => field?.options?.find(([o]) => o === v)?.[1] ?? v;
+
   if (Array.isArray(value)) {
-    const list = value.map(String).filter(Boolean);
+    const list = value.map(String).filter(Boolean).map(say);
     if (list.length === 0) return '';
     const shown = list.slice(0, 3).join(', ');
     return `${label}: ${shown}${list.length > 3 ? ` +${list.length - 3}` : ''}`;
   }
   if (value === true) return label;
   const text = String(value ?? '').trim();
-  return text ? `${label}: ${text}` : '';
+  return text ? `${label}: ${say(text)}` : '';
 }
 
 /**
