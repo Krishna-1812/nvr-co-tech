@@ -33,6 +33,10 @@ export const PROTECTED_PREFIXES = [
   // analytics allowlist, which is a different and much shorter list than
   // "anybody with a session" — see lib/analytics/admin.
   '/analytics',
+  // Contact Finder. Gated against the same allowlist and for a sharper reason:
+  // a search here can spend from the platform's own credit pool, so a session
+  // alone is not enough — see lib/analytics/admin and the note on FINDER_SLUG.
+  '/contacts',
 ] as const;
 
 export function isProtectedPath(pathname: string): boolean {

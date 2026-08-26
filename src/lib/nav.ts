@@ -10,6 +10,7 @@ import {
   Plus,
   Radar,
   Scale,
+  Search,
   Settings,
   Sparkles,
   TrendingUp,
@@ -153,6 +154,7 @@ export function sectionFor(
   if (slug === 'ledger-reconciliation') return reconSection();
   if (slug === ASSIST_SLUG) return assistSection();
   if (slug === ANALYTICS_SLUG) return analyticsSection();
+  if (slug === FINDER_SLUG) return finderSection();
   return voucherSection({ role, pendingCount });
 }
 
@@ -234,6 +236,56 @@ export function analyticsSection(): Section {
         icon: AlertTriangle,
         hint: 'Every failure a page boundary or a route handler caught',
         secondary: true,
+      },
+      {
+        href: '/settings',
+        label: 'Settings',
+        icon: Settings,
+        hint: 'Your account and appearance',
+      },
+    ],
+  };
+}
+
+/**
+ * Off the roster too, and gated on the same short list as Visitor Intelligence.
+ *
+ * Contact Finder searches a third party's contact database, and every search
+ * that describes a company draws down a credit pool this platform funds with one
+ * key — not a budget any tenant holds. So the question "may this person spend
+ * it" has nothing to do with their role in anybody's voucher workflow, which is
+ * exactly the distinction `analytics_admins` already draws. Reusing that list
+ * rather than inventing a second one keeps there being one answer to "who may
+ * spend platform money", and means adding a colleague stays a single INSERT.
+ *
+ * It is also not on AGENTS, and that is a claim about the product rather than a
+ * permission: the roster is what The Finance Intelligence sells to chartered
+ * accountants, and a B2B prospecting tool is not one of those things. Listing it
+ * there would make the public site advertise something we do not offer.
+ */
+export const FINDER_SLUG = 'contact-finder';
+
+/**
+ * Contact Finder.
+ *
+ * Two items, and the working list and the history are deliberately not among
+ * them. Both are drawers over the search screen rather than destinations,
+ * because a result set here is expensive: the rows on screen may have cost
+ * credits to describe and cannot be rebuilt from the URL, so a rail item that
+ * navigated away from them would be a button that throws away money. A drawer
+ * lets you check what you have collected without losing what you are collecting.
+ */
+export function finderSection(): Section {
+  return {
+    slug: FINDER_SLUG,
+    name: 'Contact Finder',
+    home: '/contacts',
+    items: [
+      {
+        href: '/contacts',
+        label: 'Search',
+        icon: Search,
+        hint: 'Find people and companies by role, seniority, industry or size',
       },
       {
         href: '/settings',

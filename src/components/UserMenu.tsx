@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { LayoutGrid, LogOut, Moon, Sun, Monitor, Radar, Settings } from 'lucide-react';
+import { LayoutGrid, LogOut, Moon, Sun, Monitor, Radar, Search, Settings } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_META, type UserRole } from '@/lib/domain/workflow';
 import { setTheme, useTheme } from '@/lib/theme';
@@ -135,16 +135,32 @@ export function UserMenu({
             </Link>
           </DropdownMenu.Item>
 
+          {/*
+            The two tools that are not on the roster, both behind the same list.
+            They are here rather than in the hub because the hub renders AGENTS,
+            which is what we sell, and neither of these is that.
+          */}
           {analyticsAdmin && (
-            <DropdownMenu.Item asChild>
-              <Link
-                href="/analytics"
-                className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--surface-sunken)]"
-              >
-                <Radar className="size-4" aria-hidden />
-                Analytics
-              </Link>
-            </DropdownMenu.Item>
+            <>
+              <DropdownMenu.Item asChild>
+                <Link
+                  href="/analytics"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--surface-sunken)]"
+                >
+                  <Radar className="size-4" aria-hidden />
+                  Analytics
+                </Link>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item asChild>
+                <Link
+                  href="/contacts"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--surface-sunken)]"
+                >
+                  <Search className="size-4" aria-hidden />
+                  Contact Finder
+                </Link>
+              </DropdownMenu.Item>
+            </>
           )}
 
           <DropdownMenu.Item asChild>
