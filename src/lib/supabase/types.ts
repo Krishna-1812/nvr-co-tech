@@ -681,6 +681,94 @@ export type CompanyBriefRow = {
   generated_at: string;
 };
 
+/*
+ * Contact Finder (0031). Eight tables, and the split between them is a
+ * permission boundary rather than a filing convenience: the five caches hold
+ * what the vendor said, are shared, and are gated on the platform allowlist;
+ * the three records are per person and gated on being that person.
+ *
+ * `payload` is `unknown` throughout on purpose. These hold raw vendor records,
+ * whose shape is the vendor's business and changes without notice — the code
+ * that reads one narrows it at the point of use rather than here, where a
+ * confident type would be a claim nobody can keep.
+ */
+
+/** An industry string Apollo has actually returned (0031). */
+export type FinderIndustrySeenRow = {
+  value: string;
+  hits: number;
+  last_seen: string;
+};
+
+/** A technology or place Apollo has actually returned (0031). */
+export type FinderVocabSeenRow = {
+  kind: 'technology' | 'location';
+  value: string;
+  hits: number;
+  last_seen: string;
+};
+
+/** Employer firmographics keyed by Apollo organisation id, 30-day TTL (0031). */
+export type FinderOrgFirmoRow = {
+  org_id: string;
+  payload: unknown;
+  updated_at: string;
+};
+
+/**
+ * A person a credit has already been spent on, 90-day TTL (0031).
+ *
+ * `shape` is a version stamp written by the same path that reads it. The
+ * previous incarnation of this cache checked for a stamp a different function
+ * applied, so every row failed the gate and the cache returned nothing, ever.
+ */
+export type FinderPersonEnrichmentRow = {
+  apollo_id: string;
+  payload: unknown;
+  shape: number;
+  updated_at: string;
+};
+
+/** A typed company name resolved to an Apollo organisation, 24-hour TTL (0031). */
+export type FinderOrgResolveRow = {
+  cache_key: string;
+  org: unknown;
+  choices: unknown;
+  updated_at: string;
+};
+
+/** One search, answer or reveal, kept for the person who ran it, 90 days (0031). */
+export type FinderHistoryRow = {
+  id: number;
+  user_id: string;
+  entity: string;
+  label: string | null;
+  filters: unknown;
+  total: number | null;
+  rows: unknown;
+  answer: string | null;
+  credits: number;
+  created_at: string;
+};
+
+/** One row on somebody's working list (0031). */
+export type FinderListRow = {
+  user_id: string;
+  entity: string;
+  dedupe_key: string;
+  row: unknown;
+  added_at: string;
+};
+
+/** What Contact Finder spent, per person. Not a balance — see the migration (0031). */
+export type FinderCreditRow = {
+  id: number;
+  user_id: string;
+  action: string;
+  credits: number;
+  created_at: string;
+};
+
 type Table<Row> = {
   Row: Row;
   Insert: Partial<Row>;
@@ -745,6 +833,16 @@ export type Database = {
 
       // 0029 — a cached research note per company, alongside the registry.
       company_briefs: Table<CompanyBriefRow>;
+
+      // 0031 — Contact Finder. Five shared caches, three per-person records.
+      finder_industry_seen: Table<FinderIndustrySeenRow>;
+      finder_vocab_seen: Table<FinderVocabSeenRow>;
+      finder_org_firmo: Table<FinderOrgFirmoRow>;
+      finder_person_enrichment: Table<FinderPersonEnrichmentRow>;
+      finder_org_resolve: Table<FinderOrgResolveRow>;
+      finder_search_history: Table<FinderHistoryRow>;
+      finder_list_rows: Table<FinderListRow>;
+      finder_credit_ledger: Table<FinderCreditRow>;
     };
     Views: Record<never, never>;
     Functions: {
@@ -918,6 +1016,23 @@ export type Database = {
         Args: { p_days?: number };
         Returns: OperatorStuckRow[];
       };
+
+      /*
+       * 0031 — Contact Finder. Every write to those eight tables goes through
+       * one of these, so identity comes from auth.uid() and the caps are
+       * enforced in the same transaction as the write rather than by a client
+       * that might not be. All take the house `p jsonb` payload.
+       */
+      finder_learn_industries: { Args: { p: unknown }; Returns: number };
+      finder_learn_vocab: { Args: { p: unknown }; Returns: number };
+      finder_cache_org_firmo: { Args: { p: unknown }; Returns: number };
+      finder_cache_person: { Args: { p: unknown }; Returns: number };
+      finder_cache_org_resolve: { Args: { p: unknown }; Returns: number };
+      /** Retires expired rows for every user, not only the caller. */
+      finder_expire: { Args: Record<string, never>; Returns: void };
+      finder_save_history: { Args: { p: unknown }; Returns: number };
+      finder_list_add: { Args: { p: unknown }; Returns: unknown };
+      finder_record_credits: { Args: { p: unknown }; Returns: void };
     };
     Enums: {
       user_role: UserRole;
