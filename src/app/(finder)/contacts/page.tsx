@@ -1,6 +1,7 @@
-import { KeyRound, Search } from 'lucide-react';
+import { KeyRound } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, EmptyState } from '@/components/ui/primitives';
+import { Workspace } from '@/components/finder/Workspace';
 import { apolloConfigured } from '@/lib/finder/apollo/config';
 import { PREVIEW } from '@/lib/preview';
 
@@ -44,14 +45,10 @@ export default async function ContactsPage() {
         description="Search live for people and companies by role, seniority, industry or size, or ask a plain question and get an answer built only from what came back."
       />
 
-      <Card>
-        {configured ? (
-          <EmptyState
-            icon={<Search className="size-6" aria-hidden />}
-            title="The search panel is being built"
-            description="The credential is in place, so this environment can reach the contact database. The filters, the results grid and the chat land next."
-          />
-        ) : (
+      {configured ? (
+        <Workspace />
+      ) : (
+        <Card>
           <EmptyState
             icon={<KeyRound className="size-6" aria-hidden />}
             title="No contact database is connected here"
@@ -61,8 +58,8 @@ export default async function ContactsPage() {
                 : 'APOLLO_API_KEY is not set on this environment. Nothing is broken and nothing is empty: there is simply no credential to search with.'
             }
           />
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }
