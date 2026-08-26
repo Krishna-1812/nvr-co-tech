@@ -684,6 +684,16 @@ export async function searchCompanies(
     orgs.push(merged);
   }
 
+  /*
+   * Recorded here, BEFORE any of our own filtering, and this is the number the
+   * credit is billed on. Apollo charges one credit for a call that returns at
+   * least one row; the rows we then remove for not matching are removed on our
+   * side, and Apollo does not refund them. Billing off the surviving count made
+   * a search that returned five companies and kept none look free, and it was
+   * not.
+   */
+  if (meta) meta.returned = orgs.length;
+
   // Apollo has no text-exclusion parameter, so this one is ours entirely.
   const excludeKeywords = (filters.exclude_keywords ?? []).map((k) => k.toLowerCase()).filter(Boolean);
   if (excludeKeywords.length > 0) {

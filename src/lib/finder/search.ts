@@ -252,9 +252,15 @@ export async function runSearch(
         strict: true,
       });
 
-      // Bills one credit per call returning at least one row. Counted at the
-      // call site, like every other caller, rather than inferred later.
-      if (raw.length > 0) spend.credits += 1;
+      /*
+       * Bills one credit per call returning at least one row — and that is
+       * APOLLO'S row count, taken before our own checks removed any. A search
+       * that returned twenty companies and kept none of them still cost a
+       * credit, and counting the survivors made exactly that case look free.
+       * Counted at the call site, like every other caller, rather than inferred
+       * later from what came back.
+       */
+      if ((meta.returned ?? raw.length) > 0) spend.credits += 1;
       await learnFrom(supabase, raw);
 
       const rows = raw.map(companyRow);

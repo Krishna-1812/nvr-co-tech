@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
 import { searchCompanies } from './apollo/client';
-import type { ApolloRecord } from './apollo/types';
+import type { ApolloRecord, SearchMeta } from './apollo/types';
 import { readResolve, writeResolve, type Spend } from './store';
 
 /**
@@ -148,11 +148,13 @@ export async function resolveCompanyName(
     }
   }
 
+  const meta: SearchMeta = {};
   const rows = dedupeOrgs(
-    await searchCompanies({ name, max_companies: 10 }, apiKey, { strict: true }).then((r) => {
-      // Billed on a call that returned something, counted at the call site
-      // rather than inferred afterwards.
-      if (r.length > 0) spend.credits += 1;
+    await searchCompanies({ name, max_companies: 10 }, apiKey, { strict: true, meta }).then((r) => {
+      // Billed on what APOLLO returned, before our own checks removed any:
+      // rows we drop are dropped on our side and are not refunded. Counted at
+      // the call site rather than inferred afterwards.
+      if ((meta.returned ?? r.length) > 0) spend.credits += 1;
       return r;
     }),
   );

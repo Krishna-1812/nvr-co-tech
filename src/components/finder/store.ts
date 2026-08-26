@@ -1,4 +1,5 @@
 import type { FillOutcome } from './AskBar';
+import type { ChatContext, Turn } from './Chat';
 import type { Entity, PanelValues } from './filters';
 
 /**
@@ -73,9 +74,11 @@ export type RevealOutcome = {
  * `data` arrives it is the only thing rendered — including a `matched: false`,
  * which is a real answer and not an error.
  */
+export type ProfileSubject = { name: string; domain: string; apolloId: string };
+
 export type ProfileState = {
   kind: 'person' | 'company';
-  subject: { name: string; domain: string; apolloId: string };
+  subject: ProfileSubject;
   loading: boolean;
   data: Record<string, unknown> | null;
   /** A failure to ASK. Never the same as an answer that found nobody. */
@@ -131,6 +134,18 @@ export type State = {
   /** How many rows are on the working list, so the button can say. */
   listCount: number;
   drawer: 'history' | 'list' | null;
+  /**
+   * The conversation, resent in full on every turn.
+   *
+   * Kept here rather than on the server, which is what makes "the second one"
+   * resolve against a list from a prior turn with no session state anywhere.
+   */
+  chat: Turn[];
+  chatBusy: boolean;
+  /** The company follow-ups inherit, until a turn says to forget it. */
+  chatContext: ChatContext | null;
+  /** Below the widest breakpoint the conversation is a sheet rather than a rail. */
+  chatOpen: boolean;
   /** A sentence being read into filters. Costs nothing and searches nothing. */
   filling: boolean;
   /** What the last sentence became, until it is dismissed. */
@@ -174,6 +189,10 @@ export const INITIAL: State = {
   historyTruncated: null,
   listCount: 0,
   drawer: null,
+  chat: [],
+  chatBusy: false,
+  chatContext: null,
+  chatOpen: false,
   filling: false,
   fill: null,
   profile: null,
@@ -193,6 +212,10 @@ export type Action =
   | { type: 'clearSelection' }
   | { type: 'counting' }
   | { type: 'count'; count: State['count'] }
+  | { type: 'ask'; question: string }
+  | { type: 'answered'; turn: Turn; context?: ChatContext | null; clearContext?: boolean }
+  | { type: 'unpin' }
+  | { type: 'chatOpen'; open: boolean }
   | { type: 'filling' }
   | { type: 'filled'; entity: Entity; values: PanelValues; outcome: FillOutcome }
   | { type: 'fillFailed'; outcome: FillOutcome }
@@ -343,6 +366,48 @@ export function reducer(state: State, action: Action): State {
 
     case 'count':
       return { ...state, counting: false, count: action.count };
+
+    case 'ask':
+      return {
+        ...state,
+        chatBusy: true,
+        chat: [
+          ...state.chat,
+          { role: 'user', content: action.question },
+          // A placeholder rather than a spinner beside the box: an answer can
+          // take most of a minute, and the reader should be able to see that
+          // their question was taken while it does.
+          { role: 'assistant', content: '', pending: true },
+        ],
+      };
+
+    case 'answered': {
+      const chat = [...state.chat];
+      // Replaces the placeholder in place, so nothing shifts under the reader.
+      const last = chat.length - 1;
+      if (last >= 0 && chat[last].pending) chat[last] = action.turn;
+      else chat.push(action.turn);
+
+      return {
+        ...state,
+        chatBusy: false,
+        chat,
+        // A question can spend, so it counts on the same line the searches do.
+        spent: state.spent + (action.turn.credits ?? 0),
+        /*
+         * A reply carrying a company supersedes the pin; a reply saying to clear
+         * it drops the pin; a reply saying neither leaves it exactly where it
+         * was, which is what makes "and their VP of Sales?" work.
+         */
+        chatContext: action.context ?? (action.clearContext ? null : state.chatContext),
+      };
+    }
+
+    case 'unpin':
+      return { ...state, chatContext: null };
+
+    case 'chatOpen':
+      return { ...state, chatOpen: action.open };
 
     case 'filling':
       return { ...state, filling: true, fill: null };

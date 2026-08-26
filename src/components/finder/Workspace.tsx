@@ -7,21 +7,33 @@ import {
   Download,
   LayoutGrid,
   ListPlus,
+  MessagesSquare,
   Rows3,
   Search,
   Sparkles,
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Drawer } from '@/components/ui/Drawer';
 import { EmptyState } from '@/components/ui/primitives';
 import { AskBar } from './AskBar';
 import { InvalidCodes, QueryBar, RejectionBanner } from './Banners';
+import { Chat, type ChatContext, type EnrichChip, type Turn } from './Chat';
 import { CreditLine, HistoryDrawer, ListDrawer } from './Drawers';
 import { FilterPanel } from './FilterPanel';
 import { ProfilePanel } from './Profile';
 import { Results } from './Results';
 import { panelFromFilters, toFilters, type Entity, type PanelValues } from './filters';
-import { INITIAL, reducer, rowId, type RevealOutcome, type Row, type SearchOutcome } from './store';
+import {
+  INITIAL,
+  reducer,
+  rowId,
+  type Choice,
+  type ProfileSubject,
+  type RevealOutcome,
+  type Row,
+  type SearchOutcome,
+} from './store';
 
 /**
  * Contact Finder's one screen.
@@ -188,30 +200,24 @@ export function Workspace() {
   };
 
   /**
-   * Open one row's full record.
+   * Open the full record for one subject.
    *
-   * The kind comes from `shownEntity` — what the rows on screen actually are —
-   * rather than from the panel, which may have been flipped to the other tab
-   * since the search ran. Getting that wrong sends a person's Apollo id to the
-   * company endpoint, which matches nothing and bills for the privilege.
+   * Takes a subject rather than a row, because two surfaces reach it: a card or
+   * a table row in the grid, and a button under a chat answer. The button has no
+   * row behind it — a publicly named person may have no record here at all —
+   * and it is exactly the case where an id, a name and a domain are all there is
+   * to go on.
    */
-  const openProfile = useCallback(
-    async (row: Row, kind: Entity) => {
-      const person = kind !== 'companies';
-      const subject = {
-        name: String((person ? row.full_name : row.name) ?? ''),
-        domain: String((person ? row.organization_domain : row.primary_domain) ?? ''),
-        apolloId: String(row.id ?? ''),
-      };
-
-      dispatch({ type: 'openProfile', kind: person ? 'person' : 'company', subject });
+  const reveal = useCallback(
+    async (kind: 'person' | 'company', subject: ProfileSubject) => {
+      dispatch({ type: 'openProfile', kind, subject });
 
       try {
         const response = await fetch('/api/finder/enrich', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            type: person ? 'person' : 'company',
+            type: kind,
             name: subject.name,
             domain: subject.domain,
             apollo_id: subject.apolloId,
@@ -237,6 +243,26 @@ export function Workspace() {
       }
     },
     [],
+  );
+
+  /**
+   * One grid row's full record.
+   *
+   * The kind comes from `shownEntity` — what the rows on screen actually are —
+   * rather than from the panel, which may have been flipped to the other tab
+   * since the search ran. Getting that wrong sends a person's Apollo id to the
+   * company endpoint, which matches nothing and bills for the privilege.
+   */
+  const openProfile = useCallback(
+    (row: Row, entity: Entity) => {
+      const person = entity !== 'companies';
+      return reveal(person ? 'person' : 'company', {
+        name: String((person ? row.full_name : row.name) ?? ''),
+        domain: String((person ? row.organization_domain : row.primary_domain) ?? ''),
+        apolloId: String(row.id ?? ''),
+      });
+    },
+    [reveal],
   );
 
   /**
@@ -287,6 +313,79 @@ export function Workspace() {
       });
     }
   }, [state.selected]);
+
+  /**
+   * One turn of the conversation.
+   *
+   * The whole history goes back every time, which is what makes "the second one"
+   * resolve against a list shown two turns ago without a session existing
+   * anywhere. `pick` carries a chosen company as **structured fields** rather
+   * than as free text: sending "I mean Acme (acme.com)" back through the parser
+   * produces a company name containing a domain, which resolves to nothing.
+   */
+  const ask = useCallback(
+    async (question: string, pick?: { id: string; domain: string; name: string }) => {
+      dispatch({ type: 'ask', question });
+
+      // Read before the dispatch above lands, so the turn being sent is the
+      // conversation as it stood when the question was asked.
+      const history = state.chat
+        .filter((t) => !t.pending && t.content)
+        .map((t) => ({ role: t.role, content: t.content }));
+
+      let turn: Turn;
+      let context: ChatContext | null | undefined;
+      let clearContext = false;
+
+      try {
+        const response = await fetch('/api/finder/chat', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            message: question,
+            history,
+            selected_org_id: pick?.id ?? '',
+            selected_domain: pick?.domain ?? '',
+            selected_name: pick?.name ?? '',
+            context_org_id: state.chatContext?.org_id ?? '',
+            context_domain: state.chatContext?.domain ?? '',
+            context_name: state.chatContext?.name ?? '',
+          }),
+        });
+        const data = (await response.json()) as {
+          answer?: string;
+          choices?: Choice[];
+          enrich?: EnrichChip[];
+          credits?: number;
+          researched?: boolean;
+          web_search?: boolean;
+          context?: ChatContext | null;
+          clear_context?: boolean;
+        };
+
+        turn = {
+          role: 'assistant',
+          content: data.answer ?? 'Something went wrong answering that.',
+          choices: data.choices,
+          enrich: data.enrich,
+          credits: data.credits,
+          researched: data.researched,
+          web_search: data.web_search,
+        };
+        context = data.context ?? undefined;
+        clearContext = Boolean(data.clear_context);
+      } catch {
+        turn = {
+          role: 'assistant',
+          content:
+            'That could not be sent, so nothing was looked up and nothing was spent. Try again in a moment.',
+        };
+      }
+
+      dispatch({ type: 'answered', turn, context, clearContext });
+    },
+    [state.chat, state.chatContext],
+  );
 
   /**
    * Read a sentence into the filters.
@@ -470,8 +569,40 @@ export function Workspace() {
   const pickedRows =
     selectedCount > 0 ? state.results.filter((r) => state.selected[rowId(r)]) : state.results;
 
+  /**
+   * The conversation, wherever it happens to be living.
+   *
+   * One element rendered in two places rather than two copies: the rail on a
+   * wide screen and a sheet below that. Two copies would each hold their own
+   * scroll position and their own draft message, and switching breakpoints would
+   * silently throw one of them away.
+   */
+  const chat = (
+    <Chat
+      turns={state.chat}
+      busy={state.chatBusy}
+      context={state.chatContext}
+      onSend={(text) => void ask(text)}
+      onPick={(choice) =>
+        void ask(`I mean ${choice.name ?? choice.domain}`, {
+          id: choice.id ?? '',
+          domain: choice.domain,
+          name: choice.name ?? '',
+        })
+      }
+      onReveal={(chip) =>
+        void reveal('person', {
+          name: chip.name,
+          domain: chip.domain,
+          apolloId: chip.apollo_id,
+        })
+      }
+      onUnpin={() => dispatch({ type: 'unpin' })}
+    />
+  );
+
   return (
-    <div className="grid min-h-0 gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
+    <div className="grid min-h-0 gap-4 xl:grid-cols-[21rem_minmax(0,1fr)] 2xl:grid-cols-[21rem_minmax(0,1fr)_24rem]">
       {/*
         ── The filters ──
 
@@ -817,6 +948,47 @@ export function Workspace() {
 
         <CreditLine watched={state.spent} />
       </section>
+
+      {/*
+        ── The conversation ──
+
+        A third rail only where there is genuinely room for three: below that it
+        is a sheet, opened from the button that floats over the results. Squeezed
+        into a narrow third column it would be too thin to read an answer in, and
+        stacked under the grid it would be below the fold on every screen.
+      */}
+      <div className="hidden 2xl:block">
+        <div className="sticky top-4 self-start">
+          <aside className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5">
+            {chat}
+          </aside>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => dispatch({ type: 'chatOpen', open: true })}
+        className="gradient-brand elev-3 fixed right-4 bottom-4 z-30 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] 2xl:hidden"
+      >
+        <MessagesSquare className="size-4" aria-hidden />
+        Ask
+        {state.chat.length > 0 && (
+          <span className="numeric rounded-full bg-white/20 px-1.5 text-[11px] font-semibold">
+            {state.chat.filter((t) => t.role === 'assistant' && !t.pending).length}
+          </span>
+        )}
+      </button>
+
+      <Drawer
+        open={state.chatOpen}
+        onClose={() => dispatch({ type: 'chatOpen', open: false })}
+        title="Ask about a company or a person"
+        width="lg"
+      >
+        {/* Fills the drawer's own scrolling region rather than nesting a second
+            one inside it, so the composer stays put while the answers scroll. */}
+        <div className="flex h-full min-h-0 flex-col">{chat}</div>
+      </Drawer>
 
       {state.profile && (
         <ProfilePanel
