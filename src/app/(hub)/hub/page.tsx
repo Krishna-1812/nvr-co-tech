@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import type { Metadata } from 'next';
 import { History, UploadCloud } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
+import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { canApprove, isAdmin, isOwner, ROLE_META } from '@/lib/domain/workflow';
 import { deskBrief } from '@/lib/domain/desk';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
@@ -45,6 +46,11 @@ const PENDING = ['pending_first', 'pending_second'] as const;
 export default async function HubPage() {
   const user = await requireUser();
   const supabase = await createClient();
+
+  // Whether Contact Finder is openable by this person. Asked of the same
+  // Postgres function its own layout and every one of its routes asks, so the
+  // card and the screen behind it cannot disagree.
+  const finderOpen = await isAnalyticsAdmin();
 
   const today = istToday();
   const fiscal = fiscalYear(today);
@@ -171,6 +177,37 @@ export default async function HubPage() {
     companiesTotal: companiesTotal.count ?? 0,
     companiesListed: companiesListed.count ?? 0,
   };
+
+  /*
+   * Contact Finder's instrumentation, and it reads differently again.
+   *
+   * There is no "searches you have run" figure worth showing, because a search
+   * is free and repeating one costs nothing: a counter of them would measure
+   * activity rather than anything a person needs to decide about. What is worth
+   * showing is the only thing here that is finite — the credits this tool has
+   * spent on your behalf.
+   *
+   * Summed in JavaScript rather than in Postgres because supabase-js has no
+   * aggregate without an RPC and the row count involved is tiny. Tolerant of the
+   * table not existing yet, the same way the reconciliation counts above are:
+   * migration 0031 has to be applied first, and a workspace must not fall over
+   * because a tool has not been switched on.
+   */
+  const monthStart = `${today.slice(0, 7)}-01T00:00:00+05:30`;
+  const dayStart = `${today}T00:00:00+05:30`;
+  const { data: creditRows } = await supabase
+    .from('finder_credit_ledger')
+    .select('credits, created_at')
+    .eq('user_id', user.id)
+    .gte('created_at', monthStart);
+
+  const n3 = (creditRows ?? []).reduce(
+    (acc, row) => ({
+      month: acc.month + (row.credits ?? 0),
+      today: acc.today + (row.created_at >= dayStart ? (row.credits ?? 0) : 0),
+    }),
+    { month: 0, today: 0 },
+  );
 
   const n = {
     drafts: drafts.count ?? 0,
@@ -312,9 +349,40 @@ export default async function HubPage() {
           tone: undefined,
         };
 
+  const finderReadings: Reading[] = [
+    {
+      label: 'Credits spent this month',
+      value: n3.month,
+      hint: 'By you, on this tool. Finding people is free; describing their employers is what spends.',
+    },
+    {
+      label: 'Spent today',
+      value: n3.today,
+      tone: n3.today > 0 ? 'var(--status-pending)' : undefined,
+      hint: 'A page of employers costs one credit however many companies are on it, and is then free for thirty days.',
+    },
+  ];
+
+  /*
+   * Deliberately never says "remaining". No endpoint reachable with this key
+   * reports the account total, and the same key funds other things, so a
+   * balance would be a guess dressed as a figure.
+   */
+  const finderBrief =
+    n3.month === 0
+      ? {
+          text: 'Nothing spent yet. Searching for people costs nothing at all.',
+          tone: 'var(--status-draft)',
+        }
+      : {
+          text: `${n3.month} ${plural(n3.month, 'credit', 'credits')} spent this month. That is what this tool has used, not what is left.`,
+          tone: undefined,
+        };
+
   const voucherDesk = SOLUTIONS.find((s) => s.slug === 'voucher-desk');
   const reconciliation = SOLUTIONS.find((s) => s.slug === 'ledger-reconciliation');
   const valuationDesk = SOLUTIONS.find((s) => s.slug === 'valuation-desk');
+  const contactFinder = SOLUTIONS.find((s) => s.slug === 'contact-finder');
   /*
    * `rest` is every non-live tool, so it stays a roadmap and never gets a
    * live tool mislabelled "Not started yet". The other side of that contract
@@ -438,6 +506,31 @@ export default async function HubPage() {
                   ? { href: '/comps/ingest', label: 'Seed the registry', icon: UploadCloud }
                   : undefined
               }
+            />
+          </div>
+        )}
+
+        {/*
+          Shown to whoever can actually open it, which today is the platform
+          allowlist rather than every signed-in person.
+
+          Not a contradiction with its being 'live' on the public roster: it is
+          built and running, and who may spend from a shared credit pool is a
+          commercial question rather than a claim about whether the tool exists.
+          A card every tenant could see and only two people could open would be
+          the dishonest version of this.
+
+          Opening it wider is real work rather than a flag: the shared caches in
+          migration 0031 are readable only by that same list, and one of them
+          holds revealed email addresses and phone numbers.
+        */}
+        {contactFinder && finderOpen && (
+          <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
+            <LiveSolutionCard
+              solution={contactFinder}
+              readings={finderReadings}
+              note={finderBrief.text}
+              noteTone={finderBrief.tone}
             />
           </div>
         )}

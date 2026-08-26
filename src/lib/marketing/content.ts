@@ -153,6 +153,30 @@ export const AGENTS: Agent[] = [
     href: '/comps',
   },
   {
+    slug: 'contact-finder',
+    name: 'Contact Finder',
+    stage: 'live',
+    category: 'Research & outreach',
+    accent: 'lime',
+    summary:
+      'Find the person behind a company, by role, seniority, industry or size. Every row it shows has been checked against what the source actually said, and every row it removed is counted with the reason.',
+    pitch:
+      'The contact database behind this exposes parameters that look like filters and behave as suggestions. Ask it for healthcare companies and it returns a venture firm, a meditation app and a compliance vendor. So the search is asked broadly and the answer is guaranteed here, in code, which is why this screen can tell you it is showing eighteen of twenty-four and name what went.',
+    does: [
+      'Around forty filters across people and companies: title, seniority, industry, headcount, revenue, location, technology, funding, hiring signals and classification codes.',
+      'Checks the answer rather than trusting it. Industry, company size, revenue, head office, technology and domain are all re-checked against the record itself, and rows that do not really match are removed and counted with the reason.',
+      'Each reason is a button. It drops the filter it blames and runs the search again, so an explanation is something you can act on rather than something you have to act on by hand.',
+      'Never reports a failure as an empty result. A search that could not reach the source says so, because nothing was found and nothing was ruled out, and those are different facts.',
+      'Says what a search costs before you run it. Finding people is free; describing their employers spends one credit for a whole page however many companies are on it, and the answers are kept for thirty days so most pages spend nothing.',
+      'Offers only values the source really uses. The industry, technology and location pickers grow from what actually comes back, and mark which values have been seen on a real record rather than merely written down.',
+      'Reads seniority and function off the job title, for free, and labels them as read rather than as asserted. A Marketing Manager is never presented as the CMO.',
+      'Says when a surname has been withheld, and shortens it rather than guessing at it.',
+    ],
+    inputs: 'A role, a company, an industry, or a size band',
+    outputs: 'People and companies, with what was removed and why',
+    href: '/contacts',
+  },
+  {
     slug: 'gst-reconciliation',
     name: 'GST Reconciliation',
     stage: 'planned',
