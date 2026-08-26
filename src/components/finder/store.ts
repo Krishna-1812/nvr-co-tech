@@ -1,3 +1,4 @@
+import type { FillOutcome } from './AskBar';
 import type { Entity, PanelValues } from './filters';
 
 /**
@@ -130,6 +131,10 @@ export type State = {
   /** How many rows are on the working list, so the button can say. */
   listCount: number;
   drawer: 'history' | 'list' | null;
+  /** A sentence being read into filters. Costs nothing and searches nothing. */
+  filling: boolean;
+  /** What the last sentence became, until it is dismissed. */
+  fill: FillOutcome | null;
   /** The open profile panel, or nothing. */
   profile: ProfileState | null;
   /** A bulk reveal in flight. Separate from `loading`, which is the search. */
@@ -169,6 +174,8 @@ export const INITIAL: State = {
   historyTruncated: null,
   listCount: 0,
   drawer: null,
+  filling: false,
+  fill: null,
   profile: null,
   revealing: false,
   reveal: null,
@@ -186,6 +193,10 @@ export type Action =
   | { type: 'clearSelection' }
   | { type: 'counting' }
   | { type: 'count'; count: State['count'] }
+  | { type: 'filling' }
+  | { type: 'filled'; entity: Entity; values: PanelValues; outcome: FillOutcome }
+  | { type: 'fillFailed'; outcome: FillOutcome }
+  | { type: 'dismissFill' }
   | { type: 'saved'; id: number | null; truncated: { kept: number; of: number } | null }
   | { type: 'listCount'; count: number }
   | { type: 'drawer'; drawer: State['drawer'] }
@@ -332,6 +343,36 @@ export function reducer(state: State, action: Action): State {
 
     case 'count':
       return { ...state, counting: false, count: action.count };
+
+    case 'filling':
+      return { ...state, filling: true, fill: null };
+
+    case 'filled':
+      /*
+       * Replaces the filters rather than merging into them. A sentence is a
+       * whole question, and merging it over what was already set produces a
+       * search that is neither the one on screen nor the one just typed — with
+       * nothing to say which parts came from where.
+       */
+      return {
+        ...state,
+        filling: false,
+        fill: action.outcome,
+        entity: action.entity,
+        values: { include_similar_titles: true, company_detail: true, ...action.values },
+        count: null,
+      };
+
+    case 'fillFailed':
+      /*
+       * Leaves the panel exactly as it was. A sentence that could not be read is
+       * no reason to clear filters somebody set by hand, and clearing them is
+       * the one outcome that turns a failed convenience into lost work.
+       */
+      return { ...state, filling: false, fill: action.outcome };
+
+    case 'dismissFill':
+      return { ...state, filling: false, fill: null };
 
     case 'saved':
       return { ...state, historyId: action.id, historyTruncated: action.truncated };

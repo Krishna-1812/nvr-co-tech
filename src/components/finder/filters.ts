@@ -469,9 +469,28 @@ export function groupsFor(entity: Entity): readonly Group[] {
   return entity === 'companies' ? COMPANY_GROUPS : PEOPLE_GROUPS;
 }
 
+/**
+ * An exact headcount range, which no control on this panel can express.
+ *
+ * The size selector offers seven fixed bands, and a request for "200 to 500
+ * employees" fits none of them: the nearest single band starts at 201. Rounding
+ * it to that band would answer a slightly different question without saying so,
+ * so an exact range is carried as a pair of values with no control behind them,
+ * set only by the query parser. They are real filters — the search enforces them
+ * against each company's own headcount — and the chip bar shows and removes them
+ * like any other, which is the only place they need to be visible.
+ */
+const RANGE_ONLY_FIELDS: readonly Field[] = [
+  { key: 'employee_min', label: 'Employees from', kind: 'number' },
+  { key: 'employee_max', label: 'Employees up to', kind: 'number' },
+];
+
 /** Every field either tab exposes, flattened, for lookups by key. */
 export const FIELD_BY_KEY: ReadonlyMap<string, Field> = new Map(
-  [...PEOPLE_GROUPS, ...COMPANY_GROUPS].flatMap((g) => g.fields).map((f) => [f.key, f]),
+  [...PEOPLE_GROUPS, ...COMPANY_GROUPS]
+    .flatMap((g) => g.fields)
+    .concat(RANGE_ONLY_FIELDS)
+    .map((f) => [f.key, f]),
 );
 
 /** The panel's own value bag. Converted to Apollo filters by `toFilters`. */
@@ -539,6 +558,13 @@ export function toFilters(entity: Entity, values: PanelValues): Record<string, u
     const [lo, hi] = band.split(',');
     if (lo) out.employee_min = Number(lo);
     if (hi) out.employee_max = Number(hi);
+  } else {
+    // An exact range, from the query parser. The band wins when both are set,
+    // because the band is the one somebody chose by hand on this screen.
+    const lo = num(values.employee_min);
+    const hi = num(values.employee_max);
+    if (lo !== null) out.employee_min = lo;
+    if (hi !== null) out.employee_max = hi;
   }
 
   // Department headcount: three controls, one Apollo parameter.
@@ -577,6 +603,66 @@ export function toFilters(entity: Entity, values: PanelValues): Record<string, u
   }
 
   return out;
+}
+
+/**
+ * Filters from the query parser, as panel values.
+ *
+ * Roughly the inverse of `toFilters`, and deliberately not a complete one. Three
+ * things happen here:
+ *
+ *  - a key with no control on this tab is **dropped**, not carried invisibly. A
+ *    filter somebody cannot see is a filter they cannot remove, and the parser
+ *    is allowed to be wrong.
+ *  - the place a question named goes to whichever control this tab has for it,
+ *    since the two tabs call the same idea by different names.
+ *  - the single "at company" box takes a string, not the list the search does.
+ *
+ * Returns what it set as well as the values, so the interface can say what the
+ * sentence became rather than leaving somebody to spot the difference.
+ */
+export function panelFromFilters(
+  entity: Entity,
+  filters: Record<string, unknown>,
+): { values: PanelValues; set: string[]; ignored: string[] } {
+  const values: PanelValues = {};
+  const set: string[] = [];
+  const ignored: string[] = [];
+
+  const known = new Set(groupsFor(entity).flatMap((g) => g.fields.map((f) => f.key)));
+  // The two that have no control but are honoured by the search anyway.
+  known.add('employee_min');
+  known.add('employee_max');
+
+  /** The place keys this tab actually has, in the order a value should try them. */
+  const placeFallback: Record<string, string[]> =
+    entity === 'companies'
+      ? { person_locations: ['locations'], company_locations: ['locations'] }
+      : { locations: ['company_locations'] };
+
+  for (const [rawKey, value] of Object.entries(filters)) {
+    if (value === null || value === undefined || value === '') continue;
+    if (Array.isArray(value) && value.length === 0) continue;
+
+    let key = rawKey;
+    if (!known.has(key)) {
+      key = (placeFallback[rawKey] ?? []).find((k) => known.has(k)) ?? '';
+      if (!key) {
+        ignored.push(FIELD_BY_KEY.get(rawKey)?.label ?? rawKey.replace(/_/g, ' '));
+        continue;
+      }
+    }
+
+    // The "at company" control is one box holding one name, not a list.
+    if (key === 'company_domains' && entity === 'people') {
+      values[key] = Array.isArray(value) ? String(value[0] ?? '') : String(value);
+    } else {
+      values[key] = value;
+    }
+    set.push(FIELD_BY_KEY.get(key)?.label ?? key.replace(/_/g, ' '));
+  }
+
+  return { values, set, ignored };
 }
 
 /**

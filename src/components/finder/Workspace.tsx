@@ -14,12 +14,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/primitives';
+import { AskBar } from './AskBar';
 import { InvalidCodes, QueryBar, RejectionBanner } from './Banners';
 import { CreditLine, HistoryDrawer, ListDrawer } from './Drawers';
 import { FilterPanel } from './FilterPanel';
 import { ProfilePanel } from './Profile';
 import { Results } from './Results';
-import { toFilters, type Entity, type PanelValues } from './filters';
+import { panelFromFilters, toFilters, type Entity, type PanelValues } from './filters';
 import { INITIAL, reducer, rowId, type RevealOutcome, type Row, type SearchOutcome } from './store';
 
 /**
@@ -288,6 +289,73 @@ export function Workspace() {
   }, [state.selected]);
 
   /**
+   * Read a sentence into the filters.
+   *
+   * Fills and stops. It deliberately does not run the search afterwards: the
+   * point of a parser you can see is being able to correct it before it costs
+   * anything, and a parser that searched on your behalf would be one you had to
+   * pay to disagree with.
+   */
+  const fill = useCallback(async (text: string) => {
+    dispatch({ type: 'filling' });
+
+    try {
+      const response = await fetch('/api/finder/parse-query', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const data = (await response.json()) as {
+        filters?: Record<string, unknown>;
+        entity?: string;
+        read_company_as?: { typed: string; as: string } | null;
+        unclear?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok || data.error) {
+        dispatch({
+          type: 'fillFailed',
+          outcome: {
+            set: [],
+            ignored: [],
+            readAs: null,
+            unclear: false,
+            error: data.error ?? 'That could not be read into filters.',
+          },
+        });
+        return;
+      }
+
+      const entity: Entity = data.entity === 'companies' ? 'companies' : 'people';
+      const mapped = panelFromFilters(entity, data.filters ?? {});
+
+      dispatch({
+        type: 'filled',
+        entity,
+        values: mapped.values,
+        outcome: {
+          set: mapped.set,
+          ignored: mapped.ignored,
+          readAs: data.read_company_as ?? null,
+          unclear: Boolean(data.unclear) || mapped.set.length === 0,
+        },
+      });
+    } catch {
+      dispatch({
+        type: 'fillFailed',
+        outcome: {
+          set: [],
+          ignored: [],
+          readAs: null,
+          unclear: false,
+          error: 'That could not be sent. Setting the filters by hand still works.',
+        },
+      });
+    }
+  }, []);
+
+  /**
    * Put rows on the working list.
    *
    * Sent as the rows themselves rather than as ids, so a row somebody has
@@ -415,6 +483,19 @@ export function Workspace() {
       */}
       <div className="xl:sticky xl:top-4 xl:self-start">
       <aside className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5">
+        {/*
+          Above the tabs, because a sentence decides which tab it belongs on.
+          Below nothing, because it is the first thing most people will try.
+        */}
+        <div className="mb-3 shrink-0">
+          <AskBar
+            onFill={(text) => void fill(text)}
+            busy={state.filling}
+            outcome={state.fill}
+            onDismiss={() => dispatch({ type: 'dismissFill' })}
+          />
+        </div>
+
         <div
           role="radiogroup"
           aria-label="What to search for"
