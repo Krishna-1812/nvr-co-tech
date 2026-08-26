@@ -55,6 +55,34 @@ export type SearchOutcome = {
 
 export type View = 'cards' | 'table';
 
+/** What one bulk reveal actually did, kept apart from what was asked of it. */
+export type RevealOutcome = {
+  fetched: number;
+  cached: number;
+  capped: boolean;
+  unreachable: number;
+  error?: string;
+};
+
+/**
+ * The open profile panel.
+ *
+ * `subject` is what was asked for and stays put while the answer is in flight,
+ * so the panel can name the person it is loading rather than opening blank. Once
+ * `data` arrives it is the only thing rendered — including a `matched: false`,
+ * which is a real answer and not an error.
+ */
+export type ProfileState = {
+  kind: 'person' | 'company';
+  subject: { name: string; domain: string; apolloId: string };
+  loading: boolean;
+  data: Record<string, unknown> | null;
+  /** A failure to ASK. Never the same as an answer that found nobody. */
+  error: string | null;
+  /** What THIS lookup cost. Zero is a real answer: a cache hit is free. */
+  credits: number | null;
+};
+
 export type State = {
   /** What the PANEL is set to, which is what the next search looks for. */
   entity: Entity;
@@ -88,6 +116,12 @@ export type State = {
   /** Apollo's own free count for the filters as they stand, and whether it is a bound. */
   count: { value: number | null; approx: boolean; reason?: string } | null;
   counting: boolean;
+  /** The open profile panel, or nothing. */
+  profile: ProfileState | null;
+  /** A bulk reveal in flight. Separate from `loading`, which is the search. */
+  revealing: boolean;
+  /** What the last reveal did, until the next one replaces it. */
+  reveal: RevealOutcome | null;
 };
 
 export const INITIAL: State = {
@@ -117,6 +151,9 @@ export const INITIAL: State = {
   view: 'cards',
   count: null,
   counting: false,
+  profile: null,
+  revealing: false,
+  reveal: null,
 };
 
 export type Action =
@@ -130,7 +167,17 @@ export type Action =
   | { type: 'selectAll'; ids: string[] }
   | { type: 'clearSelection' }
   | { type: 'counting' }
-  | { type: 'count'; count: State['count'] };
+  | { type: 'count'; count: State['count'] }
+  | { type: 'openProfile'; kind: 'person' | 'company'; subject: ProfileState['subject'] }
+  | { type: 'profile'; data: Record<string, unknown> | null; error?: string; credits?: number }
+  | { type: 'closeProfile' }
+  | { type: 'revealing' }
+  | {
+      type: 'revealed';
+      profiles: Record<string, Record<string, unknown>>;
+      outcome: RevealOutcome;
+      credits: number;
+    };
 
 export function rowId(row: Row): string {
   return String(row.id ?? '');
@@ -253,6 +300,63 @@ export function reducer(state: State, action: Action): State {
 
     case 'count':
       return { ...state, counting: false, count: action.count };
+
+    case 'openProfile':
+      return {
+        ...state,
+        profile: {
+          kind: action.kind,
+          subject: action.subject,
+          loading: true,
+          data: null,
+          error: null,
+          credits: null,
+        },
+      };
+
+    case 'profile': {
+      // Arriving after the panel was closed is not a reason to reopen it.
+      if (!state.profile) return state;
+      return {
+        ...state,
+        spent: state.spent + (action.credits ?? 0),
+        profile: {
+          ...state.profile,
+          loading: false,
+          data: action.data,
+          error: action.error ?? null,
+          credits: action.credits ?? null,
+        },
+      };
+    }
+
+    case 'closeProfile':
+      return { ...state, profile: null };
+
+    case 'revealing':
+      return { ...state, revealing: true, reveal: null };
+
+    case 'revealed': {
+      /*
+       * Merged into the rows already on screen rather than replacing them.
+       * The enriched record wins every field it has — the real surname, the
+       * email, the phone — and the search row keeps anything it carried that
+       * the reveal does not, such as the flag saying this team already owned
+       * the contact.
+       */
+      const results = state.results.map((row) => {
+        const fresh = action.profiles[rowId(row)];
+        return fresh ? { ...row, ...fresh } : row;
+      });
+
+      return {
+        ...state,
+        revealing: false,
+        results,
+        reveal: action.outcome,
+        spent: state.spent + action.credits,
+      };
+    }
 
     default:
       return state;

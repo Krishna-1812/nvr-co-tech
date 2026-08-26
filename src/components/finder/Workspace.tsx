@@ -1,14 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { Building2, Coins, LayoutGrid, Rows3, Search, Users } from 'lucide-react';
+import { Building2, Coins, LayoutGrid, Rows3, Search, Sparkles, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/primitives';
 import { InvalidCodes, QueryBar, RejectionBanner } from './Banners';
 import { FilterPanel } from './FilterPanel';
+import { ProfilePanel } from './Profile';
 import { Results } from './Results';
 import { toFilters, type Entity } from './filters';
-import { INITIAL, reducer, rowId, type SearchOutcome } from './store';
+import { INITIAL, reducer, rowId, type RevealOutcome, type Row, type SearchOutcome } from './store';
 
 /**
  * Contact Finder's one screen.
@@ -136,6 +137,107 @@ export function Workspace() {
      */
     void search(true, { values, entity: state.shownEntity ?? state.entity });
   };
+
+  /**
+   * Open one row's full record.
+   *
+   * The kind comes from `shownEntity` — what the rows on screen actually are —
+   * rather than from the panel, which may have been flipped to the other tab
+   * since the search ran. Getting that wrong sends a person's Apollo id to the
+   * company endpoint, which matches nothing and bills for the privilege.
+   */
+  const openProfile = useCallback(
+    async (row: Row, kind: Entity) => {
+      const person = kind !== 'companies';
+      const subject = {
+        name: String((person ? row.full_name : row.name) ?? ''),
+        domain: String((person ? row.organization_domain : row.primary_domain) ?? ''),
+        apolloId: String(row.id ?? ''),
+      };
+
+      dispatch({ type: 'openProfile', kind: person ? 'person' : 'company', subject });
+
+      try {
+        const response = await fetch('/api/finder/enrich', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            type: person ? 'person' : 'company',
+            name: subject.name,
+            domain: subject.domain,
+            apollo_id: subject.apolloId,
+          }),
+        });
+        const data = (await response.json()) as {
+          profile?: Record<string, unknown>;
+          credits?: number;
+          error?: string;
+        };
+
+        if (!response.ok) {
+          dispatch({ type: 'profile', data: null, error: data.error ?? 'That could not be looked up.' });
+          return;
+        }
+        dispatch({ type: 'profile', data: data.profile ?? null, credits: data.credits ?? 0 });
+      } catch {
+        dispatch({
+          type: 'profile',
+          data: null,
+          error: 'The request could not be sent, so nothing was looked up and nothing was spent.',
+        });
+      }
+    },
+    [],
+  );
+
+  /**
+   * Buy the ticked people, in one call.
+   *
+   * People only. A company row already carries everything the paid search
+   * returned, so there is nothing bulk about it to buy — and offering the button
+   * anyway would sell a second copy of what is already on screen.
+   */
+  const revealSelected = useCallback(async () => {
+    const ids = Object.keys(state.selected);
+    if (ids.length === 0) return;
+
+    dispatch({ type: 'revealing' });
+    try {
+      const response = await fetch('/api/finder/enrich-bulk', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      const data = (await response.json()) as RevealOutcome & {
+        profiles?: Record<string, Record<string, unknown>>;
+      };
+      dispatch({
+        type: 'revealed',
+        profiles: data.profiles ?? {},
+        outcome: {
+          fetched: data.fetched ?? 0,
+          cached: data.cached ?? 0,
+          capped: Boolean(data.capped),
+          unreachable: data.unreachable ?? 0,
+          error: data.error,
+        },
+        credits: data.fetched ?? 0,
+      });
+    } catch {
+      dispatch({
+        type: 'revealed',
+        profiles: {},
+        outcome: {
+          fetched: 0,
+          cached: 0,
+          capped: false,
+          unreachable: 0,
+          error: 'The reveal could not be sent, so nobody was revealed and nothing was spent.',
+        },
+        credits: 0,
+      });
+    }
+  }, [state.selected]);
 
   const ids = state.results.map(rowId).filter(Boolean);
   const selectedCount = Object.keys(state.selected).length;
@@ -299,6 +401,24 @@ export function Workspace() {
               </button>
             )}
 
+            {/*
+              People only, and only when something is ticked. A company row
+              already holds everything the paid search returned, so a bulk
+              button on that tab would sell a second copy of what is on screen.
+            */}
+            {selectedCount > 0 && shown === 'people' && (
+              <button
+                type="button"
+                onClick={() => void revealSelected()}
+                disabled={state.revealing}
+                title="Buys the full record for each ticked person: contact details, real surname, employer. About one credit each, and nothing for anyone already bought."
+                className="gradient-brand inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] transition disabled:opacity-60"
+              >
+                <Sparkles className="size-3.5" aria-hidden />
+                {state.revealing ? 'Revealing…' : `Reveal ${selectedCount}`}
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => dispatch({ type: 'selectAll', ids })}
@@ -334,6 +454,8 @@ export function Workspace() {
           </div>
         )}
 
+        {state.reveal && <RevealNote outcome={state.reveal} />}
+
         {state.results.length > 0 ? (
           <Results
             rows={state.results}
@@ -341,6 +463,7 @@ export function Workspace() {
             view={state.view}
             selected={state.selected}
             toggle={(id) => dispatch({ type: 'toggle', id })}
+            open={(row) => void openProfile(row, shown)}
           />
         ) : (
           !state.loading &&
@@ -382,6 +505,61 @@ export function Workspace() {
           </p>
         )}
       </section>
+
+      {state.profile && (
+        <ProfilePanel
+          profile={state.profile}
+          credits={state.profile.credits}
+          onClose={() => dispatch({ type: 'closeProfile' })}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * What a bulk reveal actually did.
+ *
+ * Four separate facts, and collapsing any of them into "revealed 40 people"
+ * loses something a reader needs. Bought and already-owned are different prices.
+ * Unreachable is not a miss: those ids were never billed and are free to ask for
+ * again, which is the opposite of what "Apollo has nothing on them" implies.
+ */
+function RevealNote({ outcome }: { outcome: RevealOutcome }) {
+  if (outcome.error) {
+    return (
+      <div
+        className="a-ring rounded-2xl border px-3.5 py-3 text-sm"
+        style={{ background: 'color-mix(in oklab, var(--h-rose) 8%, var(--surface-raised))' }}
+      >
+        {outcome.error}
+      </div>
+    );
+  }
+
+  const parts: string[] = [];
+  if (outcome.fetched > 0) parts.push(`${outcome.fetched} bought`);
+  if (outcome.cached > 0) parts.push(`${outcome.cached} already on file, free`);
+  if (parts.length === 0) parts.push('nobody new');
+
+  return (
+    <div className="surface-lit a-ring rounded-2xl px-3.5 py-2.5 text-sm">
+      <p className="text-muted">
+        <Sparkles
+          className="mr-1.5 inline size-3.5 align-[-2px]"
+          style={{ color: 'var(--h-amber)' }}
+          aria-hidden
+        />
+        {parts.join(' · ')}
+        {outcome.capped && ' · more than 50 were ticked, so the rest were left alone'}
+      </p>
+      {outcome.unreachable > 0 && (
+        <p className="text-subtle mt-1 text-xs leading-relaxed">
+          <span className="numeric font-semibold">{outcome.unreachable}</span> could not be reached
+          — Apollo did not answer for them, so they were neither revealed nor ruled out. Nothing was
+          charged, so ticking them again is free.
+        </p>
+      )}
     </div>
   );
 }

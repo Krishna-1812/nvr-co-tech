@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Entity } from './filters';
+import { RevealButton } from './Profile';
 import { rowId, type Row } from './store';
 
 /**
@@ -129,7 +130,17 @@ function MaskedBadge() {
 
 // ─── Person ──────────────────────────────────────────────────────────────────
 
-function PersonCard({ row, on, toggle }: { row: Row; on: boolean; toggle: () => void }) {
+function PersonCard({
+  row,
+  on,
+  toggle,
+  open,
+}: {
+  row: Row;
+  on: boolean;
+  toggle: () => void;
+  open: () => void;
+}) {
   const name = s(row.full_name) || 'Name withheld';
   const seniority = s(row.seniority_from_title);
   const functions = arr(row.functions_from_title);
@@ -232,13 +243,49 @@ function PersonCard({ row, on, toggle }: { row: Row; on: boolean; toggle: () => 
           )}
         </div>
       )}
+
+      {/*
+        The card's own footer. When this row has been revealed the details it
+        cost a credit to learn are shown HERE rather than only inside the panel:
+        an address behind one more click is an address somebody pays for twice
+        because they forgot they had it.
+      */}
+      <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+        {s(row.email) && (
+          <a
+            href={`mailto:${s(row.email)}`}
+            className="numeric text-muted min-w-0 truncate text-xs hover:underline"
+          >
+            {s(row.email)}
+          </a>
+        )}
+        {arr(row.phones)[0] && (
+          <span className="numeric text-subtle truncate text-xs">{arr(row.phones)[0]}</span>
+        )}
+        <span className="flex-1" />
+        <RevealButton
+          onClick={open}
+          enriched={row.enriched === true}
+          label={row.enriched === true ? 'Full record' : 'Reveal'}
+        />
+      </div>
     </article>
   );
 }
 
 // ─── Company ─────────────────────────────────────────────────────────────────
 
-function CompanyCard({ row, on, toggle }: { row: Row; on: boolean; toggle: () => void }) {
+function CompanyCard({
+  row,
+  on,
+  toggle,
+  open,
+}: {
+  row: Row;
+  on: boolean;
+  toggle: () => void;
+  open: () => void;
+}) {
   const name = s(row.name) || 'Unnamed company';
   const g = growth(row.growth12) ?? growth(row.growth6);
   const tech = arr(row.technologies);
@@ -323,12 +370,21 @@ function CompanyCard({ row, on, toggle }: { row: Row; on: boolean; toggle: () =>
         )}
       </div>
 
-      {tech.length > 0 && (
-        <p className="text-subtle truncate text-[11px]">
-          {tech.slice(0, 6).join(' · ')}
-          {tech.length > 6 && ` · +${tech.length - 6}`}
-        </p>
-      )}
+      <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+        {tech.length > 0 && (
+          <p className="text-subtle min-w-0 flex-1 truncate text-[11px]">
+            {tech.slice(0, 5).join(' · ')}
+            {tech.length > 5 && ` · +${tech.length - 5}`}
+          </p>
+        )}
+        <span className="flex-1" />
+        {/*
+          A company row already carries everything the paid search returned, so
+          this is not a reveal — it is the deeper record plus the free list of
+          who works at the top, which is the part a search result cannot show.
+        */}
+        <RevealButton onClick={open} enriched={false} label="Full profile" />
+      </div>
     </article>
   );
 }
@@ -360,11 +416,13 @@ function ResultTable({
   entity,
   selected,
   toggle,
+  open,
 }: {
   rows: Row[];
   entity: Entity;
   selected: Record<string, true>;
   toggle: (id: string) => void;
+  open: (row: Row) => void;
 }) {
   const columns = entity === 'companies' ? COMPANY_COLUMNS : PERSON_COLUMNS;
 
@@ -379,6 +437,7 @@ function ResultTable({
                 {label}
               </th>
             ))}
+            <th className="w-px px-3 py-2" />
           </tr>
         </thead>
         <tbody>
@@ -400,6 +459,19 @@ function ResultTable({
                     {read(row) || <span className="text-subtle">—</span>}
                   </td>
                 ))}
+                <td className="px-3 py-2 text-right">
+                  <RevealButton
+                    onClick={() => open(row)}
+                    enriched={row.enriched === true}
+                    label={
+                      entity === 'companies'
+                        ? 'Profile'
+                        : row.enriched === true
+                          ? 'Record'
+                          : 'Reveal'
+                    }
+                  />
+                </td>
               </tr>
             );
           })}
@@ -417,6 +489,7 @@ export function Results({
   view,
   selected,
   toggle,
+  open,
 }: {
   rows: Row[];
   /** `shownEntity`: what these rows ARE, never what the panel is set to. */
@@ -424,16 +497,25 @@ export function Results({
   view: 'cards' | 'table';
   selected: Record<string, true>;
   toggle: (id: string) => void;
+  /** Open the full record for one row. Costs a credit unless already bought. */
+  open: (row: Row) => void;
 }) {
   if (view === 'table') {
-    return <ResultTable rows={rows} entity={entity} selected={selected} toggle={toggle} />;
+    return (
+      <ResultTable rows={rows} entity={entity} selected={selected} toggle={toggle} open={open} />
+    );
   }
 
   return (
     <div className="stagger grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
       {rows.map((row) => {
         const id = rowId(row);
-        const props = { row, on: Boolean(selected[id]), toggle: () => toggle(id) };
+        const props = {
+          row,
+          on: Boolean(selected[id]),
+          toggle: () => toggle(id),
+          open: () => open(row),
+        };
         return entity === 'companies' ? (
           <CompanyCard key={id} {...props} />
         ) : (

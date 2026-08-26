@@ -910,14 +910,46 @@ export async function bulkMatchPeople(
 }
 
 /**
+ * One person, by whatever identifies them.
+ *
+ * **About one credit on a match; a miss is free.** The caller assembles the
+ * payload, because what identifies a person differs by where the request came
+ * from: an Apollo id from a search row is exact, a name and a domain is a guess
+ * that can land on the wrong one of two same-named colleagues, and an email
+ * address is somewhere in between.
+ *
+ * Returns null when Apollo answered and had nobody. **Throws** when Apollo did
+ * not answer, because those are different facts and a caller that renders them
+ * identically ends up stating that Apollo has no record of a person it was never
+ * asked about.
+ */
+export async function matchPerson(
+  payload: Record<string, unknown>,
+  apiKey: string,
+): Promise<ApolloRecord | null> {
+  const data = await post('people/match', payload, apiKey);
+  const person = data.person;
+  return isRecord(person) && Object.keys(person).length > 0 ? person : null;
+}
+
+/**
  * A company by domain.
  *
  * The cleaning here is deliberately NOT `cleanDomain`: no lowercasing, no `www.`
  * stripping, and the scheme is removed unanchored. Reproduced from the original
  * rather than tidied, because `organizations/enrich` is fussy and this is the
  * form that has been observed to work.
+ *
+ * `failed` is the same out-parameter pattern `bulkMatchPeople` uses, and it is
+ * here for the same reason: an empty result means either "Apollo has no such
+ * company" or "Apollo did not answer", and a caller that cannot tell them apart
+ * makes claims about a vendor's database out of a failed request.
  */
-export async function enrichCompany(domain: string, apiKey: string): Promise<ApolloRecord> {
+export async function enrichCompany(
+  domain: string,
+  apiKey: string,
+  failed?: { failed: boolean },
+): Promise<ApolloRecord> {
   const clean = domain.replace('https://', '').replace('http://', '').replace(/\/+$/, '');
   try {
     const data = await post('organizations/enrich', { domain: clean }, apiKey);
@@ -926,6 +958,7 @@ export async function enrichCompany(domain: string, apiKey: string): Promise<Apo
     return ('organization' in data ? (data.organization as ApolloRecord) : data) ?? {};
   } catch {
     console.error(`Failed to enrich company domain=${domain}`);
+    if (failed) failed.failed = true;
     return {};
   }
 }
@@ -941,13 +974,18 @@ export async function enrichCompany(domain: string, apiKey: string): Promise<Apo
  * regardless of which company was asked about: an id was always known, so the
  * domain path was never reached.
  */
-export async function enrichCompanyById(apolloId: string, apiKey: string): Promise<ApolloRecord> {
+export async function enrichCompanyById(
+  apolloId: string,
+  apiKey: string,
+  failed?: { failed: boolean },
+): Promise<ApolloRecord> {
   try {
     const data = await post('organizations/enrich', { id: apolloId }, apiKey);
     const org = 'organization' in data ? data.organization : data;
     return isRecord(org) && (org.id || org.name) ? org : {};
   } catch {
     console.error(`Failed to enrich company apollo_id=${apolloId}`);
+    if (failed) failed.failed = true;
     return {};
   }
 }

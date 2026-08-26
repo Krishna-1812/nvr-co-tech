@@ -181,6 +181,76 @@ export function mergeEmployerFacts(row: Record<string, unknown>, facts: Record<s
 }
 
 /**
+ * One REVEALED person, flattened into the same shape a searched person has.
+ *
+ * Contact details are included here and nowhere else in this file, and the rule
+ * is simple: reaching this function means somebody spent a credit on this
+ * person, and the free search path never calls it.
+ *
+ * The employer fields are the quiet win. `people/bulk_match` returns the
+ * employer as a full organisation record, so the firmographics the free path has
+ * to buy separately are already sitting in this response — read through the same
+ * mapper, so an enriched row and a searched row carry identical company fields,
+ * and this copy is free because the credit was spent on the person.
+ */
+export function enrichedPersonRow(p: ApolloRecord): Record<string, unknown> {
+  const org = (p.organization && typeof p.organization === 'object' ? p.organization : {}) as ApolloRecord;
+
+  const history = (Array.isArray(p.employment_history) ? p.employment_history : []).filter(
+    (h): h is ApolloRecord => Boolean(h) && typeof h === 'object',
+  );
+  const past = history.filter((h) => !h.current && h.organization_name);
+
+  const phones: string[] = [];
+  for (const raw of Array.isArray(p.phone_numbers) ? p.phone_numbers : []) {
+    if (!raw || typeof raw !== 'object') continue;
+    const n = raw as ApolloRecord;
+    const value = String(n.sanitized_number ?? n.raw_number ?? '').trim();
+    if (value && !phones.includes(value)) phones.push(value);
+  }
+
+  const facts = employerFacts(org);
+  const kept: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(facts)) {
+    if (value === null || value === undefined || value === '') continue;
+    if (Array.isArray(value) && value.length === 0) continue;
+    kept[key] = value;
+  }
+
+  return {
+    id: p.id ?? null,
+    full_name:
+      p.name ||
+      [p.first_name, p.last_name].map((x) => String(x ?? '').trim()).filter(Boolean).join(' ') ||
+      null,
+    first_name: p.first_name ?? null,
+    last_name: p.last_name ?? null,
+    // Never carried over from the search row it replaces: this record was
+    // bought, and the surname on it is the real one.
+    name_masked: false,
+    title: p.title ?? null,
+    headline: p.headline ?? null,
+    seniority: p.seniority ?? null,
+    departments: (Array.isArray(p.departments) ? p.departments : []).filter(Boolean),
+    email: p.email ?? null,
+    email_status: p.email_status ?? null,
+    phones: phones.slice(0, 3),
+    photo_url: p.photo_url ?? null,
+    linkedin_url: p.linkedin_url ?? null,
+    twitter_url: p.twitter_url ?? null,
+    city: p.city ?? null,
+    state: p.state ?? null,
+    country: p.country ?? null,
+    past_companies: past.slice(0, 3).map((h) => h.organization_name),
+    organization_id: org.id ?? p.organization_id ?? null,
+    organization_name: org.name ?? null,
+    ...kept,
+    ...deriveRole(p.title as string),
+    enriched: true,
+  };
+}
+
+/**
  * Seniority and function, read off the title, added to every person row.
  *
  * Free, so it sits **outside** the paid company-detail toggle: turning off the
