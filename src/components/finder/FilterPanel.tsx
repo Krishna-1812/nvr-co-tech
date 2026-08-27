@@ -252,20 +252,25 @@ export function FilterPanel({
   const advanced = advancedCount(entity, values);
 
   /*
-   * One column in a rail, three across a page.
+   * One column in a rail, two or three across a page.
    *
-   * Three and not four. A fourth column fits — at `2xl` the panel is 1168px and
-   * would give four tracks of 269 — but a track that narrow puts a "50 to 100"
-   * range pair back in the same squeeze the 26rem rail had, and the point of
-   * the wide layout is to stop cramping the controls, not to fit more of them
-   * in a row.
+   * Container queries rather than viewport ones, because the viewport is not
+   * what decides this. The panel is the full width at `xl` and three fifths of
+   * it at `2xl`, where the conversation takes the rest — so the same 1536px
+   * screen wants three columns in one state and two in the other, and a
+   * `lg:grid-cols-3` cannot tell those apart. `@container` asks the panel how
+   * wide it actually is, which is the only question that matters here.
+   *
+   * The thresholds are set by the controls, not by the grid: a track under
+   * about 280px puts a "50 to 100" range pair back in the squeeze the 26rem
+   * rail had, and the point of the wide layout is to stop cramping them.
    *
    * `items-start` matters: without it every group in a row stretches to the
    * tallest one, and a two-field group beside Location & company size gets
    * fifteen dead pixels under its last control.
    */
   const layout = wide
-    ? 'grid items-start gap-x-5 gap-y-4 sm:grid-cols-2 lg:grid-cols-3'
+    ? 'grid items-start gap-x-5 gap-y-4 @xl:grid-cols-2 @4xl:grid-cols-3'
     : 'space-y-4';
 
   return (
@@ -276,7 +281,9 @@ export function FilterPanel({
     <div className="flex min-h-0 flex-1 flex-col">
       <div
         className={cn(
-          'min-h-0 pr-0.5',
+          // `@container` so the fieldsets below can lay themselves out against
+          // this element's width rather than the window's. See `layout`.
+          '@container min-h-0 pr-0.5',
           // Scrolls only when it has to. In a rail it always has to; across the
           // page it does not, and an inner scroll region there would be a second
           // scroll bar over content that already fits.

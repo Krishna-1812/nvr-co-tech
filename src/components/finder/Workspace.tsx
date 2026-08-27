@@ -675,7 +675,31 @@ export function Workspace() {
   );
 
   return (
-    <div className="grid min-h-0 gap-4 xl:grid-cols-[26rem_minmax(0,1fr)] 2xl:grid-cols-[26rem_minmax(0,1fr)_24rem]">
+    <div
+      className={cn(
+        'grid min-h-0 gap-4',
+        /*
+          Two shapes, and which one is in use is decided by whether anything has
+          been searched for yet.
+
+          Once there are results it is three tracks: a 26rem rail of filters, the
+          results taking whatever is left, and a 24rem rail of conversation. Both
+          rails are fixed because the thing between them is what should get the
+          width — a results table is the one part of this screen that genuinely
+          reads better wider.
+
+          Before that there are no results, and the middle track would be an
+          empty column sized for rows nobody has fetched. So it becomes two
+          tracks in a 3:2 split: the filters, which are what somebody is here to
+          fill in, against the conversation, which is the other way of asking the
+          same question. Proportional rather than fixed, because with nothing in
+          between there is no reason for either panel to stop growing.
+        */
+        centerIdle
+          ? '2xl:grid-cols-[3fr_2fr]'
+          : 'xl:grid-cols-[26rem_minmax(0,1fr)] 2xl:grid-cols-[26rem_minmax(0,1fr)_24rem]',
+      )}
+    >
       {/*
         ── The filters ──
 
@@ -691,7 +715,17 @@ export function Workspace() {
         filters below the fold with no way to scroll to them — sticky on an
         element taller than the screen does not scroll, it parks.
       */}
-      <div className={cn(centerIdle ? 'xl:col-span-2' : 'xl:sticky xl:top-4 xl:self-start')}>
+      <div
+        className={cn(
+          centerIdle
+            ? // A plain grid item, so it stretches to the row and the panel
+              // beside it ends up exactly as tall. The floor is the same height
+              // the conversation rail has always had, so a panel with three
+              // filters set does not shrink the pair to a pair of slots.
+              '2xl:min-h-[calc(100vh-11rem)]'
+            : 'xl:sticky xl:top-4 xl:self-start',
+        )}
+      >
       <aside
         // Three heights, and the middle one is the interesting one.
         //
@@ -706,10 +740,12 @@ export function Workspace() {
         // Unbounded when it has the page, because then the cap is the whole
         // problem: it is what turns forty filters into a 500px scrolling box.
         // Given the width the fields lay out in columns and fit, so the panel
-        // is allowed to be exactly as long as it needs to be.
+        // is allowed to be exactly as long as it needs to be — and `h-full` at
+        // `2xl` hands that length straight to the conversation beside it, which
+        // is how the two stay the same height without either being capped.
         className={cn(
           'surface-lit a-ring flex flex-col rounded-2xl p-3.5',
-          !centerIdle && 'max-h-[calc(100vh-11rem)] xl:h-[calc(100vh-11rem)]',
+          centerIdle ? '2xl:h-full' : 'max-h-[calc(100vh-11rem)] xl:h-[calc(100vh-11rem)]',
         )}
       >
         {/*
@@ -1093,9 +1129,23 @@ export function Workspace() {
         into a narrow third column it would be too thin to read an answer in, and
         stacked under the grid it would be below the fold on every screen.
       */}
-      <div className="hidden 2xl:block">
-        <div className="sticky top-4 self-start">
-          <aside className="surface-lit a-ring flex h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5">
+      <div className={cn('hidden 2xl:block', centerIdle && '2xl:min-h-[calc(100vh-11rem)]')}>
+        {/*
+          One tree, two sets of classes, and never a second branch — the draft
+          message and the scroll position live inside Chat, and swapping the
+          shape of the markup around it would remount it and throw both away.
+
+          Beside results it is a fixed-height rail that stays put while the table
+          scrolls past. Beside the filters it takes the row's height instead, so
+          the two panels end level however long the filter panel turns out to be.
+        */}
+        <div className={cn(centerIdle ? 'h-full' : 'sticky top-4 self-start')}>
+          <aside
+            className={cn(
+              'surface-lit a-ring flex flex-col rounded-2xl p-3.5',
+              centerIdle ? 'h-full' : 'h-[calc(100vh-11rem)]',
+            )}
+          >
             {chat}
           </aside>
         </div>

@@ -324,31 +324,54 @@ export function Chat({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-0.5">
         {turns.length === 0 ? (
-          <div className="surface-sunken a-ring rounded-2xl px-3.5 py-4">
-            <p className="flex items-center gap-2 text-sm font-medium">
-              <MessagesSquare className="size-4" style={{ color: 'var(--h-violet)' }} aria-hidden />
-              Ask about a company or a person
-            </p>
-            <p className="text-muted mt-1.5 text-xs leading-relaxed">
-              Answers are grounded in what we actually hold, and say plainly when we hold nothing.
-              Where our records are silent, the question is still answered from the public web, and
-              the answer says which is which.
-            </p>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {[
-                'Who is the CMO of Thoughtworks?',
-                'List VPs of Sales at healthcare companies in Texas',
-                'Tell me about Snowflake',
-              ].map((example) => (
-                <button
-                  key={example}
-                  type="button"
-                  onClick={() => onSend(example)}
-                  className="surface-lit rounded-lg border px-2 py-1 text-left text-[11px] transition hover:border-[var(--border-strong)]"
-                >
-                  {example}
-                </button>
-              ))}
+          /*
+            Centred rather than parked at the top.
+
+            This panel is as tall as whatever sits beside it, which before the
+            first search is a filter panel running the height of the screen. An
+            invitation pinned to the top of that leaves two thirds of the panel
+            as blank wall and reads as something that failed to load. Capped in
+            width for the same reason: at three fifths of a wide screen the
+            prompts would otherwise stretch into a single thin line each.
+          */
+          <div className="flex min-h-full items-center justify-center py-2">
+            <div className="surface-sunken a-ring w-full max-w-md rounded-2xl px-4 py-4">
+              <p className="flex items-center gap-2 text-sm font-medium">
+                <MessagesSquare
+                  className="size-4"
+                  style={{ color: 'var(--h-violet)' }}
+                  aria-hidden
+                />
+                Ask about a company or a person
+              </p>
+              <p className="text-muted mt-1.5 text-xs leading-relaxed text-pretty">
+                Answers are grounded in what we actually hold, and say plainly when we hold
+                nothing. Where our records are silent, the question is still answered from the
+                public web, and the answer says which is which.
+              </p>
+              {/*
+                A column, not a wrapped row. These are three whole sentences of
+                different lengths, and flowing them beside each other made a
+                ragged block that had to be read to be told apart; stacked, each
+                one is a line you can aim at.
+              */}
+              <div className="mt-3 flex flex-col gap-1.5">
+                {[
+                  'Who is the CMO of Thoughtworks?',
+                  'List VPs of Sales at healthcare companies in Texas',
+                  'Tell me about Snowflake',
+                ].map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    onClick={() => onSend(example)}
+                    className="surface-lit a-ring text-muted group flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+                  >
+                    <span className="min-w-0 flex-1">{example}</span>
+                    <ArrowUp className="text-subtle size-3 shrink-0 rotate-45" aria-hidden />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
