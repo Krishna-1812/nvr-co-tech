@@ -148,7 +148,9 @@ describe('a page our own checks made short', () => {
   it('keeps Load more visible, because paging is a fact about Apollo', async () => {
     stubApollo([
       {
-        pagination: { total_entries: 355, total_pages: 15 },
+        // `mixed_people/api_search` never sends a page count, so this is what
+        // "Load more" has always actually been running on: a full page served.
+        total_entries: 355,
         people: Array.from({ length: 24 }, (_, i) => ({
           id: `p${i}`,
           title: i === 0 ? 'CMO' : 'Marketing Manager',
@@ -177,7 +179,7 @@ describe('a page our own checks made short', () => {
   it('blanks the total once anything was rejected', async () => {
     stubApollo([
       {
-        pagination: { total_entries: 355, total_pages: 15 },
+        total_entries: 355,
         people: [
           { id: 'a', title: 'CMO', organization: { id: 'o1' } },
           { id: 'b', title: 'Marketing Manager', organization: { id: 'o1' } },
@@ -336,7 +338,7 @@ describe('the free count', () => {
    * and the endpoint says that rather than passing the inflated one on.
    */
   it('sends a domain freely, then declines to report a total it cannot stand behind', async () => {
-    stubApollo([{ pagination: { total_entries: 412, total_pages: 20 }, people: [] }]);
+    stubApollo([{ total_entries: 412, people: [] }]);
     const out = await runCount('k', 'people', { company_domains: ['acme.com'] });
 
     expect(out.count).toBeNull();
@@ -347,7 +349,7 @@ describe('the free count', () => {
   });
 
   it('reports a plain total when nothing was re-checked in code', async () => {
-    stubApollo([{ pagination: { total_entries: 412, total_pages: 20 }, people: [] }]);
+    stubApollo([{ total_entries: 412, people: [] }]);
     const out = await runCount('k', 'people', { seniorities: ['c_suite'] });
 
     expect(out.count).toBe(412);
@@ -360,14 +362,14 @@ describe('the free count', () => {
    * exact claim this tool exists not to make.
    */
   it('marks the figure approximate whenever a re-checked filter is set', async () => {
-    stubApollo([{ pagination: { total_entries: 2400, total_pages: 100 }, people: [] }]);
+    stubApollo([{ total_entries: 2400, people: [] }]);
     const out = await runCount('k', 'people', { industries: ['healthcare'] });
     expect(out.count).toBe(2400);
     expect(out.approx).toBe(true);
   });
 
   it('never forwards the employer lookup, which is the part that costs', async () => {
-    stubApollo([{ pagination: { total_entries: 10, total_pages: 1 }, people: [] }]);
+    stubApollo([{ total_entries: 10, people: [] }]);
     const out = await runCount('k', 'people', { titles: ['CMO'], company_detail: true });
     // One call: the free search. A second would be the paid employer lookup.
     expect(out.count).toBe(10);

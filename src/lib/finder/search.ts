@@ -455,8 +455,9 @@ export async function runCount(
 
   const meta: SearchMeta = {};
   try {
-    // One row, because the count is in the pagination envelope rather than in
-    // the rows: asking for a full page would be paying attention we do not need.
+    // One row, because the count is a separate field on the envelope, not
+    // something read off the rows: asking for a full page would be paying
+    // attention we do not need.
     await searchPeople(filters as PeopleFilters, apiKey, { perPage: 1, meta, strict: true });
   } catch {
     return { count: null, reason: 'Could not reach Apollo.' };

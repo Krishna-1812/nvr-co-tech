@@ -205,13 +205,23 @@ describe('the domain filter, which Apollo does not really apply', () => {
 
 describe("Apollo's own totals", () => {
   /*
+   * `mixed_people/api_search` puts `total_entries` at the TOP LEVEL of the
+   * envelope — confirmed against a live account — and never sends a
+   * `total_pages` at all, in any shape. Reading `data.pagination.total_entries`
+   * here once meant reading a key that was never there, which is what left
+   * every people search reporting "Apollo does not report a total for this
+   * filter set", regardless of the filters. These mocks are shaped like the
+   * real response for exactly that reason.
+   */
+
+  /*
    * Two different reasons the total stops describing the rows, and one thing
    * that must survive both.
    */
   it('blanks the row total once we have removed rows, because it counted a looser match', async () => {
     stubFetch(() =>
       reply({
-        pagination: { total_entries: 4000, total_pages: 40 },
+        total_entries: 4000,
         people: [
           { id: 'a', organization: { primary_domain: 'acme.com' } },
           { id: 'b', organization: { primary_domain: 'other.com' } },
@@ -222,9 +232,10 @@ describe("Apollo's own totals", () => {
     await searchPeople({ company_domains: ['acme.com'] }, 'k', { strict: true, meta, perPage: 25 });
 
     expect(meta.total_entries).toBeNull();
-    // Never invalidated: it describes Apollo's paging, not our filtering, and
-    // reading it as invalid is what hid "Load more".
-    expect(meta.total_pages).toBe(40);
+    // This endpoint never sends a page count at all, so there is nothing here
+    // that could survive being invalidated — unlike the company search, which
+    // genuinely has one.
+    expect(meta.total_pages).toBeNull();
   });
 
   /*
@@ -235,7 +246,7 @@ describe("Apollo's own totals", () => {
   it('blanks a total that claims millions while the page came back short', async () => {
     stubFetch(() =>
       reply({
-        pagination: { total_entries: 83_000_000, total_pages: 1000 },
+        total_entries: 83_000_000,
         people: [{ id: 'a', organization: { primary_domain: 'acme.com' } }],
       }),
     );
@@ -247,7 +258,7 @@ describe("Apollo's own totals", () => {
   it('keeps the total on a genuinely short last page', async () => {
     stubFetch(() =>
       reply({
-        pagination: { total_entries: 26, total_pages: 2 },
+        total_entries: 26,
         people: [{ id: 'a', organization: { primary_domain: 'acme.com' } }],
       }),
     );

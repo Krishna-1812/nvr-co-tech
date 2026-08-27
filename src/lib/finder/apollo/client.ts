@@ -796,9 +796,18 @@ export async function searchPeople(
   }
 
   if (meta) {
-    const pagination = isRecord(data.pagination) ? data.pagination : {};
-    meta.total_entries = (pagination.total_entries as number | null) ?? null;
-    meta.total_pages = (pagination.total_pages as number | null) ?? null;
+    /*
+     * `mixed_people/api_search` answers with `total_entries` at the top level
+     * of the envelope, never nested in a `pagination` object — confirmed
+     * against a live account, where reading `data.pagination.total_entries`
+     * here always read `undefined` off an object that was never there and
+     * quietly nulled the count for every search this tool has ever run. There
+     * is no `total_pages` on this endpoint at all, in any shape; the fallback
+     * a few lines down (`served >= perPage`) is what "Load more" has actually
+     * been running on the whole time, correctly, and stays as-is.
+     */
+    meta.total_entries = (data.total_entries as number | null) ?? null;
+    meta.total_pages = null;
   }
 
   const merged = mergePeopleBuckets(data);

@@ -15,7 +15,9 @@
     "xlsx:sample": "vite-node --config vitest.config.mts scripts/make-sample-xlsx.mts",
     "recon:sample": "vite-node --config vitest.config.mts scripts/make-sample-recon.tsx",
     "brand:icons": "vite-node --config vitest.config.mts scripts/build-brand.mts",
-    "ingest:dry": "vite-node --config vitest.config.mts scripts/ingest-dry.mts"
+    "ingest:dry": "vite-node --config vitest.config.mts scripts/ingest-dry.mts",
+    "finder:audit-filters": "vite-node --config vitest.config.mts scripts/finder-live-audit.mts",
+    "finder:audit-chat": "vite-node --config vitest.config.mts scripts/finder-chat-audit.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",
