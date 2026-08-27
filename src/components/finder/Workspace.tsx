@@ -66,14 +66,6 @@ export function Workspace() {
    */
   const [railOpen, setRailOpen] = useState(false);
 
-  /**
-   * Which section of the rail is showing: the fields that shape a search, or
-   * history / the working list / this month's spend, which are about every
-   * search rather than the one on screen. Plain component state, same reason
-   * as `railOpen` — it describes the rail, not the search.
-   */
-  const [panelTab, setPanelTab] = useState<'filters' | 'activity'>('filters');
-
   /*
    * A sequence number, so a slow answer to an earlier keystroke cannot land on
    * top of a fast answer to a later one.
@@ -674,31 +666,61 @@ export function Workspace() {
         className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5 xl:h-[calc(100vh-11rem)]"
       >
         {/*
-          Filters vs Activity. History, the working list and this month's
-          spend used to sit above the results instead — a place that has
-          nothing to do with what they are. None of the three describe the
-          current search; they describe every search, which is a property of
-          this rail, not of whichever result set happens to be on screen.
+          Above the tabs, because a sentence decides which tab it belongs on.
+          Below nothing, because it is the first thing most people will try.
         */}
+        <div className="mb-3 shrink-0">
+          <AskBar
+            onFill={(text) => void fill(text)}
+            busy={state.filling}
+            outcome={state.fill}
+            onDismiss={() => dispatch({ type: 'dismissFill' })}
+          />
+        </div>
+
+        {/*
+          Below the width where this becomes a column of its own, forty filters
+          sit between somebody and their own results. The disclosure is only
+          rendered there: at `xl` and above the rail is beside the results, not
+          on top of them, and a collapse would be a click for nothing.
+        */}
+        <button
+          type="button"
+          onClick={() => setRailOpen((o) => !o)}
+          aria-expanded={railOpen}
+          className="surface-sunken text-muted mb-3 flex shrink-0 items-center gap-2 rounded-xl border px-2.5 py-2 text-sm transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)] xl:hidden"
+        >
+          <SlidersHorizontal className="size-4" aria-hidden />
+          {railOpen ? 'Hide filters' : 'Set filters by hand'}
+          {setFilterCount > 0 && (
+            <span className="gradient-brand ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              {setFilterCount}
+            </span>
+          )}
+        </button>
+
         <div
           role="radiogroup"
-          aria-label="Filter panel section"
-          className="surface-sunken mb-3 flex shrink-0 rounded-xl border p-1"
+          aria-label="What to search for"
+          className={cn(
+            'surface-sunken mb-3 shrink-0 rounded-xl border p-1',
+            railOpen ? 'flex' : 'hidden xl:flex',
+          )}
         >
           {(
             [
-              ['filters', 'Filters', SlidersHorizontal],
-              ['activity', 'Activity', Clock],
+              ['people', 'People', Users],
+              ['companies', 'Companies', Building2],
             ] as const
           ).map(([value, label, Icon]) => {
-            const on = panelTab === value;
+            const on = state.entity === value;
             return (
               <button
                 key={value}
                 type="button"
                 role="radio"
                 aria-checked={on}
-                onClick={() => setPanelTab(value)}
+                onClick={() => dispatch({ type: 'entity', entity: value })}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-sm font-medium transition',
                   on
@@ -708,137 +730,65 @@ export function Workspace() {
               >
                 <Icon className="size-4" aria-hidden />
                 {label}
-                {value === 'activity' && state.listCount > 0 && (
-                  <span
-                    className={cn(
-                      'numeric rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
-                      on ? 'bg-white/20 text-white' : 'gradient-brand text-white',
-                    )}
-                  >
-                    {state.listCount}
-                  </span>
-                )}
               </button>
             );
           })}
         </div>
 
-        {panelTab === 'filters' ? (
-          <>
-            {/*
-              Above the People/Companies switch, because a sentence decides
-              which one it belongs on. Below nothing else on this tab, because
-              it is the first thing most people will try.
-            */}
-            <div className="mb-3 shrink-0">
-              <AskBar
-                onFill={(text) => void fill(text)}
-                busy={state.filling}
-                outcome={state.fill}
-                onDismiss={() => dispatch({ type: 'dismissFill' })}
-              />
-            </div>
+        <FilterPanel
+          entity={state.entity}
+          values={state.values}
+          set={set}
+          onClear={() => dispatch({ type: 'clear' })}
+          onSearch={() => void search(true)}
+          loading={state.loading}
+          count={state.count}
+          counting={state.counting}
+          showFields={railOpen}
+        />
 
-            {/*
-              Below the width where this becomes a column of its own, forty
-              filters sit between somebody and their own results. The
-              disclosure is only rendered there: at `xl` and above the rail is
-              beside the results, not on top of them, and a collapse would be
-              a click for nothing.
-            */}
-            <button
-              type="button"
-              onClick={() => setRailOpen((o) => !o)}
-              aria-expanded={railOpen}
-              className="surface-sunken text-muted mb-3 flex shrink-0 items-center gap-2 rounded-xl border px-2.5 py-2 text-sm transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)] xl:hidden"
-            >
-              <SlidersHorizontal className="size-4" aria-hidden />
-              {railOpen ? 'Hide filters' : 'Set filters by hand'}
-              {setFilterCount > 0 && (
-                <span className="gradient-brand ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                  {setFilterCount}
-                </span>
-              )}
-            </button>
-
-            <div
-              role="radiogroup"
-              aria-label="What to search for"
-              className={cn(
-                'surface-sunken mb-3 shrink-0 rounded-xl border p-1',
-                railOpen ? 'flex' : 'hidden xl:flex',
-              )}
-            >
-              {(
-                [
-                  ['people', 'People', Users],
-                  ['companies', 'Companies', Building2],
-                ] as const
-              ).map(([value, label, Icon]) => {
-                const on = state.entity === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    onClick={() => dispatch({ type: 'entity', entity: value })}
-                    className={cn(
-                      'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-sm font-medium transition',
-                      on
-                        ? 'gradient-brand text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
-                        : 'text-muted hover:text-[var(--text-c)]',
-                    )}
-                  >
-                    <Icon className="size-4" aria-hidden />
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <FilterPanel
-              entity={state.entity}
-              values={state.values}
-              set={set}
-              onClear={() => dispatch({ type: 'clear' })}
-              onSearch={() => void search(true)}
-              loading={state.loading}
-              count={state.count}
-              counting={state.counting}
-              showFields={railOpen}
-            />
-          </>
-        ) : (
-          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-0.5">
+        {/*
+          History, the working list and this month's spend, below the fields
+          rather than mixed among them: none of the three change what a search
+          asks for, they are about every search rather than the one being set
+          up, so they sit under the Search button as their own sections instead
+          of competing with the filters for the same space.
+        */}
+        <div className="mt-3 shrink-0 space-y-3 border-t pt-3">
+          <div className="space-y-1.5">
+            <p className="a-label px-0.5">History</p>
             <button
               type="button"
               onClick={() => dispatch({ type: 'drawer', drawer: 'history' })}
-              className="surface-lit a-ring text-muted flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+              className="surface-lit a-ring text-muted flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
             >
               <Clock className="size-4" aria-hidden />
-              History
+              What you have looked up
             </button>
+          </div>
 
+          <div className="space-y-1.5">
+            <p className="a-label px-0.5">List</p>
             <button
               type="button"
               onClick={() => dispatch({ type: 'drawer', drawer: 'list' })}
-              className="surface-lit a-ring text-muted flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+              className="surface-lit a-ring text-muted flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
             >
               <ListPlus className="size-4" aria-hidden />
-              List
+              Your working list
               {state.listCount > 0 && (
                 <span className="numeric tinted ml-auto rounded px-1.5 py-0.5 text-[10px] font-semibold">
                   {state.listCount}
                 </span>
               )}
             </button>
-
-            <div className="border-t pt-3">
-              <CreditLine watched={state.spent} />
-            </div>
           </div>
-        )}
+
+          <div className="space-y-1.5">
+            <p className="a-label px-0.5">Credits spent</p>
+            <CreditLine watched={state.spent} />
+          </div>
+        </div>
       </aside>
       </div>
 
