@@ -56,7 +56,7 @@ export function MobileDock({ nav }: { nav: NavItem[] }) {
             shortLabel={item.short}
             icon={<item.icon className="size-4.5" aria-hidden />}
             badge={item.badge}
-            exact={item.href === '/admin'}
+            exact={item.exact}
             variant="dock"
           />
         ))}

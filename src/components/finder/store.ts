@@ -114,8 +114,6 @@ export type State = {
   detailForced: boolean;
   invalidCodes: Record<string, { codes: string[]; hint: string }> | null;
   fundingClamped: boolean;
-  /** Credits this browser has watched being spent, since the page loaded. */
-  spent: number;
   view: View;
   /** Apollo's own free count for the filters as they stand, and whether it is a bound. */
   count: { value: number | null; approx: boolean; reason?: string } | null;
@@ -133,7 +131,6 @@ export type State = {
   historyTruncated: { kept: number; of: number } | null;
   /** How many rows are on the working list, so the button can say. */
   listCount: number;
-  drawer: 'history' | 'list' | null;
   /**
    * The conversation, resent in full on every turn.
    *
@@ -181,14 +178,12 @@ export const INITIAL: State = {
   detailForced: false,
   invalidCodes: null,
   fundingClamped: false,
-  spent: 0,
   view: 'cards',
   count: null,
   counting: false,
   historyId: null,
   historyTruncated: null,
   listCount: 0,
-  drawer: null,
   chat: [],
   chatBusy: false,
   chatContext: null,
@@ -222,7 +217,6 @@ export type Action =
   | { type: 'dismissFill' }
   | { type: 'saved'; id: number | null; truncated: { kept: number; of: number } | null }
   | { type: 'listCount'; count: number }
-  | { type: 'drawer'; drawer: State['drawer'] }
   | {
       type: 'reopen';
       entity: Entity;
@@ -334,7 +328,6 @@ export function reducer(state: State, action: Action): State {
         detailForced: Boolean(out.industry_forced_company_detail),
         invalidCodes: out.invalid_codes ?? null,
         fundingClamped: Boolean(out.funding_value_clamped),
-        spent: state.spent + (out.credits ?? 0),
         // Turning the lookup back on is a fact about what ran, so the control
         // catches up with it rather than continuing to claim it was off.
         values: out.industry_forced_company_detail
@@ -392,8 +385,6 @@ export function reducer(state: State, action: Action): State {
         ...state,
         chatBusy: false,
         chat,
-        // A question can spend, so it counts on the same line the searches do.
-        spent: state.spent + (action.turn.credits ?? 0),
         /*
          * A reply carrying a company supersedes the pin; a reply saying to clear
          * it drops the pin; a reply saying neither leaves it exactly where it
@@ -445,9 +436,6 @@ export function reducer(state: State, action: Action): State {
     case 'listCount':
       return { ...state, listCount: action.count };
 
-    case 'drawer':
-      return { ...state, drawer: action.drawer };
-
     case 'reopen':
       /*
        * A reopened entry is a snapshot, not a live search. `hasMore` is false
@@ -457,7 +445,6 @@ export function reducer(state: State, action: Action): State {
        */
       return {
         ...state,
-        drawer: null,
         loading: false,
         failure: null,
         notice: null,
@@ -499,7 +486,6 @@ export function reducer(state: State, action: Action): State {
       if (!state.profile) return state;
       return {
         ...state,
-        spent: state.spent + (action.credits ?? 0),
         profile: {
           ...state.profile,
           loading: false,
@@ -534,7 +520,6 @@ export function reducer(state: State, action: Action): State {
         revealing: false,
         results,
         reveal: action.outcome,
-        spent: state.spent + action.credits,
       };
     }
 

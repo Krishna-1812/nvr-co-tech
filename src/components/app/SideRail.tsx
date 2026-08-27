@@ -86,8 +86,9 @@ export function SideRail({ section, fiscal }: { section: Section; fiscal: Fiscal
             icon={<item.icon className="size-4" aria-hidden />}
             badge={item.badge}
             // Two destinations that are prefixes of each other need the parent
-            // pinned to an exact match, or it stays lit inside the child.
-            exact={item.href === '/admin' || item.href === '/reconcile'}
+            // pinned to an exact match, or it stays lit inside the child. Which
+            // ones nest is declared on the section, not guessed at here.
+            exact={item.exact}
           />
         ))}
       </nav>

@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import Link from 'next/link';
 import {
+  ArrowUpRight,
   Building2,
-  Clock,
   Download,
   LayoutGrid,
   ListPlus,
@@ -19,7 +20,6 @@ import { Drawer } from '@/components/ui/Drawer';
 import { AskBar } from './AskBar';
 import { InvalidCodes, QueryBar, RejectionBanner } from './Banners';
 import { Chat, type ChatContext, type EnrichChip, type Turn } from './Chat';
-import { CreditLine, HistoryDrawer, ListDrawer } from './Drawers';
 import { FilterPanel } from './FilterPanel';
 import { ProfilePanel } from './Profile';
 import { Results } from './Results';
@@ -534,15 +534,23 @@ export function Workspace() {
   /** Reopen a saved entry. Costs nothing, which is the entire point of it. */
   const reopen = useCallback(async (id: number) => {
     try {
-      const entry = await fetch(`/api/finder/history/${id}`).then(
-        (r) =>
-          r.json() as Promise<{
-            entity?: string;
-            filters?: Record<string, unknown>;
-            rows?: Row[];
-            total?: number | null;
-          }>,
-      );
+      const entry = await fetch(`/api/finder/history/${id}`).then((r) => {
+        /*
+          A 404 answers with JSON like everything else here, so without this the
+          error body parses cleanly into an entry with no rows and the screen
+          shows an empty result set — "that search found nobody" in place of
+          "that entry is gone". Those are the two facts this whole tool exists
+          not to confuse, and an id in the URL can outlive its entry by a
+          bookmark or a back button, so it has to be the checked case.
+        */
+        if (!r.ok) throw new Error(`history ${r.status}`);
+        return r.json() as Promise<{
+          entity?: string;
+          filters?: Record<string, unknown>;
+          rows?: Row[];
+          total?: number | null;
+        }>;
+      });
       const entity: Entity = entry.entity === 'companies' ? 'companies' : 'people';
       const panel = (entry.filters?.panel ?? {}) as PanelValues;
 
@@ -558,9 +566,32 @@ export function Workspace() {
         id,
       });
     } catch {
-      dispatch({ type: 'drawer', drawer: null });
+      /*
+       * Silent on purpose. This runs from a link on the Activity screen, and
+       * the failure it can actually have is an entry deleted in another tab
+       * between the click and the fetch. Landing on an empty search screen is
+       * the right outcome for that; an alarm about a search nobody is waiting
+       * on would be louder than the fact.
+       */
     }
   }, []);
+
+  /**
+   * `/contacts?reopen=<id>`, which is how the Activity screen gets back here.
+   *
+   * Read from `window.location` once on mount rather than through
+   * `useSearchParams`, because there is nothing to react to: an id in the URL
+   * is an instruction that has either been carried out or not, and re-running
+   * it on a later render would fetch a result set the reducer is already
+   * holding. The parameter is stripped afterwards with `replaceState` so a
+   * refresh does not undo whatever has been done since.
+   */
+  useEffect(() => {
+    const id = Number(new URLSearchParams(window.location.search).get('reopen'));
+    if (!Number.isInteger(id) || id <= 0) return;
+    window.history.replaceState(null, '', window.location.pathname);
+    void reopen(id);
+  }, [reopen]);
 
   const ids = state.results.map(rowId).filter(Boolean);
   const selectedCount = Object.keys(state.selected).length;
@@ -654,8 +685,16 @@ export function Workspace() {
         so putting both on one element left the rail scrolling away with the
         page while looking like it should not.
       */}
-      <div className={cn('xl:sticky xl:top-4 xl:self-start', centerIdle && 'xl:col-span-2')}>
+      {/*
+        Sticky only while it is a rail. Stuck to `top-4` at its full width it
+        would pin its own top to the viewport and leave the bottom third of the
+        filters below the fold with no way to scroll to them — sticky on an
+        element taller than the screen does not scroll, it parks.
+      */}
+      <div className={cn(centerIdle ? 'xl:col-span-2' : 'xl:sticky xl:top-4 xl:self-start')}>
       <aside
+        // Three heights, and the middle one is the interesting one.
+        //
         // Content-sized below `xl`, where this is a disclosure sitting on top
         // of the results rather than a column beside them — a fixed height
         // there would be a slab of empty rail on a phone with three fields set.
@@ -663,7 +702,15 @@ export function Workspace() {
         // this tall regardless of how long the conversation is, so a filter
         // panel that stopped at its own content looked like the shorter,
         // lesser-considered surface next to it.
-        className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5 xl:h-[calc(100vh-11rem)]"
+        //
+        // Unbounded when it has the page, because then the cap is the whole
+        // problem: it is what turns forty filters into a 500px scrolling box.
+        // Given the width the fields lay out in columns and fit, so the panel
+        // is allowed to be exactly as long as it needs to be.
+        className={cn(
+          'surface-lit a-ring flex flex-col rounded-2xl p-3.5',
+          !centerIdle && 'max-h-[calc(100vh-11rem)] xl:h-[calc(100vh-11rem)]',
+        )}
       >
         {/*
           Above the tabs, because a sentence decides which tab it belongs on.
@@ -745,50 +792,8 @@ export function Workspace() {
           count={state.count}
           counting={state.counting}
           showFields={railOpen}
+          wide={centerIdle}
         />
-
-        {/*
-          History, the working list and this month's spend, below the fields
-          rather than mixed among them: none of the three change what a search
-          asks for, they are about every search rather than the one being set
-          up, so they sit under the Search button as their own sections instead
-          of competing with the filters for the same space.
-        */}
-        <div className="mt-3 shrink-0 space-y-3 border-t pt-3">
-          <div className="space-y-1.5">
-            <p className="a-label px-0.5">History</p>
-            <button
-              type="button"
-              onClick={() => dispatch({ type: 'drawer', drawer: 'history' })}
-              className="surface-lit a-ring text-muted flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
-            >
-              <Clock className="size-4" aria-hidden />
-              What you have looked up
-            </button>
-          </div>
-
-          <div className="space-y-1.5">
-            <p className="a-label px-0.5">List</p>
-            <button
-              type="button"
-              onClick={() => dispatch({ type: 'drawer', drawer: 'list' })}
-              className="surface-lit a-ring text-muted flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
-            >
-              <ListPlus className="size-4" aria-hidden />
-              Your working list
-              {state.listCount > 0 && (
-                <span className="numeric tinted ml-auto rounded px-1.5 py-0.5 text-[10px] font-semibold">
-                  {state.listCount}
-                </span>
-              )}
-            </button>
-          </div>
-
-          <div className="space-y-1.5">
-            <p className="a-label px-0.5">Credits spent</p>
-            <CreditLine watched={state.spent} />
-          </div>
-        </div>
       </aside>
       </div>
 
@@ -819,6 +824,25 @@ export function Workspace() {
               <ListPlus className="size-3.5" aria-hidden />
               {selectedCount > 0 ? `Add ${selectedCount} to list` : 'Add all to list'}
             </button>
+
+            {/*
+              Where the rows just added went, said once they exist. Adding to a
+              list you cannot see from here is a button with no receipt, and the
+              count is the receipt — it is also the only thing on this screen
+              that knows the list has anything on it at all.
+            */}
+            {state.listCount > 0 && (
+              <Link
+                href="/contacts/activity"
+                className="text-subtle inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs transition hover:text-[var(--text-c)]"
+              >
+                <span className="numeric font-semibold text-[var(--text-muted)]">
+                  {state.listCount}
+                </span>
+                on your list
+                <ArrowUpRight className="size-3.5" aria-hidden />
+              </Link>
+            )}
 
             {(
               [
@@ -1118,18 +1142,6 @@ export function Workspace() {
         />
       )}
 
-      <HistoryDrawer
-        open={state.drawer === 'history'}
-        onClose={() => dispatch({ type: 'drawer', drawer: null })}
-        onReopen={(id) => void reopen(id)}
-      />
-
-      <ListDrawer
-        open={state.drawer === 'list'}
-        onClose={() => dispatch({ type: 'drawer', drawer: null })}
-        onCount={(count) => dispatch({ type: 'listCount', count })}
-        onExport={(entity, rows) => exportRows(entity, rows, 'xlsx')}
-      />
     </div>
   );
 }

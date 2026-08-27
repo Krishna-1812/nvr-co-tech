@@ -49,6 +49,17 @@ export type NavItem = {
   /** Kept out of the phone dock, which has room for four things at most. */
   secondary?: boolean;
   /**
+   * Match this path only, not its subtree.
+   *
+   * Needed wherever one destination's href is a prefix of another's — `/admin`
+   * under `/admin/chapters`, `/contacts` under `/contacts/activity`. Without it
+   * the parent stays lit inside its own child and the rail shows two current
+   * pages. It lives here rather than in the rail because which hrefs nest is a
+   * fact about the section, and the rail and the dock were each keeping their
+   * own half-complete list of them.
+   */
+  exact?: boolean;
+  /**
    * What the phone dock calls it, when the full label does not fit a cell.
    *
    * A dock cell is a sixth of a phone at worst, about 61px. "Organisations"
@@ -115,6 +126,7 @@ export function voucherSection({
               icon: Users,
               hint: 'People, chapters and deleted vouchers',
               secondary: true,
+              exact: true,
             },
           ]
         : []),
@@ -181,6 +193,7 @@ export function analyticsSection(): Section {
         label: 'Overview',
         icon: Activity,
         hint: 'Traffic, where it came from and how the site is holding up',
+        exact: true,
       },
       /*
        * Second, and deliberately ahead of everything about the public site. This
@@ -268,12 +281,17 @@ export const FINDER_SLUG = 'contact-finder';
 /**
  * Contact Finder.
  *
- * Two items, and the working list and the history are deliberately not among
- * them. Both are drawers over the search screen rather than destinations,
- * because a result set here is expensive: the rows on screen may have cost
- * credits to describe and cannot be rebuilt from the URL, so a rail item that
- * navigated away from them would be a button that throws away money. A drawer
- * lets you check what you have collected without losing what you are collecting.
+ * Two things: the tool, and everything the tool has already done. Activity holds
+ * what was looked up, what was kept and what it cost — three views of the same
+ * spending, which is the one thing about this tool worth a screen of its own.
+ *
+ * Those three used to be drawers over the search screen, on the reasoning that a
+ * result set here is expensive: the rows on screen cost credits to describe and
+ * cannot be rebuilt from a URL, so navigating away from them would be a button
+ * that throws away money. That is still true, and it is why reopening an entry
+ * from Activity returns to /contacts carrying the stored rows rather than
+ * running the search again. With the way back free, the drawer was working
+ * around a cost that is no longer there.
  */
 export function finderSection(): Section {
   return {
@@ -286,6 +304,15 @@ export function finderSection(): Section {
         label: 'Search',
         icon: Search,
         hint: 'Find people and companies by role, seniority, industry or size',
+        // /contacts/activity lives under this href; without `exact` the rail
+        // lights Search while you are standing on Activity.
+        exact: true,
+      },
+      {
+        href: '/contacts/activity',
+        label: 'Activity',
+        icon: Activity,
+        hint: 'Searches you have run, the rows you kept, and what the credits went on',
       },
       {
         href: '/settings',
@@ -316,6 +343,7 @@ export function assistSection(): Section {
         label: 'Ask',
         icon: Sparkles,
         hint: 'Questions about the tools and the accounting',
+        exact: true,
       },
       {
         href: '/ask/history',
@@ -375,6 +403,7 @@ export function valuationSection({ canSeed }: { canSeed: boolean }): Section {
         label: 'Comparables',
         icon: Layers,
         hint: 'Peer companies, their multiples, and what they imply',
+        exact: true,
       },
       ...(canSeed
         ? [
@@ -414,6 +443,7 @@ export function reconSection(): Section {
         label: 'Reconcile',
         icon: Scale,
         hint: 'Match two ledgers and get the statement',
+        exact: true,
       },
       {
         href: '/reconcile/history',

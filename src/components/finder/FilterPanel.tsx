@@ -210,6 +210,7 @@ export function FilterPanel({
   count,
   counting,
   showFields = true,
+  wide = false,
 }: {
   entity: Entity;
   values: PanelValues;
@@ -232,10 +233,40 @@ export function FilterPanel({
    * panel somebody has to open only in order to close again.
    */
   showFields?: boolean;
+  /**
+   * Whether the panel has the whole screen rather than a 26rem rail.
+   *
+   * True before the first search, when there are no results to sit beside and
+   * the rail spans the results column too. In a rail there is only ever room
+   * for one column of controls, and forty of them in one column is a scroll
+   * bar between somebody and half their own filters — the long tail of the
+   * panel is invisible, so it goes unused. Given the width, the same fields
+   * lay out in three or four columns and the whole panel is on screen at once,
+   * which is the difference between filters you can browse and filters you
+   * have to remember are there.
+   */
+  wide?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const groups = groupsFor(entity);
   const advanced = advancedCount(entity, values);
+
+  /*
+   * One column in a rail, three across a page.
+   *
+   * Three and not four. A fourth column fits — at `2xl` the panel is 1168px and
+   * would give four tracks of 269 — but a track that narrow puts a "50 to 100"
+   * range pair back in the same squeeze the 26rem rail had, and the point of
+   * the wide layout is to stop cramping the controls, not to fit more of them
+   * in a row.
+   *
+   * `items-start` matters: without it every group in a row stretches to the
+   * tallest one, and a two-field group beside Location & company size gets
+   * fifteen dead pixels under its last control.
+   */
+  const layout = wide
+    ? 'grid items-start gap-x-5 gap-y-4 sm:grid-cols-2 lg:grid-cols-3'
+    : 'space-y-4';
 
   return (
     // `flex-1`: this is a direct flex child of the `aside` in Workspace, which
@@ -245,17 +276,23 @@ export function FilterPanel({
     <div className="flex min-h-0 flex-1 flex-col">
       <div
         className={cn(
-          'min-h-0 flex-1 space-y-4 overflow-y-auto pr-0.5',
+          'min-h-0 pr-0.5',
+          // Scrolls only when it has to. In a rail it always has to; across the
+          // page it does not, and an inner scroll region there would be a second
+          // scroll bar over content that already fits.
+          wide ? 'space-y-4' : 'flex-1 space-y-4 overflow-y-auto',
           // `hidden` rather than a height of zero: a control nobody can see must
           // not still be reachable by keyboard.
           !showFields && 'hidden xl:block',
         )}
       >
-        {groups
-          .filter((g) => !g.advanced)
-          .map((g) => (
-            <Fieldset key={g.title} title={g.title} fields={g.fields} values={values} set={set} />
-          ))}
+        <div className={layout}>
+          {groups
+            .filter((g) => !g.advanced)
+            .map((g) => (
+              <Fieldset key={g.title} title={g.title} fields={g.fields} values={values} set={set} />
+            ))}
+        </div>
 
         <div>
           <button
@@ -280,7 +317,7 @@ export function FilterPanel({
           </button>
 
           {open && (
-            <div className="mt-3 space-y-4 border-l-2 pl-3">
+            <div className={cn('mt-3 border-l-2 pl-3', layout)}>
               {groups
                 .filter((g) => g.advanced)
                 .map((g) => (
@@ -297,7 +334,34 @@ export function FilterPanel({
         </div>
       </div>
 
-      <div className="mt-3 shrink-0 space-y-2 border-t pt-3">
+      <div
+        className={cn(
+          'mt-3 shrink-0 space-y-2 border-t pt-3',
+          /*
+            Pinned to the bottom edge once the panel has the page.
+
+            In a rail the footer is already always visible: the fields scroll
+            inside a fixed-height panel and this sits under them. Across the
+            page there is no such box — the panel is as long as it needs to be,
+            which past "More filters" is longer than the screen. Search is the
+            one control here that must never be the thing you have to go
+            looking for, so it rides the bottom of the viewport instead.
+
+            The negative margins take it out to the panel's own edges so its
+            background actually covers the fields passing underneath; without
+            them it would be a floating strip with filters visible either side.
+
+            From `xl` only, because below it the bottom of the viewport is not
+            ours: the phone dock is fixed there at a higher layer and would
+            simply cover this. And between `xl` and `2xl` the floating Ask
+            button is still on screen at the bottom right, which is exactly
+            where Search would otherwise sit — hence the extra right padding
+            until the width where that button is gone.
+          */
+          wide &&
+            'xl:sticky xl:bottom-0 xl:z-20 xl:-mx-3.5 xl:-mb-3.5 xl:rounded-b-2xl xl:bg-[var(--surface-raised)] xl:px-3.5 xl:pr-28 xl:pb-3.5 2xl:pr-3.5',
+        )}
+      >
         {entity === 'people' && (
           /*
             Sits beside Search rather than among the filters, because it does not
