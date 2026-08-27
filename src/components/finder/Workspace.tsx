@@ -599,6 +599,27 @@ export function Workspace() {
   }).length;
 
   /**
+   * Whether the results column has genuinely nothing to draw.
+   *
+   * `shownEntity` is only ever set by a search that actually completed — see
+   * the note on it in `store.ts` — so `null` means nobody has searched yet in
+   * this session, not that a search came back empty. The explicit checks
+   * beside it cover the failure/notice/choice states, which also leave
+   * `shownEntity` untouched but do have something to draw. When all of it is
+   * false the middle column is empty air between two panels that both have
+   * content, so the rail spans into it below rather than leaving a gap sized
+   * for rows that were never fetched.
+   */
+  const centerIdle =
+    !state.loading &&
+    !state.failure &&
+    !state.notice &&
+    !state.choices &&
+    !state.invalidCodes &&
+    !state.rejected &&
+    state.shownEntity == null;
+
+  /**
    * The conversation, wherever it happens to be living.
    *
    * One element rendered in two places rather than two copies: the rail on a
@@ -641,7 +662,7 @@ export function Workspace() {
         so putting both on one element left the rail scrolling away with the
         page while looking like it should not.
       */}
-      <div className="xl:sticky xl:top-4 xl:self-start">
+      <div className={cn('xl:sticky xl:top-4 xl:self-start', centerIdle && 'xl:col-span-2')}>
       <aside
         // Content-sized below `xl`, where this is a disclosure sitting on top
         // of the results rather than a column beside them — a fixed height
@@ -825,8 +846,14 @@ export function Workspace() {
 
         The bottom padding clears the floating Ask button at the widths where it
         exists. Load more runs the full width of this column, and it was landing
-        underneath it. */}
-      <section className="min-w-0 space-y-3 pb-16 2xl:pb-0">
+        underneath it.
+
+        `xl:hidden` when idle: this section draws nothing at all before a search
+        has run, but the grid's own column track still reserves its width
+        whether or not anything sits in it. Removing the section from the grid
+        entirely — not just leaving it visually empty — is what lets the rail
+        beside it actually claim that width instead of it sitting idle. */}
+      <section className={cn('min-w-0 space-y-3 pb-16 2xl:pb-0', centerIdle && 'xl:hidden')}>
         {/*
           The workspace bar. Everything here is free — nothing on this row can
           spend a credit — which is why it sits above the results rather than
