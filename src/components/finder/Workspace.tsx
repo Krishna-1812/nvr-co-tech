@@ -623,7 +623,7 @@ export function Workspace() {
   );
 
   return (
-    <div className="grid min-h-0 gap-4 xl:grid-cols-[21rem_minmax(0,1fr)] 2xl:grid-cols-[21rem_minmax(0,1fr)_24rem]">
+    <div className="grid min-h-0 gap-4 xl:grid-cols-[26rem_minmax(0,1fr)] 2xl:grid-cols-[26rem_minmax(0,1fr)_24rem]">
       {/*
         ── The filters ──
 
@@ -964,26 +964,27 @@ export function Workspace() {
           />
         ) : (
           !state.loading &&
-          !state.failure && (
-            /*
-              A header-height notice rather than the tall centred EmptyState
-              used elsewhere: this middle column now sits between a filter rail
-              and a chat rail that both stand the full height of the viewport,
-              and a placeholder taking the same weight as either of them read
-              as the page's actual subject rather than as the gap before one.
-            */
+          !state.failure &&
+          /*
+           * Nothing at all before a search has run — the filter rail grew into
+           * this column's width for exactly this state, and a placeholder
+           * sitting in it would waste the width just handed over.
+           *
+           * "Nothing matched" stays, because it is not idle: a search ran and
+           * came back empty, which is a fact about that search and belongs on
+           * screen for the same reason a rejection banner does. Silence here
+           * would read as the search never having happened at all.
+           */
+          state.shownEntity && (
             <div className="surface-lit a-ring flex items-center gap-3 rounded-2xl px-4 py-3.5">
               <span className="surface-sunken a-ring text-subtle grid size-9 shrink-0 place-items-center rounded-xl border">
                 <Search className="size-4" aria-hidden />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-medium">
-                  {state.shownEntity ? 'Nothing matched' : 'Set a filter and search'}
-                </p>
+                <p className="text-sm font-medium">Nothing matched</p>
                 <p className="text-muted text-xs leading-relaxed">
-                  {state.shownEntity
-                    ? 'Apollo answered and had nothing for these filters. Widening one of them is the usual fix.'
-                    : 'Pick a title, a seniority, an industry or a company on the left. The count under the button updates as you go, and finding people costs nothing.'}
+                  Apollo answered and had nothing for these filters. Widening one of them is the
+                  usual fix.
                 </p>
               </div>
             </div>
