@@ -17,12 +17,27 @@ import { advancedCount, groupsFor, type Entity, type Field, type PanelValues } f
 
 function Note({ text }: { text: string }) {
   return (
-    <span className="group/note relative inline-flex">
+    <span className="group/note inline-flex">
       <Info className="text-subtle size-3.5 cursor-help" aria-hidden />
       <span className="sr-only">{text}</span>
+      {/*
+        Positioned against the whole ROW, not against this icon.
+
+        Anchoring it to the icon cannot be made to fit. The icon sits wherever
+        its control ends, the rail is about 294px wide and scrolls, and a 256px
+        note is nearly the width of the rail — so centred it hung 119px off the
+        right edge and right-aligned it hung 81px off the left, and either way
+        half of it was clipped away. The notes are the part of this panel that
+        says what Apollo really does with a filter, so a clipped one is the one
+        failure this panel must not have.
+
+        Spanning the row instead means the note is exactly as wide as the space
+        there is, at every width, with no arithmetic. `Fieldset` supplies the
+        `relative` these coordinates resolve against.
+      */}
       <span
         role="tooltip"
-        className="a-ring elev-4 pointer-events-none absolute left-1/2 top-full z-50 mt-1.5 w-64 -translate-x-1/2 rounded-lg border bg-[var(--surface-raised)] px-2.5 py-2 text-xs leading-relaxed opacity-0 transition group-hover/note:opacity-100"
+        className="a-ring elev-4 pointer-events-none absolute inset-x-0 top-full z-50 mt-1.5 rounded-lg border bg-[var(--surface-raised)] px-2.5 py-2 text-xs leading-relaxed opacity-0 transition group-hover/note:opacity-100"
       >
         {text}
       </span>
@@ -159,7 +174,13 @@ function Fieldset({
     <div className="space-y-2">
       <p className="a-label px-0.5">{title}</p>
       {rows(fields).map((row) => (
-        <div key={row.map((f) => f.key).join('|')} className="flex flex-wrap items-center gap-2">
+        <div
+          key={row.map((f) => f.key).join('|')}
+          // `relative` so a Note in this row hangs off the row rather than off
+          // its own icon. See the comment in Note for why that is the only
+          // anchor that fits.
+          className="relative flex flex-wrap items-center gap-2"
+        >
           {row.map((field, i) => (
             <div
               key={field.key}
@@ -188,6 +209,7 @@ export function FilterPanel({
   loading,
   count,
   counting,
+  showFields = true,
 }: {
   entity: Entity;
   values: PanelValues;
@@ -197,6 +219,19 @@ export function FilterPanel({
   loading: boolean;
   count: { value: number | null; approx: boolean; reason?: string } | null;
   counting: boolean;
+  /**
+   * Whether the fields have been opened on a narrow screen.
+   *
+   * False only hides them **below** the width where the rail becomes a column
+   * of its own; at `xl` and above they are always shown, because there the rail
+   * sits beside the results rather than on top of them and a collapse would be
+   * a click for nothing.
+   *
+   * The **footer** is deliberately outside this: it holds the count and the
+   * Search button, and a collapsed panel with no way to search from it is a
+   * panel somebody has to open only in order to close again.
+   */
+  showFields?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const groups = groupsFor(entity);
@@ -204,7 +239,14 @@ export function FilterPanel({
 
   return (
     <div className="flex min-h-0 flex-col">
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-0.5">
+      <div
+        className={cn(
+          'min-h-0 flex-1 space-y-4 overflow-y-auto pr-0.5',
+          // `hidden` rather than a height of zero: a control nobody can see must
+          // not still be reachable by keyboard.
+          !showFields && 'hidden xl:block',
+        )}
+      >
         {groups
           .filter((g) => !g.advanced)
           .map((g) => (

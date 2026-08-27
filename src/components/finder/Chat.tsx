@@ -313,7 +313,15 @@ export function Chat({
   }, [text, busy, onSend]);
 
   return (
-    <div className="flex min-h-0 flex-col">
+    /*
+      `flex-1` so this takes the height its container offers rather than the
+      height its own content happens to need. In the drawer that container is a
+      full-height panel, and without this the composer settled wherever the
+      answers ended and left a few hundred pixels of nothing beneath it. Inside
+      the 2xl rail the container is capped rather than fixed, so growing to fill
+      and growing to fit are the same thing and this changes nothing there.
+    */
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-0.5">
         {turns.length === 0 ? (
           <div className="surface-sunken a-ring rounded-2xl px-3.5 py-4">

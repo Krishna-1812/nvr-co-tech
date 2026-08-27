@@ -33,6 +33,7 @@ export function Drawer({
   children,
   /** Widen for content that needs it. The default suits a timeline. */
   width = 'md',
+  fill = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -40,6 +41,19 @@ export function Drawer({
   header?: ReactNode;
   children: ReactNode;
   width?: 'md' | 'lg';
+  /**
+   * The child scrolls itself, so this hands it the height and stops scrolling.
+   *
+   * For a panel with something pinned to its bottom edge — a chat composer —
+   * where the region above it is the part that moves. Without this the body
+   * below is a second `overflow-y-auto` wrapped around the child's own, and the
+   * rule at the top of this file ("exactly one region inside scrolls") holds
+   * only by accident: it survives because the child happens to be `flex-1
+   * min-h-0` and so never grows past the box. Anything with an intrinsic height
+   * inside it starts the outer scrolling, and the pinned composer slides off
+   * the bottom — the exact failure the rule exists to prevent.
+   */
+  fill?: boolean;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
@@ -67,8 +81,19 @@ export function Drawer({
             {header}
           </header>
 
-          {/* The one scrolling region. */}
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+          {/* The one scrolling region — unless the child is being one. */}
+          <div
+            className={cn(
+              'min-h-0 flex-1 px-5 py-4',
+              // `flex flex-col` as well as `overflow-hidden`: the child is
+              // given the height rather than left to find its own, or it sits
+              // at its natural size at the top and whatever it pins to its
+              // bottom edge ends up floating in the middle of the panel.
+              fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto',
+            )}
+          >
+            {children}
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

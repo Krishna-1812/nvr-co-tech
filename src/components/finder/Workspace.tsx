@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
   Building2,
   Clock,
@@ -10,6 +10,7 @@ import {
   MessagesSquare,
   Rows3,
   Search,
+  SlidersHorizontal,
   Sparkles,
   Users,
 } from 'lucide-react';
@@ -57,6 +58,14 @@ const COUNT_DEBOUNCE_MS = 420;
 
 export function Workspace() {
   const [state, dispatch] = useReducer(reducer, INITIAL);
+
+  /**
+   * Whether the filter fields are open on a narrow screen.
+   *
+   * Plain component state rather than part of the store: it describes the shape
+   * of the screen, not the search, and nothing in the reducer needs to read it.
+   */
+  const [railOpen, setRailOpen] = useState(false);
 
   /*
    * A sequence number, so a slow answer to an earlier keystroke cannot land on
@@ -570,6 +579,19 @@ export function Workspace() {
     selectedCount > 0 ? state.results.filter((r) => state.selected[rowId(r)]) : state.results;
 
   /**
+   * How many filters are set, for the collapsed rail's badge.
+   *
+   * The two settings about HOW to search are excluded, for the same reason the
+   * chip bar leaves them out: neither narrows anything, and counting them would
+   * make an untouched panel claim two filters.
+   */
+  const setFilterCount = Object.entries(state.values).filter(([key, value]) => {
+    if (key === 'include_similar_titles' || key === 'company_detail') return false;
+    if (value === undefined || value === null || value === '' || value === false) return false;
+    return !(Array.isArray(value) && value.length === 0);
+  }).length;
+
+  /**
    * The conversation, wherever it happens to be living.
    *
    * One element rendered in two places rather than two copies: the rail on a
@@ -627,10 +649,34 @@ export function Workspace() {
           />
         </div>
 
+        {/*
+          Below the width where this becomes a column of its own, forty filters
+          sit between somebody and their own results. The disclosure is only
+          rendered there: at `xl` and above the rail is beside the results, not
+          on top of them, and a collapse would be a click for nothing.
+        */}
+        <button
+          type="button"
+          onClick={() => setRailOpen((o) => !o)}
+          aria-expanded={railOpen}
+          className="surface-sunken text-muted mb-3 flex shrink-0 items-center gap-2 rounded-xl border px-2.5 py-2 text-sm transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)] xl:hidden"
+        >
+          <SlidersHorizontal className="size-4" aria-hidden />
+          {railOpen ? 'Hide filters' : 'Set filters by hand'}
+          {setFilterCount > 0 && (
+            <span className="gradient-brand ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              {setFilterCount}
+            </span>
+          )}
+        </button>
+
         <div
           role="radiogroup"
           aria-label="What to search for"
-          className="surface-sunken mb-3 flex shrink-0 rounded-xl border p-1"
+          className={cn(
+            'surface-sunken mb-3 shrink-0 rounded-xl border p-1',
+            railOpen ? 'flex' : 'hidden xl:flex',
+          )}
         >
           {(
             [
@@ -669,12 +715,17 @@ export function Workspace() {
           loading={state.loading}
           count={state.count}
           counting={state.counting}
+          showFields={railOpen}
         />
       </aside>
       </div>
 
-      {/* ── The results ── */}
-      <section className="min-w-0 space-y-3">
+      {/* ── The results ──
+
+        The bottom padding clears the floating Ask button at the widths where it
+        exists. Load more runs the full width of this column, and it was landing
+        underneath it. */}
+      <section className="min-w-0 space-y-3 pb-16 2xl:pb-0">
         {/*
           The workspace bar. Everything here is free — nothing on this row can
           spend a credit — which is why it sits above the results rather than
@@ -968,7 +1019,13 @@ export function Workspace() {
       <button
         type="button"
         onClick={() => dispatch({ type: 'chatOpen', open: true })}
-        className="gradient-brand elev-3 fixed right-4 bottom-4 z-30 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] 2xl:hidden"
+        /*
+          Above the phone dock rather than behind it. The dock is fixed to the
+          bottom below `lg` at z-40, so a button at `bottom-4` and z-30 sat
+          underneath it and could not be pressed at exactly the widths it exists
+          for.
+        */
+        className="gradient-brand elev-3 fixed right-4 bottom-[5.5rem] z-40 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] lg:bottom-6 2xl:hidden"
       >
         <MessagesSquare className="size-4" aria-hidden />
         Ask
@@ -984,10 +1041,12 @@ export function Workspace() {
         onClose={() => dispatch({ type: 'chatOpen', open: false })}
         title="Ask about a company or a person"
         width="lg"
+        fill
       >
-        {/* Fills the drawer's own scrolling region rather than nesting a second
-            one inside it, so the composer stays put while the answers scroll. */}
-        <div className="flex h-full min-h-0 flex-col">{chat}</div>
+        {/* `fill` because the conversation does its own scrolling: the answers
+            move and the composer stays on the bottom edge. Without it the
+            drawer wraps a second scrolling region around that one. */}
+        {chat}
       </Drawer>
 
       {state.profile && (
