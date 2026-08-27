@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Drawer } from '@/components/ui/Drawer';
-import { EmptyState } from '@/components/ui/primitives';
 import { AskBar } from './AskBar';
 import { InvalidCodes, QueryBar, RejectionBanner } from './Banners';
 import { Chat, type ChatContext, type EnrichChip, type Turn } from './Chat';
@@ -635,7 +634,16 @@ export function Workspace() {
         page while looking like it should not.
       */}
       <div className="xl:sticky xl:top-4 xl:self-start">
-      <aside className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5">
+      <aside
+        // Content-sized below `xl`, where this is a disclosure sitting on top
+        // of the results rather than a column beside them — a fixed height
+        // there would be a slab of empty rail on a phone with three fields set.
+        // Fixed from `xl` up, where the aside stands beside a chat rail that is
+        // this tall regardless of how long the conversation is, so a filter
+        // panel that stopped at its own content looked like the shorter,
+        // lesser-considered surface next to it.
+        className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5 xl:h-[calc(100vh-11rem)]"
+      >
         {/*
           Above the tabs, because a sentence decides which tab it belongs on.
           Below nothing, because it is the first thing most people will try.
@@ -957,16 +965,27 @@ export function Workspace() {
         ) : (
           !state.loading &&
           !state.failure && (
-            <div className="surface-lit a-ring rounded-2xl">
-              <EmptyState
-                icon={<Search className="size-6" aria-hidden />}
-                title={state.shownEntity ? 'Nothing matched' : 'Set a filter and search'}
-                description={
-                  state.shownEntity
+            /*
+              A header-height notice rather than the tall centred EmptyState
+              used elsewhere: this middle column now sits between a filter rail
+              and a chat rail that both stand the full height of the viewport,
+              and a placeholder taking the same weight as either of them read
+              as the page's actual subject rather than as the gap before one.
+            */
+            <div className="surface-lit a-ring flex items-center gap-3 rounded-2xl px-4 py-3.5">
+              <span className="surface-sunken a-ring text-subtle grid size-9 shrink-0 place-items-center rounded-xl border">
+                <Search className="size-4" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">
+                  {state.shownEntity ? 'Nothing matched' : 'Set a filter and search'}
+                </p>
+                <p className="text-muted text-xs leading-relaxed">
+                  {state.shownEntity
                     ? 'Apollo answered and had nothing for these filters. Widening one of them is the usual fix.'
-                    : 'Pick a title, a seniority, an industry or a company on the left. The count under the button updates as you go, and finding people costs nothing.'
-                }
-              />
+                    : 'Pick a title, a seniority, an industry or a company on the left. The count under the button updates as you go, and finding people costs nothing.'}
+                </p>
+              </div>
             </div>
           )
         )}
@@ -1010,7 +1029,7 @@ export function Workspace() {
       */}
       <div className="hidden 2xl:block">
         <div className="sticky top-4 self-start">
-          <aside className="surface-lit a-ring flex max-h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5">
+          <aside className="surface-lit a-ring flex h-[calc(100vh-11rem)] flex-col rounded-2xl p-3.5">
             {chat}
           </aside>
         </div>

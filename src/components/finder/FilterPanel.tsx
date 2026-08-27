@@ -238,7 +238,11 @@ export function FilterPanel({
   const advanced = advancedCount(entity, values);
 
   return (
-    <div className="flex min-h-0 flex-col">
+    // `flex-1`: this is a direct flex child of the `aside` in Workspace, which
+    // is a fixed height from `xl` up. Without it the panel sizes to its own
+    // content and the leftover height sits as dead space below the footer
+    // instead of going to the one region here built to use it — the fields.
+    <div className="flex min-h-0 flex-1 flex-col">
       <div
         className={cn(
           'min-h-0 flex-1 space-y-4 overflow-y-auto pr-0.5',
