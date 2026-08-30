@@ -188,7 +188,10 @@
 
   --text-c:         oklch(0.273 0.058 247);  /* #0B2942 — the mark's navy, as ink */
   --text-muted:     oklch(0.475 0.040 247);
-  --text-subtle:    oklch(0.610 0.028 247);
+  /* 0.545, not the 0.610 this started at. Measured against --surface-raised
+     that was 3.54:1 — under AA for the micro-labels and hints it actually
+     carries. This clears 4.5 with the hue untouched. */
+  --text-subtle:    oklch(0.545 0.032 247);
 
   /*
    * Status colours are the one place hue is allowed to mean something other
@@ -197,9 +200,9 @@
    * so they read as one set of instruments, and their chroma is a step below
    * where it was — on bone rather than white, the old values were shouting.
    */
-  --status-draft:    oklch(0.600 0.020 247);
+  --status-draft:    oklch(0.545 0.022 247);
   --status-pending:  oklch(0.545 0.130 248);
-  --status-approved: oklch(0.545 0.120 158);
+  --status-approved: oklch(0.525 0.126 158);
   --status-rejected: oklch(0.545 0.165 27);
   --status-paid:     oklch(0.510 0.110 192);
   /*
@@ -211,7 +214,7 @@
    * 88° and is now everywhere; an amber warning eight degrees away from it read
    * as a decorative highlight rather than as a problem.
    */
-  --status-warn:     oklch(0.585 0.145 52);
+  --status-warn:     oklch(0.552 0.145 52);
 
   /*
    * Elevation. Two stacked shadows per step — a tight contact shadow plus a
@@ -246,8 +249,22 @@
   /*
    * The accent, and the only warm thing on the page. See the ration note at the
    * top of the file — this is not a fill.
+   *
+   * Two tokens, because gold has a real problem on paper: the mark's own
+   * #E8C468 measures 2.4:1 against bone, so a gold word in a headline is
+   * decoration a third of readers cannot read. The split is by job, not by
+   * taste —
+   *
+   *   --accent      is gold that will be read. Text, icons, anything carrying
+   *                 meaning. Darkened until it clears 4.5:1 on --surface-raised.
+   *   --accent-lit  is the mark's gold exactly, for things that are only ever
+   *                 looked at: a 1px rule, a fill, a dot beside a label that
+   *                 also says the word.
+   *
+   * On the night ground the problem inverts and disappears, so both resolve
+   * near the mark's own value there.
    */
-  --accent:     oklch(0.660 0.118 82);
+  --accent:     oklch(0.545 0.100 78);
   --accent-lit: oklch(0.833 0.119 88);
 
   /* The focus ring. Its own token because the brand step that used to serve as
@@ -288,7 +305,7 @@
        A neutral white here reads as clinical and kills the whole palette. */
     --text-c:         oklch(0.960 0.010 85);
     --text-muted:     oklch(0.740 0.018 85);
-    --text-subtle:    oklch(0.590 0.022 247);
+    --text-subtle:    oklch(0.628 0.024 247);
 
     --status-draft:    oklch(0.660 0.020 247);
     --status-pending:  oklch(0.760 0.120 248);
@@ -331,7 +348,7 @@
   --border-strong:  oklch(0.430 0.044 247);
   --text-c:         oklch(0.960 0.010 85);
   --text-muted:     oklch(0.740 0.018 85);
-  --text-subtle:    oklch(0.590 0.022 247);
+  --text-subtle:    oklch(0.628 0.024 247);
 
   --status-draft:    oklch(0.660 0.020 247);
   --status-pending:  oklch(0.760 0.120 248);
@@ -816,7 +833,7 @@
   --m-bg-3:    oklch(0.232 0.040 247);
   --m-ink:     oklch(0.968 0.012 85);
   --m-dim:     oklch(0.752 0.020 85);
-  --m-dim-2:   oklch(0.598 0.024 247);
+  --m-dim-2:   oklch(0.632 0.026 247);
 
   /* Hairlines are warm at very low alpha. A cool line on a cool ground
      disappears; this one reads as light catching an edge. */
