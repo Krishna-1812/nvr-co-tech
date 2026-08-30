@@ -103,26 +103,24 @@
 
   /*
    * One family for everything. --font-display is the same stack as --font-sans;
-   * what separates a headline from body text is the `wdth` and `wght` axes, set
+   * what separates a headline from body text is the `opsz` and `wdth` axes, set
    * by the .m-display utility, not a different typeface.
    *
-   * Archivo, not Bricolage Grotesque. Bricolage is a display face with a lot of
-   * personality — flared stems, a wide bowl, an `opsz` axis that opens the
-   * letterforms further as they shrink — and at 13px in a table of figures that
-   * personality is noise. Archivo is a grotesque drawn for exactly this: it
-   * carries a `wdth` axis from 62 to 125, so a headline can be set genuinely
-   * narrow without a second family and without the smeared look of a browser
-   * squeezing a normal-width face.
+   * Bricolage Grotesque, and its two axes are what make that possible. `opsz`
+   * gives a different drawing at each size rather than the same outlines scaled
+   * — see the note in layout.tsx — and `wdth` narrows the display settings.
    *
-   * The width axis is the whole reason for the choice. It is what lets a hero
-   * line be set at 88 and a caption at 100 and read as one voice at two
-   * registers rather than as two typefaces.
+   * One number worth knowing before touching any of the settings below:
+   * Bricolage's `wdth` floor is 75. Every width used here sits above it, and
+   * anything lower is silently clamped rather than rejected, which is the kind
+   * of thing that reads as "the animation does not do much" rather than as a
+   * bug.
    */
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-sans);
   --font-mono: var(--font-mono-stack), ui-monospace, 'Cascadia Code', monospace;
-  /* Italic accents inside headlines only — Archivo ships no italic on the
-     variable width axis we use, and a synthesised slant is a sheared roman. */
+  /* Italic accents inside headlines only — Bricolage ships no italic, and a
+     browser-synthesised slant is a sheared roman rather than an italic. */
   --font-serif: var(--font-serif-stack), Georgia, 'Times New Roman', serif;
 
   /*
@@ -596,15 +594,18 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     /*
-     * Body text is Archivo at its drawn width. Nothing here sets a variation
-     * axis: the display utilities narrow it, and running text is the reference
-     * they are measured against. Setting an axis at this level would mean every
-     * headline had to undo it.
+     * Optical sizing on, and no explicit axis anywhere near it.
+     *
+     * `font-optical-sizing: auto` asks Bricolage to retune the letterforms for
+     * whatever size each element is set at — this one line is the reason the
+     * site needs a single family rather than a display/text pairing. It only
+     * works while `opsz` is unset: naming any axis in `font-variation-settings`
+     * takes manual control of the whole set, which is why this says `normal`
+     * and why every display utility that does narrow the face lists `opsz`
+     * explicitly rather than leaving it to be inherited.
      */
     font-variation-settings: normal;
-    /* Contextual alternates only. Archivo's default `liga` is fine in running
-       text but its `calt` is what keeps the flat-topped digits even. */
-    font-feature-settings: 'calt' 1;
+    font-optical-sizing: auto;
     line-height: 1.55;
   }
 
@@ -995,33 +996,37 @@ body:has([data-skin='night']) {
    * Headline setting. Same family as body text — what makes it a headline is
    * the width axis.
    *
-   * `wdth` 86 is a real condensation drawn into the face, not a transform. Two
-   * things follow from it: a hero line fits four or five more characters, so a
-   * claim can be one line instead of two; and the vertical stems come closer
-   * together, which is what makes large type read as set rather than as
-   * enlarged. Paired with negative tracking and a line-height under 1, it is
-   * the whole difference between an editorial headline and a big paragraph.
+   * Two axes, doing two different jobs.
    *
-   * wght is listed explicitly rather than left to font-weight, because Safari
-   * has shipped versions that reset unlisted axes to their default the moment
+   * `opsz` 72 asks Bricolage for its display cut — tighter apertures, more
+   * stroke contrast — which is what makes a headline a different drawing rather
+   * than body text enlarged. `wdth` 86 then narrows it: a hero line fits three
+   * or four more characters, and the vertical stems come closer together, which
+   * is what makes large type read as set. Paired with negative tracking and a
+   * line-height under 1, that is the difference between an editorial headline
+   * and a big paragraph.
+   *
+   * All three axes are listed, including wght, because Safari has shipped
+   * versions that reset unlisted axes to their default the moment
    * font-variation-settings appears — which would silently un-bold every
-   * headline on the site.
+   * headline on the site, and would also drop the display cut back to the
+   * optically-sized one it is here to override.
    */
   .m-display {
     font-family: var(--font-display);
     font-weight: 700;
-    font-variation-settings: 'wdth' 86, 'wght' 700;
-    letter-spacing: -0.035em;
-    line-height: 0.9;
+    font-variation-settings: 'opsz' 72, 'wdth' 86, 'wght' 700;
+    letter-spacing: -0.032em;
+    line-height: 0.94;
     text-wrap: balance;
   }
   /* For the two or three places that want the display cut at body weight. */
   .m-display-light {
     font-family: var(--font-display);
     font-weight: 400;
-    font-variation-settings: 'wdth' 92, 'wght' 400;
-    letter-spacing: -0.022em;
-    line-height: 1.04;
+    font-variation-settings: 'opsz' 72, 'wdth' 92, 'wght' 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
     text-wrap: balance;
   }
   .m-serif {
@@ -1608,15 +1613,17 @@ body:has([data-skin='night']) {
   }
 
   /*
-   * A headline figure. Same family as everything else, narrowed by the width
-   * axis: at `wdth` 90 a rupee total reads as set rather than as enlarged,
-   * because the digit stems come close enough together for the number to be one
-   * object. Tabular so a figure that counts up does not wobble as its digits
-   * change, and it stays at 90 rather than the headline's 86 because digits
-   * condense worse than letters — a narrowed 8 closes up.
+   * A headline figure. Same family as everything else, retuned by both axes:
+   * `opsz` 72 for the display cut, which at 40px is what makes a rupee total
+   * look set rather than enlarged, and `wdth` 90 to bring the digit stems close
+   * enough together for the number to read as one object.
+   *
+   * It stays at 90 rather than the headline's 86 because digits condense worse
+   * than letters — a narrowed 8 closes up. Tabular so a figure that counts up
+   * does not wobble as its digits change.
    */
   .a-figure {
-    font-variation-settings: 'wdth' 90, 'wght' 700;
+    font-variation-settings: 'opsz' 72, 'wdth' 90, 'wght' 700;
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
     letter-spacing: -0.03em;
@@ -1748,9 +1755,23 @@ body:has([data-skin='night']) {
  * width. Only legible on a variable face, which is why it sits beside the
  * width-axis utilities rather than with the generic entrances.
  */
+/*
+ * Both stops name all three axes, and they have to.
+ *
+ * `font-variation-settings` replaces the whole set rather than merging into it,
+ * and this animation is `both`-filled — so a `to` stop that named only wdth and
+ * wght would leave every section headline permanently at the default `opsz`,
+ * silently undoing the display cut `.m-display` had set. The effect would be a
+ * headline that arrives correctly and then stays subtly wrong.
+ *
+ * The floor is 76, not the 72 this was written with for Archivo. Bricolage's
+ * `wdth` axis stops at 75, and a value below it is clamped rather than
+ * rejected — so the old number did not error, it just quietly made the
+ * animation shorter than it reads in the source.
+ */
 @keyframes s-settle-width {
-  from { font-variation-settings: 'wdth' 72, 'wght' 700; opacity: 0; }
-  to   { font-variation-settings: 'wdth' 86, 'wght' 700; opacity: 1; }
+  from { font-variation-settings: 'opsz' 72, 'wdth' 76, 'wght' 700; opacity: 0; }
+  to   { font-variation-settings: 'opsz' 72, 'wdth' 86, 'wght' 700; opacity: 1; }
 }
 
 @layer utilities {

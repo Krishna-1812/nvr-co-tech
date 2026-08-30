@@ -32,10 +32,11 @@ export const ACCENT: Record<Agent['accent'], string> = {
  * a little vertical breathing room and pulled back with a negative margin.
  *
  * 0.3em, not the 0.18em it was. The clip box is one line-height tall and the
- * display line-height is now 0.9, so the box is a tenth of an em *shorter* than
- * the em square before any descender is considered — a "y" in the last line was
- * being cut through. The margin cancels it exactly, so the extra room costs no
- * space between lines.
+ * display line-height is 0.94, so the box is shorter than the em square before
+ * any descender is considered — a "y" in the last line was being cut through.
+ * The margin cancels the padding exactly, so the extra room costs no space
+ * between lines, which is why it is set generously rather than to the minimum
+ * that happens to work at today's line-height.
  */
 export function LineRise({
   children,
