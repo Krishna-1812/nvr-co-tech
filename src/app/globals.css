@@ -126,21 +126,23 @@
   --font-serif: var(--font-serif-stack), Georgia, 'Times New Roman', serif;
 
   /*
-   * Easing, named once.
+   * The stepped easing, which is what gives this design its character.
    *
-   * --ease-out is the house curve: a hard start that spends most of its time
-   * settling, which is what makes an element look like it was placed rather
-   * than like it drifted in.
+   * Eight equal jumps instead of a curve, so anything carrying it advances in
+   * frames the way a stop-motion figure does — it arrives, holds, arrives
+   * again. Every scroll-driven entrance on the site reads one of these: the
+   * reveals, the app's list stagger, the section rules, the headline width.
    *
-   * --ease-step is the one that gives the site its character. Eight equal
-   * jumps instead of a curve, so anything carrying it advances in frames the
-   * way a stop-motion figure does — it arrives, holds, arrives again. Used on
-   * the counters, the pinned stages and the reveal rules, and deliberately
-   * never on anything a pointer is touching: a button that snaps in eight
-   * steps reads as a dropped frame, not as a decision.
+   * Deliberately never on anything a pointer is touching. A button that snaps
+   * through eight frames reads as a dropped frame, not as a decision.
+   *
+   * There is no --ease-out or --ease-in-out here on purpose. `--ease-*` is
+   * Tailwind's own namespace for transition-timing-function, so declaring one
+   * silently redefines the `ease-out` utility everywhere in a 227-component app
+   * — which is a large, invisible change to make as a side effect of naming a
+   * curve. These two names are new, so they only add `ease-step` and
+   * `ease-step-fine` and collide with nothing.
    */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-step: steps(8, end);
   --ease-step-fine: steps(14, end);
 
@@ -595,9 +597,9 @@
     -webkit-font-smoothing: antialiased;
     /*
      * Body text is Archivo at its drawn width. Nothing here sets a variation
-     * axis: the display utilities narrow it and .m-wide opens it, and running
-     * text is the reference both of those are measured against. Setting an axis
-     * at this level would mean every headline had to undo it.
+     * axis: the display utilities narrow it, and running text is the reference
+     * they are measured against. Setting an axis at this level would mean every
+     * headline had to undo it.
      */
     font-variation-settings: normal;
     /* Contextual alternates only. Archivo's default `liga` is fine in running
@@ -1021,20 +1023,6 @@ body:has([data-skin='night']) {
     letter-spacing: -0.022em;
     line-height: 1.04;
     text-wrap: balance;
-  }
-  /*
-   * The other end of the axis: wide, light and spaced, for a single line of
-   * standfirst under a headline or a lone statement holding a section on its
-   * own. Where .m-display compresses to gain force, this opens up to lose it —
-   * which is what makes the pair read as a deliberate hierarchy rather than as
-   * one size next to another.
-   */
-  .m-wide {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-variation-settings: 'wdth' 112, 'wght' 400;
-    letter-spacing: 0.005em;
-    line-height: 1.35;
   }
   .m-serif {
     font-family: var(--font-serif);
@@ -1721,9 +1709,10 @@ body:has([data-skin='night']) {
  *
  * ── Stop scroll ────────────────────────────────────────────────────────────
  *
- * `.s-step` and its relatives are the house effect. They are the same entrance
- * as `.s-in`, on the same timeline, with `steps()` as the easing — so instead of
- * gliding they advance in discrete frames as the page is scrolled, hold, and
+ * `--ease-step` is the house effect, and every entrance below carries it —
+ * along with `.reveal` and the app's `.stagger`, which are defined elsewhere in
+ * this file and read the same token. `steps()` rather than a curve, so instead
+ * of gliding they advance in discrete frames as the page is scrolled, hold, and
  * advance again.
  *
  * Motion that stops is more legible than motion that flows. The eye is given a
@@ -1738,10 +1727,6 @@ body:has([data-skin='night']) {
  * frames reads as a dropped frame rather than as a decision.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-@keyframes s-rise {
-  from { opacity: 0; transform: translate3d(0, 2.5rem, 0); }
-  to   { opacity: 1; transform: none; }
-}
 @keyframes s-rise-sm {
   from { opacity: 0; transform: translate3d(0, 1.1rem, 0); }
   to   { opacity: 1; transform: none; }
@@ -1752,27 +1737,11 @@ body:has([data-skin='night']) {
   from { transform: scaleX(0); }
   to   { transform: scaleX(1); }
 }
-@keyframes s-draw-y {
-  from { transform: scaleY(0); }
-  to   { transform: scaleY(1); }
-}
-/* A panel arriving from behind a wipe. `clip-path` rather than a masked overlay,
-   so nothing is painted over the content underneath. */
-@keyframes s-wipe {
-  from { clip-path: inset(0 0 100% 0); }
-  to   { clip-path: inset(0 0 0 0); }
-}
 /* Depth. The layer carrying this travels against the scroll, so it reads as
    sitting behind the page rather than on it. */
 @keyframes s-lag {
   from { transform: translate3d(0, calc(var(--s-lag, 5) * -1%), 0); }
   to   { transform: translate3d(0, calc(var(--s-lag, 5) * 1%), 0); }
-}
-/* The page's own read-progress, driven by the document rather than by any one
-   element. */
-@keyframes s-progress {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
 }
 /*
  * Type settling onto its own baseline: it arrives narrow and opens to its drawn
@@ -1787,40 +1756,6 @@ body:has([data-skin='night']) {
 @layer utilities {
   @supports (animation-timeline: view()) {
     @media not (prefers-reduced-motion: reduce) {
-      /*
-       * The base entrance. `entry 6% → entry 64%` puts the element fully in
-       * place a little after its own top edge has cleared the fold, so it has
-       * finished moving by the time it is being read.
-       */
-      .s-in {
-        animation: s-rise linear both;
-        animation-timeline: view();
-        animation-range: entry 6% entry 64%;
-      }
-      .s-in-sm {
-        animation: s-rise-sm linear both;
-        animation-timeline: view();
-        animation-range: entry 10% entry 58%;
-      }
-
-      /* ── Stop scroll ── */
-
-      /*
-       * The same arrival, in eight held frames. See the note above: the easing
-       * is the whole effect, and `linear` here would make it an ordinary reveal.
-       */
-      .s-step {
-        animation: s-rise var(--ease-step) both;
-        animation-timeline: view();
-        animation-range: entry 4% entry 70%;
-      }
-      /* Fourteen frames, for something large enough that eight reads as coarse. */
-      .s-step-fine {
-        animation: s-rise-sm var(--ease-step-fine) both;
-        animation-timeline: view();
-        animation-range: entry 8% entry 66%;
-      }
-
       /* ── Rules and edges ── */
 
       .s-rule {
@@ -1829,20 +1764,7 @@ body:has([data-skin='night']) {
         animation-timeline: view();
         animation-range: entry 12% cover 26%;
       }
-      .s-rule-y {
-        transform-origin: top;
-        animation: s-draw-y linear both;
-        animation-timeline: view();
-        animation-range: entry 10% cover 42%;
-      }
-
       /* ── Panels ── */
-
-      .s-wipe {
-        animation: s-wipe var(--ease-out) both;
-        animation-timeline: view();
-        animation-range: entry 8% entry 78%;
-      }
 
       /*
        * Parallax. `--s-lag` is the travel as a percentage of the element's own
@@ -1861,17 +1783,6 @@ body:has([data-skin='night']) {
         animation: s-settle-width var(--ease-step-fine) both;
         animation-timeline: view();
         animation-range: entry 10% entry 80%;
-      }
-
-      /*
-       * Read-progress. `scroll()` rather than `view()` — this measures the
-       * document, not this element, and the element is a hairline pinned to the
-       * chrome which never moves.
-       */
-      .s-progress {
-        transform-origin: left;
-        animation: s-progress linear both;
-        animation-timeline: scroll(root block);
       }
 
       /*
@@ -1897,29 +1808,4 @@ body:has([data-skin='night']) {
     }
   }
 
-  /*
-   * The pin.
-   *
-   * A section that holds still while the page scrolls through it. A tall outer
-   * track supplies the distance and this sticks to the top for the whole of it.
-   *
-   * Height is `100svh`, not `100vh`. On a phone the address bar collapses as you
-   * scroll, and `vh` resolves to the *large* viewport — so a `100vh` pin is
-   * taller than the screen at the moment the reader is actually looking at it,
-   * and the bottom of every pinned scene is cut off.
-   *
-   * Below `lg` the pin is dropped entirely; see the note on StageFallback in
-   * motion.tsx. A pinned section on a phone takes over the one gesture the
-   * reader has.
-   */
-  .s-pin {
-    position: static;
-  }
-  @media (min-width: 1024px) {
-    .s-pin {
-      position: sticky;
-      top: 0;
-      height: 100svh;
-    }
-  }
 }

@@ -1,6 +1,6 @@
 import { ROSTER, SHARED } from '@/lib/marketing/content';
 import { Container, Section, SectionHeading } from '../bits';
-import { Reveal } from '../Reveal';
+
 
 /**
  * Why these should come from one place, rather than from four vendors.
@@ -46,17 +46,28 @@ export function Platform() {
           }
         />
 
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/*
+          `.s-deal` rather than four <Reveal>s with increasing delays.
+
+          These four are a numbered sequence — 01 to 04 — and they sit in one
+          row at `lg`, which is exactly the case a scroll timeline handles badly
+          on its own: four elements at the same height reach the fold at the
+          same moment and arrive together. `.s-deal` gives each child its own
+          slice of the shared range, so they deal out left to right as the row
+          is scrolled in, and deal back as it is scrolled out.
+
+          It is also one component fewer per card. Reveal exists to run an
+          observer, and there is nothing here for an observer to decide.
+        */}
+        <div className="s-deal mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {SHARED.map((s, i) => (
-            <Reveal key={s.title} delay={i * 70}>
-              <div className="m-card h-full rounded-2xl p-6">
-                <p className="m-mono text-[11px] tracking-[0.16em] text-[var(--m-gold)]">
-                  {String(i + 1).padStart(2, '0')}
-                </p>
-                <h3 className="mt-4 text-[15px] font-semibold tracking-tight">{s.title}</h3>
-                <p className="m-dim mt-2.5 text-[13px] leading-relaxed">{s.body}</p>
-              </div>
-            </Reveal>
+            <div key={s.title} className="m-card h-full rounded-2xl p-6">
+              <p className="m-mono text-[11px] tracking-[0.16em] text-[var(--m-gold)]">
+                {String(i + 1).padStart(2, '0')}
+              </p>
+              <h3 className="mt-4 text-[15px] font-semibold tracking-tight">{s.title}</h3>
+              <p className="m-dim mt-2.5 text-[13px] leading-relaxed">{s.body}</p>
+            </div>
           ))}
         </div>
       </Container>
