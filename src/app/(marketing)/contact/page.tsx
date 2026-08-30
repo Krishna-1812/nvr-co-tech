@@ -34,8 +34,8 @@ export default function ContactPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <Aurora color="var(--m-indigo)" opacity={0.26} className="-top-44 -left-24 size-[38rem]" />
-        <Aurora color="var(--m-violet)" opacity={0.18} className="-top-20 right-0 size-[30rem]" />
+        <Aurora color="var(--m-indigo)" opacity={0.16} className="-top-48 -left-28 size-[42rem]" />
+        <Aurora color="var(--m-gold)" opacity={0.05} className="-top-16 right-0 size-[28rem]" />
         <div
           aria-hidden
           className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"

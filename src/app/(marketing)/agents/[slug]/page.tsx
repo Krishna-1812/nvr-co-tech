@@ -48,8 +48,8 @@ export default async function AgentPage({ params }: Params) {
       <section className="relative overflow-hidden">
         {/* The agent's own colour lights its page. Six pages built from one
             template have to feel like six places, not one with the name swapped. */}
-        <Aurora color={accent} opacity={0.3} className="-top-44 -left-24 size-[40rem]" />
-        <Aurora color="var(--m-violet)" opacity={0.16} className="-top-24 right-0 size-[28rem]" />
+        <Aurora color={accent} opacity={0.18} className="-top-48 -left-28 size-[42rem]" />
+        <Aurora color="var(--m-gold)" opacity={0.05} className="-top-20 right-0 size-[28rem]" />
         <div
           aria-hidden
           className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_40%_0%,#000,transparent)]"
@@ -192,7 +192,7 @@ export default async function AgentPage({ params }: Params) {
             <div className="m-card relative overflow-hidden px-6 py-14 sm:px-12 sm:py-18">
               <Aurora
                 color={accent}
-                opacity={0.22}
+                opacity={0.13}
                 className="-top-28 left-1/3 size-[26rem] -translate-x-1/2"
               />
 

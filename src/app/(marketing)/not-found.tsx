@@ -11,7 +11,7 @@ import { Aurora, CTA, Container } from '@/components/marketing/bits';
 export default function MarketingNotFound() {
   return (
     <section className="relative overflow-hidden py-32 sm:py-44">
-      <Aurora color="var(--m-indigo)" opacity={0.26} className="-top-32 left-1/3 size-[34rem]" />
+      <Aurora color="var(--m-indigo)" opacity={0.15} className="-top-36 left-1/3 size-[38rem]" />
       <div
         aria-hidden
         className="m-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(55%_60%_at_50%_30%,#000,transparent)]"

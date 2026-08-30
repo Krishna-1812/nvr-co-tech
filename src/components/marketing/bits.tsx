@@ -149,14 +149,24 @@ export function Section({
   divider?: boolean;
 }) {
   return (
-    <section
-      id={id}
-      className={cn(
-        'relative py-20 sm:py-28',
-        divider && 'border-t border-[var(--m-line)]',
-        className,
+    <section id={id} className={cn('relative py-20 sm:py-28', className)}>
+      {/*
+        The divider is an element rather than a border, so it can be drawn.
+
+        A `border-t` is either there or it is not. This is a hairline that
+        scales from its left edge as the section arrives, in the same held steps
+        as everything else — so scrolling down the page draws each rule in turn,
+        and scrolling back up unwrites them. It is the smallest possible piece
+        of motion and it is on every section boundary on the site, which is what
+        makes the page feel like one continuous object rather than a stack of
+        blocks that each animate on their own.
+      */}
+      {divider && (
+        <span
+          aria-hidden
+          className="s-rule absolute inset-x-0 top-0 h-px bg-[var(--m-line)]"
+        />
       )}
-    >
       {children}
     </section>
   );

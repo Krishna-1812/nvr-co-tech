@@ -48,10 +48,9 @@ export function RequestForm() {
       <div className="m-card p-6 sm:p-9">
         <span
           aria-hidden
-          className="grid size-11 place-items-center rounded-full"
-          style={{ backgroundImage: 'var(--m-grad)' }}
+          className="grid size-11 place-items-center rounded-full bg-[var(--m-gold)]"
         >
-          <Check className="size-5 text-white" />
+          <Check className="size-5 text-[var(--m-on-grad)]" />
         </span>
         <h2 className="m-display mt-5 text-xl">That is with us</h2>
         <p className="m-dim mt-3 text-[14.5px] leading-relaxed">
@@ -145,8 +144,7 @@ export function RequestForm() {
         <button
           type="submit"
           disabled={busy}
-          className="group inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white shadow-[0_10px_30px_oklch(0.64_0.18_274_/_0.35)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
-          style={{ backgroundImage: 'var(--m-grad)' }}
+          className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-[4px] bg-[var(--m-ink)] px-6 text-[13px] font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] disabled:opacity-60"
         >
           {busy ? 'Sending' : 'Send it'}
           {!busy && (

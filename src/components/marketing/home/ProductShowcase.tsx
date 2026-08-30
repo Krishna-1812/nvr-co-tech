@@ -117,7 +117,7 @@ export function ProductShowcase() {
         <ol className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {ANNOTATIONS.map((a, i) => (
             <Reveal as="li" key={a.n} delay={i * 70}>
-              <span className="m-mono text-[11px] tracking-[0.16em] text-[var(--m-cyan)]">{a.n}</span>
+              <span className="m-mono text-[11px] tracking-[0.16em] text-[var(--m-gold)]">{a.n}</span>
               <h3 className="mt-3 text-[14px] font-semibold">{a.title}</h3>
               <p className="m-dim mt-2 text-[13px] leading-relaxed">{a.body}</p>
             </Reveal>
@@ -197,8 +197,7 @@ function Board() {
           <p className="m-dim-2 mt-1 text-[11px]">Seven vouchers are waiting on you.</p>
         </div>
         <span
-          className="m-mono rounded-lg px-3 py-1.5 text-[10px] font-semibold text-white"
-          style={{ backgroundImage: 'var(--m-grad)' }}
+          className="m-mono rounded-[3px] bg-[var(--m-ink)] px-3 py-1.5 text-[10px] font-semibold tracking-[0.1em] text-[var(--m-on-grad)] uppercase"
         >
           + New voucher
         </span>

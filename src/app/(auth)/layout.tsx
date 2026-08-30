@@ -92,13 +92,13 @@ function Backdrop() {
 
       {/* Colour at the far edges only, so the corners are not simply black. */}
       <Aurora
-        color="var(--m-violet)"
-        opacity={0.16}
+        color="var(--m-indigo)"
+        opacity={0.15}
         className="top-[-6rem] right-[-14rem] size-[30rem] animate-[drift_28s_ease-in-out_infinite_alternate-reverse] motion-reduce:animate-none"
       />
       <Aurora
-        color="var(--m-cyan)"
-        opacity={0.1}
+        color="var(--m-gold)"
+        opacity={0.05}
         className="bottom-[-16rem] left-[-10rem] size-[30rem] animate-[drift_36s_ease-in-out_infinite_alternate] motion-reduce:animate-none"
       />
 

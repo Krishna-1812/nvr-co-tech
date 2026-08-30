@@ -4,8 +4,8 @@ import { Reveal } from '../Reveal';
 export function FinalCTA() {
   return (
     <section className="relative overflow-hidden border-t border-[var(--m-line)] py-24 sm:py-32">
-      <Aurora color="var(--m-indigo)" opacity={0.3} className="-bottom-40 left-1/4 size-[38rem]" />
-      <Aurora color="var(--m-violet)" opacity={0.2} className="-bottom-32 right-1/4 size-[30rem]" />
+      <Aurora color="var(--m-indigo)" opacity={0.16} className="-bottom-44 left-1/4 size-[42rem]" />
+      <Aurora color="var(--m-gold)" opacity={0.06} className="-bottom-32 right-1/4 size-[28rem]" />
       <div
         aria-hidden
         className="m-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(60%_70%_at_50%_100%,#000,transparent)]"

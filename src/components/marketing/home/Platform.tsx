@@ -50,7 +50,7 @@ export function Platform() {
           {SHARED.map((s, i) => (
             <Reveal key={s.title} delay={i * 70}>
               <div className="m-card h-full rounded-2xl p-6">
-                <p className="m-mono text-[11px] tracking-[0.16em] text-[var(--m-cyan)]">
+                <p className="m-mono text-[11px] tracking-[0.16em] text-[var(--m-gold)]">
                   {String(i + 1).padStart(2, '0')}
                 </p>
                 <h3 className="mt-4 text-[15px] font-semibold tracking-tight">{s.title}</h3>

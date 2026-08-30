@@ -173,7 +173,7 @@ export function RulesPlayground() {
               </div>
 
               <p className="m-dim-2 mt-6 flex items-start gap-2 text-[11.5px] leading-relaxed">
-                <Info className="mt-px size-3.5 shrink-0 text-[var(--m-cyan)]" aria-hidden />
+                <Info className="mt-px size-3.5 shrink-0 text-[var(--m-gold)]" aria-hidden />
                 <span>
                   {interState
                     ? 'Between two states, only IGST applies. A voucher with IGST and CGST or SGST on it together is refused before you can submit it.'
@@ -243,7 +243,7 @@ function Segmented({
             onClick={() => onChange(o.value)}
             className={cn(
               'rounded-lg px-3.5 py-1.5 text-[12.5px] font-medium transition',
-              active ? 'text-white' : 'm-dim hover:text-[var(--m-ink)]',
+              active ? 'text-[var(--m-on-grad)]' : 'm-dim hover:text-[var(--m-ink)]',
             )}
             style={active ? { backgroundImage: 'var(--m-grad)' } : undefined}
           >
@@ -272,7 +272,7 @@ function Chip({
       className={cn(
         'm-mono rounded-lg border px-3 py-1.5 text-[11.5px] transition',
         active
-          ? 'border-[color-mix(in_oklab,var(--m-cyan)_50%,transparent)] bg-[color-mix(in_oklab,var(--m-cyan)_12%,transparent)] text-[var(--m-cyan)]'
+          ? 'border-[color-mix(in_oklab,var(--m-gold)_50%,transparent)] bg-[color-mix(in_oklab,var(--m-gold)_12%,transparent)] text-[var(--m-gold)]'
           : 'm-dim border-[var(--m-line)] hover:border-[var(--m-line-2)] hover:text-[var(--m-ink)]',
       )}
     >

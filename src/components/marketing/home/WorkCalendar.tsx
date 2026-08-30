@@ -169,7 +169,7 @@ export function WorkCalendar() {
                 {agent && (
                   <Link
                     href={`/agents/${agent.slug}`}
-                    className="group mt-7 inline-flex items-center gap-2 border-t border-[var(--m-line)] pt-5 text-[13px] font-semibold text-[var(--m-ink)] transition hover:text-[var(--m-cyan)]"
+                    className="group mt-7 inline-flex items-center gap-2 border-t border-[var(--m-line)] pt-5 text-[13px] font-semibold text-[var(--m-ink)] transition hover:text-[var(--m-gold)]"
                   >
                     <span className="m-mono m-dim-2 text-[10px] tracking-[0.14em] uppercase">
                       Handled by

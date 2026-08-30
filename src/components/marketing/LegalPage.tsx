@@ -48,7 +48,7 @@ export function LegalPage({
   updated,
   clauses,
   children,
-  accent = 'var(--m-cyan)',
+  accent = 'var(--m-gold)',
 }: {
   eyebrow: string;
   title: React.ReactNode;
@@ -62,7 +62,7 @@ export function LegalPage({
   return (
     <>
       <section className="relative overflow-hidden">
-        <Aurora color={accent} opacity={0.16} className="-top-44 -left-24 size-[36rem]" />
+        <Aurora color={accent} opacity={0.12} className="-top-48 -left-28 size-[40rem]" />
         <div
           aria-hidden
           className="m-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
@@ -121,7 +121,7 @@ export function LegalPage({
                       className="group flex gap-3 rounded-lg py-1.5 transition"
                     >
                       <span
-                        className="m-mono m-dim-2 shrink-0 pt-px text-[10px] tracking-[0.1em] tabular-nums transition-colors group-hover:text-[var(--m-cyan)]"
+                        className="m-mono m-dim-2 shrink-0 pt-px text-[10px] tracking-[0.1em] tabular-nums transition-colors group-hover:text-[var(--m-gold)]"
                         aria-hidden
                       >
                         {String(i + 1).padStart(2, '0')}

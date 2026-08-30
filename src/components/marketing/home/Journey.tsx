@@ -78,7 +78,7 @@ export function Journey() {
                   place and the change would happen with no motion at all.
                 */}
                 <div key={step} className="mt-8 animate-[rise_0.55s_cubic-bezier(0.22,1,0.36,1)]">
-                  <p className="m-mono text-[11px] tracking-[0.2em] text-[var(--m-cyan)]">
+                  <p className="m-mono text-[11px] tracking-[0.2em] text-[var(--m-gold)]">
                     {STEPS[step].n}
                   </p>
                   <h3 className="m-display mt-3 text-[clamp(1.6rem,2.6vw,2.4rem)]">
@@ -102,7 +102,7 @@ export function Journey() {
                 aria-hidden
                 className="block h-px origin-left"
                 style={{
-                  backgroundImage: 'var(--m-grad)',
+                  backgroundImage: 'var(--m-grad-2)',
                   transform: 'scaleX(var(--stage-progress, 0))',
                 }}
               />
@@ -116,7 +116,7 @@ export function Journey() {
         <Container className="space-y-14 pt-12 pb-20">
           {SCENES.map((Scene, i) => (
             <Reveal key={i} className="border-t border-[var(--m-line)] pt-8 first:border-0 first:pt-0">
-              <p className="m-mono text-[11px] tracking-[0.2em] text-[var(--m-cyan)]">{STEPS[i].n}</p>
+              <p className="m-mono text-[11px] tracking-[0.2em] text-[var(--m-gold)]">{STEPS[i].n}</p>
               <h3 className="m-display mt-3 text-[1.65rem]">{STEPS[i].title}</h3>
               <p className="m-dim mt-3.5 text-[14.5px] leading-relaxed">{STEPS[i].body}</p>
               <div className="mt-7">
@@ -145,7 +145,7 @@ function StepRail({ active }: { active: number }) {
                   ? 'border-transparent text-[var(--m-bg)]'
                   : 'm-dim-2 border-[var(--m-line-2)]',
               )}
-              style={reached ? { backgroundImage: 'var(--m-grad)' } : undefined}
+              style={reached ? { backgroundImage: 'var(--m-grad-2)' } : undefined}
             >
               {i + 1}
             </span>
@@ -154,7 +154,7 @@ function StepRail({ active }: { active: number }) {
                 <span
                   className="block h-px origin-left transition-transform duration-700 ease-out"
                   style={{
-                    backgroundImage: 'var(--m-grad)',
+                    backgroundImage: 'var(--m-grad-2)',
                     transform: `scaleX(${i < active ? 1 : 0})`,
                   }}
                 />
@@ -220,7 +220,7 @@ function Line({
         className={cn(
           'm-tabular text-[13px] font-medium',
           tone === 'good' && 'text-[var(--m-emerald)]',
-          tone === 'accent' && 'text-[var(--m-cyan)]',
+          tone === 'accent' && 'text-[var(--m-gold)]',
         )}
       >
         {value}
@@ -242,7 +242,7 @@ function Line({
  */
 function DraftScene() {
   return (
-    <Panel title="The draft" meta="checked as it is typed" accent="var(--m-cyan)">
+    <Panel title="The draft" meta="checked as it is typed" accent="var(--m-gold)">
       <div className="space-y-2.5 px-5 py-5">
         <Line label="Paid to" value="Meridian Events Pvt Ltd" delay={60} />
         <Line label="PAN" value="AABCM1234K" tone="good" delay={130} />
@@ -294,7 +294,7 @@ function Refused({ label, value }: { label: string; value: string }) {
 
 function RulesScene() {
   return (
-    <Panel title="Rules applied" meta="by the database, not the page" accent="var(--m-cyan)">
+    <Panel title="Rules applied" meta="by the database, not the page" accent="var(--m-gold)">
       <div className="space-y-3 px-5 py-5">
         <Rule
           input="Supplier in Karnataka · chapter in Maharashtra"
@@ -319,7 +319,7 @@ function RulesScene() {
           style={{ animationDelay: '340ms' }}
         >
           <span className="m-eyebrow">On the voucher</span>
-          <span className="m-mono text-[13px] tracking-[0.04em] text-[var(--m-lime)]">
+          <span className="m-mono text-[13px] tracking-[0.04em] text-[var(--m-gold)]">
             FI/BLR/26-27/0042
           </span>
         </div>
@@ -346,8 +346,8 @@ function Rule({
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="m-dim-2 text-[11.5px]">{input}</span>
-        <ArrowRight className="size-3 shrink-0 text-[var(--m-cyan)]" aria-hidden />
-        <span className="text-[12.5px] font-semibold text-[var(--m-cyan)]">{decision}</span>
+        <ArrowRight className="size-3 shrink-0 text-[var(--m-gold)]" aria-hidden />
+        <span className="text-[12.5px] font-semibold text-[var(--m-gold)]">{decision}</span>
       </div>
       <p className="m-dim-2 mt-1.5 text-[11px] leading-relaxed">{detail}</p>
     </div>

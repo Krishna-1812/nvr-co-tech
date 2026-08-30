@@ -58,8 +58,8 @@ export default function AboutPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <Aurora color="var(--m-violet)" opacity={0.24} className="-top-44 -left-24 size-[38rem]" />
-        <Aurora color="var(--m-cyan)" opacity={0.14} className="-top-20 right-0 size-[30rem]" />
+        <Aurora color="var(--m-indigo)" opacity={0.16} className="-top-48 -left-28 size-[42rem]" />
+        <Aurora color="var(--m-gold)" opacity={0.05} className="-top-16 right-0 size-[28rem]" />
         <div
           aria-hidden
           className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
@@ -296,7 +296,7 @@ export default function AboutPage() {
             <div className="m-card relative overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-20">
               <Aurora
                 color="var(--m-indigo)"
-                opacity={0.24}
+                opacity={0.14}
                 className="-top-24 left-1/2 size-[28rem] -translate-x-1/2"
               />
 
