@@ -3,7 +3,9 @@ import { Reveal } from '../Reveal';
 
 export function FinalCTA() {
   return (
-    <section className="relative overflow-hidden border-t border-[var(--m-line)] py-24 sm:py-32">
+    <section className="relative overflow-hidden py-24 sm:py-32">
+      {/* Drawn rather than a border, like every other section boundary. */}
+      <span aria-hidden className="s-rule absolute inset-x-0 top-0 h-px bg-[var(--m-line)]" />
       <Aurora color="var(--m-indigo)" opacity={0.16} className="-bottom-44 left-1/4 size-[42rem]" />
       <Aurora color="var(--m-gold)" opacity={0.06} className="-bottom-32 right-1/4 size-[28rem]" />
       <div

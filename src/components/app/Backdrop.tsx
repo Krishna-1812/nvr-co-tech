@@ -1,7 +1,7 @@
 /**
  * The room the app is sitting in.
  *
- * Five layers, none of which the reader is ever meant to look at: a wash, three
+ * Five layers, none of which the reader is ever meant to look at: a wash, two
  * coloured lights on slow independent orbits, a hairline grid, film grain, and a
  * vignette at the foot of the screen. Together they are the difference between
  * cards floating in a considered space and cards sitting on a flat grey rectangle.
@@ -28,9 +28,14 @@ export function Backdrop() {
       <div className="absolute inset-0 bg-[linear-gradient(180deg,var(--surface-sunken),var(--surface)_38%,var(--surface))]" />
 
       {/*
-        Three lights. The durations are deliberately co-prime-ish and the delays
-        negative, so each one starts mid-cycle and the pattern of their overlaps
-        never repeats on any timescale a person would notice.
+        Two lights — one cool, one warm, the only two hues in the system. There
+        used to be a third, a cyan, and three saturated fields drifting behind a
+        page of figures is both the most-copied backdrop on the web and enough
+        colour to tint the paper the numbers are printed on.
+
+        The durations are deliberately co-prime-ish and the second delay
+        negative, so it starts mid-cycle and the pattern of their overlap never
+        repeats on any timescale a person would notice.
       */}
       <span
         className="a-orb -top-[22vh] -left-[12vw] size-[min(60rem,78vw)]"
@@ -46,14 +51,6 @@ export function Backdrop() {
           animation: 'aurora 46s ease-in-out -11s infinite reverse',
         }}
       />
-      <span
-        className="a-orb -bottom-[26vh] left-[26vw] size-[min(42rem,58vw)]"
-        style={{
-          background: 'radial-gradient(circle, var(--a-glow-3), transparent 70%)',
-          animation: 'aurora 39s ease-in-out -21s infinite',
-        }}
-      />
-
       {/* The grid, faded out radially so it never reaches an edge and read as a
           border. */}
       <div className="a-grid absolute inset-0 opacity-[0.45] [mask-image:radial-gradient(80%_60%_at_50%_0%,#000,transparent)]" />

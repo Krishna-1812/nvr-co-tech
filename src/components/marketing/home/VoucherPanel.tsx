@@ -29,14 +29,34 @@ const GRAND = NET - TDS;
 export function VoucherPanel() {
   return (
     <div className="relative">
-      {/* Coloured bloom directly behind the card, so it sits in light. */}
+      {/* The card sits in light rather than glow: a faint cool bloom, and one
+          lit edge along the top. */}
       <div
         aria-hidden
-        className="absolute -inset-6 rounded-[28px] opacity-40 blur-3xl"
-        style={{ background: 'var(--m-grad)' }}
+        className="absolute -inset-8 rounded-3xl opacity-50 blur-3xl"
+        style={{
+          background:
+            'radial-gradient(60% 60% at 30% 20%, var(--m-indigo), transparent 70%)',
+        }}
       />
 
       <div className="m-card relative overflow-hidden rounded-2xl">
+        {/*
+          The lit edge. Brightest at the middle and gone by both corners, so it
+          reads as light landing on the card rather than as a stripe drawn on
+          it. This is what separates the panel from its ground now that the
+          blurred bloom behind it has been pulled back to a whisper.
+        */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-10 top-0 h-px"
+          style={{
+            background:
+              'linear-gradient(90deg, transparent, var(--m-gold), transparent)',
+            opacity: 0.55,
+          }}
+        />
+
         {/*
           ── Card head ──
 

@@ -421,13 +421,12 @@
    * source and one warm one — navy and gold, the only two hues in the system —
    * at a strength you notice only when they are removed.
    *
-   * --a-glow-3 is kept and set to `transparent` rather than deleted: the
-   * Backdrop renders three layers, and a token that resolves to nothing is a
-   * cheaper contract than a component signature every caller has to follow.
+   * The third light is gone rather than set to `transparent`. Leaving it
+   * invisible would have left the Backdrop animating a compositor layer that
+   * paints nothing, forever, on a screen people keep open all day.
    */
   --a-glow-1: oklch(0.505 0.080 246 / 0.10);
   --a-glow-2: oklch(0.660 0.118 82 / 0.07);
-  --a-glow-3: transparent;
 
   /* Film grain. Low, but not zero — it is what stops large flat panels from
      looking like untextured CSS. */
@@ -524,8 +523,7 @@
   :root:not([data-theme='light']) {
     --a-glow-1: oklch(0.505 0.080 246 / 0.30);
     --a-glow-2: oklch(0.660 0.118 82 / 0.13);
-    --a-glow-3: transparent;
-
+  
     --a-grain: 0.07;
 
     --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0) 42%);
@@ -547,7 +545,6 @@
 :root[data-theme='dark'] {
   --a-glow-1: oklch(0.505 0.080 246 / 0.30);
   --a-glow-2: oklch(0.660 0.118 82 / 0.13);
-  --a-glow-3: transparent;
 
   --a-grain: 0.07;
 
@@ -988,7 +985,6 @@ body:has([data-skin='night']) {
   --a-chrome-line: var(--m-line);
   --a-glow-1: oklch(0.505 0.080 246 / 0.30);
   --a-glow-2: oklch(0.660 0.118 82 / 0.13);
-  --a-glow-3: transparent;
 }
 
 @layer utilities {
