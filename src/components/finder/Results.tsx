@@ -100,7 +100,7 @@ function Tick({ on, onClick, label }: { on: boolean; onClick: () => void; label:
       onClick={onClick}
       className={cn(
         'grid size-5 shrink-0 place-items-center rounded-md border transition',
-        on ? 'gradient-brand border-transparent text-white' : 'hover:border-[var(--border-strong)]',
+        on ? 'gradient-brand border-transparent' : 'hover:border-[var(--border-strong)]',
       )}
     >
       {on && <Check className="size-3.5" aria-hidden />}
@@ -152,7 +152,7 @@ function PersonCard({
       <div className="flex items-start gap-3">
         <Tick on={on} onClick={toggle} label={`Select ${name}`} />
 
-        <span className="gradient-brand grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold text-white">
+        <span className="gradient-brand grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold">
           {monogram(name)}
         </span>
 

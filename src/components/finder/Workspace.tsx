@@ -776,7 +776,7 @@ export function Workspace() {
           <SlidersHorizontal className="size-4" aria-hidden />
           {railOpen ? 'Hide filters' : 'Set filters by hand'}
           {setFilterCount > 0 && (
-            <span className="gradient-brand ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            <span className="gradient-brand ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
               {setFilterCount}
             </span>
           )}
@@ -807,7 +807,7 @@ export function Workspace() {
                 className={cn(
                   'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-sm font-medium transition',
                   on
-                    ? 'gradient-brand text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
+                    ? 'gradient-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
                     : 'text-muted hover:text-[var(--text-c)]',
                 )}
               >
@@ -1012,7 +1012,7 @@ export function Workspace() {
                 onClick={() => void revealSelected()}
                 disabled={state.revealing}
                 title="Buys the full record for each ticked person: contact details, real surname, employer. About one credit each, and nothing for anyone already bought."
-                className="gradient-brand inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] transition disabled:opacity-60"
+                className="gradient-brand inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] transition disabled:opacity-60"
               >
                 <Sparkles className="size-3.5" aria-hidden />
                 {state.revealing ? 'Revealing…' : `Reveal ${selectedCount}`}
@@ -1160,7 +1160,7 @@ export function Workspace() {
           underneath it and could not be pressed at exactly the widths it exists
           for.
         */
-        className="gradient-brand elev-3 fixed right-4 bottom-[5.5rem] z-40 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] lg:bottom-6 2xl:hidden"
+        className="gradient-brand elev-3 fixed right-4 bottom-[5.5rem] z-40 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] lg:bottom-6 2xl:hidden"
       >
         <MessagesSquare className="size-4" aria-hidden />
         Ask

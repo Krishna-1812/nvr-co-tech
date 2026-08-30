@@ -101,7 +101,7 @@ export function Composer({
             className={cn(
               'grid size-9 place-items-center rounded-xl transition active:scale-95',
               ready
-                ? 'gradient-brand elev-brand text-white hover:brightness-110'
+                ? 'gradient-brand elev-brand hover:brightness-110'
                 : 'surface-sunken text-subtle border',
             )}
           >

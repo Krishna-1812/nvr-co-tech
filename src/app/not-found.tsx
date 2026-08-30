@@ -48,14 +48,14 @@ export default async function NotFound() {
           {user ? (
             <Link
               href="/hub"
-              className="gradient-brand elev-brand inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-white transition hover:brightness-110"
+              className="gradient-brand elev-brand inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold transition hover:brightness-110"
             >
               Your workspace
             </Link>
           ) : (
             <Link
               href="/login"
-              className="gradient-brand elev-brand inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-white transition hover:brightness-110"
+              className="gradient-brand elev-brand inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold transition hover:brightness-110"
             >
               Sign in
             </Link>

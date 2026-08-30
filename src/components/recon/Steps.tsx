@@ -51,7 +51,7 @@ export function Steps({
               className={cn(
                 'grid size-6 shrink-0 place-items-center rounded-lg text-[11px] font-bold transition',
                 done || on
-                  ? 'gradient-brand elev-brand text-white'
+                  ? 'gradient-brand elev-brand'
                   : 'surface-sunken text-subtle border',
               )}
             >

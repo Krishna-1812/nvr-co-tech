@@ -31,7 +31,7 @@ export default async function HubLayout({ children }: { children: React.ReactNod
 
       <a
         href="#main"
-        className="gradient-brand elev-brand sr-only rounded-lg px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
+        className="gradient-brand elev-brand sr-only rounded-lg px-4 py-2 text-sm font-semibold focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
       >
         Skip to content
       </a>

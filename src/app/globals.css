@@ -1,46 +1,118 @@
 @import 'tailwindcss';
 
 /*
- * Voucher Desk — design tokens.
+ * The Finance Intelligence — design tokens.
  *
- * The brand ink (#3D52A0) is carried over from v1 so the printed voucher still
- * looks like the firm's document. Everything around it is rebuilt: v1 was
- * slate-on-white with no dark mode and no semantic colour for voucher state —
- * and state is the most important thing to see at a glance here.
+ * ── Ink & Gold ─────────────────────────────────────────────────────────────
+ *
+ * Every colour in this file is taken from the owl, and there is nothing in it
+ * that is not. The mark is four colours: #0B2942 navy, #123B57 the lit navy it
+ * is drawn in, #E8C468 gold for the eye rings and the rupee, and #F5F0E6 for
+ * the bone disc behind the bird. In OKLCH those land on two hues — 247 for the
+ * navy and 88 for the gold, with the bone reading as the gold hue at a
+ * fourteenth of the chroma.
+ *
+ * So the whole system is two hues. Cool navy for structure, ink and every
+ * neutral; warm gold for the one accent; the bone as the paper the light theme
+ * is printed on. It replaces an indigo→violet pair (#3D52A0 → a violet at hue
+ * 306) which was carried over from the v1 voucher document and had no relation
+ * to the mark at all — the owl in the header read as a sticker somebody had
+ * stuck onto a purple site.
+ *
+ * Two rules follow from that and are enforced throughout:
+ *
+ *   1. Nothing is a two-hue gradient. The old --gradient-brand ran indigo to
+ *      violet across every primary button, chip and rule on the site, which is
+ *      the single most recognisable tell of a page nobody drew. Filled surfaces
+ *      are flat ink, and what makes them read as objects is the edge, the
+ *      grain and the shadow — see .surface-lit and .a-ring.
+ *
+ *   2. Gold is rationed. It is the only warm thing on a cool page, which is
+ *      exactly why it stops working the moment it is used for more than one
+ *      idea. It marks section labels, the live signal, and the one figure per
+ *      screen that matters. It is never a button fill and never a large field.
+ * ───────────────────────────────────────────────────────────────────────────
  */
 
 @theme {
-  /* Brand — derived from the original voucher document's #3D52A0 */
-  --color-brand-50:  oklch(0.971 0.014 271);
-  --color-brand-100: oklch(0.936 0.032 271);
-  --color-brand-200: oklch(0.885 0.056 271);
-  --color-brand-300: oklch(0.811 0.089 271);
-  --color-brand-400: oklch(0.706 0.128 271);
-  --color-brand-500: oklch(0.606 0.155 271);
-  --color-brand-600: oklch(0.508 0.158 271);  /* ≈ #3D52A0 */
-  --color-brand-700: oklch(0.432 0.140 271);
-  --color-brand-800: oklch(0.372 0.115 271);
-  --color-brand-900: oklch(0.325 0.092 271);
+  /*
+   * The navy, as a scale. 700 and 800 are the mark's own two navies, coordinate
+   * for coordinate; everything above them is that hue carried up to paper.
+   *
+   * Note that the scale gets *lighter* far faster than it gets less saturated.
+   * A navy that desaturates as it lightens turns grey by 300 and the tints stop
+   * belonging to the same colour as the fills.
+   */
+  --color-brand-50:  oklch(0.972 0.008 247);
+  --color-brand-100: oklch(0.940 0.018 247);
+  --color-brand-200: oklch(0.882 0.032 247);
+  --color-brand-300: oklch(0.796 0.048 247);
+  --color-brand-400: oklch(0.660 0.070 247);
+  --color-brand-500: oklch(0.505 0.080 246);
+  --color-brand-600: oklch(0.400 0.078 245);
+  --color-brand-700: oklch(0.339 0.067 243);  /* #123B57 — the mark's lit navy */
+  --color-brand-800: oklch(0.273 0.058 247);  /* #0B2942 — the mark's navy */
+  --color-brand-900: oklch(0.205 0.044 247);
 
   /*
-   * Accent — a warmer violet that sits one step round the wheel from the brand
-   * ink. Used only as the far end of gradients, never on its own, so the firm's
-   * colour stays the one you actually read.
+   * The gold. 400 is #E8C468 exactly — the eye rings, the beak and the rupee.
+   *
+   * It darkens towards 78° rather than staying at 88°, because gold that only
+   * loses lightness reads as mustard; rotating it a few degrees towards amber
+   * as it darkens is what keeps it reading as metal.
    */
-  --color-accent-400: oklch(0.706 0.148 306);
-  --color-accent-500: oklch(0.606 0.170 306);
-  --color-accent-600: oklch(0.516 0.172 306);
+  --color-gold-200: oklch(0.940 0.048 90);
+  --color-gold-300: oklch(0.898 0.080 89);
+  --color-gold-400: oklch(0.833 0.119 88);   /* #E8C468 — the mark's gold */
+  --color-gold-500: oklch(0.760 0.126 86);
+  --color-gold-600: oklch(0.660 0.118 82);
+  --color-gold-700: oklch(0.545 0.100 78);
+
+  /* The bone disc behind the owl, and the paper the light theme is printed on. */
+  --color-bone: oklch(0.956 0.014 85);        /* #F5F0E6 */
 
   /*
    * One family for everything. --font-display is the same stack as --font-sans;
-   * what separates a headline from body text is the `opsz` and `wdth` axes, set
+   * what separates a headline from body text is the `wdth` and `wght` axes, set
    * by the .m-display utility, not a different typeface.
+   *
+   * Archivo, not Bricolage Grotesque. Bricolage is a display face with a lot of
+   * personality — flared stems, a wide bowl, an `opsz` axis that opens the
+   * letterforms further as they shrink — and at 13px in a table of figures that
+   * personality is noise. Archivo is a grotesque drawn for exactly this: it
+   * carries a `wdth` axis from 62 to 125, so a headline can be set genuinely
+   * narrow without a second family and without the smeared look of a browser
+   * squeezing a normal-width face.
+   *
+   * The width axis is the whole reason for the choice. It is what lets a hero
+   * line be set at 88 and a caption at 100 and read as one voice at two
+   * registers rather than as two typefaces.
    */
-  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-sans);
   --font-mono: var(--font-mono-stack), ui-monospace, 'Cascadia Code', monospace;
-  /* Italic accents inside headlines only — Bricolage ships no italic. */
+  /* Italic accents inside headlines only — Archivo ships no italic on the
+     variable width axis we use, and a synthesised slant is a sheared roman. */
   --font-serif: var(--font-serif-stack), Georgia, 'Times New Roman', serif;
+
+  /*
+   * Easing, named once.
+   *
+   * --ease-out is the house curve: a hard start that spends most of its time
+   * settling, which is what makes an element look like it was placed rather
+   * than like it drifted in.
+   *
+   * --ease-step is the one that gives the site its character. Eight equal
+   * jumps instead of a curve, so anything carrying it advances in frames the
+   * way a stop-motion figure does — it arrives, holds, arrives again. Used on
+   * the counters, the pinned stages and the reveal rules, and deliberately
+   * never on anything a pointer is touching: a button that snaps in eight
+   * steps reads as a dropped frame, not as a decision.
+   */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-step: steps(8, end);
+  --ease-step-fine: steps(14, end);
 
   /* Entrance motion — see @keyframes below. */
   --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
@@ -60,26 +132,56 @@
  * `dark:` variant on every element.
  */
 :root {
-  --surface:        oklch(0.985 0.002 271);
-  --surface-raised: oklch(1 0 0);
-  --surface-sunken: oklch(0.96 0.004 271);
-  --border-c:       oklch(0.91 0.006 271);
-  --border-strong:  oklch(0.84 0.010 271);
-  --text-c:         oklch(0.24 0.020 271);
-  --text-muted:     oklch(0.52 0.016 271);
-  --text-subtle:    oklch(0.64 0.012 271);
+  /*
+   * Paper, not white.
+   *
+   * The light theme is printed on the mark's own bone — #F5F0E6 sits at the top
+   * of this ramp as --surface-raised, and the page behind it is a shade deeper
+   * so a card reads as something laid on the desk rather than as a hole cut in
+   * it. A pure white ground was the other half of why the old palette looked
+   * generated: white paper plus a violet gradient is the default of every
+   * component library shipped in the last five years.
+   *
+   * The neutrals are warm (hue 85, the gold's hue at a tenth of its chroma) and
+   * the ink on them is cool (hue 247). That opposition is the whole trick — it
+   * is what the mark does, a cool bird on a warm disc, and it is why this looks
+   * like paper rather than like grey.
+   */
+  --surface:        oklch(0.945 0.013 85);
+  --surface-raised: oklch(0.978 0.008 85);
+  --surface-sunken: oklch(0.912 0.016 85);
 
-  --status-draft:    oklch(0.62 0.014 271);
-  --status-pending:  oklch(0.55 0.150 250);
-  --status-approved: oklch(0.55 0.140 155);
-  --status-rejected: oklch(0.55 0.180 25);
-  --status-paid:     oklch(0.50 0.130 175);
+  /* Edges are ink at low strength, not warm — a warm border round a warm card
+     is invisible, and these have to survive being 1px wide. */
+  --border-c:       oklch(0.878 0.014 247);
+  --border-strong:  oklch(0.775 0.024 247);
+
+  --text-c:         oklch(0.273 0.058 247);  /* #0B2942 — the mark's navy, as ink */
+  --text-muted:     oklch(0.475 0.040 247);
+  --text-subtle:    oklch(0.610 0.028 247);
+
+  /*
+   * Status colours are the one place hue is allowed to mean something other
+   * than the brand, because it is carrying information: a reader has to tell
+   * approved from rejected across a room. They are pulled to a common lightness
+   * so they read as one set of instruments, and their chroma is a step below
+   * where it was — on bone rather than white, the old values were shouting.
+   */
+  --status-draft:    oklch(0.600 0.020 247);
+  --status-pending:  oklch(0.545 0.130 248);
+  --status-approved: oklch(0.545 0.120 158);
+  --status-rejected: oklch(0.545 0.165 27);
+  --status-paid:     oklch(0.510 0.110 192);
   /*
    * Not a voucher status — the colour for things that are merely wrong-looking:
    * a voucher ageing in the queue, an approval with no invoice behind it, too
    * few approvers to clear anything. Those were each picking their own amber.
+   *
+   * Pushed to 52° rather than the 75° it used to sit at. The brand gold is at
+   * 88° and is now everywhere; an amber warning eight degrees away from it read
+   * as a decorative highlight rather than as a problem.
    */
-  --status-warn:     oklch(0.56 0.130 75);
+  --status-warn:     oklch(0.585 0.145 52);
 
   /*
    * Elevation. Two stacked shadows per step — a tight contact shadow plus a
@@ -87,17 +189,47 @@
    * with the brand hue instead of pure black so it sits in the same colour
    * world as everything else.
    */
-  --elev-1: 0 1px 2px oklch(0.24 0.02 271 / 0.06), 0 1px 3px oklch(0.24 0.02 271 / 0.04);
-  --elev-2: 0 2px 4px oklch(0.24 0.02 271 / 0.06), 0 4px 12px oklch(0.24 0.02 271 / 0.06);
-  --elev-3: 0 4px 8px oklch(0.24 0.02 271 / 0.07), 0 12px 28px oklch(0.24 0.02 271 / 0.09);
-  --elev-4: 0 8px 16px oklch(0.24 0.02 271 / 0.08), 0 24px 56px oklch(0.24 0.02 271 / 0.12);
-  /* Coloured lift, for brand-filled surfaces only. */
-  --elev-brand: 0 4px 12px oklch(0.508 0.158 271 / 0.24), 0 12px 32px oklch(0.508 0.158 271 / 0.18);
+  --elev-1: 0 1px 2px oklch(0.27 0.058 247 / 0.07), 0 1px 3px oklch(0.27 0.058 247 / 0.05);
+  --elev-2: 0 2px 4px oklch(0.27 0.058 247 / 0.07), 0 4px 12px oklch(0.27 0.058 247 / 0.07);
+  --elev-3: 0 4px 8px oklch(0.27 0.058 247 / 0.08), 0 12px 28px oklch(0.27 0.058 247 / 0.10);
+  --elev-4: 0 8px 16px oklch(0.27 0.058 247 / 0.09), 0 24px 56px oklch(0.27 0.058 247 / 0.13);
+  /* Lift for ink-filled surfaces. The shadow is the ink's own colour, so a
+     filled button sits on the paper rather than floating above a grey smudge. */
+  --elev-brand: 0 4px 12px oklch(0.273 0.058 247 / 0.26), 0 12px 32px oklch(0.273 0.058 247 / 0.20);
 
-  --gradient-brand: linear-gradient(135deg, var(--color-brand-600), var(--color-accent-500));
-  --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.7), oklch(1 0 0 / 0));
+  /*
+   * ── The primary action ──────────────────────────────────────────────────
+   *
+   * One fill, defined as "whatever is furthest from the page". On paper that is
+   * the mark's navy; on the night ground it is the mark's bone. So a primary
+   * button is always the strongest contrast available and never a colour that
+   * has to be checked against a ground it might not survive.
+   *
+   * This replaces a 135° indigo→violet gradient that ran across every filled
+   * surface in the product. It is also why --on-action exists: the label on
+   * that fill flips with it, and call sites must not hard-code `text-white`.
+   */
+  --action:    oklch(0.273 0.058 247);   /* #0B2942 */
+  --on-action: oklch(0.978 0.008 85);
+  --action-hover: oklch(0.205 0.044 247);
+
+  /*
+   * The accent, and the only warm thing on the page. See the ration note at the
+   * top of the file — this is not a fill.
+   */
+  --accent:     oklch(0.660 0.118 82);
+  --accent-lit: oklch(0.833 0.119 88);
+
+  /* The focus ring. Its own token because the brand step that used to serve as
+     one is near-black here and near-invisible on the night ground. */
+  --focus: oklch(0.545 0.100 78);
+
+  /* Kept under the old name so the ~50 call sites carrying `.gradient-brand`
+     keep working, but it is no longer a gradient and no longer two hues. */
+  --gradient-brand: linear-gradient(180deg, oklch(0.339 0.067 243), var(--action) 62%);
+  --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.75), oklch(1 0 0 / 0));
   /* Faint hairline along the top of raised surfaces — catches the "light". */
-  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.6);
+  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.7);
 }
 
 /*
@@ -111,31 +243,50 @@
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --surface:        oklch(0.185 0.012 271);
-    --surface-raised: oklch(0.228 0.014 271);
-    --surface-sunken: oklch(0.155 0.010 271);
-    --border-c:       oklch(0.31 0.016 271);
-    --border-strong:  oklch(0.40 0.020 271);
-    --text-c:         oklch(0.95 0.004 271);
-    --text-muted:     oklch(0.72 0.012 271);
-    --text-subtle:    oklch(0.58 0.014 271);
+    /*
+     * Night is the mark's navy taken down, not a neutral grey given a blue
+     * cast. --surface sits below #0B2942 so the mark's own navy can be a raised
+     * surface on it; --surface-raised is #0B2942 itself, near enough.
+     */
+    --surface:        oklch(0.168 0.030 247);
+    --surface-raised: oklch(0.228 0.038 247);
+    --surface-sunken: oklch(0.132 0.026 247);
+    --border-c:       oklch(0.330 0.036 247);
+    --border-strong:  oklch(0.430 0.044 247);
 
-    --status-draft:    oklch(0.66 0.016 271);
-    --status-pending:  oklch(0.75 0.130 250);
-    --status-approved: oklch(0.75 0.120 155);
-    --status-rejected: oklch(0.72 0.150 25);
-    --status-paid:     oklch(0.73 0.110 175);
-    --status-warn:     oklch(0.79 0.120 80);
+    /* Warm text on a cool ground — the mark's own relationship, bone on navy.
+       A neutral white here reads as clinical and kills the whole palette. */
+    --text-c:         oklch(0.960 0.010 85);
+    --text-muted:     oklch(0.740 0.018 85);
+    --text-subtle:    oklch(0.590 0.022 247);
+
+    --status-draft:    oklch(0.660 0.020 247);
+    --status-pending:  oklch(0.760 0.120 248);
+    --status-approved: oklch(0.790 0.130 158);
+    --status-rejected: oklch(0.730 0.150 27);
+    --status-paid:     oklch(0.780 0.105 192);
+    --status-warn:     oklch(0.790 0.140 52);
 
     /* Tinted shadows vanish on a dark ground, so these go to near-black. */
     --elev-1: 0 1px 2px oklch(0 0 0 / 0.4), 0 1px 3px oklch(0 0 0 / 0.3);
     --elev-2: 0 2px 4px oklch(0 0 0 / 0.4), 0 4px 12px oklch(0 0 0 / 0.36);
     --elev-3: 0 4px 8px oklch(0 0 0 / 0.44), 0 12px 28px oklch(0 0 0 / 0.44);
     --elev-4: 0 8px 16px oklch(0 0 0 / 0.5), 0 24px 56px oklch(0 0 0 / 0.55);
-    --elev-brand: 0 4px 12px oklch(0.508 0.158 271 / 0.4), 0 12px 32px oklch(0.508 0.158 271 / 0.3);
+    --elev-brand: 0 4px 12px oklch(0.956 0.014 85 / 0.18), 0 12px 32px oklch(0 0 0 / 0.45);
 
+    /* The action inverts with the ground: bone on night, as the owl's own
+       eyes are. See the --action note in the light block. */
+    --action:       oklch(0.956 0.014 85);
+    --on-action:    oklch(0.180 0.038 247);
+    --action-hover: oklch(1 0 0);
+
+    --accent:     oklch(0.833 0.119 88);
+    --accent-lit: oklch(0.898 0.080 89);
+    --focus:      oklch(0.833 0.119 88);
+
+    --gradient-brand: linear-gradient(180deg, oklch(0.992 0.006 85), var(--action) 62%);
     --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0));
-    --hairline: inset 0 1px 0 oklch(1 0 0 / 0.06);
+    --hairline: inset 0 1px 0 oklch(1 0 0 / 0.07);
   }
 }
 
@@ -143,30 +294,39 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --surface:        oklch(0.185 0.012 271);
-  --surface-raised: oklch(0.228 0.014 271);
-  --surface-sunken: oklch(0.155 0.010 271);
-  --border-c:       oklch(0.31 0.016 271);
-  --border-strong:  oklch(0.40 0.020 271);
-  --text-c:         oklch(0.95 0.004 271);
-  --text-muted:     oklch(0.72 0.012 271);
-  --text-subtle:    oklch(0.58 0.014 271);
+  --surface:        oklch(0.168 0.030 247);
+  --surface-raised: oklch(0.228 0.038 247);
+  --surface-sunken: oklch(0.132 0.026 247);
+  --border-c:       oklch(0.330 0.036 247);
+  --border-strong:  oklch(0.430 0.044 247);
+  --text-c:         oklch(0.960 0.010 85);
+  --text-muted:     oklch(0.740 0.018 85);
+  --text-subtle:    oklch(0.590 0.022 247);
 
-  --status-draft:    oklch(0.66 0.016 271);
-  --status-pending:  oklch(0.75 0.130 250);
-  --status-approved: oklch(0.75 0.120 155);
-  --status-rejected: oklch(0.72 0.150 25);
-  --status-paid:     oklch(0.73 0.110 175);
-  --status-warn:     oklch(0.79 0.120 80);
+  --status-draft:    oklch(0.660 0.020 247);
+  --status-pending:  oklch(0.760 0.120 248);
+  --status-approved: oklch(0.790 0.130 158);
+  --status-rejected: oklch(0.730 0.150 27);
+  --status-paid:     oklch(0.780 0.105 192);
+  --status-warn:     oklch(0.790 0.140 52);
 
   --elev-1: 0 1px 2px oklch(0 0 0 / 0.4), 0 1px 3px oklch(0 0 0 / 0.3);
   --elev-2: 0 2px 4px oklch(0 0 0 / 0.4), 0 4px 12px oklch(0 0 0 / 0.36);
   --elev-3: 0 4px 8px oklch(0 0 0 / 0.44), 0 12px 28px oklch(0 0 0 / 0.44);
   --elev-4: 0 8px 16px oklch(0 0 0 / 0.5), 0 24px 56px oklch(0 0 0 / 0.55);
-  --elev-brand: 0 4px 12px oklch(0.508 0.158 271 / 0.4), 0 12px 32px oklch(0.508 0.158 271 / 0.3);
+  --elev-brand: 0 4px 12px oklch(0.956 0.014 85 / 0.18), 0 12px 32px oklch(0 0 0 / 0.45);
 
+  --action:       oklch(0.956 0.014 85);
+  --on-action:    oklch(0.180 0.038 247);
+  --action-hover: oklch(1 0 0);
+
+  --accent:     oklch(0.833 0.119 88);
+  --accent-lit: oklch(0.898 0.080 89);
+  --focus:      oklch(0.833 0.119 88);
+
+  --gradient-brand: linear-gradient(180deg, oklch(0.992 0.006 85), var(--action) 62%);
   --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0));
-  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.06);
+  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.07);
 }
 
 /* Pinning light explicitly only needs to restore the colour scheme; the base
@@ -198,9 +358,23 @@
    * field sits under body text, and anything stronger than about 18% alpha
    * starts tinting the paper the numbers are printed on.
    */
-  --a-glow-1: oklch(0.606 0.155 271 / 0.15);
-  --a-glow-2: oklch(0.606 0.170 306 / 0.12);
-  --a-glow-3: oklch(0.700 0.120 205 / 0.10);
+  /*
+   * Two light sources, not three, and both from the mark.
+   *
+   * There used to be an indigo, a violet and a cyan orbiting behind every
+   * screen. Three saturated blurred circles on independent orbits is the single
+   * most-copied background of the last two years, and at that alpha it also
+   * tinted the paper the figures are printed on. What is left is one cool
+   * source and one warm one — navy and gold, the only two hues in the system —
+   * at a strength you notice only when they are removed.
+   *
+   * --a-glow-3 is kept and set to `transparent` rather than deleted: the
+   * Backdrop renders three layers, and a token that resolves to nothing is a
+   * cheaper contract than a component signature every caller has to follow.
+   */
+  --a-glow-1: oklch(0.505 0.080 246 / 0.10);
+  --a-glow-2: oklch(0.660 0.118 82 / 0.07);
+  --a-glow-3: transparent;
 
   /* Film grain. Low, but not zero — it is what stops large flat panels from
      looking like untextured CSS. */
@@ -208,27 +382,27 @@
 
   /* Panel material. The sheen is a short top-lit gradient rather than a
      full-height one, so a tall card does not fade out down the page. */
-  --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.75), oklch(1 0 0 / 0) 38%);
-  --a-veil: oklch(1 0 0 / 0.66);
+  --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.7), oklch(1 0 0 / 0) 38%);
+  --a-veil: oklch(0.978 0.008 85 / 0.68);
 
   /* The two stops of a 1px gradient outline. Bright at the top-left corner,
      where the notional light is. */
   --a-ring-hi: oklch(1 0 0 / 0.95);
-  --a-ring-lo: oklch(0.508 0.158 271 / 0.14);
+  --a-ring-lo: oklch(0.273 0.058 247 / 0.14);
 
   /* A panel's own top highlight, and the shadow it casts when raised. */
   --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.85);
-  --a-hover: 0 8px 18px oklch(0.24 0.02 271 / 0.08), 0 24px 56px oklch(0.24 0.02 271 / 0.10);
+  --a-hover: 0 8px 18px oklch(0.27 0.058 247 / 0.09), 0 24px 56px oklch(0.27 0.058 247 / 0.11);
 
   /* Chrome: the rail, the top bar, the dock and the command palette.
      High opacity on purpose — this is a sticky/fixed surface with content
      scrolling directly behind it, and the blur alone was not enough to keep
      that content from reading through at the seam. */
-  --a-chrome: oklch(0.99 0.002 271 / 0.94);
-  --a-chrome-line: oklch(0.90 0.008 271 / 0.9);
+  --a-chrome: oklch(0.968 0.010 85 / 0.94);
+  --a-chrome-line: oklch(0.868 0.016 247 / 0.9);
 
   /* Where a figure is plotted against a track — magnitude bars, heat strips. */
-  --a-track: oklch(0.508 0.158 271 / 0.10);
+  --a-track: oklch(0.273 0.058 247 / 0.10);
 
   /*
    * Width of the desktop rail, and the left inset of the content beside it.
@@ -266,60 +440,77 @@
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --h-indigo:  light-dark(oklch(0.508 0.158 274), oklch(0.700 0.170 274));
-  --h-violet:  light-dark(oklch(0.520 0.190 300), oklch(0.740 0.175 300));
-  --h-cyan:    light-dark(oklch(0.555 0.110 205), oklch(0.800 0.130 205));
-  --h-emerald: light-dark(oklch(0.530 0.130 165), oklch(0.790 0.140 165));
-  --h-amber:   light-dark(oklch(0.560 0.130 68),  oklch(0.820 0.150 68));
-  --h-rose:    light-dark(oklch(0.550 0.180 15),  oklch(0.745 0.160 15));
-  --h-lime:    light-dark(oklch(0.535 0.140 130), oklch(0.810 0.150 130));
-  --h-magenta: light-dark(oklch(0.540 0.200 330), oklch(0.745 0.180 330));
+  /*
+   * Eight inks, not eight colours.
+   *
+   * These have a job — a reader picks their tool out of a grid of eight before
+   * reading any of the labels — so the hue separation has to stay. What has
+   * changed is the chroma: every one of them is pulled to roughly two thirds of
+   * where it was, which is the difference between eight tinted inks that
+   * clearly belong to one set and a row of highlighter pens. On a bone ground
+   * the old values were the loudest thing on the page.
+   *
+   * Two of them are no longer arbitrary. --h-indigo is now the brand navy and
+   * --h-amber is the brand gold, so the two tools that carry them are wearing
+   * the firm's own colours rather than a near-miss of them.
+   *
+   * Ordered by hue so the gaps are visible: 27 · 88 · 130 · 165 · 205 · 247 ·
+   * 300 · 330. The tightest pair is 43° apart, which survives being a 10px dot.
+   */
+  --h-indigo:  light-dark(oklch(0.400 0.078 245), oklch(0.700 0.110 245));
+  --h-violet:  light-dark(oklch(0.500 0.125 300), oklch(0.740 0.115 300));
+  --h-cyan:    light-dark(oklch(0.535 0.078 205), oklch(0.800 0.088 205));
+  --h-emerald: light-dark(oklch(0.515 0.090 165), oklch(0.790 0.096 165));
+  --h-amber:   light-dark(oklch(0.545 0.100 78),  oklch(0.833 0.119 88));
+  --h-rose:    light-dark(oklch(0.535 0.125 27),  oklch(0.745 0.112 27));
+  --h-lime:    light-dark(oklch(0.520 0.098 130), oklch(0.810 0.104 130));
+  --h-magenta: light-dark(oklch(0.525 0.138 330), oklch(0.745 0.126 330));
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --a-glow-1: oklch(0.640 0.180 274 / 0.34);
-    --a-glow-2: oklch(0.680 0.190 300 / 0.24);
-    --a-glow-3: oklch(0.790 0.140 205 / 0.15);
+    --a-glow-1: oklch(0.505 0.080 246 / 0.30);
+    --a-glow-2: oklch(0.660 0.118 82 / 0.13);
+    --a-glow-3: transparent;
 
     --a-grain: 0.07;
 
     --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0) 42%);
-    --a-veil: oklch(0.26 0.018 271 / 0.55);
+    --a-veil: oklch(0.228 0.038 247 / 0.58);
 
-    --a-ring-hi: oklch(0.92 0.03 274 / 0.34);
-    --a-ring-lo: oklch(0.72 0.05 274 / 0.05);
+    --a-ring-hi: oklch(0.900 0.030 85 / 0.30);
+    --a-ring-lo: oklch(0.720 0.040 247 / 0.05);
 
     --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.07);
     --a-hover: 0 10px 24px oklch(0 0 0 / 0.5), 0 30px 64px oklch(0 0 0 / 0.5);
 
-    --a-chrome: oklch(0.19 0.014 271 / 0.94);
-    --a-chrome-line: oklch(0.32 0.018 271 / 0.9);
+    --a-chrome: oklch(0.175 0.032 247 / 0.94);
+    --a-chrome-line: oklch(0.340 0.038 247 / 0.9);
 
-    --a-track: oklch(0.72 0.05 274 / 0.14);
+    --a-track: oklch(0.900 0.020 85 / 0.13);
   }
 }
 
 :root[data-theme='dark'] {
-  --a-glow-1: oklch(0.640 0.180 274 / 0.34);
-  --a-glow-2: oklch(0.680 0.190 300 / 0.24);
-  --a-glow-3: oklch(0.790 0.140 205 / 0.15);
+  --a-glow-1: oklch(0.505 0.080 246 / 0.30);
+  --a-glow-2: oklch(0.660 0.118 82 / 0.13);
+  --a-glow-3: transparent;
 
   --a-grain: 0.07;
 
   --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0) 42%);
-  --a-veil: oklch(0.26 0.018 271 / 0.55);
+  --a-veil: oklch(0.228 0.038 247 / 0.58);
 
-  --a-ring-hi: oklch(0.92 0.03 274 / 0.34);
-  --a-ring-lo: oklch(0.72 0.05 274 / 0.05);
+  --a-ring-hi: oklch(0.900 0.030 85 / 0.30);
+  --a-ring-lo: oklch(0.720 0.040 247 / 0.05);
 
   --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.07);
   --a-hover: 0 10px 24px oklch(0 0 0 / 0.5), 0 30px 64px oklch(0 0 0 / 0.5);
 
-  --a-chrome: oklch(0.19 0.014 271 / 0.94);
-  --a-chrome-line: oklch(0.32 0.018 271 / 0.9);
+  --a-chrome: oklch(0.175 0.032 247 / 0.94);
+  --a-chrome-line: oklch(0.340 0.038 247 / 0.9);
 
-  --a-track: oklch(0.72 0.05 274 / 0.14);
+  --a-track: oklch(0.900 0.020 85 / 0.13);
 }
 
 /*
@@ -353,12 +544,16 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     /*
-     * Bricolage Grotesque carries an `opsz` axis, so the browser retunes the
-     * letterforms to whatever size each element is set at — open and sturdy in a
-     * 13px table cell, tight and high-contrast in a heading. This one line is
-     * why the site needs a single family rather than a display/text pairing.
+     * Body text is Archivo at its drawn width. Nothing here sets a variation
+     * axis: the display utilities narrow it and .m-wide opens it, and running
+     * text is the reference both of those are measured against. Setting an axis
+     * at this level would mean every headline had to undo it.
      */
-    font-optical-sizing: auto;
+    font-variation-settings: normal;
+    /* Contextual alternates only. Archivo's default `liga` is fine in running
+       text but its `calt` is what keeps the flat-topped digits even. */
+    font-feature-settings: 'calt' 1;
+    line-height: 1.55;
   }
 
   /* Money and voucher numbers must line up in columns. */
@@ -380,12 +575,13 @@
 
   /* Visible focus ring for keyboard users only. */
   :focus-visible {
-    outline: 2px solid var(--color-brand-500);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
 
   ::selection {
-    background: oklch(0.508 0.158 271 / 0.22);
+    background: oklch(0.833 0.119 88 / 0.30);
+    color: oklch(0.180 0.038 247);
   }
 
   /* The default scrollbar is a bright white gutter in dark mode. */
@@ -579,50 +775,77 @@
 [data-skin='night'] {
   color-scheme: dark;
 
-  --m-bg:      oklch(0.132 0.018 268);
-  --m-bg-2:    oklch(0.175 0.024 270);
-  --m-bg-3:    oklch(0.218 0.028 272);
-  --m-ink:     oklch(0.968 0.008 274);
-  --m-dim:     oklch(0.760 0.028 274);
-  --m-dim-2:   oklch(0.620 0.030 274);
-
-  --m-line:    oklch(0.72 0.05 274 / 0.16);
-  --m-line-2:  oklch(0.72 0.05 274 / 0.32);
-
-  --m-indigo:  oklch(0.640 0.180 274);
-  --m-violet:  oklch(0.680 0.190 300);
-  --m-cyan:    oklch(0.790 0.140 205);
-  --m-emerald: oklch(0.780 0.150 165);
-  --m-amber:   oklch(0.810 0.165 68);
-  --m-rose:    oklch(0.720 0.170 15);
   /*
-   * Two colours that are not on the indigo→cyan arc, added because everything
-   * else here is: six accents spread over 120° of hue all read as "the purple
-   * one" at a glance, which is no use when six agent tiles have to be told
-   * apart. Lime is the loudest thing on the site and is rationed accordingly —
-   * live signals, and the one figure per section that matters.
+   * The ground is the mark's navy taken down two stops, and the ink on it is
+   * the mark's bone. Nothing here is neutral: the darks carry 247 and the
+   * lights carry 85, so the page has the same cool-ground/warm-ink relationship
+   * the owl is drawn with.
    */
-  --m-lime:    oklch(0.885 0.195 128);
-  --m-magenta: oklch(0.700 0.230 340);
+  --m-bg:      oklch(0.128 0.026 247);
+  --m-bg-2:    oklch(0.178 0.033 247);
+  --m-bg-3:    oklch(0.232 0.040 247);
+  --m-ink:     oklch(0.968 0.012 85);
+  --m-dim:     oklch(0.752 0.020 85);
+  --m-dim-2:   oklch(0.598 0.024 247);
+
+  /* Hairlines are warm at very low alpha. A cool line on a cool ground
+     disappears; this one reads as light catching an edge. */
+  --m-line:    oklch(0.800 0.030 85 / 0.15);
+  --m-line-2:  oklch(0.800 0.030 85 / 0.30);
+
+  /*
+   * The eight tile accents, at the same reduced chroma as the app's --h-*.
+   * See the note there: the hue separation is load-bearing, the saturation was
+   * not. Lime is no longer the loudest thing on the site — the gold is, and
+   * only where it is earned.
+   */
+  --m-indigo:  oklch(0.700 0.110 245);
+  --m-violet:  oklch(0.740 0.115 300);
+  --m-cyan:    oklch(0.800 0.088 205);
+  --m-emerald: oklch(0.790 0.096 165);
+  --m-amber:   oklch(0.820 0.110 72);
+  --m-rose:    oklch(0.745 0.112 27);
+  --m-lime:    oklch(0.845 0.115 130);
+  --m-magenta: oklch(0.745 0.126 330);
 
   /*
    * The mark's gold, #E8C468, as the eye rings and the rupee draw it.
    *
-   * The only warm colour on an otherwise cool page, and the reason the owl in
-   * the header does not read as a sticker somebody stuck on an indigo site. It
-   * is rationed to the section labels, which repeat often enough to look
-   * intended and are small enough never to compete with the gradients.
+   * The only warm accent on an otherwise cool page. It used to be rationed to
+   * the section labels so it would not "compete with the gradients"; the
+   * gradients are gone, and the gold is now the site's accent outright — rules,
+   * labels, live signals, the one figure per section that matters.
    *
    * Close to --m-amber and not the same job: amber is one of the eight hues an
    * agent tile can be given, and this belongs to the brand.
    */
   --m-gold:    oklch(0.833 0.119 88);
 
-  --m-grad:     linear-gradient(100deg, var(--m-indigo), var(--m-violet) 55%, var(--m-cyan));
-  /* Cool→acid, for anything live or measured. */
-  --m-grad-2:   linear-gradient(100deg, var(--m-cyan), var(--m-lime));
-  /* The hot end, used once or twice a page at most. */
-  --m-grad-hot: linear-gradient(100deg, var(--m-magenta), var(--m-violet) 52%, var(--m-indigo));
+  /*
+   * ── Fills, which are no longer gradients ────────────────────────────────
+   *
+   * --m-grad used to be indigo→violet→cyan across 100°, and it was on every
+   * primary button, every headline accent, the progress bar and the range
+   * track. One three-stop gradient doing all of that is the reason the site
+   * read as generated.
+   *
+   * What replaces it is the same reversal the app uses: on this near-black
+   * ground the strongest thing available is the bone, so a primary action is a
+   * bone slab with navy type on it — which is what the owl's own eyes are. The
+   * two-stop fills below are a single hue lit from the top, not a hue ramp;
+   * they exist so a filled surface has a direction of light rather than being
+   * flat.
+   *
+   * The names are unchanged because roughly fifty call sites read them.
+   */
+  --m-grad:     linear-gradient(180deg, oklch(0.992 0.006 85), oklch(0.938 0.016 85) 74%);
+  /* Gold, for anything live or measured. */
+  --m-grad-2:   linear-gradient(180deg, oklch(0.898 0.080 89), var(--m-gold) 74%);
+  /* The deep end: an ink slab, for surfaces that must recede rather than lift. */
+  --m-grad-hot: linear-gradient(180deg, oklch(0.339 0.067 243), oklch(0.232 0.040 247) 74%);
+
+  /* What goes on top of --m-grad. Exported so no call site guesses. */
+  --m-on-grad: oklch(0.150 0.030 247);
 
   color: var(--m-ink);
   background: var(--m-bg);
@@ -631,7 +854,7 @@
 
 /* Overscroll and any gap below a short page must not flash the app's surface. */
 body:has([data-skin='night']) {
-  background: oklch(0.132 0.018 268);
+  background: oklch(0.128 0.026 247);
   /*
    * The blurred aurora fields deliberately sit outside their sections, so
    * something has to stop them widening the page. It has to be <body>: overflow
@@ -657,28 +880,38 @@ body:has([data-skin='night']) {
  * legible on white, and on near-black it is close to invisible.
  */
 [data-skin='night'] {
-  --surface:        oklch(0.132 0.018 268);
-  --surface-raised: oklch(0.198 0.025 270);
-  --surface-sunken: oklch(0.114 0.016 268);
-  --border-c:       oklch(0.72 0.05 274 / 0.16);
-  --border-strong:  oklch(0.72 0.05 274 / 0.32);
+  --surface:        var(--m-bg);
+  --surface-raised: oklch(0.196 0.035 247);
+  --surface-sunken: oklch(0.110 0.022 247);
+  --border-c:       var(--m-line);
+  --border-strong:  var(--m-line-2);
   --text-c:         var(--m-ink);
   --text-muted:     var(--m-dim);
   --text-subtle:    var(--m-dim-2);
 
-  --color-brand-500: oklch(0.720 0.150 274);
-  --color-brand-600: oklch(0.640 0.180 274);
-  --color-brand-700: oklch(0.560 0.175 274);
+  /* The brand steps are chosen to be legible on paper and are near-invisible
+     here, so on this ground they climb the scale rather than sit at the mark. */
+  --color-brand-500: oklch(0.720 0.075 247);
+  --color-brand-600: oklch(0.640 0.085 246);
+  --color-brand-700: oklch(0.545 0.085 246);
+
+  /* Same reversal as the app's night theme: the action is the bone. */
+  --action:       oklch(0.956 0.014 85);
+  --on-action:    var(--m-on-grad);
+  --action-hover: oklch(1 0 0);
+  --accent:       var(--m-gold);
+  --accent-lit:   oklch(0.898 0.080 89);
+  --focus:        var(--m-gold);
 
   --gradient-brand: var(--m-grad);
   --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0));
-  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.06);
+  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.07);
 
   --elev-1: 0 1px 2px oklch(0 0 0 / 0.4), 0 1px 3px oklch(0 0 0 / 0.3);
   --elev-2: 0 2px 4px oklch(0 0 0 / 0.42), 0 4px 12px oklch(0 0 0 / 0.38);
   --elev-3: 0 4px 8px oklch(0 0 0 / 0.46), 0 12px 28px oklch(0 0 0 / 0.46);
   --elev-4: 0 8px 16px oklch(0 0 0 / 0.5), 0 24px 56px oklch(0 0 0 / 0.55);
-  --elev-brand: 0 10px 30px oklch(0.64 0.18 274 / 0.35);
+  --elev-brand: 0 10px 30px oklch(0.956 0.014 85 / 0.16), 0 2px 10px oklch(0 0 0 / 0.5);
 
   /*
    * The Desk tokens too, for the same reason as everything above it.
@@ -690,24 +923,32 @@ body:has([data-skin='night']) {
    * this block is making.
    */
   --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0) 42%);
-  --a-veil: oklch(0.2 0.025 270 / 0.6);
-  --a-ring-hi: oklch(0.92 0.04 274 / 0.4);
-  --a-ring-lo: oklch(0.72 0.05 274 / 0.06);
-  --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.06);
+  --a-veil: oklch(0.196 0.035 247 / 0.6);
+  --a-ring-hi: oklch(0.900 0.030 85 / 0.36);
+  --a-ring-lo: oklch(0.800 0.030 85 / 0.06);
+  --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.07);
   --a-hover: 0 10px 24px oklch(0 0 0 / 0.5), 0 30px 64px oklch(0 0 0 / 0.5);
-  --a-grain: 0.07;
-  --a-track: oklch(0.72 0.05 274 / 0.16);
-  --a-chrome: oklch(0.145 0.021 274 / 0.94);
+  --a-grain: 0.075;
+  --a-track: oklch(0.800 0.030 85 / 0.15);
+  --a-chrome: oklch(0.140 0.028 247 / 0.94);
   --a-chrome-line: var(--m-line);
+  --a-glow-1: oklch(0.505 0.080 246 / 0.30);
+  --a-glow-2: oklch(0.660 0.118 82 / 0.13);
+  --a-glow-3: transparent;
 }
 
 @layer utilities {
   /* ── Type ── */
   /*
-   * Headline setting. Same family as body text — what makes it a headline is the
-   * variable axes: opsz 72 asks the font for its display cut (tighter apertures,
-   * more stroke contrast) and wdth 94 narrows it just enough to buy a couple of
-   * characters per line at hero sizes without reading as condensed.
+   * Headline setting. Same family as body text — what makes it a headline is
+   * the width axis.
+   *
+   * `wdth` 86 is a real condensation drawn into the face, not a transform. Two
+   * things follow from it: a hero line fits four or five more characters, so a
+   * claim can be one line instead of two; and the vertical stems come closer
+   * together, which is what makes large type read as set rather than as
+   * enlarged. Paired with negative tracking and a line-height under 1, it is
+   * the whole difference between an editorial headline and a big paragraph.
    *
    * wght is listed explicitly rather than left to font-weight, because Safari
    * has shipped versions that reset unlisted axes to their default the moment
@@ -717,17 +958,33 @@ body:has([data-skin='night']) {
   .m-display {
     font-family: var(--font-display);
     font-weight: 700;
-    font-variation-settings: 'opsz' 72, 'wdth' 94, 'wght' 700;
-    letter-spacing: -0.03em;
-    line-height: 0.94;
+    font-variation-settings: 'wdth' 86, 'wght' 700;
+    letter-spacing: -0.035em;
+    line-height: 0.9;
+    text-wrap: balance;
   }
   /* For the two or three places that want the display cut at body weight. */
   .m-display-light {
     font-family: var(--font-display);
     font-weight: 400;
-    font-variation-settings: 'opsz' 72, 'wdth' 96, 'wght' 400;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
+    font-variation-settings: 'wdth' 92, 'wght' 400;
+    letter-spacing: -0.022em;
+    line-height: 1.04;
+    text-wrap: balance;
+  }
+  /*
+   * The other end of the axis: wide, light and spaced, for a single line of
+   * standfirst under a headline or a lone statement holding a section on its
+   * own. Where .m-display compresses to gain force, this opens up to lose it —
+   * which is what makes the pair read as a deliberate hierarchy rather than as
+   * one size next to another.
+   */
+  .m-wide {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-variation-settings: 'wdth' 112, 'wght' 400;
+    letter-spacing: 0.005em;
+    line-height: 1.35;
   }
   .m-serif {
     font-family: var(--font-serif);
@@ -753,11 +1010,19 @@ body:has([data-skin='night']) {
   .m-dim   { color: var(--m-dim); }
   .m-dim-2 { color: var(--m-dim-2); }
 
+  /*
+   * The headline accent.
+   *
+   * This used to clip a three-stop indigo→violet→cyan gradient into the type,
+   * which is the most recognisable thing on a page nobody drew — and it also
+   * meant the accent word in every headline was at its most saturated exactly
+   * where the letterforms are thinnest and least legible.
+   *
+   * It is now the mark's gold, flat. The name is kept because it is at a
+   * dozen call sites and they all mean "this is the word that matters".
+   */
   .m-grad-text {
-    background-image: var(--m-grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--m-gold);
   }
 
   /* ── Surfaces ── */
@@ -766,8 +1031,8 @@ body:has([data-skin='night']) {
   .m-card {
     background: linear-gradient(
       180deg,
-      oklch(0.72 0.05 274 / 0.055),
-      oklch(0.72 0.05 274 / 0.015)
+      oklch(0.800 0.030 85 / 0.055),
+      oklch(0.800 0.030 85 / 0.012)
     );
     border: 1px solid var(--m-line);
     border-radius: 16px;
@@ -789,7 +1054,7 @@ body:has([data-skin='night']) {
   }
 
   .m-glass {
-    background: oklch(0.145 0.021 274 / 0.72);
+    background: oklch(0.140 0.028 247 / 0.74);
     backdrop-filter: saturate(1.4) blur(14px);
     -webkit-backdrop-filter: saturate(1.4) blur(14px);
   }
@@ -848,7 +1113,7 @@ body:has([data-skin='night']) {
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(150deg, oklch(0.92 0.04 274 / 0.4), oklch(0.72 0.05 274 / 0.06) 55%);
+    background: linear-gradient(150deg, oklch(0.900 0.030 85 / 0.38), oklch(0.800 0.030 85 / 0.06) 55%);
     -webkit-mask:
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
@@ -976,13 +1241,24 @@ body:has([data-skin='night']) {
     box-shadow: var(--elev-2), var(--hairline);
   }
 
-  .gradient-brand { background-image: var(--gradient-brand); }
-
-  .gradient-text {
+  /*
+   * The primary fill, and the label colour that belongs on it.
+   *
+   * Setting `color` here rather than leaving it to the call site is deliberate:
+   * the fill inverts between themes — ink on paper, bone on night — so a
+   * hard-coded `text-white` beside this class is white type on a bone slab in
+   * dark mode. Those were swept out when the palette changed; this declaration
+   * is what stops them coming back.
+   */
+  .gradient-brand {
     background-image: var(--gradient-brand);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--on-action);
+  }
+
+  /* The accent word in an application headline. Flat gold, for the same reason
+     .m-grad-text is — see the note there. */
+  .gradient-text {
+    color: var(--accent);
   }
 
   .glass {
@@ -1209,16 +1485,18 @@ body:has([data-skin='night']) {
   }
 
   /*
-   * A headline figure. Same family as everything else, retuned by the variable
-   * axes: `opsz` 72 asks Bricolage for its display cut, which at 40px is what
-   * makes a rupee total look set rather than enlarged. Tabular so a number that
-   * counts up does not wobble as its digits change.
+   * A headline figure. Same family as everything else, narrowed by the width
+   * axis: at `wdth` 90 a rupee total reads as set rather than as enlarged,
+   * because the digit stems come close enough together for the number to be one
+   * object. Tabular so a figure that counts up does not wobble as its digits
+   * change, and it stays at 90 rather than the headline's 86 because digits
+   * condense worse than letters — a narrowed 8 closes up.
    */
   .a-figure {
-    font-variation-settings: 'opsz' 72, 'wdth' 96, 'wght' 700;
+    font-variation-settings: 'wdth' 90, 'wght' 700;
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
-    letter-spacing: -0.035em;
+    letter-spacing: -0.03em;
     line-height: 0.95;
   }
 
@@ -1276,4 +1554,237 @@ body:has([data-skin='night']) {
 }
 [data-rail='collapsed'] .a-rail-narrow {
   display: block;
+}
+
+/* ═══ Scroll ════════════════════════════════════════════════════════════════
+ *
+ * The site's scroll-driven motion, written against an element's own position in
+ * the viewport rather than against a clock.
+ *
+ * ── Why this is CSS and not the existing JavaScript ────────────────────────
+ *
+ * `scroll.ts` already runs one shared listener that measures elements per frame
+ * and writes custom properties, and it is genuinely well built. But it is still
+ * JavaScript on the main thread: the moment the page is doing anything else —
+ * hydrating, fetching, running the calculator — that motion is competing for the
+ * same 16ms, and the first thing a reader notices is the scroll stuttering. A
+ * `view()` timeline is evaluated by the compositor. It cannot stutter, because
+ * nothing it depends on can be blocked.
+ *
+ * So the split is: anything that only needs to know "where am I on the screen"
+ * lives here, and JavaScript keeps the things that genuinely need program state
+ * — which step of a pinned story is showing, what a counter is counting to.
+ *
+ * ── The failure mode is the important part ─────────────────────────────────
+ *
+ * Every rule below sits inside `@supports (animation-timeline: view())`. Where
+ * that is not supported the element is simply left in its finished state, fully
+ * visible, and the page reads as one without the animation rather than as one
+ * with the content missing. That is the opposite of the `opacity: 0` plus
+ * observer pattern, which fails to a blank page — and it is why none of these
+ * declares a hidden state anywhere outside the guard.
+ *
+ * ── Stop scroll ────────────────────────────────────────────────────────────
+ *
+ * `.s-step` and its relatives are the house effect. They are the same entrance
+ * as `.s-in`, on the same timeline, with `steps()` as the easing — so instead of
+ * gliding they advance in discrete frames as the page is scrolled, hold, and
+ * advance again.
+ *
+ * Motion that stops is more legible than motion that flows. The eye is given a
+ * series of held positions to read rather than a smear, and that is why a
+ * stop-motion figure reads as deliberate where the same movement interpolated
+ * reads as automatic. Here it also does something a time-based entrance cannot:
+ * the frames are tied to distance, so the reader is the one advancing them, and
+ * scrolling back steps them backwards.
+ *
+ * It is rationed like the gold — entrances, section rules and figures. Never on
+ * anything a pointer is touching, where a control that snaps through eight
+ * frames reads as a dropped frame rather than as a decision.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes s-rise {
+  from { opacity: 0; transform: translate3d(0, 2.5rem, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes s-rise-sm {
+  from { opacity: 0; transform: translate3d(0, 1.1rem, 0); }
+  to   { opacity: 1; transform: none; }
+}
+/* A line drawing itself from its leading edge. `transform-origin` is set by the
+   utility, so one keyframe serves a left rule and a top one. */
+@keyframes s-draw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes s-draw-y {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+/* A panel arriving from behind a wipe. `clip-path` rather than a masked overlay,
+   so nothing is painted over the content underneath. */
+@keyframes s-wipe {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+/* Depth. The layer carrying this travels against the scroll, so it reads as
+   sitting behind the page rather than on it. */
+@keyframes s-lag {
+  from { transform: translate3d(0, calc(var(--s-lag, 5) * -1%), 0); }
+  to   { transform: translate3d(0, calc(var(--s-lag, 5) * 1%), 0); }
+}
+/* The page's own read-progress, driven by the document rather than by any one
+   element. */
+@keyframes s-progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+/*
+ * Type settling onto its own baseline: it arrives narrow and opens to its drawn
+ * width. Only legible on a variable face, which is why it sits beside the
+ * width-axis utilities rather than with the generic entrances.
+ */
+@keyframes s-settle-width {
+  from { font-variation-settings: 'wdth' 72, 'wght' 700; opacity: 0; }
+  to   { font-variation-settings: 'wdth' 86, 'wght' 700; opacity: 1; }
+}
+
+@layer utilities {
+  @supports (animation-timeline: view()) {
+    @media not (prefers-reduced-motion: reduce) {
+      /*
+       * The base entrance. `entry 6% → entry 64%` puts the element fully in
+       * place a little after its own top edge has cleared the fold, so it has
+       * finished moving by the time it is being read.
+       */
+      .s-in {
+        animation: s-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 6% entry 64%;
+      }
+      .s-in-sm {
+        animation: s-rise-sm linear both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 58%;
+      }
+
+      /* ── Stop scroll ── */
+
+      /*
+       * The same arrival, in eight held frames. See the note above: the easing
+       * is the whole effect, and `linear` here would make it an ordinary reveal.
+       */
+      .s-step {
+        animation: s-rise var(--ease-step) both;
+        animation-timeline: view();
+        animation-range: entry 4% entry 70%;
+      }
+      /* Fourteen frames, for something large enough that eight reads as coarse. */
+      .s-step-fine {
+        animation: s-rise-sm var(--ease-step-fine) both;
+        animation-timeline: view();
+        animation-range: entry 8% entry 66%;
+      }
+
+      /* ── Rules and edges ── */
+
+      .s-rule {
+        transform-origin: left;
+        animation: s-draw var(--ease-step) both;
+        animation-timeline: view();
+        animation-range: entry 12% cover 26%;
+      }
+      .s-rule-y {
+        transform-origin: top;
+        animation: s-draw-y linear both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 42%;
+      }
+
+      /* ── Panels ── */
+
+      .s-wipe {
+        animation: s-wipe var(--ease-out) both;
+        animation-timeline: view();
+        animation-range: entry 8% entry 78%;
+      }
+
+      /*
+       * Parallax. `--s-lag` is the travel as a percentage of the element's own
+       * height; single digits only. Past about 12 it stops reading as depth and
+       * starts reading as the layer being loose.
+       */
+      .s-lag {
+        animation: s-lag linear both;
+        animation-timeline: view();
+        animation-range: cover;
+        will-change: transform;
+      }
+
+      /* Type that opens to its drawn width as it arrives. Headlines only. */
+      .s-settle {
+        animation: s-settle-width var(--ease-step-fine) both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 80%;
+      }
+
+      /*
+       * Read-progress. `scroll()` rather than `view()` — this measures the
+       * document, not this element, and the element is a hairline pinned to the
+       * chrome which never moves.
+       */
+      .s-progress {
+        transform-origin: left;
+        animation: s-progress linear both;
+        animation-timeline: scroll(root block);
+      }
+
+      /*
+       * Stagger, for a grid whose items share one timeline.
+       *
+       * Each child gets its own slice of the range rather than a delay: a delay
+       * is measured in time, and there is no time here, only distance. So
+       * scrolling a grid into view deals the cards out in order, and scrolling
+       * back up deals them back in — which a time-based stagger cannot do.
+       */
+      .s-deal > * {
+        animation: s-rise-sm var(--ease-step) both;
+        animation-timeline: view();
+      }
+      .s-deal > *:nth-child(1) { animation-range: entry 4% entry 52%; }
+      .s-deal > *:nth-child(2) { animation-range: entry 8% entry 56%; }
+      .s-deal > *:nth-child(3) { animation-range: entry 12% entry 60%; }
+      .s-deal > *:nth-child(4) { animation-range: entry 16% entry 64%; }
+      .s-deal > *:nth-child(5) { animation-range: entry 20% entry 68%; }
+      .s-deal > *:nth-child(6) { animation-range: entry 24% entry 72%; }
+      .s-deal > *:nth-child(7) { animation-range: entry 28% entry 76%; }
+      .s-deal > *:nth-child(n + 8) { animation-range: entry 32% entry 80%; }
+    }
+  }
+
+  /*
+   * The pin.
+   *
+   * A section that holds still while the page scrolls through it. A tall outer
+   * track supplies the distance and this sticks to the top for the whole of it.
+   *
+   * Height is `100svh`, not `100vh`. On a phone the address bar collapses as you
+   * scroll, and `vh` resolves to the *large* viewport — so a `100vh` pin is
+   * taller than the screen at the moment the reader is actually looking at it,
+   * and the bottom of every pinned scene is cut off.
+   *
+   * Below `lg` the pin is dropped entirely; see the note on StageFallback in
+   * motion.tsx. A pinned section on a phone takes over the one gesture the
+   * reader has.
+   */
+  .s-pin {
+    position: static;
+  }
+  @media (min-width: 1024px) {
+    .s-pin {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+    }
+  }
 }

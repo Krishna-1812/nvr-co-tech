@@ -64,7 +64,7 @@ export async function AppShell({ user, section, children }: Props) {
       {/* First stop for a keyboard user, past a nav that repeats on every page. */}
       <a
         href="#main"
-        className="gradient-brand elev-brand sr-only rounded-lg px-4 py-2 text-sm font-semibold text-white focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
+        className="gradient-brand elev-brand sr-only rounded-lg px-4 py-2 text-sm font-semibold focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
       >
         Skip to content
       </a>

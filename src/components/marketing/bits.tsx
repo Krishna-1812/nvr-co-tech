@@ -30,6 +30,12 @@ export const ACCENT: Record<Agent['accent'], string> = {
  *
  * `overflow-hidden` on the outer span would clip descenders, so the box is given
  * a little vertical breathing room and pulled back with a negative margin.
+ *
+ * 0.3em, not the 0.18em it was. The clip box is one line-height tall and the
+ * display line-height is now 0.9, so the box is a tenth of an em *shorter* than
+ * the em square before any descender is considered — a "y" in the last line was
+ * being cut through. The margin cancels it exactly, so the extra room costs no
+ * space between lines.
  */
 export function LineRise({
   children,
@@ -41,7 +47,12 @@ export function LineRise({
   className?: string;
 }) {
   return (
-    <span className={cn('-mb-[0.18em] block overflow-hidden pb-[0.18em]', className)}>
+    <span
+      className={cn(
+        '-mt-[0.08em] -mb-[0.3em] block overflow-hidden pt-[0.08em] pb-[0.3em]',
+        className,
+      )}
+    >
       <span
         className="block animate-[lift_0.95s_cubic-bezier(0.16,1,0.3,1)_backwards] motion-reduce:animate-none"
         style={delay ? { animationDelay: `${delay}ms` } : undefined}
@@ -224,19 +235,35 @@ export function CTA({
    */
   data?: Record<string, string>;
 }) {
+  /*
+   * A rectangle, not a pill.
+   *
+   * The rounded-full button is the most-copied control on the web and it was
+   * fighting the rest of the page: every other edge here is a hairline or a
+   * right angle. A 4px radius keeps it from looking unfinished and nothing
+   * more.
+   */
   const base =
-    'group inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition active:scale-[0.98]';
+    'group inline-flex h-12 items-center justify-center gap-2.5 rounded-[4px] px-6 text-[13px] font-semibold tracking-[0.01em] transition-[transform,background-color,border-color,color] duration-200 active:scale-[0.985]';
 
+  /*
+   * Primary is the bone slab — the strongest thing available on this ground,
+   * and the owl's own contrast. It used to be a violet→cyan gradient under a
+   * 30px violet glow, which is the single most recognisable button on the
+   * internet right now.
+   *
+   * Secondary is a hairline box that fills with the ink on hover rather than
+   * lightening, so the pair reads as one control in two states.
+   */
   const look =
     variant === 'primary'
-      ? 'text-white shadow-[0_10px_30px_oklch(0.64_0.18_274_/_0.35)] hover:brightness-110'
-      : 'border border-[var(--m-line-2)] text-[var(--m-ink)] hover:border-[var(--m-ink)] hover:bg-white/5';
+      ? 'bg-[var(--m-ink)] text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] hover:bg-[oklch(1_0_0)]'
+      : 'border border-[var(--m-line-2)] text-[var(--m-ink)] hover:border-[var(--m-gold)] hover:text-[var(--m-gold)]';
 
   return (
     <Link
       href={href}
       className={cn(base, look, className)}
-      style={variant === 'primary' ? { backgroundImage: 'var(--m-grad)' } : undefined}
       {...data}
       {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
     >
@@ -264,7 +291,7 @@ export function ArrowLink({
     <Link
       href={href}
       className={cn(
-        'group m-mono inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--m-ink)] transition hover:text-[var(--m-cyan)]',
+        'group m-mono inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.12em] text-[var(--m-ink)] uppercase transition hover:text-[var(--m-gold)]',
         className,
       )}
     >

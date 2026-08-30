@@ -1039,7 +1039,7 @@ function ReadyRing({ blockers }: { blockers: { path: string }[] }) {
 function SectionHead({ step, title }: { step: number; title: string }) {
   return (
     <div className="flex items-center gap-3 border-b px-5 py-3.5">
-      <span className="gradient-brand elev-brand grid size-6 shrink-0 place-items-center rounded-lg text-[11px] font-bold text-white">
+      <span className="gradient-brand elev-brand grid size-6 shrink-0 place-items-center rounded-lg text-[11px] font-bold">
         {step}
       </span>
       <h2 className="font-semibold tracking-tight">{title}</h2>

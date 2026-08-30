@@ -70,10 +70,19 @@ export function Logo({
   return (
     <span className={cn('flex items-center gap-2.5', className)}>
       <LogoMark id={id} className={cn('size-9 shrink-0', markClassName)} />
+      {/*
+        The tagline is set in the mono face, uppercase and widely tracked,
+        rather than as small sans body text. Two reasons: it stops the lock-up
+        reading as a heading with a subheading under it, and it is the same
+        treatment every section label on the site now carries — so the mark and
+        the page are speaking with one voice at the smallest size on screen.
+      */}
       <span className="leading-none">
-        <span className="m-display block text-[15px] tracking-[-0.02em]">{BRAND.name}</span>
+        <span className="m-display block text-[15.5px] tracking-[-0.015em]">{BRAND.name}</span>
         {showTagline && (
-          <span className="m-dim-2 mt-1 block text-[10px] tracking-[0.06em]">{BRAND.tagline}</span>
+          <span className="m-mono m-dim-2 mt-1.5 block text-[9px] tracking-[0.15em] uppercase">
+            {BRAND.tagline}
+          </span>
         )}
       </span>
     </span>

@@ -50,7 +50,7 @@ export function Avatar({
     <span
       aria-hidden
       className={cn(
-        'gradient-brand relative grid shrink-0 place-items-center overflow-hidden font-bold text-white',
+        'gradient-brand relative grid shrink-0 place-items-center overflow-hidden font-bold',
         className,
       )}
     >

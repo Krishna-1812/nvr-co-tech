@@ -80,7 +80,7 @@ export function ApprovalPolicyCard({ requiresApproval }: { requiresApproval: boo
                 className={cn(
                   'grid size-9 place-items-center rounded-lg transition',
                   active
-                    ? 'gradient-brand text-white'
+                    ? 'gradient-brand'
                     : 'surface-sunken text-muted group-hover:text-[var(--text-c)]',
                 )}
               >

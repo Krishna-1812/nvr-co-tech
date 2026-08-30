@@ -27,7 +27,7 @@ export default function ContactActivityPage() {
         action={
           <Link
             href="/contacts"
-            className="gradient-brand elev-brand inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+            className="gradient-brand elev-brand inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition hover:brightness-110"
           >
             <Search className="size-4" aria-hidden />
             New search

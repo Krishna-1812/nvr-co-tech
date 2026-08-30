@@ -79,7 +79,7 @@ export function DeskControls({
                 className={cn(
                   'relative rounded-lg px-3 py-1.5 text-sm font-medium transition',
                   on
-                    ? 'gradient-brand text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
+                    ? 'gradient-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
                     : 'text-muted hover:text-[var(--text-c)]',
                 )}
               >
@@ -208,7 +208,7 @@ function SubjectCombobox({
           open && 'border-brand-500 ring-4 ring-brand-500/15',
         )}
       >
-        <span className="gradient-brand grid size-8 shrink-0 place-items-center rounded-lg text-white">
+        <span className="gradient-brand grid size-8 shrink-0 place-items-center rounded-lg">
           <Building2 className="size-4" aria-hidden />
         </span>
         <span className="min-w-0 flex-1">

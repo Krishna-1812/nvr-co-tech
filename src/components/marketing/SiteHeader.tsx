@@ -66,21 +66,37 @@ export function SiteHeader() {
             <Logo />
           </Link>
 
-          <nav className="ml-1 hidden items-center gap-1 md:flex lg:ml-4">
+          {/*
+            No pills.
+
+            A row of rounded-full chips is the default navigation of every
+            component library, and it puts four competing shapes across the top
+            of a page whose whole vocabulary below is hairlines and right
+            angles. The current page is marked by a gold rule under the label
+            instead — the same rule that separates every section further down,
+            doing the same job at a smaller size.
+          */}
+          <nav className="ml-2 hidden items-center gap-7 md:flex lg:ml-8">
             {NAV.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'rounded-full px-3.5 py-2 text-[13px] font-medium transition',
-                    active
-                      ? 'bg-white/8 text-[var(--m-ink)]'
-                      : 'm-dim hover:bg-white/5 hover:text-[var(--m-ink)]',
+                    'group relative py-2 text-[13px] font-medium transition-colors duration-200',
+                    active ? 'text-[var(--m-ink)]' : 'm-dim hover:text-[var(--m-ink)]',
                   )}
                 >
                   {item.label}
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'absolute inset-x-0 -bottom-0.5 h-px origin-left bg-[var(--m-gold)] transition-transform duration-300 ease-out',
+                      active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
+                    )}
+                  />
                 </Link>
               );
             })}
@@ -90,7 +106,7 @@ export function SiteHeader() {
             <Link
               href="/login"
               data-signin=""
-              className="m-dim hidden rounded-full px-4 py-2 text-[13px] font-medium whitespace-nowrap transition hover:text-[var(--m-ink)] sm:block"
+              className="m-dim hidden px-1 py-2 text-[13px] font-medium whitespace-nowrap transition-colors hover:text-[var(--m-ink)] sm:block"
             >
               Sign in
             </Link>
@@ -98,8 +114,7 @@ export function SiteHeader() {
               href="/contact"
               data-demo=""
               data-interest="Header"
-              className="hidden h-9 items-center rounded-full px-4 text-[13px] font-semibold whitespace-nowrap text-white transition hover:brightness-110 active:scale-[0.98] sm:inline-flex"
-              style={{ backgroundImage: 'var(--m-grad)' }}
+              className="hidden h-9 items-center rounded-[4px] bg-[var(--m-ink)] px-4 text-[12.5px] font-semibold whitespace-nowrap text-[var(--m-on-grad)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] sm:inline-flex"
             >
               Book a walkthrough
             </Link>
@@ -109,7 +124,7 @@ export function SiteHeader() {
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
               aria-label={open ? 'Close menu' : 'Open menu'}
-              className="grid size-9 place-items-center rounded-full border border-[var(--m-line)] transition hover:border-[var(--m-line-2)] md:hidden"
+              className="grid size-9 place-items-center rounded-[4px] border border-[var(--m-line-2)] transition-colors hover:border-[var(--m-gold)] hover:text-[var(--m-gold)] md:hidden"
             >
               {open ? <X className="size-4" aria-hidden /> : <Menu className="size-4" aria-hidden />}
             </button>
@@ -134,7 +149,7 @@ export function SiteHeader() {
                 <Link
                   href="/login"
                   data-signin=""
-                  className="flex h-11 flex-1 items-center justify-center rounded-full border border-[var(--m-line-2)] text-sm font-semibold"
+                  className="flex h-11 flex-1 items-center justify-center rounded-[4px] border border-[var(--m-line-2)] text-sm font-semibold"
                 >
                   Sign in
                 </Link>
@@ -142,8 +157,7 @@ export function SiteHeader() {
                   href="/contact"
                   data-demo=""
                   data-interest="Phone menu"
-                  className="flex h-11 flex-1 items-center justify-center rounded-full text-sm font-semibold text-white"
-                  style={{ backgroundImage: 'var(--m-grad)' }}
+                  className="flex h-11 flex-1 items-center justify-center rounded-[4px] bg-[var(--m-ink)] text-sm font-semibold text-[var(--m-on-grad)]"
                 >
                   Book a walkthrough
                 </Link>

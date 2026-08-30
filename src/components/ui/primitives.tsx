@@ -22,7 +22,7 @@ const BUTTON_VARIANTS = {
    * raised surface in this app uses, at button scale.
    */
   primary:
-    'gradient-brand text-white elev-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22),var(--elev-brand)] hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:shadow-none',
+    'gradient-brand elev-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22),var(--elev-brand)] hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:shadow-none',
   secondary:
     'surface text-[var(--text-c)] elev-1 hover:bg-[var(--surface-sunken)] hover:border-[var(--border-strong)] border-[var(--border-strong)]',
   ghost: 'text-muted hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]',

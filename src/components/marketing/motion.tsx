@@ -302,8 +302,14 @@ export function ScrollProgressBar({ className }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={cn('absolute inset-x-0 bottom-0 h-px origin-left scale-x-0', className)}
-      style={{ backgroundImage: 'var(--m-grad)' }}
+      // Gold, and drawn on the header's own bottom edge. It is the one thing on
+      // screen that reports a continuous quantity, which is exactly what the
+      // accent is for — and a bone line here would be indistinguishable from
+      // the hairline it sits on.
+      className={cn(
+        'absolute inset-x-0 bottom-0 h-[2px] origin-left scale-x-0 bg-[var(--m-gold)]',
+        className,
+      )}
       ref={bar}
     />
   );

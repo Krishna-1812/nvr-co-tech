@@ -340,7 +340,7 @@ export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; rol
                         className={cn(
                           'grid size-8 shrink-0 place-items-center rounded-lg transition',
                           on
-                            ? 'gradient-brand text-white'
+                            ? 'gradient-brand'
                             : 'surface-sunken text-subtle border',
                         )}
                       >

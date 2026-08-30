@@ -87,7 +87,7 @@ export function NavLink({
             className={cn(
               'grid size-9 place-items-center rounded-xl transition',
               active
-                ? 'gradient-brand elev-brand text-white'
+                ? 'gradient-brand elev-brand'
                 : 'text-subtle group-active:bg-[var(--surface-sunken)]',
             )}
           >
@@ -155,7 +155,7 @@ export function NavLink({
         className={cn(
           'relative grid size-8 shrink-0 place-items-center rounded-lg transition',
           active
-            ? 'gradient-brand elev-brand text-white'
+            ? 'gradient-brand elev-brand'
             : 'surface-sunken text-subtle group-hover:text-[var(--text-c)]',
         )}
       >

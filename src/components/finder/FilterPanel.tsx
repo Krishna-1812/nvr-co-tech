@@ -83,7 +83,7 @@ function Control({
               className={cn(
                 'rounded-md border px-2 py-1 text-xs font-medium transition',
                 active
-                  ? 'gradient-brand border-transparent text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
+                  ? 'gradient-brand border-transparent shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
                   : 'surface-sunken text-muted hover:text-[var(--text-c)]',
               )}
             >
@@ -317,7 +317,7 @@ export function FilterPanel({
               still narrowing today's search with nothing on screen to say so.
             */}
             {advanced > 0 && (
-              <span className="gradient-brand ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              <span className="gradient-brand ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
                 {advanced}
               </span>
             )}
@@ -427,7 +427,7 @@ export function FilterPanel({
             type="button"
             onClick={onSearch}
             disabled={loading}
-            className="gradient-brand elev-brand inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+            className="gradient-brand elev-brand inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition hover:brightness-110 disabled:opacity-60"
           >
             <Search className="size-4" aria-hidden />
             {loading ? 'Searching…' : 'Search'}

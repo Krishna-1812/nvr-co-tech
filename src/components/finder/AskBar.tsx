@@ -73,7 +73,7 @@ export function AskBar({
             'mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium transition',
             busy || !text.trim()
               ? 'text-subtle border'
-              : 'gradient-brand text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]',
+              : 'gradient-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]',
           )}
         >
           {busy ? (

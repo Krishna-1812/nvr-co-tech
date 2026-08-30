@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Bricolage_Grotesque, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
+import { Archivo, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { BRAND, SITE_URL } from '@/lib/marketing/content';
 import { INK } from '@/lib/brand/mark';
@@ -8,28 +8,36 @@ import './globals.css';
 /*
  * One voice, two supporting roles.
  *
- * Bricolage Grotesque carries everything — headlines and body, marketing and
- * application. It replaced a pairing of Inter and Space Grotesk, and one family
- * doing both jobs is only possible because of its axes: `opsz` retunes the
- * letterforms for the size they are set at, so a 6rem headline gets tight
- * apertures and high contrast while 13px body text gets open, sturdy ones. That
- * is a different design at each end, not the same outlines scaled.
+ * Archivo carries everything — headlines and body, marketing and application.
+ * It replaced Bricolage Grotesque, which was itself replacing an Inter/Space
+ * Grotesk pairing, and the reason for the change is the width axis.
  *
- * `wdth` comes along for the ride and is used on the display utilities, where a
- * slight narrowing buys a few more characters per line at hero sizes.
+ * Bricolage is a display face. Its `opsz` axis opens the letterforms further as
+ * they shrink, which is the right instinct, but the design it opens *into* is
+ * flared and wide-bowled and full of personality — and personality at 13px, in
+ * a column of rupee figures somebody is checking against a bank statement, is
+ * noise. Archivo is a grotesque drawn by Omnibus-Type for newspaper and data
+ * setting: quiet at text sizes, and carrying a `wdth` axis from 62 to 125.
+ *
+ * That axis is the whole argument for one family doing both jobs. A hero line
+ * is set at width 88 and a caption at 100, and they read as one voice at two
+ * registers rather than as two typefaces — and the narrowing is drawn, not a
+ * browser squeezing a normal-width face, which is the difference between
+ * condensed and smeared.
  *
  * Instrument Serif stays for one job: the italic accent inside headlines.
- * Bricolage ships no italic, so the alternative is a browser-synthesised slant,
- * which is a sheared roman rather than an italic and looks it. JetBrains Mono
- * stays for eyebrows and any figure that has to line up in a column.
+ * Archivo ships no italic on the axes used here, so the alternative is a
+ * browser-synthesised slant, which is a sheared roman rather than an italic and
+ * looks it. JetBrains Mono stays for eyebrows and any figure that has to line
+ * up in a column.
  *
  * All three are self-hosted by next/font — no render-blocking request to
  * Google, and no layout shift when they land.
  */
-const bricolage = Bricolage_Grotesque({
+const archivo = Archivo({
   subsets: ['latin'],
-  axes: ['opsz', 'wdth'],
-  variable: '--font-bricolage',
+  axes: ['wdth'],
+  variable: '--font-archivo',
   display: 'swap',
 });
 
@@ -102,7 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en-IN"
       suppressHydrationWarning
-      className={`${bricolage.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+      className={`${archivo.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         {/*

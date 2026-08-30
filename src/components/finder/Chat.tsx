@@ -222,7 +222,7 @@ function Bubble({
   if (turn.role === 'user') {
     return (
       <div className="flex justify-end">
-        <p className="gradient-brand max-w-[85%] rounded-2xl rounded-br-md px-3 py-2 text-sm leading-relaxed text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]">
+        <p className="gradient-brand max-w-[85%] rounded-2xl rounded-br-md px-3 py-2 text-sm leading-relaxed shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]">
           {turn.content}
         </p>
       </div>
@@ -429,7 +429,7 @@ export function Chat({
               'grid size-8 shrink-0 place-items-center rounded-lg transition',
               busy || !text.trim()
                 ? 'text-subtle border'
-                : 'gradient-brand text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]',
+                : 'gradient-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]',
             )}
           >
             <ArrowUp className="size-4" aria-hidden />

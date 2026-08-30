@@ -187,7 +187,7 @@ function RoleLadder({ current }: { current: UserRole }) {
               aria-hidden
               className={
                 has
-                  ? 'gradient-brand elev-brand mt-2.5 grid size-[18px] shrink-0 place-items-center rounded-full text-white'
+                  ? 'gradient-brand elev-brand mt-2.5 grid size-[18px] shrink-0 place-items-center rounded-full'
                   : 'mt-2.5 size-[18px] shrink-0 rounded-full border-2 border-dashed border-[var(--border-strong)]'
               }
             >
