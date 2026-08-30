@@ -32,7 +32,7 @@ export function RoadmapRail() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <Eyebrow>Shipping order</Eyebrow>
-              <h2 className="m-display mt-3 text-[clamp(1.5rem,3vw,2.1rem)]">
+              <h2 className="m-display s-settle mt-3 text-[clamp(1.5rem,3vw,2.1rem)]">
                 Built one at a time, <span className="m-serif m-dim">in this order.</span>
               </h2>
             </div>

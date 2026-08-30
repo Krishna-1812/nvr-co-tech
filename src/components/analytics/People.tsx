@@ -162,7 +162,7 @@ export function CompanyCell({
     <span className="flex items-center gap-2">
       <span
         aria-hidden
-        className="grid size-5 shrink-0 place-items-center rounded text-[10px] font-bold text-white"
+        className="on-tone grid size-5 shrink-0 place-items-center rounded text-[10px] font-bold"
         style={{ background: accentFor(primary) }}
       >
         {primary[0]?.toUpperCase()}

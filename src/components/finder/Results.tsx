@@ -296,7 +296,7 @@ function CompanyCard({
         <Tick on={on} onClick={toggle} label={`Select ${name}`} />
 
         <span
-          className="grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold text-white"
+          className="on-tone grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold"
           style={{ background: 'var(--h-cyan)' }}
         >
           {monogram(name)}

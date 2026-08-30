@@ -62,7 +62,7 @@ export function RulesPlayground() {
       <Container className="relative">
         <Reveal>
           <Eyebrow className="mb-4">Have a go</Eyebrow>
-          <h2 className="m-display max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
+          <h2 className="m-display s-settle max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
             Move the numbers. <span className="m-serif m-grad-text">See what happens.</span>
           </h2>
           <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">

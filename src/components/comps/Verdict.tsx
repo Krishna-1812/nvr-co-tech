@@ -186,7 +186,7 @@ export function Verdict({
             <>
               <div className="flex items-center gap-2">
                 <span
-                  className="grid size-8 place-items-center rounded-lg text-white"
+                  className="on-tone grid size-8 place-items-center rounded-lg"
                   style={{ background: TONE_TOKEN[verdict.tone] }}
                 >
                   <VerdictIcon tone={verdict.tone} gap={gap as number} />

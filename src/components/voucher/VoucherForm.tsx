@@ -884,7 +884,7 @@ export function VoucherForm({
           */}
           <div className="gradient-brand relative overflow-hidden">
             <span aria-hidden className="a-shine absolute inset-0" />
-            <div className="relative flex items-baseline justify-between gap-3 px-4 py-3.5 text-white">
+            <div className="relative flex items-baseline justify-between gap-3 px-4 py-3.5">
               <span className="text-[10px] font-semibold tracking-[0.14em] uppercase opacity-85">
                 Grand total
               </span>

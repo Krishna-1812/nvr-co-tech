@@ -196,7 +196,7 @@ function Hero({
           />
         ) : (
           <span
-            className="grid size-16 shrink-0 place-items-center rounded-2xl text-lg font-bold text-white"
+            className="on-tone grid size-16 shrink-0 place-items-center rounded-2xl text-lg font-bold"
             style={{ background: tone }}
           >
             {monogram(title)}
@@ -375,7 +375,7 @@ function PersonBody({ p }: { p: Record<string, unknown> }) {
           <aside className="surface-lit a-ring min-w-0 self-start rounded-2xl p-4">
             <div className="flex items-start gap-3">
               <span
-                className="grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold text-white"
+                className="on-tone grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold"
                 style={{ background: 'var(--h-cyan)' }}
               >
                 {monogram(s(company.name))}

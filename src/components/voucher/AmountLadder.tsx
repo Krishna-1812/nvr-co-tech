@@ -71,7 +71,7 @@ export function AmountLadder({
       */}
       <div className="gradient-brand relative overflow-hidden">
         <span aria-hidden className="a-shine absolute inset-0" />
-        <div className="relative flex items-baseline justify-between gap-4 px-5 py-4 text-white">
+        <div className="relative flex items-baseline justify-between gap-4 px-5 py-4">
           <span className="text-[11px] font-semibold tracking-[0.14em] uppercase opacity-85">
             Grand total
           </span>

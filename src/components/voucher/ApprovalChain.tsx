@@ -282,7 +282,7 @@ function Node({
         {/* The act, as a badge. Small on purpose: the ring already says done, and
             this says which kind of done — signed, or paid. */}
         <span
-          className="absolute -right-1 -bottom-1 grid size-3.5 place-items-center rounded-full border-2 text-white"
+          className="on-tone absolute -right-1 -bottom-1 grid size-3.5 place-items-center rounded-full border-2"
           style={{
             background: 'var(--status-approved)',
             borderColor: 'var(--surface-raised)',
@@ -298,7 +298,7 @@ function Node({
     return (
       <span
         aria-hidden
-        className="grid size-7 shrink-0 place-items-center rounded-full text-white"
+        className="on-tone grid size-7 shrink-0 place-items-center rounded-full"
         style={{
           background: 'var(--status-approved)',
           boxShadow: '0 4px 12px color-mix(in oklab, var(--status-approved) 35%, transparent)',

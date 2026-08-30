@@ -85,7 +85,7 @@ export function StatCard({
             className={cn(
               'grid size-8 shrink-0 place-items-center rounded-xl border transition',
               urgent
-                ? 'border-transparent text-white'
+                ? 'on-tone border-transparent'
                 : 'surface-sunken text-subtle group-hover:text-[var(--text-c)]',
             )}
             style={

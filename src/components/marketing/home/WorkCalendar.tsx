@@ -53,7 +53,7 @@ export function WorkCalendar() {
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
             <div className="max-w-3xl">
               <Eyebrow className="mb-4">The work</Eyebrow>
-              <h2 className="m-display text-[clamp(1.9rem,4.2vw,3.25rem)]">
+              <h2 className="m-display s-settle text-[clamp(1.9rem,4.2vw,3.25rem)]">
                 Every month, the same jobs.{' '}
                 <span className="m-serif m-grad-text">Here is who does what.</span>
               </h2>

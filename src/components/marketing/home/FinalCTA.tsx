@@ -13,7 +13,7 @@ export function FinalCTA() {
 
       <Container className="relative text-center">
         <Reveal>
-          <h2 className="m-display mx-auto max-w-3xl text-[clamp(2rem,5vw,3.5rem)]">
+          <h2 className="m-display s-settle mx-auto max-w-3xl text-[clamp(2rem,5vw,3.5rem)]">
             Start with the <span className="m-serif m-grad-text">worst</span> job on your desk.
           </h2>
         </Reveal>

@@ -114,7 +114,7 @@ export function ApprovalProgress({
         className={cn(
           'grid size-4 place-items-center rounded-full border transition-all',
           done
-            ? 'border-transparent text-white'
+            ? 'on-tone border-transparent'
             : waiting
               ? 'border-dashed border-[var(--tone)] ring-2 ring-[color-mix(in_oklab,var(--tone)_18%,transparent)]'
               : 'border-dashed border-[var(--border-strong)]',

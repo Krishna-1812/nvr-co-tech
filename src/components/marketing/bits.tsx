@@ -129,8 +129,28 @@ export function SectionHeading({
 }) {
   return (
     <div className={cn(center && 'mx-auto text-center', 'max-w-3xl', className)}>
-      {eyebrow && <Eyebrow className="mb-4">{eyebrow}</Eyebrow>}
-      <h2 className="m-display text-[clamp(1.9rem,4.2vw,3.25rem)]">{title}</h2>
+      {eyebrow && (
+        // `justify-center` matters: the parent's `text-center` has no effect on
+        // a flex row, so a centred section heading would otherwise keep its
+        // label hard against the left edge.
+        <div className={cn('mb-4 flex items-center gap-3.5', center && 'justify-center')}>
+          <span aria-hidden className="s-rule h-px w-10 bg-[var(--m-gold)]" />
+          <Eyebrow>{eyebrow}</Eyebrow>
+        </div>
+      )}
+      {/*
+        `.s-settle` opens the headline from `wdth` 72 to its drawn 86 as the
+        section arrives — the one piece of motion on this site that could not
+        exist without a variable typeface, and the reason the width axis was
+        worth choosing a family for.
+
+        It is also the clearest case for the stepped easing. Animating
+        `font-variation-settings` means re-shaping the line, which is real work
+        the compositor cannot skip; `steps(14)` means that happens fourteen
+        times over the whole entrance instead of once a frame. The effect that
+        reads as deliberate is also the one that is cheap.
+      */}
+      <h2 className="m-display s-settle text-[clamp(1.9rem,4.2vw,3.25rem)]">{title}</h2>
       {lead && <p className="m-dim mt-5 text-[15px] leading-relaxed sm:text-base">{lead}</p>}
     </div>
   );
