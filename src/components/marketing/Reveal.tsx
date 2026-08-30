@@ -23,7 +23,13 @@ export function Reveal({
   as: Tag = 'div',
 }: {
   children: React.ReactNode;
-  /** Milliseconds to stagger this element behind its siblings. */
+  /**
+   * How far to stagger this element behind its siblings.
+   *
+   * Written in milliseconds because that is what it was, and because it is
+   * still milliseconds on the fallback path. On the scroll path there is no
+   * time to delay by, so it is converted to a distance instead — see below.
+   */
   delay?: number;
   className?: string;
   as?: 'div' | 'section' | 'li' | 'article' | 'header' | 'tr';
@@ -38,7 +44,31 @@ export function Reveal({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       className={cn('reveal', shown && 'is-in', className)}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+      /*
+       * Both units, because two mechanisms read this.
+       *
+       * `transitionDelay` is for the browser without scroll timelines, which is
+       * still running the observer and the transition.
+       *
+       * `--r-lag` is for the one with them, where a delay means nothing: the
+       * animation's position is set by where the element is, so staggering it
+       * has to push its *range* rather than its clock. Divided by 20 and capped,
+       * so the site's usual 60–300ms spread becomes a 3–15% offset — enough that
+       * three cards in a row deal out instead of arriving together, and small
+       * enough that the last one is not still moving when it is read.
+       *
+       * Cards in different rows already stagger without this, because each has
+       * its own timeline and reaches the fold at a different moment. This is
+       * only doing the within-a-row case.
+       */
+      style={
+        delay
+          ? ({
+              transitionDelay: `${delay}ms`,
+              '--r-lag': `${Math.min(delay, 300) / 20}%`,
+            } as React.CSSProperties)
+          : undefined
+      }
     >
       {children}
     </Tag>

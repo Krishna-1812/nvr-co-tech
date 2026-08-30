@@ -1166,7 +1166,9 @@ body:has([data-skin='night']) {
         transition: none;
         animation: s-rise-sm var(--ease-step) both;
         animation-timeline: view();
-        animation-range: entry 6% entry 60%;
+        /* Offset by --r-lag, which Reveal sets from its `delay` prop — see the
+           note there on why a stagger becomes a distance here. */
+        animation-range: entry calc(6% + var(--r-lag, 0%)) entry calc(60% + var(--r-lag, 0%));
       }
     }
   }
