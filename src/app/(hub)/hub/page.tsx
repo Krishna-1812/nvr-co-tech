@@ -463,10 +463,29 @@ export default async function HubPage() {
           itself once there is nothing left to say. */}
       {setup && <SetupChecklist state={setup} />}
 
-      {/* ── The ones you can use ── */}
-      <div className="space-y-5">
+      {/*
+        ── The ones you can use ──
+
+        Three abreast, not one per row.
+
+        These were full-width slabs stacked vertically, which made the answer to
+        the only question this page asks — which of my tools needs me — four
+        screens of scrolling. Three to a row puts every live tool above the fold
+        on a laptop and lets the four instrument panels be compared at a glance,
+        which is the whole point of putting figures on the front of them.
+
+        `items-stretch` and `h-full` on each cell so a row of cards is one row of
+        equal-height objects rather than four ragged ones; the cards themselves
+        push their panels to the foot to make that alignment mean something.
+
+        The wrapper divs stay individual rather than becoming a `.stagger`,
+        because these are load-time entrances above the fold: `.stagger` is now
+        scroll-driven, and an element that is already on screen at load has
+        nothing to scroll into.
+      */}
+      <div className="grid items-stretch gap-5 md:grid-cols-2 xl:grid-cols-3">
         {voucherDesk && (
-          <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_60ms_backwards]">
+          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_60ms_backwards]">
             <LiveSolutionCard
               solution={voucherDesk}
               readings={readings}
@@ -478,7 +497,7 @@ export default async function HubPage() {
         )}
 
         {reconciliation && (
-          <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_120ms_backwards]">
+          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_120ms_backwards]">
             <LiveSolutionCard
               solution={reconciliation}
               readings={reconReadings}
@@ -490,7 +509,7 @@ export default async function HubPage() {
         )}
 
         {valuationDesk && (
-          <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_180ms_backwards]">
+          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_180ms_backwards]">
             <LiveSolutionCard
               solution={valuationDesk}
               readings={valuationReadings}
@@ -525,7 +544,7 @@ export default async function HubPage() {
           holds revealed email addresses and phone numbers.
         */}
         {contactFinder && finderOpen && (
-          <div className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
+          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
             <LiveSolutionCard
               solution={contactFinder}
               readings={finderReadings}
