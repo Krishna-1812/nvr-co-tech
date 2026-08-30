@@ -144,7 +144,7 @@ export function RequestForm() {
         <button
           type="submit"
           disabled={busy}
-          className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-[4px] bg-[var(--m-ink)] px-6 text-[13px] font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] disabled:opacity-60"
+          className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-lg bg-[var(--m-ink)] px-6 text-[13px] font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] disabled:opacity-60"
         >
           {busy ? 'Sending' : 'Send it'}
           {!busy && (

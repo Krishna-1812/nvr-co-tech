@@ -64,7 +64,7 @@ export function LiveSolutionCard({
           unbuilt ones are not. */}
       <span
         aria-hidden
-        className="a-orb -top-28 -right-16 size-80 opacity-60 transition-opacity duration-500 group-hover:opacity-90"
+        className="a-orb -top-28 -right-16 size-80 opacity-30 transition-opacity duration-500 group-hover:opacity-50"
         style={{ background: `radial-gradient(circle, ${tone}, transparent 68%)` }}
       />
       <div

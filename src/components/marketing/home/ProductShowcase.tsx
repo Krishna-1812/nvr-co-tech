@@ -197,7 +197,7 @@ function Board() {
           <p className="m-dim-2 mt-1 text-[11px]">Seven vouchers are waiting on you.</p>
         </div>
         <span
-          className="m-mono rounded-[3px] bg-[var(--m-ink)] px-3 py-1.5 text-[10px] font-semibold tracking-[0.1em] text-[var(--m-on-grad)] uppercase"
+          className="m-mono rounded-md bg-[var(--m-ink)] px-3 py-1.5 text-[10px] font-semibold tracking-[0.1em] text-[var(--m-on-grad)] uppercase"
         >
           + New voucher
         </span>

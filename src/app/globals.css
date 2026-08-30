@@ -72,6 +72,36 @@
   --color-bone: oklch(0.956 0.014 85);        /* #F5F0E6 */
 
   /*
+   * ── Corners ──────────────────────────────────────────────────────────────
+   *
+   * A census of the app found six radii in play — 6, 8, 12, 16 and 24px plus
+   * `full` — with no rule about which meant what. That is one of the two or
+   * three things that most reliably makes an interface read as assembled rather
+   * than drawn: a 16px card containing a 12px panel containing an 8px button is
+   * three different softnesses arguing on one screen.
+   *
+   * Rather than edit four hundred call sites, the scale they all read is
+   * retuned. Every `rounded-lg` in the product becomes 4px, every `rounded-2xl`
+   * becomes 10px, and the *relative* hierarchy every one of those call sites
+   * was expressing is preserved exactly. The absolute values just stop being
+   * soft.
+   *
+   * The ladder is deliberately tight and nearly linear. Big radii read as
+   * friendly and consumer; these read as machined, which is the right register
+   * for a screen where somebody authorises a payment. The one place a large
+   * radius survives is `rounded-full`, which is left alone because almost every
+   * use of it is a genuine circle — an avatar, a status dot, a count.
+   */
+  --radius-xs:  1px;
+  --radius-sm:  2px;
+  --radius-md:  3px;
+  --radius-lg:  4px;   /* controls: buttons, chips, tabs */
+  --radius-xl:  6px;   /* inputs, tiles, small panels */
+  --radius-2xl: 10px;  /* cards and page panels */
+  --radius-3xl: 14px;  /* the largest surfaces, and nothing else */
+  --radius-4xl: 18px;
+
+  /*
    * One family for everything. --font-display is the same stack as --font-sans;
    * what separates a headline from body text is the `wdth` and `wght` axes, set
    * by the .m-display utility, not a different typeface.
@@ -1347,6 +1377,35 @@ body:has([data-skin='night']) {
   .stagger > *:nth-child(6) { animation-delay: 225ms; }
   .stagger > *:nth-child(7) { animation-delay: 270ms; }
   .stagger > *:nth-child(n + 8) { animation-delay: 315ms; }
+
+  /*
+   * The same upgrade `.reveal` gets on the public site, applied to the app's
+   * own list entrance — see the note there.
+   *
+   * A time-based stagger fires once, on mount, and then the twentieth card in a
+   * long list has already finished animating by the time it is scrolled to. On
+   * a timeline the delay becomes a distance, so a list deals itself out as it is
+   * read and rewinds when it is scrolled back.
+   *
+   * Deliberately gentler than the marketing equivalent: this is a work surface
+   * somebody has open all day, and the entrance is `.s-rise-sm` over a short
+   * range rather than the full 2.5rem travel. The steps are kept, because a
+   * held frame is easier to read past than a smear, but the amplitude is not.
+   *
+   * The per-child `animation-delay` rules above are more specific than this and
+   * still win, which is fine and is why they are not repeated here: a delay has
+   * no meaning on a scroll timeline. Progress through the animation is set by
+   * `animation-range` against the element's position, and the delay is ignored.
+   */
+  @supports (animation-timeline: view()) {
+    @media not (prefers-reduced-motion: reduce) {
+      .stagger > * {
+        animation: s-rise-sm var(--ease-step) both;
+        animation-timeline: view();
+        animation-range: entry 2% entry 42%;
+      }
+    }
+  }
 }
 
 /* ═══ The Desk — utilities ══════════════════════════════════════════════════

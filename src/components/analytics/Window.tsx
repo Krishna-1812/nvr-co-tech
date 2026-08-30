@@ -28,7 +28,7 @@ const TAB_GROUP =
 
 const tab = (active: boolean): string =>
   cn(
-    'rounded-[9px] px-3 py-1.5 text-[12.5px] font-semibold transition',
+    'rounded-2xl px-3 py-1.5 text-[12.5px] font-semibold transition',
     active
       ? 'bg-[var(--surface-raised)] text-[var(--text-c)] shadow-[var(--elev-1)]'
       : 'text-subtle hover:text-[var(--text-c)]',

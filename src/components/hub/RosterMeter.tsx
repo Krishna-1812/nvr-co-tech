@@ -51,7 +51,7 @@ export function RosterMeter() {
               <span
                 className="a-fill absolute inset-0"
                 style={{
-                  background: `linear-gradient(90deg, ${s.tone}, color-mix(in oklab, ${s.tone} 45%, transparent))`,
+                  background: s.tone,
                   animationDelay: `${i * 60}ms`,
                 }}
               />

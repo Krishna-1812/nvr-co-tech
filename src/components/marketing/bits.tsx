@@ -254,7 +254,7 @@ export function CTA({
    * more.
    */
   const base =
-    'group inline-flex h-12 items-center justify-center gap-2.5 rounded-[4px] px-6 text-[13px] font-semibold tracking-[0.01em] transition-[transform,background-color,border-color,color] duration-200 active:scale-[0.985]';
+    'group inline-flex h-12 items-center justify-center gap-2.5 rounded-lg px-6 text-[13px] font-semibold tracking-[0.01em] transition-[transform,background-color,border-color,color] duration-200 active:scale-[0.985]';
 
   /*
    * Primary is the bone slab — the strongest thing available on this ground,

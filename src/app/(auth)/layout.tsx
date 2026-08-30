@@ -129,7 +129,7 @@ function Backdrop() {
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(86% 68% at 50% 34%, transparent 12%, oklch(0.128 0.019 274 / 0.62) 52%, oklch(0.105 0.014 274 / 0.94) 100%)',
+            'radial-gradient(86% 68% at 50% 34%, transparent 12%, oklch(0.128 0.026 247 / 0.62) 52%, oklch(0.100 0.020 247 / 0.94) 100%)',
         }}
       />
     </div>

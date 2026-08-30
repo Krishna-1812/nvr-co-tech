@@ -205,7 +205,7 @@ export function KpiCard({
         <p className="a-label">{label}</p>
         {rich && icon && (
           <span
-            className="grid size-8 shrink-0 place-items-center rounded-[10px] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] motion-reduce:transform-none"
+            className="grid size-8 shrink-0 place-items-center rounded-2xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] motion-reduce:transform-none"
             style={{
               color: 'var(--tone)',
               background: 'color-mix(in oklab, var(--tone) 16%, transparent)',

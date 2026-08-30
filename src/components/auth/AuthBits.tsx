@@ -56,11 +56,7 @@ export function AuthSubmit({
     <button
       type="submit"
       disabled={loading || disabled}
-      className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-[14px] font-semibold text-white transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--m-cyan)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--m-bg)] focus-visible:outline-none active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:brightness-100"
-      style={{
-        backgroundImage: 'var(--m-grad)',
-        boxShadow: '0 10px 30px oklch(0.64 0.18 274 / 0.35)',
-      }}
+      className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] focus-visible:ring-2 focus-visible:ring-[var(--m-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--m-bg)] focus-visible:outline-none active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
     >
       {loading ? (
         <>

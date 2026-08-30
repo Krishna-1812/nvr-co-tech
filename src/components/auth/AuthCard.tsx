@@ -24,18 +24,18 @@ export function AuthCard({
 }) {
   return (
     <div
-      className={cn('relative rounded-[24px] p-px', className)}
+      className={cn('relative rounded-2xl p-px', className)}
       style={{
         background:
-          'linear-gradient(155deg, oklch(0.92 0.04 274 / 0.44), oklch(0.75 0.05 274 / 0.14) 42%, oklch(0.72 0.05 274 / 0.06))',
+          'linear-gradient(155deg, oklch(0.90 0.03 85 / 0.40), oklch(0.80 0.03 85 / 0.12) 42%, oklch(0.80 0.03 85 / 0.05))',
         boxShadow: '0 48px 100px -28px oklch(0 0 0 / 0.85), 0 10px 26px -8px oklch(0 0 0 / 0.55)',
       }}
     >
       <div
-        className="relative overflow-hidden rounded-[23px]"
+        className="relative overflow-hidden rounded-2xl"
         style={{
           background:
-            'linear-gradient(180deg, oklch(0.225 0.030 274 / 0.80), oklch(0.155 0.020 274 / 0.94))',
+            'linear-gradient(180deg, oklch(0.232 0.040 247 / 0.82), oklch(0.150 0.028 247 / 0.94))',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}
@@ -46,7 +46,7 @@ export function AuthCard({
           className="absolute inset-x-8 top-0 h-px"
           style={{
             background:
-              'linear-gradient(90deg, transparent, oklch(0.97 0.04 240 / 0.85), transparent)',
+              'linear-gradient(90deg, transparent, oklch(0.96 0.03 85 / 0.8), transparent)',
           }}
         />
 
