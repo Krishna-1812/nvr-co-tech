@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
  * The site's scroll machinery: one listener, one frame, many readers.
  *
  * Everything scroll-driven on the public site goes through here — reveals, the
- * pinned scroll stages, the progress bar, the counters. The alternative is a
+ * progress bar, the counters. The alternative is a
  * listener per component, and this page has upwards of forty of them; forty
  * listeners each scheduling their own frame is how a marketing site ends up
  * janking on a mid-range phone.
@@ -122,25 +122,6 @@ export function useInView<T extends HTMLElement>(
   }, [ref, margin, once]);
 
   return inView;
-}
-
-/**
- * How far a tall element has travelled past the top of the viewport, 0 → 1.
- *
- * Written for the pinned stages: the element passed in is the tall track whose
- * child is `sticky top-0` and one viewport high, so this is exactly the fraction
- * of the pin that has been consumed. 0 the moment the track's top reaches the
- * top of the screen, 1 as its bottom does.
- *
- * A plain function rather than a hook, so a caller can compute it inside its own
- * subscription. Two hooks each subscribing separately would work only as long as
- * they happened to run in the right order, and nothing in React guarantees that.
- */
-export function trackProgress(el: HTMLElement): number {
-  const rect = el.getBoundingClientRect();
-  const travel = rect.height - window.innerHeight;
-  if (travel <= 0) return 0;
-  return clamp(-rect.top / travel);
 }
 
 /** Clamp helper, used often enough by callers to be worth exporting. */

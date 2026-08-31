@@ -1,117 +1,18 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { clamp, subscribe, trackProgress, useInView, usePrefersReducedMotion } from './scroll';
+import { clamp, subscribe, useInView, usePrefersReducedMotion } from './scroll';
 
 /**
  * The site's motion vocabulary.
  *
  * One rule runs through all of it: continuous values are written to the DOM,
  * never to React state. A scroll position changes sixty times a second and a
- * component tree cannot be rebuilt that often, so anything smooth here is a CSS
- * custom property being set on one element, and React only re-renders when
- * something genuinely discrete changes — which step of a story is showing.
+ * component tree cannot be rebuilt that often, so anything smooth here is
+ * either a CSS custom property being set on one element or a transform written
+ * straight to style, and React is not involved in either.
  */
-
-/* ── Pinned scroll stage ─────────────────────────────────────────────────── */
-
-/**
- * A section that holds still while the page scrolls through it.
- *
- * A tall outer track provides the scroll distance; a `sticky` child one viewport
- * high stays put while that distance is consumed. The render prop is called with
- * the current step index, which changes a handful of times over the whole
- * section, so the subtree re-renders a handful of times and no more.
- *
- * For anything that has to move smoothly rather than snap, read the
- * `--stage-progress` custom property (0 → 1) in CSS: it is set on the sticky
- * element every frame and inherits to every child.
- *
- * Below `lg` the pin is dropped and the steps are stacked instead — see the note
- * on `StageFallback`. A pinned section on a phone fights the browser's own
- * address-bar collapse and takes over the one gesture the reader has.
- */
-export function ScrollStage({
-  steps,
-  children,
-  className,
-  /** Extra viewport-heights of scroll per step. Higher feels slower and calmer. */
-  pace = 0.85,
-}: {
-  steps: number;
-  children: (step: number) => React.ReactNode;
-  className?: string;
-  pace?: number;
-}) {
-  const track = useRef<HTMLDivElement>(null);
-  const pin = useRef<HTMLDivElement>(null);
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    const trackEl = track.current;
-    const pinEl = pin.current;
-    if (!trackEl || !pinEl) return;
-
-    let shown = -1;
-
-    const read = () => {
-      const p = trackProgress(trackEl);
-      pinEl.style.setProperty('--stage-progress', p.toFixed(4));
-
-      /*
-       * The last step gets the tail of the track to itself. Without this the
-       * final step appears exactly as the section starts unpinning and is gone
-       * before it has been read.
-       */
-      const next = Math.min(steps - 1, Math.floor(p * steps * 1.06));
-      if (next !== shown) {
-        shown = next;
-        setStep(next);
-      }
-    };
-
-    const stop = subscribe(read);
-    read();
-    return stop;
-  }, [steps]);
-
-  return (
-    <div
-      ref={track}
-      // data-stage is the hook the marketing layout's <noscript> block uses to
-      // hide this and reveal the stacked fallback. Without scripting the step
-      // never advances, and a frozen first scene holding four viewport-heights
-      // of scroll is a worse failure than simply not pinning.
-      data-stage="pinned"
-      className={cn('relative hidden lg:block', className)}
-      style={{ height: `${100 + steps * pace * 100}vh` }}
-    >
-      <div ref={pin} className="sticky top-0 flex h-dvh items-center overflow-hidden">
-        {children(step)}
-      </div>
-    </div>
-  );
-}
-
-/**
- * What replaces a pinned stage on narrow screens: the same steps, stacked and
- * revealed normally. Rendered as a sibling of ScrollStage rather than inside it,
- * so neither has to know the other exists.
- */
-export function StageFallback({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div data-stage="stacked" className={cn('lg:hidden', className)}>
-      {children}
-    </div>
-  );
-}
 
 /* ── Counting figures ────────────────────────────────────────────────────── */
 
@@ -183,8 +84,6 @@ export function Counter({
     </span>
   );
 }
-
-/* ── Type that arrives ───────────────────────────────────────────────────── */
 
 /* ── Pointer-reactive surfaces ───────────────────────────────────────────── */
 

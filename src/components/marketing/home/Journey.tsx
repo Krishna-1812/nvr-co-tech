@@ -6,20 +6,28 @@ import { STEPS } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { Container, Eyebrow } from '../bits';
 import { Reveal } from '../Reveal';
-import { ScrollStage, StageFallback } from '../motion';
 
 /**
  * One voucher, followed from the invoice landing to the record closing.
  *
- * This is the section the page is built around. On a wide screen it pins: the
- * heading holds still while four scenes advance in place, so the reader spends
- * their scroll on one idea developing rather than on four separate cards going
- * past. Below `lg` it unpins and becomes four stacked cards — a pinned section on
- * a phone fights the browser's own address-bar collapse and commandeers the one
- * gesture the reader has.
+ * This is the section the page is built around, and it is four rows of ordinary
+ * page — copy on the left, the scene it describes on the right.
  *
- * Both layouts render the same four scene components. There is exactly one
- * definition of what step three looks like.
+ * ── Why it no longer pins ───────────────────────────────────────────────────
+ *
+ * It used to be a pinned stage on wide screens: a tall track, a sticky child one
+ * viewport high, and four scenes advancing in place while the page appeared to
+ * stop. It read well in a screenshot and badly in use. Pinning takes over the
+ * reader's only gesture — the scrollbar stops corresponding to the page, four
+ * viewport-heights of travel produce one screen of movement, and somebody
+ * skimming for the third step has no way to get to it except by scrolling
+ * through the first two at the pace the section chooses. It also meant the
+ * section had two layouts, a pinned one and a stacked one below `lg`, which is
+ * two things to keep true about the same four steps.
+ *
+ * Unpinned, the reader scrolls at their own speed, every step has a real
+ * position on the page, and there is one layout at every width. The scenes are
+ * unchanged; only the frame around them is gone.
  *
  * ── Why scene one was replaced ──────────────────────────────────────────────
  *
@@ -65,105 +73,47 @@ export function Journey() {
         </Reveal>
       </Container>
 
-      {/* ── Wide: pinned ── */}
-      <ScrollStage steps={SCENES.length} className="mt-4">
-        {(step) => (
-          <Container wide>
-            <div className="grid items-center gap-16 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
-              <div>
-                <StepRail active={step} />
-                {/*
-                  Keyed on the step so the copy re-mounts and replays its
-                  entrance. Without the key React would reconcile the text in
-                  place and the change would happen with no motion at all.
-                */}
-                <div key={step} className="mt-8 animate-[rise_0.55s_cubic-bezier(0.22,1,0.36,1)]">
-                  <p className="m-mono text-[11px] tracking-[0.2em] text-[var(--m-gold)]">
-                    {STEPS[step].n}
-                  </p>
-                  <h3 className="m-display mt-3 text-[clamp(1.6rem,2.6vw,2.4rem)]">
-                    {STEPS[step].title}
-                  </h3>
-                  <p className="m-dim mt-4 max-w-md text-[15px] leading-relaxed">
-                    {STEPS[step].body}
-                  </p>
-                </div>
-              </div>
-
-              <div key={`panel-${step}`} className="animate-[pop_0.5s_cubic-bezier(0.22,1,0.36,1)]">
-                {SCENES.map((Scene, i) => (i === step ? <Scene key={i} /> : null))}
-              </div>
-            </div>
-
-            {/* Consumes --stage-progress directly, so it tracks the scroll
-                continuously rather than snapping between the four steps. */}
-            <div className="mt-14 h-px w-full overflow-hidden bg-[var(--m-line)]">
-              <span
-                aria-hidden
-                className="block h-px origin-left"
-                style={{
-                  backgroundImage: 'var(--m-grad-2)',
-                  transform: 'scaleX(var(--stage-progress, 0))',
-                }}
-              />
-            </div>
-          </Container>
-        )}
-      </ScrollStage>
-
-      {/* ── Narrow: stacked ── */}
-      <StageFallback>
-        <Container className="space-y-14 pt-12 pb-20">
+      {/*
+        An ordered list, because these four are a sequence and the numbering is
+        load-bearing rather than decorative — step three cannot happen before
+        step two.
+      */}
+      <Container wide className="pb-20 sm:pb-28">
+        <ol className="mt-14 space-y-16 sm:mt-20 sm:space-y-24">
           {SCENES.map((Scene, i) => (
-            <Reveal key={i} className="border-t border-[var(--m-line)] pt-8 first:border-0 first:pt-0">
-              <p className="m-mono text-[11px] tracking-[0.2em] text-[var(--m-gold)]">{STEPS[i].n}</p>
-              <h3 className="m-display mt-3 text-[1.65rem]">{STEPS[i].title}</h3>
-              <p className="m-dim mt-3.5 text-[14.5px] leading-relaxed">{STEPS[i].body}</p>
-              <div className="mt-7">
-                <Scene />
-              </div>
-            </Reveal>
-          ))}
-        </Container>
-      </StageFallback>
-    </section>
-  );
-}
+            <li key={i}>
+              {/*
+                `items-center` rather than `items-start`: the copy is three or
+                four lines and the panels run to roughly twice that, so aligning
+                the tops would leave a short paragraph stranded against the top
+                edge of a tall card.
+              */}
+              <Reveal className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)] lg:gap-16">
+                <div>
+                  <div className="flex items-center gap-3.5">
+                    <span className="m-mono text-[11px] tracking-[0.2em] text-[var(--m-gold)]">
+                      {STEPS[i].n}
+                    </span>
+                    {/* A plain hairline, drawn nowhere. It is a rule beside a
+                        number, and it holds the step numbers to the same optical
+                        left edge as the eyebrow on the heading above. */}
+                    <span aria-hidden className="h-px w-10 bg-[var(--m-line-2)]" />
+                  </div>
+                  <h3 className="m-display mt-4 text-[clamp(1.6rem,2.6vw,2.4rem)]">
+                    {STEPS[i].title}
+                  </h3>
+                  <p className="m-dim mt-4 max-w-md text-[15px] leading-relaxed">{STEPS[i].body}</p>
+                </div>
 
-/** The four steps as a horizontal rail, with the reached ones filled. */
-function StepRail({ active }: { active: number }) {
-  return (
-    <ol className="flex items-center gap-2">
-      {STEPS.map((s, i) => {
-        const reached = i <= active;
-        return (
-          <li key={s.n} className="flex flex-1 items-center gap-2">
-            <span
-              className={cn(
-                'grid size-7 shrink-0 place-items-center rounded-full border text-[10px] font-semibold transition-all duration-500',
-                reached
-                  ? 'border-transparent text-[var(--m-bg)]'
-                  : 'm-dim-2 border-[var(--m-line-2)]',
-              )}
-              style={reached ? { backgroundImage: 'var(--m-grad-2)' } : undefined}
-            >
-              {i + 1}
-            </span>
-            {i < STEPS.length - 1 && (
-              <span className="h-px flex-1 overflow-hidden bg-[var(--m-line)]">
-                <span
-                  className="block h-px origin-left transition-transform duration-700 ease-out"
-                  style={{
-                    backgroundImage: 'var(--m-grad-2)',
-                    transform: `scaleX(${i < active ? 1 : 0})`,
-                  }}
-                />
-              </span>
-            )}
-          </li>
-        );
-      })}
-    </ol>
+                <div>
+                  <Scene />
+                </div>
+              </Reveal>
+            </li>
+          ))}
+        </ol>
+      </Container>
+    </section>
   );
 }
 
