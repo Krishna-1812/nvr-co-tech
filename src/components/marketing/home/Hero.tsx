@@ -86,20 +86,6 @@ export function Hero() {
             <Tilt>
               <VoucherPanel />
             </Tilt>
-            {/*
-              Names what the panel is. Without this line the page opens on a
-              voucher and reads as a voucher product, which is one sixth of
-              what it is.
-
-              Counted from the roster rather than written out. This line said
-              "five more are on the way" for the whole of the month after Ledger
-              Reconciliation shipped, which is the direction of that mistake that
-              costs something: a live tool nobody was told about.
-            */}
-            <p className="m-dim-2 mt-5 text-center t-2">
-              Above: Voucher Desk, one of the {ROSTER.liveWord} running today.{' '}
-              {ROSTER.comingOpen} more are on the way.
-            </p>
           </Rise>
         </div>
 
