@@ -115,7 +115,8 @@
    *
    * Bricolage Grotesque, and its two axes are what make that possible. `opsz`
    * gives a different drawing at each size rather than the same outlines scaled
-   * — see the note in layout.tsx — and `wdth` narrows the display settings.
+   * — see the note in layout.tsx — and `wdth` narrows the large settings, by
+   * an amount that follows the heading's rank rather than one flat number.
    *
    * One number worth knowing before touching any of the settings below:
    * Bricolage's `wdth` floor is 75. Every width used here sits above it, and
@@ -1067,14 +1068,21 @@ body:has([data-skin='night']) {
    * utilities below, so a call site that asks for --t-2 gets 12.13px type
    * tracked for 12.13px type and has no way to get the pair wrong.
    *
-   * Display gets its own line, parallel and 0.014em tighter throughout, because
-   * the display cut has more stroke contrast and closer stems and can carry it.
-   * At 41.6px it lands on -0.0319em, which is where the hero had been tuned by
-   * hand. The difference is that every other heading now moves with it rather
-   * than inheriting a number that was chosen for one of them.
+   * Display gets its own line, parallel and about 0.007em tighter, because the
+   * display cut has more stroke contrast and closer stems and can carry a
+   * little more. It used to be 0.014em tighter, and that was too much: it was
+   * set against a `wdth` of 86, so the tightening was being added to type that
+   * was already drawn 15% narrower than its natural fit. Now that the width
+   * axis follows the rank (see the display utilities below), the tracking does
+   * not have to compensate for a narrowing that no longer happens at small
+   * sizes, and it can be what it should have been on its own terms.
+   *
+   * Text: +0.0158em at 10.56px, +0.0022em at 16px, zero at about 17.5px, and
+   * -0.014em by 42px. Display: -0.0056em at 16px, -0.021em at 42px, -0.025em
+   * at 68px.
    */
-  --trk-text: calc(-0.028em + 0.42px);
-  --trk-display: calc(-0.042em + 0.42px);
+  --trk-text: calc(-0.024em + 0.42px);
+  --trk-display: calc(-0.03em + 0.39px);
 
   /*
    * Leading, on the same principle: a constant absolute addition, so the ratio
@@ -1113,12 +1121,22 @@ body:has([data-skin='night']) {
 @utility t-3  { font-size: var(--t-3);  letter-spacing: var(--trk); line-height: var(--lh); }
 @utility t-4  { font-size: var(--t-4);  letter-spacing: var(--trk); line-height: var(--lh); }
 @utility t-5  { font-size: var(--t-5);  letter-spacing: var(--trk); line-height: var(--lh); }
-@utility t-6  { font-size: var(--t-6);  letter-spacing: var(--trk); line-height: var(--lh); }
-@utility t-7  { font-size: var(--t-7);  letter-spacing: var(--trk); line-height: var(--lh); }
-@utility t-8  { font-size: var(--t-8);  letter-spacing: var(--trk); line-height: var(--lh); }
-@utility t-9  { font-size: var(--t-9);  letter-spacing: var(--trk); line-height: var(--lh); }
-@utility t-10 { font-size: var(--t-10); letter-spacing: var(--trk); line-height: var(--lh); }
-@utility t-11 { font-size: var(--t-11); letter-spacing: var(--trk); line-height: var(--lh); }
+/*
+ * From t-6 up, the step carries a width as well, on the same rule as the
+ * heading ranks below: how narrow the display cut should be drawn is a question
+ * about how large it is, and above 21px there starts to be width to spare.
+ * Below t-6 no width is declared at all, so display type at text sizes falls
+ * through to its natural 100 — and so does every body element, which is why
+ * `--wd` is absent from the five smallest steps rather than set to 100 there.
+ *
+ * Only .m-display and .m-display-light read this. On body text it is inert.
+ */
+@utility t-6  { font-size: var(--t-6);  letter-spacing: var(--trk); line-height: var(--lh); --wd: 98; }
+@utility t-7  { font-size: var(--t-7);  letter-spacing: var(--trk); line-height: var(--lh); --wd: 97; }
+@utility t-8  { font-size: var(--t-8);  letter-spacing: var(--trk); line-height: var(--lh); --wd: 96; }
+@utility t-9  { font-size: var(--t-9);  letter-spacing: var(--trk); line-height: var(--lh); --wd: 95; }
+@utility t-10 { font-size: var(--t-10); letter-spacing: var(--trk); line-height: var(--lh); --wd: 93; }
+@utility t-11 { font-size: var(--t-11); letter-spacing: var(--trk); line-height: var(--lh); --wd: 92; }
 
 /*
  * Headings, as six fluid ranks.
@@ -1131,13 +1149,25 @@ body:has([data-skin='night']) {
  *
  * The vw slopes descend in rank order, so the ranks keep their distance at
  * every width in between and cannot cross over.
+ *
+ * Each rank also carries its width. See .m-display: how narrow a headline
+ * should be drawn is a question about how large it is, and the rank is the only
+ * place on this site that knows. One notch of two units — about 2.1% of the
+ * drawn width, measured — per rank, which is roughly the least that reads as a
+ * decision rather than as a wobble, the same threshold the size ladder is built
+ * on. 88 at the hero down to 98 at h5, and display type carrying no rank at all
+ * (the wordmark, an inline lockup) is left at its natural 100.
+ *
+ * The value sits here rather than in .m-display so that no headline can be the
+ * wrong width for its size, in the same way no headline can be the wrong
+ * tracking for its size.
  */
-@utility t-hero { font-size: clamp(var(--t-11), 6.6vw, var(--t-15)); }
-@utility t-h1   { font-size: clamp(var(--t-10), 5.6vw, var(--t-14)); }
-@utility t-h2   { font-size: clamp(var(--t-8),  4.2vw, var(--t-12)); }
-@utility t-h3   { font-size: clamp(var(--t-7),  3.4vw, var(--t-11)); }
-@utility t-h4   { font-size: clamp(var(--t-6),  2.8vw, var(--t-9));  }
-@utility t-h5   { font-size: clamp(var(--t-5),  2.2vw, var(--t-7));  }
+@utility t-hero { font-size: clamp(var(--t-11), 6.6vw, var(--t-15)); --wd: 88; }
+@utility t-h1   { font-size: clamp(var(--t-10), 5.6vw, var(--t-14)); --wd: 90; }
+@utility t-h2   { font-size: clamp(var(--t-8),  4.2vw, var(--t-12)); --wd: 92; }
+@utility t-h3   { font-size: clamp(var(--t-7),  3.4vw, var(--t-11)); --wd: 94; }
+@utility t-h4   { font-size: clamp(var(--t-6),  2.8vw, var(--t-9));  --wd: 96; }
+@utility t-h5   { font-size: clamp(var(--t-5),  2.2vw, var(--t-7));  --wd: 98; }
 
 /*
  * Letterspaced capitals, with the word gap put back.
@@ -1168,11 +1198,28 @@ body:has([data-skin='night']) {
    *
    * `opsz` 72 asks Bricolage for its display cut — tighter apertures, more
    * stroke contrast — which is what makes a headline a different drawing rather
-   * than body text enlarged. `wdth` 86 then narrows it: a hero line fits three
-   * or four more characters, and the vertical stems come closer together, which
-   * is what makes large type read as set. Paired with negative tracking and a
-   * line-height under 1, that is the difference between an editorial headline
-   * and a big paragraph.
+   * than body text enlarged. That part is size-independent and stays fixed.
+   *
+   * `wdth` is not size-independent, and treating it as though it were is what
+   * made the whole site read as cramped. It was pinned at 86 — measured, a
+   * drawing 14.97% narrower than the same font at its natural fit — and applied
+   * identically to a 68px hero and to the 16px wordmark in the header. Narrowing
+   * is an optical-size decision: large type has width to spare and gains from
+   * giving some up, because the stems come closer and the line reads as set.
+   * Small type has none to spare, and giving it up is pure loss. Stacked with
+   * negative tracking, the wordmark was being drawn 18.4% narrower than the
+   * face was designed to sit, and every headline on the site between 20.6% and
+   * 22.9% narrower.
+   *
+   * So the width now follows the rank rather than the class. `.m-display` reads
+   * `--wd` and the rank utilities set it, one notch of about 2.1% per rank, from
+   * 88 at the hero to 100 — the natural drawn width, no narrowing at all — for
+   * display type at text sizes. The hero keeps very nearly the setting it had;
+   * the wordmark, the card titles and the small headings get their width back.
+   *
+   * `--wd` is read with a fallback rather than declared here, so nothing in this
+   * file has to be written before or after anything else for the pair to
+   * resolve. A rank utility either sets it or it does not.
    *
    * All three axes are listed, including wght, because Safari has shipped
    * versions that reset unlisted axes to their default the moment
@@ -1183,7 +1230,7 @@ body:has([data-skin='night']) {
   .m-display {
     font-family: var(--font-display);
     font-weight: 700;
-    font-variation-settings: 'opsz' 72, 'wdth' 86, 'wght' 700;
+    font-variation-settings: 'opsz' 72, 'wdth' var(--wd, 100), 'wght' 700;
     /*
      * Rebinding the pair, not just setting the two properties: anything nested
      * inside a headline — the serif accent, a step utility on the same element
@@ -1200,7 +1247,7 @@ body:has([data-skin='night']) {
   .m-display-light {
     font-family: var(--font-display);
     font-weight: 400;
-    font-variation-settings: 'opsz' 72, 'wdth' 92, 'wght' 400;
+    font-variation-settings: 'opsz' 72, 'wdth' var(--wd, 100), 'wght' 400;
     --trk: var(--trk-display);
     --lh: var(--lh-display);
     /*
@@ -1968,14 +2015,25 @@ body:has([data-skin='night']) {
  * silently undoing the display cut `.m-display` had set. The effect would be a
  * headline that arrives correctly and then stays subtly wrong.
  *
- * The floor is 76, not the 72 this was written with for Archivo. Bricolage's
- * `wdth` axis stops at 75, and a value below it is clamped rather than
- * rejected — so the old number did not error, it just quietly made the
- * animation shorter than it reads in the source.
+ * Both stops are now written against `--wd` rather than against the 76-to-86
+ * pair they used to name outright. That pair was a copy of what .m-display then
+ * set, and a copy stops being true the moment the original moves: with the
+ * width now following the heading's rank, a literal `to` stop of 86 would have
+ * animated every h2, h4 and hero on the site to the one width they no longer
+ * share — and, being `both`-filled, would have held them there. The `from`
+ * narrows by ten units from wherever the rank sits, so the settle travels the
+ * same visible distance at every rank instead of a distance that happened to
+ * be right for one of them.
+ *
+ * Ten units below the hero's 88 is 78, clear of Bricolage's `wdth` floor of 75.
+ * A value below the floor is clamped rather than rejected, so going under it
+ * would not error — it would just quietly make the animation shorter than it
+ * reads in the source, which is what the 72 this was written with for Archivo
+ * had been doing.
  */
 @keyframes s-settle-width {
-  from { font-variation-settings: 'opsz' 72, 'wdth' 76, 'wght' 700; opacity: 0; }
-  to   { font-variation-settings: 'opsz' 72, 'wdth' 86, 'wght' 700; opacity: 1; }
+  from { font-variation-settings: 'opsz' 72, 'wdth' calc(var(--wd, 100) - 10), 'wght' 700; opacity: 0; }
+  to   { font-variation-settings: 'opsz' 72, 'wdth' var(--wd, 100), 'wght' 700; opacity: 1; }
 }
 
 @layer utilities {
