@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { BRAND, CONTACT } from '@/lib/marketing/content';
 import { Aurora, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
 import { RequestForm } from '@/components/marketing/RequestForm';
 import { Roost } from '@/components/brand/Owl';
@@ -10,7 +11,13 @@ export const metadata: Metadata = {
   title: 'Book a walkthrough',
   description:
     'Thirty minutes with the people who built it. Tell us which agent interests you and what your month currently looks like.',
+  alternates: { canonical: '/contact' },
 };
+
+const TRAIL = [
+  { label: 'Home', href: '/' },
+  { label: 'Book a walkthrough', href: '/contact' },
+] as const;
 
 /**
  * There is a handler behind this page now.
@@ -45,6 +52,10 @@ export default function ContactPage() {
         <Roost seed="contact-sill" band="top-right" />
 
         <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-16">
+          <Rise>
+            <Breadcrumbs trail={TRAIL} className="mb-7" />
+          </Rise>
+
           <Rise>
             <Eyebrow>Contact</Eyebrow>
           </Rise>

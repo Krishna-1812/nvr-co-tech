@@ -5,7 +5,13 @@ import { LegalPage, type Clause } from '@/components/marketing/LegalPage';
 export const metadata: Metadata = {
   title: 'Privacy',
   description: `How ${BRAND.name} handles information: our own measurement, no third-party pixel of any kind, and reconciliation files that never leave your browser.`,
+  alternates: { canonical: '/privacy' },
 };
+
+const TRAIL = [
+  { label: 'Home', href: '/' },
+  { label: 'Privacy', href: '/privacy' },
+] as const;
 
 const LAST_UPDATED = '22 August 2026';
 
@@ -97,6 +103,8 @@ export default function PrivacyPage() {
       lead="What we collect, what we deliberately do not, and how to reach us about any of it. Everything below can be checked from the outside."
       updated={LAST_UPDATED}
       clauses={CLAUSES}
+      trail={TRAIL}
+      related={{ href: '/terms', label: 'the terms that apply to using the platform' }}
       accent="var(--m-cyan)"
     >
       <div className="m-card p-6 sm:p-7">

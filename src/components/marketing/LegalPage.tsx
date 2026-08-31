@@ -1,6 +1,9 @@
+import Link from 'next/link';
 import { Aurora, Container, Eyebrow, Rise, Section } from './bits';
+import { Breadcrumbs } from './Breadcrumbs';
 import { Reveal } from './Reveal';
 import { Roost } from '@/components/brand/Owl';
+import type { Crumb } from '@/lib/marketing/seo';
 
 /**
  * The shape both /privacy and /terms are built from.
@@ -48,6 +51,8 @@ export function LegalPage({
   lead,
   updated,
   clauses,
+  trail,
+  related,
   children,
   accent = 'var(--m-gold)',
 }: {
@@ -56,6 +61,17 @@ export function LegalPage({
   lead: string;
   updated: string;
   clauses: Clause[];
+  trail: readonly Crumb[];
+  /*
+   * The other legal page.
+   *
+   * These two were the only pages on the site with no link at all in their own
+   * content — everything that pointed anywhere lived in the header and footer.
+   * Somebody who has just read the privacy policy is more likely to want the
+   * terms than anything else on the site, and the footer is a long way down a
+   * document this size.
+   */
+  related: { href: string; label: string };
   /** The closing block, which differs between the two pages. */
   children?: React.ReactNode;
   accent?: string;
@@ -72,6 +88,9 @@ export function LegalPage({
         <Roost seed="legal-margin" band="top-right" />
 
         <Container className="relative pt-16 pb-14 sm:pt-24 sm:pb-16">
+          <Rise>
+            <Breadcrumbs trail={trail} className="mb-7" />
+          </Rise>
           <Rise>
             <Eyebrow>{eyebrow}</Eyebrow>
           </Rise>
@@ -181,6 +200,17 @@ export function LegalPage({
               </ol>
 
               {children && <div className="mt-12">{children}</div>}
+
+              <p className="m-dim-2 mt-12 border-t border-[var(--m-line)] pt-7 text-[13px]">
+                See also{' '}
+                <Link
+                  href={related.href}
+                  className="text-[var(--m-dim)] underline underline-offset-4 transition hover:text-[var(--m-ink)]"
+                >
+                  {related.label}
+                </Link>
+                .
+              </p>
             </div>
           </div>
         </Container>

@@ -1,6 +1,20 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  /*
+   * No source maps in the browser bundle.
+   *
+   * This is already Next's default, and `.next/static` has never contained a
+   * .map file. It is pinned here because the default is the thing that protects
+   * it: turning this on is a one-word change somebody makes while debugging a
+   * production-only bug, and what it ships is the readable original of every
+   * client component — the analytics gate, the approval rules, the shape of
+   * every table this app talks to — served publicly and permanently, to anyone
+   * who opens devtools. Stated explicitly so that switching it on has to be a
+   * decision rather than a default nobody reviewed.
+   */
+  productionBrowserSourceMaps: false,
+
   images: {
     /*
      * The only external image this site loads, and it is admin-only.

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { BRAND } from '@/lib/marketing/content';
+import { siteLd } from '@/lib/marketing/seo';
+import { JsonLd } from '@/components/marketing/JsonLd';
 import { Hero } from '@/components/marketing/home/Hero';
 import { FormatStrip } from '@/components/marketing/home/FormatStrip';
 import { WorkCalendar } from '@/components/marketing/home/WorkCalendar';
@@ -13,6 +15,15 @@ export const metadata: Metadata = {
   // which would otherwise render the brand name twice on the home page.
   title: { absolute: `${BRAND.name} · ${BRAND.tagline}` },
   description: BRAND.blurb,
+  /*
+   * This page answers on more than one URL. The apex and the www host both
+   * resolve, a preview deployment serves the whole site under its own name, and
+   * anything with a campaign parameter on the end is a fourth. Without this,
+   * each of those is a separate page as far as a search engine is concerned,
+   * competing with the others for the same words. metadataBase makes the path
+   * absolute against the real production origin.
+   */
+  alternates: { canonical: '/' },
 };
 
 /*
@@ -51,6 +62,14 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+      {/*
+        Who is behind this, said once, on the one page that is about the whole
+        of it. The Organization, the business and the site are three nodes
+        rather than one because they answer three different questions, and the
+        inner pages point back at these by id rather than repeating them.
+      */}
+      <JsonLd data={siteLd()} />
+
       <Hero />
       <FormatStrip />
       <WorkCalendar />

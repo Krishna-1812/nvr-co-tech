@@ -14,6 +14,7 @@ import {
   StageBadge,
   Stat,
 } from '@/components/marketing/bits';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Roost } from '@/components/brand/Owl';
 
@@ -21,7 +22,13 @@ export const metadata: Metadata = {
   title: 'About',
   description:
     'Why a team of chartered accountants is building software for finance teams, why the rules sit in the database, and how we go from one working tool to several.',
+  alternates: { canonical: '/about' },
 };
+
+const TRAIL = [
+  { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
+] as const;
 
 const HOW_WE_BUILD = [
   {
@@ -69,6 +76,10 @@ export default function AboutPage() {
         <Roost seed="about-attic" band="top-right" />
 
         <Container wide className="relative pt-16 pb-16 sm:pt-24 sm:pb-24">
+          <Rise>
+            <Breadcrumbs trail={TRAIL} className="mb-7" />
+          </Rise>
+
           <Rise>
             <Eyebrow>About</Eyebrow>
           </Rise>

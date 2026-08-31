@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Check, CircleDashed, Hammer } from 'lucide-react';
+import { ArrowRight, Check, CircleDashed, Hammer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AGENTS,
@@ -19,6 +19,9 @@ import {
   Section,
   StageBadge,
 } from '@/components/marketing/bits';
+import { serviceLd } from '@/lib/marketing/seo';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
+import { JsonLd } from '@/components/marketing/JsonLd';
 import { Reveal } from '@/components/marketing/Reveal';
 import { FlowDiagram } from '@/components/marketing/agents/FlowDiagram';
 import { Roost } from '@/components/brand/Owl';
@@ -33,7 +36,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const agent = agentBySlug((await params).slug);
   if (!agent) return { title: 'Agent not found' };
 
-  return { title: agent.name, description: agent.summary };
+  return {
+    title: agent.name,
+    description: agent.summary,
+    alternates: { canonical: `/agents/${agent.slug}` },
+  };
 }
 
 export default async function AgentPage({ params }: Params) {
@@ -44,8 +51,22 @@ export default async function AgentPage({ params }: Params) {
   const index = AGENTS.findIndex((a) => a.slug === agent.slug);
   const next = AGENTS[(index + 1) % AGENTS.length];
 
+  const trail = [
+    { label: 'Home', href: '/' },
+    { label: 'Agents', href: '/agents' },
+    { label: agent.name, href: `/agents/${agent.slug}` },
+  ];
+
   return (
     <>
+      {/*
+        A Service, but only for one that exists. Six of the eight on this
+        template are not built, and describing an unbuilt one to a search engine
+        as something we provide is a promise made where nobody can see it being
+        made. `serviceLd` is only reached down the live branch.
+      */}
+      {agent.stage === 'live' && <JsonLd data={serviceLd(agent)} />}
+
       <section className="relative overflow-hidden">
         {/* The agent's own colour lights its page. Six pages built from one
             template have to feel like six places, not one with the name swapped. */}
@@ -59,14 +80,11 @@ export default async function AgentPage({ params }: Params) {
         <Roost seed="agent-alcove" band="top-right" />
 
         <Container wide className="relative pt-10 pb-16 sm:pt-14 sm:pb-24">
+          {/* This used to be a lone "All agents" link, which told you one way
+              out but not where you were standing. The trail says both, and it is
+              the same array the BreadcrumbList is built from. */}
           <Reveal>
-            <Link
-              href="/agents"
-              className="group m-mono m-dim-2 inline-flex items-center gap-2 text-[11px] tracking-[0.12em] uppercase transition hover:text-[var(--m-ink)]"
-            >
-              <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-1" aria-hidden />
-              All agents
-            </Link>
+            <Breadcrumbs trail={trail} />
           </Reveal>
 
           <div className="mt-10 grid gap-12 lg:grid-cols-[1.15fr_1fr] lg:items-start lg:gap-16">

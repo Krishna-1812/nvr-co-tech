@@ -5,7 +5,13 @@ import { LegalPage, type Clause } from '@/components/marketing/LegalPage';
 export const metadata: Metadata = {
   title: 'Terms',
   description: `The terms that apply to using ${BRAND.name}.`,
+  alternates: { canonical: '/terms' },
 };
+
+const TRAIL = [
+  { label: 'Home', href: '/' },
+  { label: 'Terms', href: '/terms' },
+] as const;
 
 const LAST_UPDATED = '22 August 2026';
 
@@ -80,6 +86,8 @@ export default function TermsPage() {
       lead={`Ordinary terms for ordinary use of ${BRAND.name}, written to be read rather than to be got past.`}
       updated={LAST_UPDATED}
       clauses={CLAUSES}
+      trail={TRAIL}
+      related={{ href: '/privacy', label: 'how we handle information' }}
       accent="var(--m-violet)"
     >
       <div className="m-card p-6 sm:p-7">

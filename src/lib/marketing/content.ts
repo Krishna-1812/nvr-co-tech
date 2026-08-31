@@ -269,11 +269,32 @@ export const LIVE_AGENTS = AGENTS.filter((a) => a.stage === 'live');
  * instead means there is nowhere left to forget.
  *
  * Words rather than figures because these appear mid-sentence, and a numeral in
- * running prose reads as a specification. The table stops at six because the
- * roster has six entries; a seventh would show up as a bare numeral, which is
- * ugly enough to notice and fix rather than wrong enough to mislead.
+ * running prose reads as a specification.
+ *
+ * The table used to stop at six, on the reasoning that a seventh agent would
+ * show up as a bare numeral and be ugly enough to notice. It was: the roster
+ * reached eight and the platform section spent a while saying "Buy 8 tools from
+ * 8 companies and you get 8 logins", which is precisely the register the rest of
+ * this file is written to avoid. Prediction is not a safeguard. It runs to
+ * twelve now, which is past any roster this is likely to hold, and `inWords`
+ * still falls back to the numeral rather than throwing — a page that reads
+ * slightly wrong beats a page that does not render.
  */
-const WORDS = ['none', 'one', 'two', 'three', 'four', 'five', 'six'] as const;
+const WORDS = [
+  'none',
+  'one',
+  'two',
+  'three',
+  'four',
+  'five',
+  'six',
+  'seven',
+  'eight',
+  'nine',
+  'ten',
+  'eleven',
+  'twelve',
+] as const;
 
 export function inWords(n: number): string {
   return WORDS[n] ?? String(n);

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
-import { Toaster } from 'sonner';
 import { BRAND, SITE_URL } from '@/lib/marketing/content';
 import { INK } from '@/lib/brand/mark';
 import './globals.css';
@@ -80,11 +79,17 @@ export const metadata: Metadata = {
     description: BRAND.blurb,
   },
   /*
-   * Indexable by default, which is right for the pages a crawler can actually
-   * reach. The signed-in routes are excluded in robots.ts rather than here —
-   * they redirect to /login for anyone without a session anyway.
+   * No robots tag. Absence already means "index, follow" to every crawler, so
+   * the explicit tag that used to be here bought nothing — and it was inherited
+   * by pages that must not be indexed. Next stamps its own `noindex` on a
+   * not-found response, so every 404 went out carrying two robots tags that
+   * disagreed. Crawlers take the most restrictive of a conflicting pair, so
+   * nothing was ever wrongly indexed; it just made the head of a 404 look like
+   * nobody had read it.
+   *
+   * The signed-in routes are excluded in robots.ts, and they redirect to /login
+   * for anyone without a session anyway.
    */
-  robots: { index: true, follow: true },
 };
 
 /**
@@ -137,10 +142,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="antialiased">
-        {children}
-        <Toaster position="top-center" richColors closeButton />
-      </body>
+      {/*
+        Nothing but the children. The toast host used to sit here, which shipped
+        sonner to every public page for notifications that only ever happen on
+        the signed-in side; it lives in the signed-in frame now. See
+        components/app/Toasts.
+      */}
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

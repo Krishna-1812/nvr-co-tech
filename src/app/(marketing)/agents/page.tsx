@@ -12,6 +12,7 @@ import {
   Section,
   StageBadge,
 } from '@/components/marketing/bits';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Counter, Spotlight } from '@/components/marketing/motion';
 import { RoadmapRail } from '@/components/marketing/agents/RoadmapRail';
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
     `${ROSTER.total} tools for finance teams: payments and approvals, closing the books, GST, TDS, `
     + `reading invoices and answering audit questions. ${ROSTER.liveOpen} ${ROSTER.liveVerb} live `
     + 'today, and the page tells you which.',
+  alternates: { canonical: '/agents' },
 };
 
 /**
@@ -30,6 +32,11 @@ export const metadata: Metadata = {
  * what is written down. Each group carries a line of its own, because a bare
  * "on the roadmap" lets the reader assume either the best or the worst.
  */
+const TRAIL = [
+  { label: 'Home', href: '/' },
+  { label: 'Agents', href: '/agents' },
+] as const;
+
 const GROUPS: { stage: AgentStage; lead: string }[] = [
   {
     stage: 'live',
@@ -72,6 +79,10 @@ export default function AgentsPage() {
         <Roost seed="agents-roost" band="top-right" />
 
         <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-20">
+          <Rise>
+            <Breadcrumbs trail={TRAIL} className="mb-7" />
+          </Rise>
+
           <Rise>
             <Eyebrow>The roster</Eyebrow>
           </Rise>
