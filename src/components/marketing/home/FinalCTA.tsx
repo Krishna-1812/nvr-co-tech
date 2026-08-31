@@ -19,12 +19,12 @@ export function FinalCTA() {
 
       <Container className="relative text-center">
         <Reveal>
-          <h2 className="m-display s-settle mx-auto max-w-3xl text-[clamp(2rem,5vw,3.5rem)]">
+          <h2 className="m-display s-settle mx-auto max-w-3xl t-h1">
             Start with the <span className="m-serif m-grad-text">worst</span> job on your desk.
           </h2>
         </Reveal>
         <Reveal delay={80}>
-          <p className="m-dim mx-auto mt-6 max-w-xl text-[15px] leading-relaxed sm:text-base">
+          <p className="m-dim mx-auto mt-6 max-w-xl t-4 sm:t-4">
             Tell us which one it is. Give us half an hour and we will show you the tool that covers
             it, set up with your own people and your own approval steps. If it is not built yet we
             will say so, and tell you what is.

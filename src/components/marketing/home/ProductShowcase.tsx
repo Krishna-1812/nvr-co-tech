@@ -116,12 +116,12 @@ export function ProductShowcase() {
           </div>
         </Reveal>
 
-        <ol className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {ANNOTATIONS.map((a, i) => (
             <Reveal as="li" key={a.n} delay={i * 70}>
-              <span className="m-mono text-[11px] tracking-[0.16em] text-[var(--m-gold)]">{a.n}</span>
-              <h3 className="mt-3 text-[14px] font-semibold">{a.title}</h3>
-              <p className="m-dim mt-2 text-[13px] leading-relaxed">{a.body}</p>
+              <span className="m-mono t-2 t-caps text-[var(--m-gold)]">{a.n}</span>
+              <h3 className="mt-3 t-3 font-semibold">{a.title}</h3>
+              <p className="m-dim mt-2 t-3">{a.body}</p>
             </Reveal>
           ))}
         </ol>
@@ -139,7 +139,7 @@ function Chrome() {
         <span className="size-2.5 rounded-full bg-white/12" />
         <span className="size-2.5 rounded-full bg-white/12" />
       </span>
-      <span className="m-mono m-dim-2 mx-auto flex items-center gap-2 rounded-full border border-[var(--m-line)] px-3 py-1 text-[10px]">
+      <span className="m-mono m-dim-2 mx-auto flex items-center gap-2 rounded-full border border-[var(--m-line)] px-3 py-1 t-1">
         <Lock className="size-2.5" aria-hidden />
         thefinanceintelligence.com/dashboard
       </span>
@@ -160,7 +160,7 @@ function Rail() {
     <div className="w-48 shrink-0 border-r border-[var(--m-line)] bg-white/[0.015] p-3">
       <div className="flex items-center gap-2 px-2 py-2">
         <LogoMark id="showcase-mark" className="size-6" />
-        <span className="m-display text-[12px]">{BRAND.name}</span>
+        <span className="m-display t-2">{BRAND.name}</span>
       </div>
 
       <div className="mt-4 space-y-0.5">
@@ -169,15 +169,15 @@ function Rail() {
             key={it.label}
             className={
               it.active
-                ? 'flex items-center gap-2.5 rounded-lg bg-white/[0.07] px-2.5 py-2 text-[12px] font-medium'
-                : 'm-dim-2 flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px]'
+                ? 'flex items-center gap-2.5 rounded-lg bg-white/[0.07] px-2.5 py-2 t-2 font-medium'
+                : 'm-dim-2 flex items-center gap-2.5 rounded-lg px-2.5 py-2 t-2'
             }
           >
             <it.icon className="size-3.5 shrink-0" aria-hidden />
             {it.label}
             {it.badge && (
               <span
-                className="m-mono ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-semibold text-black"
+                className="m-mono ml-auto rounded-full px-1.5 py-0.5 t-1 font-semibold text-black"
                 style={{ background: 'var(--m-amber)' }}
               >
                 {it.badge}
@@ -195,11 +195,11 @@ function Board() {
     <div className="min-w-0 flex-1 p-5">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h3 className="m-display text-lg">Good morning, Anita</h3>
-          <p className="m-dim-2 mt-1 text-[11px]">Seven vouchers are waiting on you.</p>
+          <h3 className="m-display t-5">Good morning, Anita</h3>
+          <p className="m-dim-2 mt-1 t-2">Seven vouchers are waiting on you.</p>
         </div>
         <span
-          className="m-mono rounded-md bg-[var(--m-ink)] px-3 py-1.5 text-[10px] font-semibold tracking-[0.1em] text-[var(--m-on-grad)] uppercase"
+          className="m-mono rounded-md bg-[var(--m-ink)] px-3 py-1.5 t-1 font-semibold t-caps text-[var(--m-on-grad)] uppercase"
         >
           + New voucher
         </span>
@@ -227,7 +227,7 @@ function Board() {
         </div>
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
           {PIPELINE.map((p) => (
-            <span key={p.label} className="flex items-center gap-1.5 text-[10px]">
+            <span key={p.label} className="flex items-center gap-1.5 t-1">
               <span className="size-1.5 rounded-full" style={{ background: p.color }} aria-hidden />
               <span className="m-dim-2">{p.label}</span>
               <span className="numeric font-semibold">{p.n}</span>
@@ -259,7 +259,7 @@ function Board() {
                 <Td className="numeric text-right tabular-nums">{fmtRupees(r.amount)}</Td>
                 <Td>
                   <span
-                    className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium whitespace-nowrap"
+                    className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 t-1 font-medium whitespace-nowrap"
                     style={{
                       color: STATUS_COLOR[r.status],
                       borderColor: `color-mix(in oklab, ${STATUS_COLOR[r.status]} 30%, transparent)`,
@@ -286,9 +286,9 @@ function Board() {
 function Tile({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <div className="rounded-xl border border-[var(--m-line)] p-3">
-      <p className="m-dim-2 text-[10px] leading-tight">{label}</p>
+      <p className="m-dim-2 t-1">{label}</p>
       <p
-        className="m-display numeric mt-2 text-base tracking-tight"
+        className="m-display numeric mt-2 t-4"
         style={accent ? { color: accent } : undefined}
       >
         {value}
@@ -301,7 +301,7 @@ function Th({ children, className = '' }: { children: React.ReactNode; className
   return (
     <th
       scope="col"
-      className={`m-eyebrow px-3 py-2.5 text-[9px] font-medium normal-case ${className}`}
+      className={`m-eyebrow px-3 py-2.5 t-1 font-medium normal-case ${className}`}
     >
       {children}
     </th>
@@ -309,5 +309,5 @@ function Th({ children, className = '' }: { children: React.ReactNode; className
 }
 
 function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-3 py-2.5 text-[11px] ${className}`}>{children}</td>;
+  return <td className={`px-3 py-2.5 t-2 ${className}`}>{children}</td>;
 }

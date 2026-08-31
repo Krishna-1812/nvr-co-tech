@@ -92,13 +92,13 @@ export default function TermsPage() {
     >
       <div className="m-card p-6 sm:p-7">
         <h2 className="m-eyebrow">If something here is unclear</h2>
-        <p className="m-dim mt-4 text-[14px] leading-relaxed">
+        <p className="m-dim mt-4 t-3">
           Write to us and say which clause. We would rather answer it now than have the conversation
           after it matters.
         </p>
         <a
           href={`mailto:${CONTACT.email}`}
-          className="m-mono mt-5 inline-block text-[13px] text-[var(--m-violet)] underline underline-offset-4 transition hover:text-[var(--m-ink)]"
+          className="m-mono mt-5 inline-block t-3 text-[var(--m-violet)] underline underline-offset-4 transition hover:text-[var(--m-ink)]"
         >
           {CONTACT.email}
         </a>

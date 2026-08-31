@@ -41,7 +41,7 @@ export function Hero() {
             <Rise>
               <span className="flex items-center gap-3.5">
                 <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
-                <span className="m-mono text-[10px] font-medium tracking-[0.2em] text-[var(--m-gold)] uppercase">
+                <span className="m-mono t-1 font-medium t-caps text-[var(--m-gold)] uppercase">
                   AI tools for finance teams
                 </span>
               </span>
@@ -52,7 +52,7 @@ export function Hero() {
               is revealed by its own box, which is what makes the type look like
               it is being uncovered rather than fading in.
             */}
-            <h1 className="m-display mt-7 text-[clamp(2.6rem,6.6vw,5rem)]">
+            <h1 className="m-display mt-7 t-hero">
               <LineRise delay={60}>We handle the</LineRise>
               <LineRise delay={150}>
                 <span className="m-serif m-grad-text pr-1">repetitive</span> work.
@@ -61,7 +61,7 @@ export function Hero() {
             </h1>
 
             <Rise delay={380}>
-              <p className="m-dim mt-7 max-w-lg text-[15px] leading-relaxed sm:text-[17px]">
+              <p className="m-dim mt-7 max-w-lg t-4 sm:t-5">
                 One tool for each job your team repeats every month. Raising payments, agreeing the
                 bank, matching GST, working out TDS. They fill in the forms, do the arithmetic and
                 pass the work to the right person, then you decide.{' '}
@@ -96,7 +96,7 @@ export function Hero() {
               Reconciliation shipped, which is the direction of that mistake that
               costs something: a live tool nobody was told about.
             */}
-            <p className="m-dim-2 mt-5 text-center text-[11.5px] leading-relaxed">
+            <p className="m-dim-2 mt-5 text-center t-2">
               Above: Voucher Desk, one of the {ROSTER.liveWord} running today.{' '}
               {ROSTER.comingOpen} more are on the way.
             </p>
@@ -120,7 +120,7 @@ export function Hero() {
               <IndexFigure value={ROSTER.coming} label="In build" />
               <IndexFigure value={ROSTER.total} label="On the roster" />
 
-              <p className="m-mono m-dim-2 ml-auto hidden items-center gap-2.5 text-[10px] tracking-[0.18em] uppercase lg:flex">
+              <p className="m-mono m-dim-2 ml-auto hidden items-center gap-2.5 t-1 t-caps uppercase lg:flex">
                 <ArrowDown
                   className="size-3 animate-[breathe_3.4s_ease-in-out_infinite] motion-reduce:animate-none"
                   aria-hidden
@@ -148,13 +148,13 @@ function IndexFigure({ value, label, lit = false }: { value: number; label: stri
     <div className="min-w-[7rem]">
       <p
         className={cn(
-          'm-display m-tabular text-[clamp(2rem,3.4vw,2.75rem)] leading-none',
+          'm-display m-tabular t-h2',
           lit && 'text-[var(--m-gold)]',
         )}
       >
         {String(value).padStart(2, '0')}
       </p>
-      <p className="m-mono m-dim-2 mt-3 text-[9.5px] tracking-[0.16em] uppercase">{label}</p>
+      <p className="m-mono m-dim-2 mt-3 t-1 t-caps uppercase">{label}</p>
     </div>
   );
 }

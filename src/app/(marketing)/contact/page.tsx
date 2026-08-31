@@ -61,13 +61,13 @@ export default function ContactPage() {
           </Rise>
 
           <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-3xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
+            <h1 className="m-display mt-5 max-w-3xl t-h1">
               Book a <span className="m-serif m-grad-text pr-1">walkthrough.</span>
             </h1>
           </Rise>
 
           <Rise delay={120}>
-            <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
+            <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
               Half an hour with the people who built it, using the tool that is actually running.
               Tell us which part of your month is the worst and we will show you whether we have
               anything for it yet.
@@ -91,12 +91,12 @@ export default function ContactPage() {
                     {NEXT_STEPS.map((step, i) => (
                       <li key={step} className="flex gap-3.5">
                         <span
-                          className="m-mono mt-0.5 shrink-0 text-[11px] tracking-[0.1em] text-[var(--m-cyan)] tabular-nums"
+                          className="m-mono mt-0.5 shrink-0 t-2 t-caps text-[var(--m-cyan)] tabular-nums"
                           aria-hidden
                         >
                           {String(i + 1).padStart(2, '0')}
                         </span>
-                        <p className="m-dim text-[13.5px] leading-relaxed">{step}</p>
+                        <p className="m-dim t-3">{step}</p>
                       </li>
                     ))}
                   </ol>
@@ -106,7 +106,7 @@ export default function ContactPage() {
               <Reveal delay={140}>
                 <div className="m-card p-6 sm:p-7">
                   <h2 className="m-eyebrow">Already using it</h2>
-                  <p className="m-dim mt-4 text-[13.5px] leading-relaxed">
+                  <p className="m-dim mt-4 t-3">
                     If your firm is already on {BRAND.name} you do not need a call. Sign in, or ask
                     whoever set your organisation up to send you an invite link. Following one puts
                     you straight into their workspace with the role they chose for you.
@@ -114,13 +114,13 @@ export default function ContactPage() {
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link
                       href="/login"
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line-2)] px-5 text-sm font-semibold transition hover:border-[var(--m-ink)] hover:bg-white/5 sm:flex-1"
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line-2)] px-5 t-3 font-semibold transition hover:border-[var(--m-ink)] hover:bg-white/5 sm:flex-1"
                     >
                       Sign in
                     </Link>
                     <Link
                       href="/signup"
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line)] px-5 text-sm font-semibold transition hover:border-[var(--m-line-2)] hover:bg-white/5 sm:flex-1"
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line)] px-5 t-3 font-semibold transition hover:border-[var(--m-line-2)] hover:bg-white/5 sm:flex-1"
                     >
                       Create an account
                     </Link>
@@ -131,7 +131,7 @@ export default function ContactPage() {
               <Reveal delay={200}>
                 <div className="m-card p-6 sm:p-7">
                   <h2 className="m-eyebrow">Elsewhere</h2>
-                  <dl className="mt-5 space-y-4 text-[13.5px]">
+                  <dl className="mt-5 space-y-4 t-3">
                     <div>
                       <dt className="m-dim-2">Built by</dt>
                       <dd className="mt-1">Chartered accountants, in Mumbai</dd>
@@ -141,7 +141,7 @@ export default function ContactPage() {
                       <dd className="mt-1">
                         <a
                           href={`mailto:${CONTACT.security}`}
-                          className="m-mono text-[13px] text-[var(--m-cyan)] underline underline-offset-4 transition hover:text-[var(--m-ink)]"
+                          className="m-mono t-3 text-[var(--m-cyan)] underline underline-offset-4 transition hover:text-[var(--m-ink)]"
                         >
                           {CONTACT.security}
                         </a>

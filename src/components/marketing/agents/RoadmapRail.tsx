@@ -32,11 +32,11 @@ export function RoadmapRail() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <Eyebrow>Shipping order</Eyebrow>
-              <h2 className="m-display s-settle mt-3 text-[clamp(1.5rem,3vw,2.1rem)]">
+              <h2 className="m-display s-settle mt-3 t-h4">
                 Built one at a time, <span className="m-serif m-dim">in this order.</span>
               </h2>
             </div>
-            <p className="m-dim-2 max-w-sm text-[12.5px] leading-relaxed">
+            <p className="m-dim-2 max-w-sm t-2">
               Each one starts when the one before it is properly finished. Pick any of them to see
               what it does.
             </p>
@@ -107,7 +107,7 @@ export function RoadmapRail() {
                           style={{ borderColor: accent }}
                         />
                       )}
-                      <span className="m-mono text-[9px] font-bold" style={{ color: on ? 'var(--m-bg)' : accent }}>
+                      <span className="m-mono t-1 font-bold" style={{ color: on ? 'var(--m-bg)' : accent }}>
                         {i + 1}
                       </span>
                     </span>
@@ -115,13 +115,13 @@ export function RoadmapRail() {
                     <span className="min-w-0 md:mt-4 md:px-2">
                       <span
                         className={cn(
-                          'block truncate text-[13px] font-semibold transition-colors md:whitespace-normal',
+                          'block truncate t-3 font-semibold transition-colors md:whitespace-normal',
                           on ? 'text-[var(--m-ink)]' : 'm-dim group-hover:text-[var(--m-ink)]',
                         )}
                       >
                         {a.name}
                       </span>
-                      <span className="m-mono m-dim-2 mt-1 block text-[9.5px] tracking-[0.1em] uppercase">
+                      <span className="m-mono m-dim-2 mt-1 block t-1 t-caps uppercase">
                         {STAGE_LABEL[a.stage]}
                       </span>
                     </span>
@@ -141,17 +141,17 @@ export function RoadmapRail() {
             <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.4fr_1fr] lg:gap-10">
               <div>
                 <p
-                  className="m-mono text-[10px] tracking-[0.14em] uppercase"
+                  className="m-mono t-1 t-caps uppercase"
                   style={{ color: ACCENT[agent.accent] }}
                 >
                   {agent.category}
                 </p>
-                <h3 className="m-display mt-3 text-[clamp(1.4rem,2.6vw,2rem)]">{agent.name}</h3>
-                <p className="m-dim mt-4 text-[14.5px] leading-relaxed">{agent.summary}</p>
+                <h3 className="m-display mt-3 t-h4">{agent.name}</h3>
+                <p className="m-dim mt-4 t-3">{agent.summary}</p>
 
                 <Link
                   href={`/agents/${agent.slug}`}
-                  className="m-mono mt-7 inline-flex items-center gap-2 text-[10px] tracking-[0.14em] uppercase transition-colors hover:text-[var(--m-cyan)]"
+                  className="m-mono mt-7 inline-flex items-center gap-2 t-1 t-caps uppercase transition-colors hover:text-[var(--m-cyan)]"
                 >
                   Read more about it
                   <ArrowRight className="size-3" aria-hidden />
@@ -161,11 +161,11 @@ export function RoadmapRail() {
               <dl className="grid content-start gap-4 border-t border-[var(--m-line)] pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
                 <div>
                   <dt className="m-eyebrow">Takes in</dt>
-                  <dd className="m-dim mt-1.5 text-[13px]">{agent.inputs}</dd>
+                  <dd className="m-dim mt-1.5 t-3">{agent.inputs}</dd>
                 </div>
                 <div>
                   <dt className="m-eyebrow">Gives back</dt>
-                  <dd className="m-dim mt-1.5 text-[13px]">{agent.outputs}</dd>
+                  <dd className="m-dim mt-1.5 t-3">{agent.outputs}</dd>
                 </div>
               </dl>
             </div>

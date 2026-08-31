@@ -52,7 +52,7 @@ export function FlowDiagram({ agent }: { agent: Agent }) {
             </span>
             <p className="m-eyebrow mt-4">{s.label}</p>
             <p
-              className="mt-1.5 text-[13.5px] leading-relaxed"
+              className="mt-1.5 t-3"
               style={{ color: s.tone ?? 'var(--m-ink)' }}
             >
               {s.body}

@@ -95,13 +95,13 @@ export function LegalPage({
             <Eyebrow>{eyebrow}</Eyebrow>
           </Rise>
           <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-3xl text-[clamp(2.2rem,5vw,3.6rem)]">{title}</h1>
+            <h1 className="m-display mt-5 max-w-3xl t-h1">{title}</h1>
           </Rise>
           <Rise delay={120}>
-            <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">{lead}</p>
+            <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">{lead}</p>
           </Rise>
           <Rise delay={170}>
-            <p className="m-mono m-dim-2 mt-8 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] tracking-[0.1em] uppercase">
+            <p className="m-mono m-dim-2 mt-8 flex flex-wrap items-center gap-x-3 gap-y-1 t-2 t-caps uppercase">
               <span>Last updated {updated}</span>
               <span aria-hidden className="opacity-40">
                 ·
@@ -143,12 +143,12 @@ export function LegalPage({
                       className="group flex gap-3 rounded-lg py-1.5 transition"
                     >
                       <span
-                        className="m-mono m-dim-2 shrink-0 pt-px text-[10px] tracking-[0.1em] tabular-nums transition-colors group-hover:text-[var(--m-gold)]"
+                        className="m-mono m-dim-2 shrink-0 pt-px t-1 t-caps tabular-nums transition-colors group-hover:text-[var(--m-gold)]"
                         aria-hidden
                       >
                         {String(i + 1).padStart(2, '0')}
                       </span>
-                      <span className="m-dim text-[13px] leading-snug transition-colors group-hover:text-[var(--m-ink)]">
+                      <span className="m-dim t-3 transition-colors group-hover:text-[var(--m-ink)]">
                         {clause.title}
                       </span>
                     </a>
@@ -176,19 +176,19 @@ export function LegalPage({
                         sitting underneath it on arrival. */}
                     <div id={slug(clause.title)} className="scroll-mt-28 py-8">
                       <p
-                        className="m-mono m-dim-2 text-[10px] tracking-[0.14em] tabular-nums"
+                        className="m-mono m-dim-2 t-1 t-caps tabular-nums"
                         aria-hidden
                       >
                         {String(i + 1).padStart(2, '0')}
                       </p>
-                      <h2 className="m-display mt-3 text-[1.15rem] sm:text-[1.3rem]">
+                      <h2 className="m-display mt-3 t-5 sm:t-6">
                         {clause.title}
                       </h2>
                       {(Array.isArray(clause.body) ? clause.body : [clause.body]).map(
                         (para, j) => (
                           <p
                             key={j}
-                            className="m-dim mt-3.5 text-[14.5px] leading-relaxed first-of-type:mt-4"
+                            className="m-dim mt-3.5 t-3 first-of-type:mt-4"
                           >
                             {para}
                           </p>
@@ -201,7 +201,7 @@ export function LegalPage({
 
               {children && <div className="mt-12">{children}</div>}
 
-              <p className="m-dim-2 mt-12 border-t border-[var(--m-line)] pt-7 text-[13px]">
+              <p className="m-dim-2 mt-12 border-t border-[var(--m-line)] pt-7 t-3">
                 See also{' '}
                 <Link
                   href={related.href}

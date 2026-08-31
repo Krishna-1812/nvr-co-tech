@@ -57,11 +57,11 @@ export function WorkCalendar() {
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
             <div className="max-w-3xl">
               <Eyebrow className="mb-4">The work</Eyebrow>
-              <h2 className="m-display s-settle text-[clamp(1.9rem,4.2vw,3.25rem)]">
+              <h2 className="m-display s-settle t-h2">
                 Every month, the same jobs.{' '}
                 <span className="m-serif m-grad-text">Here is who does what.</span>
               </h2>
-              <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
+              <p className="m-dim mt-5 max-w-2xl t-4 sm:t-4">
                 None of this is new work. It is the list your team already gets through between the
                 1st and the 31st. What changes is how much of it somebody has to do by hand, and how
                 much of it is waiting for you when the date comes round.
@@ -110,12 +110,12 @@ export function WorkCalendar() {
                         }}
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="m-mono m-dim-2 block text-[10px] tracking-[0.14em] uppercase">
+                        <span className="m-mono m-dim-2 block t-1 t-caps uppercase">
                           {j.when}
                         </span>
                         <span
                           className={cn(
-                            'mt-1 block text-[13.5px] leading-snug transition-colors',
+                            'mt-1 block t-3 transition-colors',
                             on ? 'font-semibold text-[var(--m-ink)]' : 'm-dim',
                           )}
                         >
@@ -149,7 +149,7 @@ export function WorkCalendar() {
               <div key={job.id} className="relative animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)]">
                 <div className="flex flex-wrap items-center gap-3">
                   <span
-                    className="m-mono rounded-full border px-2.5 py-1 text-[10px] tracking-[0.1em] uppercase"
+                    className="m-mono rounded-full border px-2.5 py-1 t-1 t-caps uppercase"
                     style={{
                       color: accent,
                       borderColor: `color-mix(in oklab, ${accent} 34%, transparent)`,
@@ -161,7 +161,7 @@ export function WorkCalendar() {
                   {agent && <StageBadge stage={agent.stage} />}
                 </div>
 
-                <h3 className="m-display mt-5 text-[clamp(1.35rem,2.2vw,1.75rem)] leading-tight">
+                <h3 className="m-display mt-5 t-h5">
                   {job.title}
                 </h3>
 
@@ -173,9 +173,9 @@ export function WorkCalendar() {
                 {agent && (
                   <Link
                     href={`/agents/${agent.slug}`}
-                    className="group mt-7 inline-flex items-center gap-2 border-t border-[var(--m-line)] pt-5 text-[13px] font-semibold text-[var(--m-ink)] transition hover:text-[var(--m-gold)]"
+                    className="group mt-7 inline-flex items-center gap-2 border-t border-[var(--m-line)] pt-5 t-3 font-semibold text-[var(--m-ink)] transition hover:text-[var(--m-gold)]"
                   >
-                    <span className="m-mono m-dim-2 text-[10px] tracking-[0.14em] uppercase">
+                    <span className="m-mono m-dim-2 t-1 t-caps uppercase">
                       Handled by
                     </span>
                     {agent.name}
@@ -225,7 +225,7 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
                 // 335px of axis would sit on top of each other. The numbered
                 // dots still say which date each one is.
                 className={cn(
-                  'm-mono hidden whitespace-nowrap text-[10px] tracking-[0.12em] uppercase transition-colors sm:block',
+                  'm-mono hidden whitespace-nowrap t-1 t-caps uppercase transition-colors sm:block',
                   on ? 'text-[var(--m-ink)]' : 'm-dim-2 group-hover:text-[var(--m-ink)]',
                 )}
               >
@@ -243,7 +243,7 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
               <span
                 aria-hidden
                 className={cn(
-                  'mt-1.5 grid size-7 place-items-center rounded-full border text-[10px] font-semibold transition-all',
+                  'mt-1.5 grid size-7 place-items-center rounded-full border t-1 font-semibold transition-all',
                   on ? 'text-[var(--m-bg)]' : 'm-dim border-[var(--m-line-2)] bg-[var(--m-bg)]',
                 )}
                 style={
@@ -279,12 +279,12 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
         ))}
       </div>
 
-      <div className="m-mono m-dim-2 mt-1.5 flex justify-between text-[10px] tracking-[0.14em]">
+      <div className="m-mono m-dim-2 mt-1.5 flex justify-between t-1 t-caps">
         <span>1st</span>
         <span>31st</span>
       </div>
 
-      <p className="m-dim-2 mt-5 max-w-xl text-[11.5px] leading-relaxed">
+      <p className="m-dim-2 mt-5 max-w-xl t-2">
         Those are the usual dates for a monthly filer. If you are on QRMP, or a date gets pushed
         back, yours will be different. The jobs without a date are the ones that run all month or
         land at a month, quarter or year end.
@@ -304,7 +304,7 @@ function Block({ label, body, accent }: { label: string; body: string; accent?: 
       </p>
       <p
         className={cn(
-          'mt-2 text-[13.5px] leading-relaxed',
+          'mt-2 t-3',
           accent ? 'text-[var(--m-ink)]' : 'm-dim-2',
         )}
       >

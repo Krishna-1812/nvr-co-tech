@@ -93,7 +93,7 @@ export default async function AgentPage({ params }: Params) {
                 <div className="flex flex-wrap items-center gap-3">
                   <StageBadge stage={agent.stage} />
                   <span
-                    className="m-mono text-[10px] tracking-[0.14em] uppercase"
+                    className="m-mono t-1 t-caps uppercase"
                     style={{ color: accent }}
                   >
                     {agent.category}
@@ -102,11 +102,11 @@ export default async function AgentPage({ params }: Params) {
               </Reveal>
 
               <Reveal delay={110}>
-                <h1 className="m-display mt-6 text-[clamp(2.4rem,6vw,4.25rem)]">{agent.name}</h1>
+                <h1 className="m-display mt-6 t-h1">{agent.name}</h1>
               </Reveal>
 
               <Reveal delay={160}>
-                <p className="m-dim mt-6 max-w-xl text-[15px] leading-relaxed sm:text-[17px]">
+                <p className="m-dim mt-6 max-w-xl t-4 sm:t-5">
                   {agent.summary}
                 </p>
               </Reveal>
@@ -131,11 +131,11 @@ export default async function AgentPage({ params }: Params) {
                 />
                 <Eyebrow>The case for it</Eyebrow>
                 <blockquote className="mt-5">
-                  <p className="text-[16px] leading-relaxed text-[var(--m-ink)] sm:text-[17px]">
+                  <p className="t-4 text-[var(--m-ink)] sm:t-5">
                     {agent.pitch}
                   </p>
                 </blockquote>
-                <figcaption className="m-dim-2 m-mono mt-7 border-t border-[var(--m-line)] pt-5 text-[10px] tracking-[0.12em] uppercase">
+                <figcaption className="m-dim-2 m-mono mt-7 border-t border-[var(--m-line)] pt-5 t-1 t-caps uppercase">
                   {agent.name} · {agent.category}
                 </figcaption>
               </figure>
@@ -150,12 +150,12 @@ export default async function AgentPage({ params }: Params) {
             <Reveal>
               <div className="lg:sticky lg:top-28">
                 <Eyebrow>What it does</Eyebrow>
-                <h2 className="m-display mt-4 text-[clamp(1.8rem,3.6vw,2.7rem)]">
+                <h2 className="m-display mt-4 t-h3">
                   The specifics.
                 </h2>
                 {/* A live agent's list is a description, not a plan, and saying
                     so is the point of writing these down to this level. */}
-                <p className="m-dim mt-5 max-w-sm text-sm leading-relaxed">
+                <p className="m-dim mt-5 max-w-sm t-3">
                   {agent.stage === 'live'
                     ? 'Every line here is something it does today. If it were only planned, it would be on a page marked as planned.'
                     : 'Every line here is something it is being built to do. None of it is a vague area we are thinking about looking at.'}
@@ -168,13 +168,13 @@ export default async function AgentPage({ params }: Params) {
                 <Reveal as="li" key={item} delay={i * 55} className="border-b border-[var(--m-line)]">
                   <div className="flex gap-5 py-5">
                     <span
-                      className="m-mono mt-0.5 shrink-0 text-[11px] tracking-[0.1em] tabular-nums"
+                      className="m-mono mt-0.5 shrink-0 t-2 t-caps tabular-nums"
                       style={{ color: accent }}
                       aria-hidden
                     >
                       {String(i + 1).padStart(2, '0')}
                     </span>
-                    <p className="text-[14.5px] leading-relaxed text-[var(--m-ink)]">{item}</p>
+                    <p className="t-3 text-[var(--m-ink)]">{item}</p>
                   </div>
                 </Reveal>
               ))}
@@ -187,7 +187,7 @@ export default async function AgentPage({ params }: Params) {
         <Container wide>
           <Reveal>
             <Eyebrow>Where it fits</Eyebrow>
-            <h2 className="m-display mt-4 text-[clamp(1.8rem,3.6vw,2.7rem)]">
+            <h2 className="m-display mt-4 t-h3">
               What goes in, and what you get back.
             </h2>
           </Reveal>
@@ -199,7 +199,7 @@ export default async function AgentPage({ params }: Params) {
           </Reveal>
 
           <Reveal delay={130}>
-            <p className="m-dim-2 mt-6 max-w-2xl text-[13px] leading-relaxed">
+            <p className="m-dim-2 mt-6 max-w-2xl t-3">
               Whatever it produces ends up as a proper record with its history attached, not as a
               message in a chat window. You get something your reviewer already knows how to check.
             </p>
@@ -219,12 +219,12 @@ export default async function AgentPage({ params }: Params) {
 
               <div className="relative grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-end">
                 <div className="max-w-xl">
-                  <h2 className="m-display text-[clamp(1.7rem,3.6vw,2.6rem)]">
+                  <h2 className="m-display t-h3">
                     {agent.stage === 'live'
                       ? 'It is running. Go and use it.'
                       : `Talk to us about ${agent.name}.`}
                   </h2>
-                  <p className="m-dim mt-5 text-[15px] leading-relaxed">
+                  <p className="m-dim mt-5 t-4">
                     {agent.stage === 'live'
                       ? 'Sign in and it is there. If you would rather somebody showed you round first, we are happy to do that instead.'
                       : 'A walkthrough covers what you can use today, what this one will do, and where it sits in the queue. We will not give you a date on the call that we are not sure of.'}
@@ -252,10 +252,10 @@ export default async function AgentPage({ params }: Params) {
             >
               <span>
                 <span className="m-eyebrow block">Next agent</span>
-                <span className="m-display mt-3 block text-[clamp(1.5rem,3vw,2.1rem)] transition-colors group-hover:text-[var(--m-cyan)]">
+                <span className="m-display mt-3 block t-h4 transition-colors group-hover:text-[var(--m-cyan)]">
                   {next.name}
                 </span>
-                <span className="m-dim-2 mt-2 block text-[13px]">{next.category}</span>
+                <span className="m-dim-2 mt-2 block t-3">{next.category}</span>
               </span>
               <ArrowRight
                 aria-hidden
@@ -319,7 +319,7 @@ function StageNote({ agent, className }: { agent: Agent; className?: string }) {
         : 'var(--m-dim-2)';
 
   return (
-    <p className={cn('m-dim-2 flex items-start gap-2.5 text-[13px] leading-relaxed', className)}>
+    <p className={cn('m-dim-2 flex items-start gap-2.5 t-3', className)}>
       <Icon className="mt-0.5 size-3.5 shrink-0" style={{ color: tone }} aria-hidden />
       <span>{STAGE_NOTE[agent.stage]}</span>
     </p>

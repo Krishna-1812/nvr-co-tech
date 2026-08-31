@@ -992,6 +992,172 @@ body:has([data-skin='night']) {
   --a-glow-2: oklch(0.660 0.118 82 / 0.13);
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+ * TYPE
+ *
+ * A census of the public site found 24 font sizes between 9px and 80px, 10
+ * letter-spacings, 6 line-heights and 16 separately hand-tuned heading clamps.
+ * None of it was wrong on its own. Together it meant nothing on the site agreed
+ * with anything else: a section heading on the home page and a section heading
+ * on /about were different sizes at the same window width, and twelve of those
+ * sizes shared the range 9px to 16px — a step every 0.6px, which no reader can
+ * perceive as different and every reader perceives as unsettled.
+ *
+ * The measurement worth stating plainly is the one that was actually costing
+ * legibility: in an eyebrow, the gap between two words came to 8.36px and the
+ * gap between two letters came to 8.36px. These labels are set in a monospaced
+ * face, where every advance is identical by definition, so letter-spacing opens
+ * the gaps between letters and the gaps between words by exactly the same
+ * amount. At 0.16em there was no ratio left between them at all, and "AI TOOLS
+ * FOR FINANCE TEAMS" was, typographically, one twenty-six character word.
+ *
+ * ── What replaces it ──────────────────────────────────────────────────────
+ *
+ * One scale, and three rules that read from it. Nothing on the site picks a
+ * size, a tracking, a leading or a word gap by eye any more. It picks a step,
+ * and the rest follows from the step.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /*
+   * Five steps to a doubling.
+   *
+   * The ratio is 2^(1/5), about 1.1487, which means every fifth step is exactly
+   * twice the one before it: 10.56 / 21.12 / 42.24, and 12.13 / 24.26, and
+   * 13.94 / 27.86, and 16 / 32 / 64. The ladder repeats itself at every octave,
+   * so the relationship between a caption and the heading above it is the same
+   * relationship as between that heading and the hero.
+   *
+   * The ratio also sets the floor on how fine the scale can be. At 1.1487 the
+   * smallest adjacent pair differs by 1.6px, which is about the least a reader
+   * reads as a decision rather than as a wobble. That is the whole argument
+   * against the twelve sizes this replaces.
+   *
+   * --t-4 is 1rem, so the scale tracks the reader's own font size rather than
+   * pinning itself to 16px.
+   */
+  --t-1:  0.660rem;   /* 10.56 */
+  --t-2:  0.758rem;   /* 12.13 */
+  --t-3:  0.871rem;   /* 13.94 */
+  --t-4:  1rem;       /* 16    */
+  --t-5:  1.149rem;   /* 18.38 */
+  --t-6:  1.320rem;   /* 21.12 */
+  --t-7:  1.516rem;   /* 24.26 */
+  --t-8:  1.741rem;   /* 27.86 */
+  --t-9:  2rem;       /* 32    */
+  --t-10: 2.297rem;   /* 36.75 */
+  --t-11: 2.639rem;   /* 42.24 */
+  --t-12: 3.031rem;   /* 48.50 */
+  --t-13: 3.482rem;   /* 55.71 */
+  --t-14: 4rem;       /* 64    */
+  --t-15: 4.595rem;   /* 73.51 */
+
+  /*
+   * Tracking, as one curve rather than ten opinions.
+   *
+   * Type wants to be tracked out as it gets smaller and tracked in as it gets
+   * larger: the counters close up at small sizes and the gaps yawn at large
+   * ones. Every specimen sheet shows this and almost no stylesheet encodes it,
+   * because in CSS it looks like a number you have to pick per element, which
+   * is how a site ends up with ten of them.
+   *
+   * It is one expression. The em term scales with the size and the px term does
+   * not, so their sum is a straight line across the sizes: +0.012em at 10.5px,
+   * zero at about 15px, and -0.022em by 64px. The curve is applied by the step
+   * utilities below, so a call site that asks for --t-2 gets 12.13px type
+   * tracked for 12.13px type and has no way to get the pair wrong.
+   *
+   * Display gets its own line, parallel and 0.014em tighter throughout, because
+   * the display cut has more stroke contrast and closer stems and can carry it.
+   * At 41.6px it lands on -0.0319em, which is where the hero had been tuned by
+   * hand. The difference is that every other heading now moves with it rather
+   * than inheriting a number that was chosen for one of them.
+   */
+  --trk-text: calc(-0.028em + 0.42px);
+  --trk-display: calc(-0.042em + 0.42px);
+
+  /*
+   * Leading, on the same principle: a constant absolute addition, so the ratio
+   * falls out of the size instead of being asserted for it.
+   *
+   * 1.70 at 10.56px, 1.64 at 13.94px, 1.58 at 16px, 1.55 at 18.38px. Small text
+   * needs proportionally more air between its lines and large text needs less,
+   * and one `line-height: 1.55` cannot know that. Six values were doing this
+   * badly: 1.55 and 1.625 alternating through the body copy with no rule behind
+   * which paragraph got which, and a flat 0.94 on headings from 18px to 42px,
+   * which is right at 42 and crushes descenders at 18.
+   *
+   * The display line runs about 1.11 at 18px down to 0.93 at 68px.
+   */
+  --lh-text: calc(1.34em + 0.24rem);
+  --lh-display: calc(0.86em + 0.28rem);
+
+  /*
+   * The pair every step utility reads. A display utility rebinds these two on
+   * its own element, so a heading resolves the display curve without any
+   * question of which selector happened to be written first in this file.
+   */
+  --trk: var(--trk-text);
+  --lh: var(--lh-text);
+}
+
+/*
+ * The steps.
+ *
+ * Declared with @utility rather than as plain classes so that they take
+ * variants: `sm:t-5` is the twelve responsive type changes this site already
+ * makes, said in the same vocabulary as everything else.
+ */
+@utility t-1  { font-size: var(--t-1);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-2  { font-size: var(--t-2);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-3  { font-size: var(--t-3);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-4  { font-size: var(--t-4);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-5  { font-size: var(--t-5);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-6  { font-size: var(--t-6);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-7  { font-size: var(--t-7);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-8  { font-size: var(--t-8);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-9  { font-size: var(--t-9);  letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-10 { font-size: var(--t-10); letter-spacing: var(--trk); line-height: var(--lh); }
+@utility t-11 { font-size: var(--t-11); letter-spacing: var(--trk); line-height: var(--lh); }
+
+/*
+ * Headings, as six fluid ranks.
+ *
+ * The sixteen hand-tuned clamps became these. Each interpolates between two
+ * steps of the same ladder, so a heading is on the scale at every window width
+ * rather than only at the two ends somebody happened to check — and two
+ * headings of the same rank on different pages are the same size as each other,
+ * which they never were.
+ *
+ * The vw slopes descend in rank order, so the ranks keep their distance at
+ * every width in between and cannot cross over.
+ */
+@utility t-hero { font-size: clamp(var(--t-11), 6.6vw, var(--t-15)); }
+@utility t-h1   { font-size: clamp(var(--t-10), 5.6vw, var(--t-14)); }
+@utility t-h2   { font-size: clamp(var(--t-8),  4.2vw, var(--t-12)); }
+@utility t-h3   { font-size: clamp(var(--t-7),  3.4vw, var(--t-11)); }
+@utility t-h4   { font-size: clamp(var(--t-6),  2.8vw, var(--t-9));  }
+@utility t-h5   { font-size: clamp(var(--t-5),  2.2vw, var(--t-7));  }
+
+/*
+ * Letterspaced capitals, with the word gap put back.
+ *
+ * 0.5em of word-spacing on top of 0.14em of letter-spacing gives a word gap
+ * about 1.7 times the letter gap, which is roughly where the ratio sits in
+ * ordinary unspaced text and is about the least that reads as a space rather
+ * than as one more wide letter. Without it these labels are a texture; with it
+ * they are words.
+ *
+ * One tracking, not the ten that were here. The nine values between 0.06em and
+ * 0.2em were all doing the same job, and the differences between them were only
+ * ever visible as inconsistency.
+ */
+@utility t-caps {
+  letter-spacing: 0.14em;
+  word-spacing: 0.5em;
+  text-transform: uppercase;
+}
+
 @layer utilities {
   /* ── Type ── */
   /*
@@ -1018,8 +1184,16 @@ body:has([data-skin='night']) {
     font-family: var(--font-display);
     font-weight: 700;
     font-variation-settings: 'opsz' 72, 'wdth' 86, 'wght' 700;
-    letter-spacing: -0.032em;
-    line-height: 0.94;
+    /*
+     * Rebinding the pair, not just setting the two properties: anything nested
+     * inside a headline — the serif accent, a step utility on the same element
+     * — then resolves the display curve rather than the text one, whichever
+     * order the selectors happen to sit in this file.
+     */
+    --trk: var(--trk-display);
+    --lh: var(--lh-display);
+    letter-spacing: var(--trk-display);
+    line-height: var(--lh-display);
     text-wrap: balance;
   }
   /* For the two or three places that want the display cut at body weight. */
@@ -1027,15 +1201,29 @@ body:has([data-skin='night']) {
     font-family: var(--font-display);
     font-weight: 400;
     font-variation-settings: 'opsz' 72, 'wdth' 92, 'wght' 400;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
+    --trk: var(--trk-display);
+    --lh: var(--lh-display);
+    /*
+     * A shade looser than the bold cut on both counts. At 400 the stems are
+     * thinner and the counters larger, so the same tracking that sets a bold
+     * headline closes a light one up.
+     */
+    letter-spacing: calc(var(--trk-display) + 0.008em);
+    line-height: calc(var(--lh-display) + 0.06em);
     text-wrap: balance;
   }
   .m-serif {
     font-family: var(--font-serif);
     font-weight: 400;
     font-style: italic;
-    letter-spacing: -0.01em;
+    /*
+     * Half the tracking of whatever it sits in. Instrument Serif italic is a
+     * narrower, lighter drawing than Bricolage at the same size, so the
+     * tightening that sets the sans around it would close this up — but it
+     * still has to move with the size rather than sit on a number of its own,
+     * which is what -0.01em was doing at every size from 18px to 68px.
+     */
+    letter-spacing: calc(var(--trk) * 0.5);
   }
   .m-mono { font-family: var(--font-mono); }
 
@@ -1045,9 +1233,13 @@ body:has([data-skin='night']) {
      the corner and never again. */
   .m-eyebrow {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: var(--t-1);
     font-weight: 500;
-    letter-spacing: 0.16em;
+    line-height: var(--lh-text);
+    /* See t-caps: in a monospaced face the word gap and the letter gap are the
+       same measurement until word-spacing says otherwise. */
+    letter-spacing: 0.14em;
+    word-spacing: 0.5em;
     text-transform: uppercase;
     color: var(--m-gold);
   }
@@ -1605,6 +1797,15 @@ body:has([data-skin='night']) {
    * at a time; this is that idea in the mono face, which is what makes a figure
    * above it read as instrumentation rather than as a heading.
    */
+  /*
+   * Left on its own numbers deliberately.
+   *
+   * This has exactly the same monospace problem .m-eyebrow had — the word gap
+   * and the letter gap are one measurement — and the same two lines would fix
+   * it. But 92 files in the signed-in application render this, none of which
+   * can be opened without database credentials, so the fix belongs in a change
+   * somebody can watch land rather than riding along with the public site's.
+   */
   .a-label {
     font-family: var(--font-mono);
     font-size: 10px;
@@ -1624,6 +1825,7 @@ body:has([data-skin='night']) {
    * than letters — a narrowed 8 closes up. Tabular so a figure that counts up
    * does not wobble as its digits change.
    */
+  /* Also left alone, and for the same reason as .a-label above. */
   .a-figure {
     font-variation-settings: 'opsz' 72, 'wdth' 90, 'wght' 700;
     font-variant-numeric: tabular-nums;

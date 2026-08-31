@@ -88,14 +88,14 @@ export default function AgentsPage() {
           </Rise>
 
           <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-4xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
+            <h1 className="m-display mt-5 max-w-4xl t-h1">
               Tools for the work that{' '}
               <span className="m-serif m-grad-text pr-1">follows rules.</span>
             </h1>
           </Rise>
 
           <Rise delay={120}>
-            <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
+            <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
               Payments and approvals, closing the books, GST, TDS, reading invoices, and answering
               questions about the record. Each one takes a job your team already does by hand, does
               the mechanical part of it, and then puts the decision in front of a person.
@@ -103,7 +103,7 @@ export default function AgentsPage() {
           </Rise>
 
           <Rise delay={180}>
-            <p className="m-mono m-dim-2 mt-8 text-[11px] tracking-[0.12em] uppercase">
+            <p className="m-mono m-dim-2 mt-8 t-2 t-caps uppercase">
               {counts.map(({ stage, n }, i) => (
                 <span key={stage}>
                   {i > 0 && <span className="px-2 opacity-50">·</span>}
@@ -128,15 +128,15 @@ export default function AgentsPage() {
             <Container wide>
               <Reveal>
                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-                  <h2 className="m-display text-[clamp(1.5rem,3vw,2.1rem)]">
+                  <h2 className="m-display t-h4">
                     {STAGE_LABEL[stage]}
                   </h2>
                   <StageBadge stage={stage} />
                 </div>
-                <p className="m-dim mt-3 max-w-xl text-sm leading-relaxed">{lead}</p>
+                <p className="m-dim mt-3 max-w-xl t-3">{lead}</p>
               </Reveal>
 
-              <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {agents.map((agent, i) => (
                   <AgentCard key={agent.slug} agent={agent} delay={i * 70} />
                 ))}
@@ -158,10 +158,10 @@ export default function AgentsPage() {
 
               <div className="relative mx-auto max-w-2xl">
                 <Eyebrow>Where to start</Eyebrow>
-                <h2 className="m-display mt-4 text-[clamp(1.8rem,4vw,2.9rem)]">
+                <h2 className="m-display mt-4 t-h2">
                   One of these is already costing you a day a month.
                 </h2>
-                <p className="m-dim mt-5 text-[15px] leading-relaxed">
+                <p className="m-dim mt-5 t-4">
                   Tell us which job is the worst one and we will show you the tool that covers it. If
                   it is not built yet, we will say so, and tell you when it should be.
                 </p>
@@ -212,17 +212,17 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
             />
           </div>
 
-          <h3 className="m-display relative mt-5 text-xl">{agent.name}</h3>
+          <h3 className="m-display relative mt-5 t-6">{agent.name}</h3>
           <p
-            className="m-mono relative mt-2 text-[10px] tracking-[0.12em] uppercase"
+            className="m-mono relative mt-2 t-1 t-caps uppercase"
             style={{ color: accent }}
           >
             {agent.category}
           </p>
 
-          <p className="m-dim relative mt-4 text-[13.5px] leading-relaxed">{agent.summary}</p>
+          <p className="m-dim relative mt-4 t-3">{agent.summary}</p>
 
-          <div className="relative mt-auto flex items-center gap-2 border-t border-[var(--m-line)] pt-4 text-[10px] tracking-[0.08em] uppercase">
+          <div className="relative mt-auto flex items-center gap-2 border-t border-[var(--m-line)] pt-4 t-1 t-caps uppercase">
             <span className="m-mono m-dim-2 min-w-0 flex-1 truncate">{agent.inputs}</span>
             <ArrowRight className="m-dim-2 size-3 shrink-0" aria-hidden />
             <span className="m-mono m-dim min-w-0 flex-1 truncate text-right">{agent.outputs}</span>

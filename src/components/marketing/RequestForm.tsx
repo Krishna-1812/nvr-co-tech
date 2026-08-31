@@ -52,8 +52,8 @@ export function RequestForm() {
         >
           <Check className="size-5 text-[var(--m-on-grad)]" />
         </span>
-        <h2 className="m-display mt-5 text-xl">That is with us</h2>
-        <p className="m-dim mt-3 text-[14.5px] leading-relaxed">
+        <h2 className="m-display mt-5 t-6">That is with us</h2>
+        <p className="m-dim mt-3 t-3">
           A person writes back within one working day, not a ticket number. If it is urgent, or if
           you would rather not wait, write straight to{' '}
           <a
@@ -70,13 +70,13 @@ export function RequestForm() {
 
   return (
     <form onSubmit={submit} data-lead-form="" className="m-card p-6 sm:p-9">
-      <h2 className="m-display text-xl">Your details</h2>
-      <p className="m-dim mt-3 text-[13.5px] leading-relaxed">
+      <h2 className="m-display t-6">Your details</h2>
+      <p className="m-dim mt-3 t-3">
         This comes straight to us. Nothing is shared with anybody else, and there is no mailing
         list to be added to.
       </p>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2">
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Field id="req-name" name="name" label="Your name" autoComplete="name" placeholder="Priya Nair" required />
         <Field
           id="req-email"
@@ -108,7 +108,7 @@ export function RequestForm() {
             // Without this the native dropdown renders as a white sheet over a
             // near-black page in Chromium.
             style={{ colorScheme: 'dark' }}
-            className="mt-2.5 w-full appearance-none rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-base lg:text-[15px] text-[var(--m-ink)] transition hover:border-[var(--m-line-2)]"
+            className="mt-2.5 w-full appearance-none rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition hover:border-[var(--m-line-2)]"
           >
             <option value="Not sure yet">Not sure yet</option>
             <option value="Build something custom">Something built for us</option>
@@ -129,13 +129,13 @@ export function RequestForm() {
             name="message"
             rows={5}
             placeholder="How many vouchers you do in a month, who approves them at the moment, and what tends to go wrong."
-            className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-base lg:text-[15px] leading-relaxed text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
+            className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
           />
         </div>
       </div>
 
       {error && (
-        <p role="alert" className="mt-6 text-[13.5px] leading-relaxed text-[var(--m-rose)]">
+        <p role="alert" className="mt-6 t-3 text-[var(--m-rose)]">
           {error}
         </p>
       )}
@@ -144,7 +144,7 @@ export function RequestForm() {
         <button
           type="submit"
           disabled={busy}
-          className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-lg bg-[var(--m-ink)] px-6 text-[13px] font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] disabled:opacity-60"
+          className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-lg bg-[var(--m-ink)] px-6 t-3 font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] disabled:opacity-60"
         >
           {busy ? 'Sending' : 'Send it'}
           {!busy && (
@@ -154,7 +154,7 @@ export function RequestForm() {
 
         <a
           href={`mailto:${CONTACT.email}`}
-          className="m-mono m-dim inline-flex items-center gap-2 text-[11px] tracking-[0.12em] uppercase transition hover:text-[var(--m-ink)]"
+          className="m-mono m-dim inline-flex items-center gap-2 t-2 t-caps uppercase transition hover:text-[var(--m-ink)]"
         >
           <Mail className="size-3.5" aria-hidden />
           Or write to us directly
@@ -182,7 +182,7 @@ function Field({
       </label>
       <input
         id={id}
-        className="mt-2.5 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 text-base lg:text-[15px] text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
+        className="mt-2.5 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
         {...input}
       />
     </div>

@@ -61,14 +61,14 @@ export function Platform() {
           It is also one component fewer per card. Reveal exists to run an
           observer, and there is nothing here for an observer to decide.
         */}
-        <div className="s-deal mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="s-deal mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {SHARED.map((s, i) => (
             <div key={s.title} className="m-card h-full rounded-2xl p-6">
-              <p className="m-mono text-[11px] tracking-[0.16em] text-[var(--m-gold)]">
+              <p className="m-mono t-2 t-caps text-[var(--m-gold)]">
                 {String(i + 1).padStart(2, '0')}
               </p>
-              <h3 className="mt-4 text-[15px] font-semibold tracking-tight">{s.title}</h3>
-              <p className="m-dim mt-2.5 text-[13px] leading-relaxed">{s.body}</p>
+              <h3 className="mt-4 t-4 font-semibold">{s.title}</h3>
+              <p className="m-dim mt-2.5 t-3">{s.body}</p>
             </div>
           ))}
         </div>

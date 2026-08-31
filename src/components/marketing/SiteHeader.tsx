@@ -85,7 +85,7 @@ export function SiteHeader() {
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'group relative py-2 text-[13px] font-medium transition-colors duration-200',
+                    'group relative py-2 t-3 font-medium transition-colors duration-200',
                     active ? 'text-[var(--m-ink)]' : 'm-dim hover:text-[var(--m-ink)]',
                   )}
                 >
@@ -106,7 +106,7 @@ export function SiteHeader() {
             <Link
               href="/login"
               data-signin=""
-              className="m-dim hidden px-1 py-2 text-[13px] font-medium whitespace-nowrap transition-colors hover:text-[var(--m-ink)] sm:block"
+              className="m-dim hidden px-1 py-2 t-3 font-medium whitespace-nowrap transition-colors hover:text-[var(--m-ink)] sm:block"
             >
               Sign in
             </Link>
@@ -114,7 +114,7 @@ export function SiteHeader() {
               href="/contact"
               data-demo=""
               data-interest="Header"
-              className="hidden h-9 items-center rounded-lg bg-[var(--m-ink)] px-4 text-[12.5px] font-semibold whitespace-nowrap text-[var(--m-on-grad)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] sm:inline-flex"
+              className="hidden h-9 items-center rounded-lg bg-[var(--m-ink)] px-4 t-2 font-semibold whitespace-nowrap text-[var(--m-on-grad)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] sm:inline-flex"
             >
               Book a walkthrough
             </Link>
@@ -140,7 +140,7 @@ export function SiteHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="m-dim rounded-lg px-2 py-3 text-[15px] font-medium transition hover:bg-white/5 hover:text-[var(--m-ink)]"
+                  className="m-dim rounded-lg px-2 py-3 t-4 font-medium transition hover:bg-white/5 hover:text-[var(--m-ink)]"
                 >
                   {item.label}
                 </Link>
@@ -149,7 +149,7 @@ export function SiteHeader() {
                 <Link
                   href="/login"
                   data-signin=""
-                  className="flex h-11 flex-1 items-center justify-center rounded-lg border border-[var(--m-line-2)] text-sm font-semibold"
+                  className="flex h-11 flex-1 items-center justify-center rounded-lg border border-[var(--m-line-2)] t-3 font-semibold"
                 >
                   Sign in
                 </Link>
@@ -157,7 +157,7 @@ export function SiteHeader() {
                   href="/contact"
                   data-demo=""
                   data-interest="Phone menu"
-                  className="flex h-11 flex-1 items-center justify-center rounded-lg bg-[var(--m-ink)] text-sm font-semibold text-[var(--m-on-grad)]"
+                  className="flex h-11 flex-1 items-center justify-center rounded-lg bg-[var(--m-ink)] t-3 font-semibold text-[var(--m-on-grad)]"
                 >
                   Book a walkthrough
                 </Link>

@@ -34,7 +34,7 @@ export function Breadcrumbs({ trail, className }: { trail: readonly Crumb[]; cla
         dangerouslySetInnerHTML={{ __html: ldJson(breadcrumbLd(trail)) }}
       />
 
-      <ol className="m-mono m-dim-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] tracking-[0.12em] uppercase">
+      <ol className="m-mono m-dim-2 flex flex-wrap items-center gap-x-2 gap-y-1 t-2 t-caps uppercase">
         {trail.map((crumb, i) => (
           <li key={crumb.href} className="flex items-center gap-x-2">
             {i > 0 && (

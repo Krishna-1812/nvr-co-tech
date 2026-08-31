@@ -85,14 +85,14 @@ export default function AboutPage() {
           </Rise>
 
           <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-4xl text-[clamp(2.4rem,5.8vw,4.25rem)]">
+            <h1 className="m-display mt-5 max-w-4xl t-h1">
               Accountants{' '}
               <span className="m-serif m-grad-text pr-1">building their own tools.</span>
             </h1>
           </Rise>
 
           <Rise delay={120}>
-            <p className="m-dim mt-7 max-w-2xl text-[15px] leading-relaxed sm:text-[17px]">
+            <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
               {BRAND.name} is built by chartered accountants. Everything here started out as work we
               were doing by hand, for clients, against deadlines. These tools exist because the
               people doing that work sat down and wrote out which parts of it never really needed a
@@ -108,14 +108,14 @@ export default function AboutPage() {
             <Reveal>
               <div className="lg:sticky lg:top-28">
                 <Eyebrow>Why us</Eyebrow>
-                <h2 className="m-display mt-4 text-[clamp(1.8rem,3.6vw,2.7rem)]">
+                <h2 className="m-display mt-4 t-h3">
                   We know which parts are rules.
                 </h2>
               </div>
             </Reveal>
 
             <Reveal delay={80}>
-              <div className="space-y-5 text-[15px] leading-relaxed">
+              <div className="space-y-5 t-4">
                 <p className="text-[var(--m-ink)]">
                   A software company building for finance has to be told what the work is. They pick
                   it up from a written spec, and that spec was put together by somebody describing
@@ -136,7 +136,7 @@ export default function AboutPage() {
                 </p>
 
                 <div className="m-card mt-8 border-l-2 border-l-[var(--m-violet)] px-6 py-6">
-                  <p className="m-serif text-[19px] leading-snug text-[var(--m-ink)] sm:text-[21px]">
+                  <p className="m-serif t-5 text-[var(--m-ink)] sm:t-6">
                     Software that sounds confident about a judgement call is not better software. It
                     is a problem with good manners.
                   </p>
@@ -153,14 +153,14 @@ export default function AboutPage() {
             <Reveal>
               <div className="lg:sticky lg:top-28">
                 <Eyebrow>What we believe</Eyebrow>
-                <h2 className="m-display mt-4 text-[clamp(1.8rem,3.6vw,2.7rem)]">
+                <h2 className="m-display mt-4 t-h3">
                   Rules belong in the database.
                 </h2>
               </div>
             </Reveal>
 
             <Reveal delay={80}>
-              <div className="space-y-5 text-[15px] leading-relaxed">
+              <div className="space-y-5 t-4">
                 <p className="text-[var(--m-ink)]">
                   Most systems keep their rules in the app. The button is hidden, the form checks
                   itself, the page checks your role. That is all real work, and none of it survives a
@@ -200,7 +200,7 @@ export default function AboutPage() {
               signature in submit_voucher, no UPDATE grant at all on the audit
               table, and one region in vercel.json.
             */}
-            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
               <Stat value="32" label="Voucher fields" hint="Every one from the form you already use" />
               <Stat value="1" label="Signature to approve" hint="And never the person who raised it" />
               <Stat value="0" label="Ways to edit the history" hint="Not for any role, at any level" />
@@ -233,7 +233,7 @@ export default function AboutPage() {
                   className="group flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:gap-6"
                 >
                   <span
-                    className="m-mono w-8 shrink-0 text-[11px] tracking-[0.1em] tabular-nums"
+                    className="m-mono w-8 shrink-0 t-2 t-caps tabular-nums"
                     style={{ color: ACCENT[agent.accent] }}
                     aria-hidden
                   >
@@ -241,13 +241,13 @@ export default function AboutPage() {
                   </span>
 
                   <span className="min-w-0 flex-1">
-                    <span className="m-display block text-lg transition-colors group-hover:text-[var(--m-cyan)]">
+                    <span className="m-display block t-5 transition-colors group-hover:text-[var(--m-cyan)]">
                       {agent.name}
                     </span>
-                    <span className="m-dim-2 mt-1 block text-[13px]">{agent.category}</span>
+                    <span className="m-dim-2 mt-1 block t-3">{agent.category}</span>
                   </span>
 
-                  <span className="m-dim hidden max-w-md flex-1 text-[13.5px] leading-relaxed lg:block">
+                  <span className="m-dim hidden max-w-md flex-1 t-3 lg:block">
                     {agent.summary}
                   </span>
 
@@ -264,7 +264,7 @@ export default function AboutPage() {
           </ol>
 
           <Reveal delay={80}>
-            <p className="m-dim-2 mt-8 max-w-2xl text-[13.5px] leading-relaxed">
+            <p className="m-dim-2 mt-8 max-w-2xl t-3">
               {/*
                 Both halves are counted rather than written down. The verb has to
                 agree as the roster ships, and the stage names have to be the ones
@@ -291,12 +291,12 @@ export default function AboutPage() {
             />
           </Reveal>
 
-          <ul className="mt-12 grid gap-4 sm:grid-cols-2">
+          <ul className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {HOW_WE_BUILD.map((item, i) => (
               <Reveal as="li" key={item.title} delay={i * 70} className="h-full">
                 <div className="m-card flex h-full flex-col p-6 sm:p-7">
-                  <h3 className="m-display text-lg">{item.title}</h3>
-                  <p className="m-dim mt-3 text-[14px] leading-relaxed">{item.body}</p>
+                  <h3 className="m-display t-5">{item.title}</h3>
+                  <p className="m-dim mt-3 t-3">{item.body}</p>
                 </div>
               </Reveal>
             ))}
@@ -316,10 +316,10 @@ export default function AboutPage() {
 
               <div className="relative mx-auto max-w-2xl">
                 <Eyebrow>Talk to the people who built it</Eyebrow>
-                <h2 className="m-display mt-4 text-[clamp(1.8rem,4vw,2.9rem)]">
+                <h2 className="m-display mt-4 t-h2">
                   Bring the awkward question.
                 </h2>
-                <p className="m-dim mt-5 text-[15px] leading-relaxed">
+                <p className="m-dim mt-5 t-4">
                   You will be talking to someone who has both raised the voucher and written the rule
                   that governs it. Ask us about the odd case that broke your last system.
                 </p>

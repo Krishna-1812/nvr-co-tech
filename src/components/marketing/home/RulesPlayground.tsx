@@ -69,10 +69,10 @@ export function RulesPlayground() {
       <Container className="relative">
         <Reveal>
           <Eyebrow className="mb-4">Have a go</Eyebrow>
-          <h2 className="m-display s-settle max-w-3xl text-[clamp(1.9rem,4.2vw,3.25rem)]">
+          <h2 className="m-display s-settle max-w-3xl t-h2">
             Move the numbers. <span className="m-serif m-grad-text">See what happens.</span>
           </h2>
-          <p className="m-dim mt-5 max-w-2xl text-[15px] leading-relaxed sm:text-base">
+          <p className="m-dim mt-5 max-w-2xl t-4 sm:t-4">
             The sums below run the same two functions the voucher form itself calls.
             Saving does not trust them either: the totals are recomputed by the database as generated
             columns, and a voucher claiming GST two ways at once is refused by a constraint on the
@@ -173,13 +173,13 @@ export function RulesPlayground() {
                   // Keyed on the value so the figure replays its settle
                   // animation whenever any input changes it.
                   key={grand}
-                  className="m-display m-tabular animate-[settle_0.45s_ease-out] text-[clamp(1.5rem,3vw,2rem)]"
+                  className="m-display m-tabular animate-[settle_0.45s_ease-out] t-h4"
                 >
                   {fmtRupees(grand)}
                 </span>
               </div>
 
-              <p className="m-dim-2 mt-6 flex items-start gap-2 text-[11.5px] leading-relaxed">
+              <p className="m-dim-2 mt-6 flex items-start gap-2 t-2">
                 <Info className="mt-px size-3.5 shrink-0 text-[var(--m-gold)]" aria-hidden />
                 <span>
                   {interState
@@ -213,14 +213,14 @@ function Control({
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between gap-4">
-        <span className="flex items-center gap-2 text-[13px] font-medium">
+        <span className="flex items-center gap-2 t-3 font-medium">
           {Icon && <Icon className="size-3.5 text-[var(--m-dim-2)]" />}
           {label}
         </span>
-        {value && <span className="m-tabular text-[14px] font-semibold">{value}</span>}
+        {value && <span className="m-tabular t-3 font-semibold">{value}</span>}
       </div>
       {children}
-      {hint && <p className="m-dim-2 mt-2 text-[11px]">{hint}</p>}
+      {hint && <p className="m-dim-2 mt-2 t-2">{hint}</p>}
     </div>
   );
 }
@@ -249,7 +249,7 @@ function Segmented({
             aria-checked={active}
             onClick={() => onChange(o.value)}
             className={cn(
-              'rounded-lg px-3.5 py-1.5 text-[12.5px] font-medium transition',
+              'rounded-lg px-3.5 py-1.5 t-2 font-medium transition',
               active ? 'text-[var(--m-on-grad)]' : 'm-dim hover:text-[var(--m-ink)]',
             )}
             style={active ? { backgroundImage: 'var(--m-grad)' } : undefined}
@@ -277,7 +277,7 @@ function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'm-mono rounded-lg border px-3 py-1.5 text-[11.5px] transition',
+        'm-mono rounded-lg border px-3 py-1.5 t-2 transition',
         active
           ? 'border-[color-mix(in_oklab,var(--m-gold)_50%,transparent)] bg-[color-mix(in_oklab,var(--m-gold)_12%,transparent)] text-[var(--m-gold)]'
           : 'm-dim border-[var(--m-line)] hover:border-[var(--m-line-2)] hover:text-[var(--m-ink)]',
@@ -303,7 +303,7 @@ function Row({
     <div className="flex items-baseline justify-between gap-4">
       <dt
         className={cn(
-          'text-[12.5px] transition-colors',
+          't-2 transition-colors',
           dead ? 'text-[var(--m-dim-2)] line-through decoration-1' : 'm-dim',
           strong && 'font-medium text-[var(--m-ink)]',
         )}
@@ -312,7 +312,7 @@ function Row({
       </dt>
       <dd
         className={cn(
-          'm-tabular text-[13px] transition-colors',
+          'm-tabular t-3 transition-colors',
           dead ? 'text-[var(--m-dim-2)] line-through decoration-1' : 'text-[var(--m-ink)]',
           strong && 'font-semibold',
         )}

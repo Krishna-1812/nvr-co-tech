@@ -59,7 +59,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       */}
       <a
         href="#main"
-        className="absolute top-3 left-3 z-[60] -translate-y-24 rounded-lg bg-[var(--m-ink)] px-4 py-2 text-sm font-semibold text-[var(--m-on-grad)] transition-transform duration-200 focus:translate-y-0 motion-reduce:transition-none"
+        className="absolute top-3 left-3 z-[60] -translate-y-24 rounded-lg bg-[var(--m-ink)] px-4 py-2 t-3 font-semibold text-[var(--m-on-grad)] transition-transform duration-200 focus:translate-y-0 motion-reduce:transition-none"
       >
         Skip to content
       </a>

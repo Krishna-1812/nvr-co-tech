@@ -78,9 +78,9 @@ export function Logo({
         the page are speaking with one voice at the smallest size on screen.
       */}
       <span className="leading-none">
-        <span className="m-display block text-[15.5px] tracking-[-0.015em]">{BRAND.name}</span>
+        <span className="m-display block t-4 tracking-[-0.015em]">{BRAND.name}</span>
         {showTagline && (
-          <span className="m-mono m-dim-2 mt-1.5 block text-[9px] tracking-[0.15em] uppercase">
+          <span className="m-mono m-dim-2 mt-1.5 block t-1 t-caps uppercase">
             {BRAND.tagline}
           </span>
         )}

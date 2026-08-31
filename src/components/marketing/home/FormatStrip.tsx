@@ -23,7 +23,7 @@ export function FormatStrip() {
           {doubled.map((f, i) => (
             <span
               key={`${f}-${i}`}
-              className="m-mono shrink-0 rounded-md border border-[var(--m-line)] px-4 py-2 text-[12px] tracking-[0.06em] whitespace-nowrap"
+              className="m-mono shrink-0 rounded-md border border-[var(--m-line)] px-4 py-2 t-2 t-caps whitespace-nowrap"
               // The second half is a duplicate of the first, so it must not be
               // read out twice.
               aria-hidden={i >= FORMATS.length}

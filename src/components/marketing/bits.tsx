@@ -151,8 +151,8 @@ export function SectionHeading({
         times over the whole entrance instead of once a frame. The effect that
         reads as deliberate is also the one that is cheap.
       */}
-      <h2 className="m-display s-settle text-[clamp(1.9rem,4.2vw,3.25rem)]">{title}</h2>
-      {lead && <p className="m-dim mt-5 text-[15px] leading-relaxed sm:text-base">{lead}</p>}
+      <h2 className="m-display s-settle t-h2">{title}</h2>
+      {lead && <p className="m-dim mt-5 t-4 sm:t-4">{lead}</p>}
     </div>
   );
 }
@@ -226,7 +226,7 @@ export function StageBadge({ stage, className }: { stage: AgentStage; className?
   return (
     <span
       className={cn(
-        'm-mono inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium tracking-[0.1em] uppercase',
+        'm-mono inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 t-1 font-medium t-caps uppercase',
         tone,
         className,
       )}
@@ -275,7 +275,7 @@ export function CTA({
    * more.
    */
   const base =
-    'group inline-flex h-12 items-center justify-center gap-2.5 rounded-lg px-6 text-[13px] font-semibold tracking-[0.01em] transition-[transform,background-color,border-color,color] duration-200 active:scale-[0.985]';
+    'group inline-flex h-12 items-center justify-center gap-2.5 rounded-lg px-6 t-3 font-semibold transition-[transform,background-color,border-color,color] duration-200 active:scale-[0.985]';
 
   /*
    * Primary is the bone slab — the strongest thing available on this ground,
@@ -322,7 +322,7 @@ export function ArrowLink({
     <Link
       href={href}
       className={cn(
-        'group m-mono inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.12em] text-[var(--m-ink)] uppercase transition hover:text-[var(--m-gold)]',
+        'group m-mono inline-flex items-center gap-1.5 t-2 font-medium t-caps text-[var(--m-ink)] uppercase transition hover:text-[var(--m-gold)]',
         className,
       )}
     >
@@ -344,9 +344,9 @@ export function Stat({
 }) {
   return (
     <div>
-      <p className="m-display text-[clamp(2.2rem,5vw,3.4rem)] leading-none">{value}</p>
+      <p className="m-display t-h1">{value}</p>
       <p className="m-eyebrow mt-3">{label}</p>
-      {hint && <p className="m-dim-2 mt-1.5 text-xs">{hint}</p>}
+      {hint && <p className="m-dim-2 mt-1.5 t-1">{hint}</p>}
     </div>
   );
 }

@@ -28,10 +28,10 @@ export function NotFoundPanel() {
 
       <Container className="relative text-center">
         <p className="m-eyebrow">Error 404</p>
-        <h1 className="m-display mt-5 text-[clamp(2.2rem,5.5vw,3.6rem)]">
+        <h1 className="m-display mt-5 t-h1">
           Nothing filed <span className="m-serif m-grad-text">here.</span>
         </h1>
-        <p className="m-dim mx-auto mt-6 max-w-md text-[15px] leading-relaxed">
+        <p className="m-dim mx-auto mt-6 max-w-md t-4">
           This page does not exist. It may have been renamed, or the link that brought you here may
           be an old one.
         </p>

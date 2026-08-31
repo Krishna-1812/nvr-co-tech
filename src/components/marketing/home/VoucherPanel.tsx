@@ -74,11 +74,11 @@ export function VoucherPanel() {
               <FileText className="size-4 text-[var(--m-indigo)]" aria-hidden />
             </span>
             <div className="min-w-0">
-              <p className="m-mono truncate text-[12px] tracking-[0.06em]">FI/BLR/26-27/0042</p>
-              <p className="m-dim-2 mt-0.5 text-[11px]">Bengaluru Chapter · Annual Summit</p>
+              <p className="m-mono truncate t-2 t-caps">FI/BLR/26-27/0042</p>
+              <p className="m-dim-2 mt-0.5 t-2">Bengaluru Chapter · Annual Summit</p>
             </div>
           </div>
-          <span className="m-mono self-start shrink-0 rounded-full border border-[color-mix(in_oklab,var(--m-amber)_32%,transparent)] bg-[color-mix(in_oklab,var(--m-amber)_10%,transparent)] px-2.5 py-1 text-[10px] tracking-[0.1em] uppercase text-[var(--m-amber)] sm:ml-auto sm:self-auto">
+          <span className="m-mono self-start shrink-0 rounded-full border border-[color-mix(in_oklab,var(--m-amber)_32%,transparent)] bg-[color-mix(in_oklab,var(--m-amber)_10%,transparent)] px-2.5 py-1 t-1 t-caps uppercase text-[var(--m-amber)] sm:ml-auto sm:self-auto">
             Awaiting approval
           </span>
         </div>
@@ -92,7 +92,7 @@ export function VoucherPanel() {
 
           <div className="mt-3 flex items-end justify-between border-t border-[var(--m-line)] pt-4">
             <span className="m-eyebrow">Grand total</span>
-            <span className="m-display numeric text-2xl tracking-tight">{fmtRupees(GRAND)}</span>
+            <span className="m-display numeric t-7">{fmtRupees(GRAND)}</span>
           </div>
         </div>
 
@@ -105,7 +105,7 @@ export function VoucherPanel() {
           </div>
 
           {/* The rule, stated rather than implied. */}
-          <p className="m-dim-2 mt-4 flex items-start gap-2 text-[11px] leading-relaxed">
+          <p className="m-dim-2 mt-4 flex items-start gap-2 t-2">
             <Ban className="mt-px size-3.5 shrink-0 text-[var(--m-rose)]" aria-hidden />
             <span>
               R. Menon raised this voucher, so the database will not take their approval too. It
@@ -121,8 +121,8 @@ export function VoucherPanel() {
 function Row({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <span className={muted ? 'm-dim-2 text-[13px]' : 'm-dim text-[13px]'}>{label}</span>
-      <span className="numeric text-[13px] tabular-nums">{value}</span>
+      <span className={muted ? 'm-dim-2 t-3' : 'm-dim t-3'}>{label}</span>
+      <span className="numeric t-3 tabular-nums">{value}</span>
     </div>
   );
 }
@@ -153,8 +153,8 @@ function Node({
         )}
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[11px] font-medium">{name}</span>
-        <span className="m-dim-2 mt-0.5 block text-[10px]">{caption}</span>
+        <span className="block truncate t-2 font-medium">{name}</span>
+        <span className="m-dim-2 mt-0.5 block t-1">{caption}</span>
       </span>
     </div>
   );

@@ -109,13 +109,13 @@ export default function PrivacyPage() {
     >
       <div className="m-card p-6 sm:p-7">
         <h2 className="m-eyebrow">Asking us something</h2>
-        <p className="m-dim mt-4 text-[14px] leading-relaxed">
+        <p className="m-dim mt-4 t-3">
           A question about this policy, or a request about your own information, goes to a person and
           not to a queue.
         </p>
         <a
           href={`mailto:${CONTACT.email}`}
-          className="m-mono mt-5 inline-block text-[13px] text-[var(--m-cyan)] underline underline-offset-4 transition hover:text-[var(--m-ink)]"
+          className="m-mono mt-5 inline-block t-3 text-[var(--m-cyan)] underline underline-offset-4 transition hover:text-[var(--m-ink)]"
         >
           {CONTACT.email}
         </a>

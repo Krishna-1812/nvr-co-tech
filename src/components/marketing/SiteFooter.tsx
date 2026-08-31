@@ -59,10 +59,10 @@ export function SiteFooter() {
         <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div className="max-w-xs">
             <Logo id="footer-mark" />
-            <p className="m-dim-2 mt-5 text-[13px] leading-relaxed">{BRAND.blurb}</p>
+            <p className="m-dim-2 mt-5 t-3">{BRAND.blurb}</p>
             <a
               href={`mailto:${CONTACT.email}`}
-              className="m-mono m-dim-2 mt-5 inline-block text-[12px] transition hover:text-[var(--m-ink)]"
+              className="m-mono m-dim-2 mt-5 inline-block t-2 transition hover:text-[var(--m-ink)]"
             >
               {CONTACT.email}
             </a>
@@ -103,15 +103,15 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-14 flex flex-col gap-4 border-t border-[var(--m-line)] pt-7 sm:flex-row sm:items-center sm:justify-between">
-          <p className="m-dim-2 text-[12.5px]">
+          <p className="m-dim-2 t-2">
             © {YEAR} {BRAND.name}. Built by chartered accountants, in Mumbai.
           </p>
 
-          <div className="m-dim-2 flex items-center gap-5 text-[12.5px]">
+          <div className="m-dim-2 flex items-center gap-5 t-2">
             {/* Figures, not words. This is a mono micro-label, where "two of 6"
                 was the worst of both and "two of six" reads as prose in a slot
                 that is not prose. */}
-            <span className="m-mono text-[10px] tracking-[0.14em] uppercase tabular-nums">
+            <span className="m-mono t-1 t-caps uppercase tabular-nums">
               {ROSTER.live} of {ROSTER.total} live
             </span>
             <span aria-hidden className="h-3 w-px bg-[var(--m-line-2)]" />
@@ -143,7 +143,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <li>
-      <Link href={href} className="m-dim text-[13px] transition hover:text-[var(--m-ink)]">
+      <Link href={href} className="m-dim t-3 transition hover:text-[var(--m-ink)]">
         {children}
       </Link>
     </li>
