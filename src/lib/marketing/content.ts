@@ -333,28 +333,19 @@ export const NAV = [
   { href: '/contact', label: 'Contact' },
 ] as const;
 
-/**
- * The formats and rails a finance team in India already works in. Shown as a
- * strip under the hero. The point is recognition, not novelty.
+/*
+ * The format strip that used to live here is gone, and with it the FORMATS
+ * list, the marquee utilities and the marquee keyframe — it was their only
+ * reader.
  *
- * Only what works today. The strip used to carry GSTR-2B, 26Q, Tally exports
- * and the payment rails, and under a heading that says "works with what your
- * team already uses" every one of those was a promise: two of them belong to
- * agents that are not built, one is an integration that does not exist, and the
- * desk has never moved money in its life. A recognition strip is the cheapest
- * possible place to lose a reader who checks, and the audience for this page
- * checks for a living.
+ * One rule from it is worth keeping even though the strip is not, because it
+ * applies to anything that lists what we work with: name only what works today.
+ * That list once carried GSTR-2B, 26Q, Tally exports and the payment rails, and
+ * under a heading saying "works with what your team already uses" every one of
+ * those was a promise — two belonged to agents that are not built, one was an
+ * integration that does not exist, and the desk has never moved money in its
+ * life. The audience for this page checks for a living.
  */
-export const FORMATS = [
-  'GSTIN',
-  'PAN',
-  'CGST / SGST / IGST',
-  'FY Apr–Mar',
-  'Excel (.xlsx)',
-  'CSV',
-  'Text PDF',
-  'Chapter-wise numbering',
-] as const;
 
 /**
  * The finance month, and which tool takes each job.
@@ -493,12 +484,18 @@ export const SHARED = [
  */
 export const GST_RATES = [5, 12, 18, 28] as const;
 
-export const TDS_SECTIONS = [
+/*
+ * `note` is what the panel prints under the control for whichever section is
+ * selected, and it is optional: 194C has none, so selecting it shows the chips
+ * and nothing else. The control already guards on the note being there, so an
+ * absent one leaves no empty line behind.
+ */
+export const TDS_SECTIONS: readonly { code: string; rate: number; note?: string }[] = [
   { code: 'None', rate: 0, note: 'Nothing deducted' },
-  { code: '194C', rate: 2, note: 'Contractors. 2% when you are paying a company' },
+  { code: '194C', rate: 2 },
   { code: '194H', rate: 5, note: 'Commission or brokerage' },
   { code: '194J', rate: 10, note: 'Professional or technical services' },
-] as const;
+];
 
 /**
  * Said plainly on each agent's page, next to the pitch.

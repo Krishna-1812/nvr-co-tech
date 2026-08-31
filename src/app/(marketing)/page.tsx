@@ -3,7 +3,6 @@ import { BRAND } from '@/lib/marketing/content';
 import { siteLd } from '@/lib/marketing/seo';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { Hero } from '@/components/marketing/home/Hero';
-import { FormatStrip } from '@/components/marketing/home/FormatStrip';
 import { WorkCalendar } from '@/components/marketing/home/WorkCalendar';
 import { RulesPlayground } from '@/components/marketing/home/RulesPlayground';
 import { ProductShowcase } from '@/components/marketing/home/ProductShowcase';
@@ -71,7 +70,6 @@ export default function HomePage() {
       <JsonLd data={siteLd()} />
 
       <Hero />
-      <FormatStrip />
       <WorkCalendar />
       <RulesPlayground />
       <ProductShowcase />
