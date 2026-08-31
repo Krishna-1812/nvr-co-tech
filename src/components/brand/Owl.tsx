@@ -234,8 +234,8 @@ function OwlBody({
  * The first cut of this expressed both axes as a fraction of the section, and it
  * was wrong in a way that only showed up on the long sections. "Eight percent
  * down" is inside the top padding of a 600px section and four hundred pixels
- * into the body copy of Journey, which is 3,200. The sections vary in height by
- * a factor of five; what they have in common is `py-20 sm:py-28`, so the empty
+ * into the body copy of one three times that height. The sections vary in
+ * height by a factor of five; what they have in common is `py-20 sm:py-28`, so the empty
  * strip at the top and bottom is 80 to 112 pixels on every one of them.
  *
  * So a `pad` band is anchored to the near edge in pixels, which is the thing

@@ -27,10 +27,10 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         most of the site the whole page would be a blank dark rectangle. Undo
         the hidden state outright in that case.
 
-        This used to carry a second rule, hiding the pinned scroll stage and
-        showing a stacked fallback in its place. There is no pinned stage any
-        more — Journey is ordinary page at every width — so there is nothing
-        left for scripting to be responsible for laying out.
+        This used to carry a second rule, hiding a pinned scroll stage and
+        showing a stacked fallback in its place. Nothing on the site pins any
+        more, so there is nothing left for scripting to be responsible for
+        laying out.
       */}
       <noscript>
         <style>{`.reveal{opacity:1 !important;transform:none !important}`}</style>

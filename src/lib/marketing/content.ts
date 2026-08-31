@@ -336,37 +336,6 @@ export const FORMATS = [
 ] as const;
 
 /**
- * The four steps on the home page.
- *
- * All four are Voucher Desk as it stands. The previous version opened on an
- * invoice being read for you, which is Invoice Intake and is on the roadmap, and
- * had two people signing off, which was true of a schema that no longer exists.
- * Anything a reader can check has to be checkable in the running product.
- */
-export const STEPS = [
-  {
-    n: '01',
-    title: 'Somebody raises it',
-    body: 'An invoice turns up, or an event finishes and there are bills to settle. Whoever has the paperwork fills in the voucher, and the form checks as they go rather than at the end.',
-  },
-  {
-    n: '02',
-    title: 'The database does the arithmetic',
-    body: 'The totals are worked out by the database itself, not by the page, so the figure on screen is the figure on record. It also refuses a voucher whose GST is claimed two ways at once, whatever the browser was willing to send it.',
-  },
-  {
-    n: '03',
-    title: 'Somebody signs it off, if you want that',
-    body: 'Approval is yours to switch on. With it on, a voucher needs one signature and it can never be the person who raised it. With it off, a submission goes straight to paid. Either way the rule is held a layer below the website.',
-  },
-  {
-    n: '04',
-    title: 'The figures close',
-    body: 'Submitting is what locks them. You can still print the PDF or pull the Excel, but nobody can change an amount after that, and sending it back is the only way to reopen it. That is a new line in the history, never an edit to an old one.',
-  },
-] as const;
-
-/**
  * The finance month, and which tool takes each job.
  *
  * This is the roster told from the other side: instead of six products looking

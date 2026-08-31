@@ -15,8 +15,8 @@ import { draws, owlTraits, type OwlTraits } from './owlkit';
 
 describe('draws', () => {
   it('is a pure function of the seed', () => {
-    const a = draws('journey-hollow');
-    const b = draws('journey-hollow');
+    const a = draws('calendar-belfry');
+    const b = draws('calendar-belfry');
     const seq = () => [a.float(0, 1), a.int(0, 99), a.chance(0.5), a.pick([1, 2, 3])];
     const seq2 = () => [b.float(0, 1), b.int(0, 99), b.chance(0.5), b.pick([1, 2, 3])];
     expect(seq()).toEqual(seq2());
@@ -26,7 +26,7 @@ describe('draws', () => {
     // The real seeds are near-identical strings, which is exactly the case a
     // weak hash smears together.
     const first = (s: string) => draws(s).float(0, 1);
-    const near = ['journey-01', 'journey-02', 'journey-03', 'journey-04'].map(first);
+    const near = ['perch-01', 'perch-02', 'perch-03', 'perch-04'].map(first);
     expect(new Set(near.map((n) => n.toFixed(4))).size).toBe(4);
   });
 
@@ -144,7 +144,6 @@ describe('owlTraits', () => {
 const ROOSTS: Record<string, readonly string[]> = {
   hero: ['hero-rafter', 'hero-truss'],
   calendar: ['calendar-belfry', 'calendar-ledge'],
-  journey: ['journey-hollow', 'journey-branch'],
   finalCta: ['cta-spire', 'cta-nook'],
   notFound: ['lost-hollow', 'lost-bough'],
   parliament: ['footer-parliament-0', 'footer-parliament-1', 'footer-parliament-2'],

@@ -17,7 +17,7 @@
  * drew mid-blink and logs a hydration error for every owl on the page.
  *
  * So none of this is random. Every owl is a pure function of one short string —
- * `owlTraits('journey-02')` returns the same bird on the server, in the browser,
+ * `owlTraits('hero-rafter')` returns the same bird on the server, in the browser,
  * at build time, and in a test, forever. It is only random in the sense that
  * matters: nobody chose that this particular owl would be a hunched ghost that
  * ruffles every nine seconds, and nobody could predict it from the seed.
@@ -34,8 +34,8 @@
  * FNV-1a, 32-bit.
  *
  * Any hash would do — this one is four lines, has no dependencies and spreads
- * short similar strings well, which is exactly the input here: `journey-01`
- * and `journey-02` differ in one character and have to produce unrelated birds.
+ * short similar strings well, which is exactly the input here: `perch-01`
+ * and `perch-02` differ in one character and have to produce unrelated birds.
  * `Math.imul` rather than `*` because the multiply overflows 32 bits on every
  * round and JavaScript's own multiplication would quietly go through a double
  * and lose the low bits that carry the mixing.

@@ -702,11 +702,6 @@
   0%, 100% { opacity: 0.35; transform: scale(1); }
   50%      { opacity: 0.75; transform: scale(1.06); }
 }
-/* New row arriving at the top of a live list. */
-@keyframes ticker {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: none; }
-}
 /*
  * A line of type rising into a clipped box. Used for hero headlines, where the
  * reveal has to be pure CSS: JavaScript-driven entrances above the fold mean a

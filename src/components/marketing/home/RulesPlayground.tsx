@@ -60,7 +60,11 @@ export function RulesPlayground() {
         className="m-dots pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(60%_60%_at_50%_50%,#000,transparent)]"
       />
 
-      <Roost seed="rules-gable" band="top-right" />
+      {/* Top-left, not top-right. The calendar above it puts a bird in its own
+          bottom-right corner, and with the section that used to sit between them
+          gone the two landed 109px apart across the boundary — close enough to
+          read as a deliberate pair rather than as two separate finds. */}
+      <Roost seed="rules-gable" band="top-left" />
 
       <Container className="relative">
         <Reveal>
