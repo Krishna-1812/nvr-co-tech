@@ -1856,25 +1856,44 @@ body:has([data-skin='night']) {
 
 .owl {
   /*
-   * The night-skin token first, the application token as the fallback. The
-   * marketing pages define --m-*; the application does not, and `var(x, y)`
-   * takes y exactly when x is undefined. So the same bird can perch anywhere in
-   * the product without a second palette being written for it.
+   * ── The palettes are written twice, and that is deliberate ────────────────
+   *
+   * This block is the application's: bone paper and navy ink, or navy ground and
+   * bone text, depending on the theme. The block after it is the public site's
+   * night skin. They were one block to begin with, written as
+   * `var(--m-bg-3, var(--surface-sunken))` so the marketing token won where it
+   * existed and the application token stood in where it did not.
+   *
+   * That is a tidy trick and it was the wrong shape. It forces both grounds to
+   * assign the same *role* to each part of the bird, and they cannot: on the
+   * near-black public site the ink owl's body is a surface a shade lighter than
+   * the page, and on bone paper that same choice is a pale grey bird on a pale
+   * grey card — the silhouette disappears and only the eyes are left. The
+   * application's ink owl has to be drawn in the ink itself.
+   *
+   * So: two sets, each designed against the ground it will actually sit on.
+   *
+   * The gold, the pupil and the gold owl's whole eye come from the fixed brand
+   * scale rather than the themed tokens, because those are the mark's own
+   * colours and the mark does not have a light mode. --color-gold-400 is
+   * #E8C468 in both themes and on the public site, so every owl on the site has
+   * the same gold in its eye.
    */
-  --o-body-c: var(--m-bg-3, var(--surface-sunken));
-  --o-sclera: var(--m-ink, var(--text-c));
-  --o-iris: var(--m-gold, var(--accent-lit));
-  --o-pupil: var(--m-bg, var(--surface));
-  --o-beak: var(--m-gold, var(--accent-lit));
+  --o-body-c: var(--text-c);
+  --o-sclera: var(--surface);
+  --o-iris: var(--color-gold-400);
+  --o-pupil: var(--color-brand-800);
+  --o-beak: var(--color-gold-400);
 
   /*
    * The wing is always the body pushed a third of the way towards whatever this
-   * owl uses for the whites of its eyes. One rule, and it lands correctly on all
-   * four palettes for three different reasons: a dark bird's sclera is bone, so
-   * its wing comes out lighter; a pale bird's is the page's own ground, so its
-   * wing comes out darker; and the ghost's body is a translucent hairline
-   * colour, so mixing in an opaque one mostly makes the wing more solid. Lighter,
-   * darker or firmer — each is a legible wing, which is all this has to be.
+   * owl uses for the whites of its eyes. One rule, and it lands correctly on
+   * every palette on both grounds for three different reasons: a dark bird's
+   * sclera is the light one, so its wing comes out lighter; a pale bird's is the
+   * page's own ground, so its wing comes out darker; and the ghost's body is a
+   * translucent hairline colour, so mixing in an opaque one mostly makes the
+   * wing more solid. Lighter, darker or firmer — each is a legible wing, which
+   * is all this has to be.
    */
   --o-wing: color-mix(in oklab, var(--o-body-c) 66%, var(--o-sclera));
 
@@ -1885,41 +1904,85 @@ body:has([data-skin='night']) {
   transform: rotate(var(--o-lean, 0deg)) scaleX(var(--o-facing, 1));
 }
 
-/* A faint pale bird with dark eye sockets and a gold iris. The common case, and
-   the quietest: this is the one that reads as texture in the corner of a
-   section rather than as a picture of an owl. */
+/* Faint: drawn in the strong border colour, which is the palest thing on either
+   theme that is still an edge rather than a fill. */
 .owl[data-palette='ghost'] {
-  --o-body-c: var(--m-line-2, var(--border-strong));
-  --o-sclera: var(--m-bg, var(--surface));
+  --o-body-c: var(--border-strong);
 }
 
-/* The mark itself: a dark bird, bone whites, gold iris, gold beak. */
+/* The mark itself, and the default above: the body is the ink the page's own
+   text is set in, so it is navy on paper and bone at night. */
 .owl[data-palette='ink'] {
-  --o-body-c: var(--m-bg-3, var(--surface-sunken));
+  --o-body-c: var(--text-c);
 }
 
-/* Bone. The beak turns dark because gold on bone is two light values with
-   nothing between them. */
+/* Mid-tone. The beak turns dark because gold on a body this light is two values
+   with nothing between them. */
 .owl[data-palette='bone'] {
-  --o-body-c: var(--m-dim, var(--text-subtle));
-  --o-sclera: var(--m-bg, var(--surface));
-  --o-beak: var(--m-bg, var(--surface));
+  --o-body-c: var(--text-subtle);
+  --o-beak: var(--color-brand-800);
 }
 
 /*
- * Gold, and rare. Held to a lower opacity in owlkit for the same reason.
- *
+ * Gold, and rare. Every colour on it is fixed rather than themed, because the
+ * body is fixed: a themed sclera would be bone against a gold bird in dark mode
+ * and the eyes would vanish. Navy socket, bone iris, navy pupil, on both
+ * grounds and in both themes.
+ */
+.owl[data-palette='gold'] {
+  --o-body-c: var(--color-gold-400);
+  --o-sclera: var(--color-brand-800);
+  --o-iris: var(--color-bone);
+  --o-beak: var(--color-brand-800);
+}
+
+/* ── The same four, on the public site's night skin ───────────────────────── */
+
+/*
+ * These must come after the application's, and each one has to be a `.owl`
+ * *and* a `[data-palette]` selector, because `[data-skin='night'] .owl` and
+ * `.owl[data-palette='gold']` have identical specificity — a night block written
+ * without the palette attribute would win on source order alone and repaint
+ * every gold owl on the public site in the default colours.
+ */
+[data-skin='night'] .owl {
+  --o-body-c: var(--m-bg-3);
+  --o-sclera: var(--m-ink);
+  --o-iris: var(--m-gold);
+  --o-pupil: var(--m-bg);
+  --o-beak: var(--m-gold);
+}
+
+/* A faint pale bird with dark eye sockets and a gold iris — the quietest of the
+   four, and the one that reads as texture in the corner of a section rather
+   than as a picture of an owl. */
+[data-skin='night'] .owl[data-palette='ghost'] {
+  --o-body-c: var(--m-line-2);
+  --o-sclera: var(--m-bg);
+}
+
+[data-skin='night'] .owl[data-palette='ink'] {
+  --o-body-c: var(--m-bg-3);
+}
+
+[data-skin='night'] .owl[data-palette='bone'] {
+  --o-body-c: var(--m-dim);
+  --o-sclera: var(--m-bg);
+  --o-beak: var(--m-bg);
+}
+
+/*
  * The eye inverts here rather than keeping the gold iris of the other three: a
  * gold iris on a gold bird is one value against itself, and the first cut of
  * this palette lost both eyes completely at twenty pixels — the owl became a
  * plain tan disc. So the socket goes to the page's own ground and the iris to
  * bone, which is the same three-ring eye read from the other side.
  */
-.owl[data-palette='gold'] {
-  --o-body-c: var(--m-gold, var(--accent-lit));
-  --o-sclera: var(--m-bg, var(--surface));
-  --o-iris: var(--m-ink, var(--text-c));
-  --o-beak: var(--m-bg, var(--surface));
+[data-skin='night'] .owl[data-palette='gold'] {
+  --o-body-c: var(--m-gold);
+  --o-sclera: var(--m-bg);
+  --o-iris: var(--m-ink);
+  --o-beak: var(--m-bg);
 }
 
 /*

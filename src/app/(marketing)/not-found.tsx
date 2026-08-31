@@ -1,5 +1,5 @@
 import { Aurora, CTA, Container } from '@/components/marketing/bits';
-import { Roost } from '@/components/marketing/Owl';
+import { Roost } from '@/components/brand/Owl';
 
 /**
  * A 404 inside the public site.

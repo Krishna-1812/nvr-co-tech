@@ -4,7 +4,7 @@ import { ROSTER } from '@/lib/marketing/content';
 import { Aurora, CTA, Container, LineRise, Rise } from '../bits';
 import { Tilt } from '../motion';
 import { VoucherPanel } from './VoucherPanel';
-import { Roost } from '../Owl';
+import { Roost } from '@/components/brand/Owl';
 
 /**
  * Above the fold: one claim, one sentence of substantiation, two buttons, and

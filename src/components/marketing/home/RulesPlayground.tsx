@@ -7,7 +7,7 @@ import { GST_RATES, TDS_SECTIONS } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { Container, Eyebrow } from '../bits';
 import { Reveal } from '../Reveal';
-import { Roost } from '../Owl';
+import { Roost } from '@/components/brand/Owl';
 
 /**
  * The tax rules, as something you can drive rather than read about.

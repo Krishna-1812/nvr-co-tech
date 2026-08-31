@@ -7,7 +7,7 @@ import { JOBS, agentBySlug } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { ACCENT, ArrowLink, Container, Eyebrow, StageBadge } from '../bits';
 import { Reveal } from '../Reveal';
-import { Roost } from '../Owl';
+import { Roost } from '@/components/brand/Owl';
 
 /**
  * The finance month, and which tool takes each job.

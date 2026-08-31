@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { cn } from '@/lib/utils';
 import { BEAK, EYE, HEAD, RECENTRE, TUFTS, VIEW } from '@/lib/brand/mark';
-import { owlTraits, type OwlTraits } from '@/lib/brand/owlkit';
+import { draws, owlTraits, type OwlTraits } from '@/lib/brand/owlkit';
 
 /**
  * A miniature of the firm's own owl, for living in the margins of a page.
@@ -270,6 +270,22 @@ const BANDS = {
 export type OwlBand = keyof typeof BANDS;
 
 const between = ([from, to]: readonly [number, number], t: number) => from + t * (to - from);
+
+const CORNERS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
+
+/**
+ * A corner, for a caller with no opinion about which — the empty states, where
+ * one component stands in for twenty-six different screens and none of them
+ * should get the same bird in the same place.
+ *
+ * Drawn off its own stream (`seed:corner`) rather than from `owlTraits`. Adding
+ * a draw to that function would shift every draw after it and silently re-roll
+ * all twenty-one owls already perched on the public site — see the note on
+ * `draws` about call order being part of the contract.
+ */
+export function cornerFor(seed: string): OwlBand {
+  return draws(`${seed}:corner`).pick(CORNERS);
+}
 
 /**
  * One owl, somewhere in a band of the section it is given to.

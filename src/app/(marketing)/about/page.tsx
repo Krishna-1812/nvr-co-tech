@@ -15,7 +15,7 @@ import {
   Stat,
 } from '@/components/marketing/bits';
 import { Reveal } from '@/components/marketing/Reveal';
-import { Roost } from '@/components/marketing/Owl';
+import { Roost } from '@/components/brand/Owl';
 
 export const metadata: Metadata = {
   title: 'About',

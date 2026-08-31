@@ -183,3 +183,48 @@ describe('the birds actually on the site', () => {
     expect(new Set(all).size).toBe(all.length);
   });
 });
+
+describe('the empty states', () => {
+  /*
+   * The application's owls pick their own corner, because one component stands
+   * in for twenty-six screens and none of them should get the same bird in the
+   * same place. Two things about that are worth holding down.
+   */
+
+  it('only ever picks a corner, never a flank', async () => {
+    // A flank band is only shown at 2xl, because below that there is no gutter
+    // for it to sit in. An empty state is a card a few hundred pixels wide and
+    // has no gutter at any width, so a flank here would be an owl that renders
+    // on nobody's screen — and nothing would report it.
+    const { cornerFor } = await import('@/components/brand/Owl');
+    const corners = new Set(['top-left', 'top-right', 'bottom-left', 'bottom-right']);
+    for (let i = 0; i < 1000; i += 1) expect(corners).toContain(cornerFor(`empty:${i}`));
+  });
+
+  it('spreads across all four corners', async () => {
+    const { cornerFor } = await import('@/components/brand/Owl');
+    const seen = new Set<string>();
+    for (let i = 0; i < 400; i += 1) seen.add(cornerFor(`empty:screen ${i}`));
+    expect(seen.size).toBe(4);
+  });
+
+  it('gives the same screen the same corner every time', async () => {
+    const { cornerFor } = await import('@/components/brand/Owl');
+    expect(cornerFor('empty:No vouchers yet|')).toBe(cornerFor('empty:No vouchers yet|'));
+  });
+
+  it('separates two screens that share a title', async () => {
+    // Reconciliation history and conversation history are both headed "Nothing
+    // here yet". Seeding on the title alone handed them the same bird in the
+    // same corner, which is why the description is part of the seed.
+    const { cornerFor } = await import('@/components/brand/Owl');
+    const a = 'empty:Nothing here yet|Runs you have saved will be listed here.';
+    const b = 'empty:Nothing here yet|A conversation is saved once you send it.';
+    const differs =
+      owlTraits(a).palette !== owlTraits(b).palette ||
+      owlTraits(a).idle !== owlTraits(b).idle ||
+      owlTraits(a).size !== owlTraits(b).size ||
+      cornerFor(a) !== cornerFor(b);
+    expect(differs).toBe(true);
+  });
+});

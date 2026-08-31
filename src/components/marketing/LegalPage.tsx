@@ -1,6 +1,6 @@
 import { Aurora, Container, Eyebrow, Rise, Section } from './bits';
 import { Reveal } from './Reveal';
-import { Roost } from './Owl';
+import { Roost } from '@/components/brand/Owl';
 
 /**
  * The shape both /privacy and /terms are built from.

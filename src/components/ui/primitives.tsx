@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import type { ComponentProps, ReactNode } from 'react';
+import { Roost, cornerFor } from '@/components/brand/Owl';
 
 // ─── Button ──────────────────────────────────────────────────────────────────
 
@@ -420,6 +421,28 @@ export function ChoicePill({
 
 // ─── Empty state ─────────────────────────────────────────────────────────────
 
+/**
+ * Nothing here yet.
+ *
+ * ── The owl ─────────────────────────────────────────────────────────────────
+ *
+ * An empty state is the one place in the product where there is genuinely
+ * nothing to be in the way of, which is why the birds that live on the public
+ * site are allowed in this far and no further. There is none on a voucher, a
+ * ledger or an approval queue.
+ *
+ * Seeded from the words the caller already passes, so the bird costs nothing at
+ * the twenty-six call sites and the same screen gets the same bird every time —
+ * a decoration that moved between renders would read as a fault rather than as
+ * a flourish.
+ *
+ * The title alone was not enough. Reconciliation history and conversation
+ * history are both headed "Nothing here yet", so both were handed the same
+ * 16px scholar in the same corner; the description is what actually
+ * distinguishes one empty screen from another, and folding it in separates
+ * them. Two states that genuinely say the same thing in the same words still
+ * share a bird, which is right — they are the same state.
+ */
 export function EmptyState({
   icon,
   title,
@@ -431,6 +454,8 @@ export function EmptyState({
   description?: string;
   action?: ReactNode;
 }) {
+  const seed = `empty:${title}|${description ?? ''}`;
+
   return (
     <div className="animate-[fade_0.4s_ease-out_backwards] relative flex flex-col items-center justify-center overflow-hidden px-6 py-20 text-center">
       {/* An empty table should read as a considered state, not as a component that
@@ -439,6 +464,11 @@ export function EmptyState({
         aria-hidden
         className="a-grid pointer-events-none absolute inset-0 opacity-30 [mask-image:radial-gradient(45%_60%_at_50%_45%,#000,transparent)]"
       />
+
+      {/* Smaller than the ones outside: this sits inside a card rather than in a
+          section's margin, so the whole frame it has to stay out of the way of is
+          a few hundred pixels across. */}
+      <Roost seed={seed} band={cornerFor(seed)} min={15} max={24} />
       {icon && (
         <div className="text-subtle relative mb-5">
           <span

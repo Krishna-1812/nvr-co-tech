@@ -1,6 +1,6 @@
 import { Aurora, CTA, Container } from '../bits';
 import { Reveal } from '../Reveal';
-import { Roost } from '../Owl';
+import { Roost } from '@/components/brand/Owl';
 
 export function FinalCTA() {
   return (

@@ -11,7 +11,7 @@ import { BRAND } from '@/lib/marketing/content';
 import { Container, Section, SectionHeading } from '../bits';
 import { Reveal } from '../Reveal';
 import { LogoMark } from '../Logo';
-import { Roost } from '../Owl';
+import { Roost } from '@/components/brand/Owl';
 
 /**
  * The product, at a glance.

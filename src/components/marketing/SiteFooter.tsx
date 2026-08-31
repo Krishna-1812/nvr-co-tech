@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { AGENTS, BRAND, CONTACT, ROSTER } from '@/lib/marketing/content';
 import { Container } from './bits';
 import { Logo } from './Logo';
-import { Parliament } from './Owl';
+import { Parliament } from '@/components/brand/Owl';
 
 /**
  * The bottom of every public page.

@@ -21,7 +21,7 @@ import {
 } from '@/components/marketing/bits';
 import { Reveal } from '@/components/marketing/Reveal';
 import { FlowDiagram } from '@/components/marketing/agents/FlowDiagram';
-import { Roost } from '@/components/marketing/Owl';
+import { Roost } from '@/components/brand/Owl';
 
 type Params = { params: Promise<{ slug: string }> };
 

@@ -15,7 +15,7 @@ import {
 import { Reveal } from '@/components/marketing/Reveal';
 import { Counter, Spotlight } from '@/components/marketing/motion';
 import { RoadmapRail } from '@/components/marketing/agents/RoadmapRail';
-import { Roost } from '@/components/marketing/Owl';
+import { Roost } from '@/components/brand/Owl';
 
 export const metadata: Metadata = {
   title: 'Agents',

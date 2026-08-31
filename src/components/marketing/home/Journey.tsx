@@ -6,7 +6,7 @@ import { STEPS } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { Container, Eyebrow } from '../bits';
 import { Reveal } from '../Reveal';
-import { Roost } from '../Owl';
+import { Roost } from '@/components/brand/Owl';
 
 /**
  * One voucher, followed from the invoice landing to the record closing.

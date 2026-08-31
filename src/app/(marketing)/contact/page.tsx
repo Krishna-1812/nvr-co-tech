@@ -4,7 +4,7 @@ import { BRAND, CONTACT } from '@/lib/marketing/content';
 import { Aurora, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
 import { Reveal } from '@/components/marketing/Reveal';
 import { RequestForm } from '@/components/marketing/RequestForm';
-import { Roost } from '@/components/marketing/Owl';
+import { Roost } from '@/components/brand/Owl';
 
 export const metadata: Metadata = {
   title: 'Book a walkthrough',

@@ -1,6 +1,6 @@
 import { ROSTER, SHARED } from '@/lib/marketing/content';
 import { Container, Section, SectionHeading } from '../bits';
-import { Roost } from '../Owl';
+import { Roost } from '@/components/brand/Owl';
 
 
 /**
