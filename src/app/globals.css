@@ -81,25 +81,32 @@
    * three different softnesses arguing on one screen.
    *
    * Rather than edit four hundred call sites, the scale they all read is
-   * retuned. Every `rounded-lg` in the product becomes 4px, every `rounded-2xl`
-   * becomes 10px, and the *relative* hierarchy every one of those call sites
-   * was expressing is preserved exactly. The absolute values just stop being
-   * soft.
+   * retuned here. The *relative* hierarchy every one of those call sites was
+   * expressing is preserved exactly; only the absolute values move, and they
+   * move together.
    *
-   * The ladder is deliberately tight and nearly linear. Big radii read as
-   * friendly and consumer; these read as machined, which is the right register
-   * for a screen where somebody authorises a payment. The one place a large
-   * radius survives is `rounded-full`, which is left alone because almost every
-   * use of it is a genuine circle — an avatar, a status dot, a count.
+   * The ladder is near-geometric — each step about 1.4x the one below it — so a
+   * control inside a panel inside a card steps up in softness at a rate the eye
+   * reads as one family rather than as three unrelated decisions.
+   *
+   * Where it sits on that ladder is a judgement between two failures. Too tight
+   * and every surface is a rectangle, which is what the site looked like on the
+   * first pass at this: correct, machined, and boxy. Too loose and it reads as a
+   * consumer toy, which is the wrong register for a screen where somebody
+   * authorises a payment. 7px on a button is visibly not a rectangle and still
+   * visibly not a pill, and that is the whole of the intent.
+   *
+   * The one value left alone is `rounded-full`, because almost every use of it
+   * is a genuine circle — an avatar, a status dot, a count.
    */
-  --radius-xs:  1px;
-  --radius-sm:  2px;
-  --radius-md:  3px;
-  --radius-lg:  4px;   /* controls: buttons, chips, tabs */
-  --radius-xl:  6px;   /* inputs, tiles, small panels */
-  --radius-2xl: 10px;  /* cards and page panels */
-  --radius-3xl: 14px;  /* the largest surfaces, and nothing else */
-  --radius-4xl: 18px;
+  --radius-xs:  2px;
+  --radius-sm:  3px;
+  --radius-md:  5px;
+  --radius-lg:  7px;   /* controls: buttons, chips, tabs */
+  --radius-xl:  10px;  /* inputs, tiles, small panels */
+  --radius-2xl: 14px;  /* cards and page panels */
+  --radius-3xl: 18px;  /* the largest surfaces, and nothing else */
+  --radius-4xl: 24px;
 
   /*
    * One family for everything. --font-display is the same stack as --font-sans;
@@ -1073,7 +1080,7 @@ body:has([data-skin='night']) {
       oklch(0.800 0.030 85 / 0.012)
     );
     border: 1px solid var(--m-line);
-    border-radius: 16px;
+    border-radius: var(--radius-3xl);
     backdrop-filter: blur(4px);
   }
 
