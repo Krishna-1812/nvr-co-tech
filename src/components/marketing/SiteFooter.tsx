@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { AGENTS, BRAND, CONTACT, ROSTER } from '@/lib/marketing/content';
 import { Container } from './bits';
 import { Logo } from './Logo';
+import { Parliament } from './Owl';
 
 /**
  * The bottom of every public page.
@@ -47,6 +48,13 @@ const YEAR = new Date().getFullYear();
 export function SiteFooter() {
   return (
     <footer className="relative border-t border-[var(--m-line)]">
+      {/*
+        A parliament, which is the collective noun and the reason this is three
+        birds on one line rather than three separate roosts. They sit on the
+        footer's own top border: this site is built out of hairlines, and an owl
+        perched on one belongs to the design instead of being placed over it.
+      */}
+      <Parliament seed="footer-parliament" className="top-0" />
       <Container wide className="pt-16 pb-10">
         <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div className="max-w-xs">

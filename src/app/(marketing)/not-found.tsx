@@ -1,4 +1,5 @@
 import { Aurora, CTA, Container } from '@/components/marketing/bits';
+import { Roost } from '@/components/marketing/Owl';
 
 /**
  * A 404 inside the public site.
@@ -16,6 +17,11 @@ export default function MarketingNotFound() {
         aria-hidden
         className="m-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(55%_60%_at_50%_30%,#000,transparent)]"
       />
+
+      {/* Two on the 404, where there is nothing else to look at and nothing to
+          get in the way of. */}
+      <Roost seed="lost-hollow" band="top-right" />
+      <Roost seed="lost-bough" band="bottom-left" />
 
       <Container className="relative text-center">
         <p className="m-eyebrow">Error 404</p>

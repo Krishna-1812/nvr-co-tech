@@ -1,5 +1,6 @@
 import { ROSTER, SHARED } from '@/lib/marketing/content';
 import { Container, Section, SectionHeading } from '../bits';
+import { Roost } from '../Owl';
 
 
 /**
@@ -26,6 +27,7 @@ import { Container, Section, SectionHeading } from '../bits';
 export function Platform() {
   return (
     <Section id="platform">
+      <Roost seed="platform-beam" band="left" />
       <Container wide>
         <SectionHeading
           eyebrow="One foundation"

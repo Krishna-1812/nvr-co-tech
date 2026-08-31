@@ -7,6 +7,7 @@ import { JOBS, agentBySlug } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { ACCENT, ArrowLink, Container, Eyebrow, StageBadge } from '../bits';
 import { Reveal } from '../Reveal';
+import { Roost } from '../Owl';
 
 /**
  * The finance month, and which tool takes each job.
@@ -47,6 +48,9 @@ export function WorkCalendar() {
         aria-hidden
         className="m-dots pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(70%_60%_at_50%_30%,#000,transparent)]"
       />
+
+      <Roost seed="calendar-belfry" band="top-left" />
+      <Roost seed="calendar-ledge" band="bottom-right" />
 
       <Container wide className="relative">
         <Reveal>

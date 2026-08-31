@@ -4,6 +4,7 @@ import { ROSTER } from '@/lib/marketing/content';
 import { Aurora, CTA, Container, LineRise, Rise } from '../bits';
 import { Tilt } from '../motion';
 import { VoucherPanel } from './VoucherPanel';
+import { Roost } from '../Owl';
 
 /**
  * Above the fold: one claim, one sentence of substantiation, two buttons, and
@@ -18,6 +19,11 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden">
       <HeroBackdrop />
+
+      {/* Two, and both in the vertical padding rather than the gutter, because
+          the hero is the one section whose content runs the full width. */}
+      <Roost seed="hero-rafter" band="top-right" />
+      <Roost seed="hero-truss" band="bottom-left" />
 
       <Container wide className="relative pt-14 pb-20 sm:pt-20 sm:pb-28">
         <div className="grid items-center gap-14 lg:grid-cols-[1.06fr_1fr] lg:gap-16">

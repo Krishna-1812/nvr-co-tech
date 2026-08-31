@@ -21,6 +21,7 @@ import {
 } from '@/components/marketing/bits';
 import { Reveal } from '@/components/marketing/Reveal';
 import { FlowDiagram } from '@/components/marketing/agents/FlowDiagram';
+import { Roost } from '@/components/marketing/Owl';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -54,6 +55,8 @@ export default async function AgentPage({ params }: Params) {
           aria-hidden
           className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_40%_0%,#000,transparent)]"
         />
+
+        <Roost seed="agent-alcove" band="top-right" />
 
         <Container wide className="relative pt-10 pb-16 sm:pt-14 sm:pb-24">
           <Reveal>

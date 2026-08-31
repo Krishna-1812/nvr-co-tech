@@ -11,6 +11,7 @@ import { BRAND } from '@/lib/marketing/content';
 import { Container, Section, SectionHeading } from '../bits';
 import { Reveal } from '../Reveal';
 import { LogoMark } from '../Logo';
+import { Roost } from '../Owl';
 
 /**
  * The product, at a glance.
@@ -87,6 +88,7 @@ const ANNOTATIONS = [
 export function ProductShowcase() {
   return (
     <Section id="product" className="overflow-hidden">
+      <Roost seed="showcase-loft" band="bottom-left" />
       <Container wide>
         <SectionHeading
           eyebrow="Inside Voucher Desk"

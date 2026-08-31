@@ -15,6 +15,7 @@ import {
 import { Reveal } from '@/components/marketing/Reveal';
 import { Counter, Spotlight } from '@/components/marketing/motion';
 import { RoadmapRail } from '@/components/marketing/agents/RoadmapRail';
+import { Roost } from '@/components/marketing/Owl';
 
 export const metadata: Metadata = {
   title: 'Agents',
@@ -67,6 +68,8 @@ export default function AgentsPage() {
           aria-hidden
           className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
         />
+
+        <Roost seed="agents-roost" band="top-right" />
 
         <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-20">
           <Rise>

@@ -1,5 +1,6 @@
 import { Aurora, CTA, Container } from '../bits';
 import { Reveal } from '../Reveal';
+import { Roost } from '../Owl';
 
 export function FinalCTA() {
   return (
@@ -12,6 +13,9 @@ export function FinalCTA() {
         aria-hidden
         className="m-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(60%_70%_at_50%_100%,#000,transparent)]"
       />
+
+      <Roost seed="cta-spire" band="top-left" />
+      <Roost seed="cta-nook" band="right" />
 
       <Container className="relative text-center">
         <Reveal>

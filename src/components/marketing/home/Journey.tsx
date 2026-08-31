@@ -6,6 +6,7 @@ import { STEPS } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { Container, Eyebrow } from '../bits';
 import { Reveal } from '../Reveal';
+import { Roost } from '../Owl';
 
 /**
  * One voucher, followed from the invoice landing to the record closing.
@@ -55,6 +56,10 @@ const SCENES = [DraftScene, RulesScene, DecideScene, CloseScene] as const;
 export function Journey() {
   return (
     <section id="how" className="relative border-t border-[var(--m-line)]">
+      {/* The long section, so one at each end rather than one in the middle of
+          three thousand pixels of scrolling. */}
+      <Roost seed="journey-hollow" band="top-right" />
+      <Roost seed="journey-branch" band="bottom-left" />
       <Container wide className="relative pt-20 sm:pt-28">
         <Reveal>
           <Eyebrow className="mb-4">How it works</Eyebrow>

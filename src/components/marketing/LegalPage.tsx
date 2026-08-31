@@ -1,5 +1,6 @@
 import { Aurora, Container, Eyebrow, Rise, Section } from './bits';
 import { Reveal } from './Reveal';
+import { Roost } from './Owl';
 
 /**
  * The shape both /privacy and /terms are built from.
@@ -67,6 +68,8 @@ export function LegalPage({
           aria-hidden
           className="m-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
         />
+
+        <Roost seed="legal-margin" band="top-right" />
 
         <Container className="relative pt-16 pb-14 sm:pt-24 sm:pb-16">
           <Rise>

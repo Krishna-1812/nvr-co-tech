@@ -4,6 +4,7 @@ import { BRAND, CONTACT } from '@/lib/marketing/content';
 import { Aurora, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
 import { Reveal } from '@/components/marketing/Reveal';
 import { RequestForm } from '@/components/marketing/RequestForm';
+import { Roost } from '@/components/marketing/Owl';
 
 export const metadata: Metadata = {
   title: 'Book a walkthrough',
@@ -40,6 +41,8 @@ export default function ContactPage() {
           aria-hidden
           className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
         />
+
+        <Roost seed="contact-sill" band="top-right" />
 
         <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-16">
           <Rise>

@@ -1830,3 +1830,316 @@ body:has([data-skin='night']) {
   }
 
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   The owls
+
+   Miniatures of the firm's own mark, living in the margins. The drawing is in
+   components/marketing/Owl.tsx and the traits are in lib/brand/owlkit.ts; this
+   file is only the colour and the movement.
+
+   Three rules hold the whole thing together:
+
+   1. No owl introduces a colour. Every value below resolves to a token the
+      page already had, which is why a bird sitting on a navy section and one
+      sitting on the footer are the same bird and neither had to be tuned.
+
+   2. No two animations write `transform` on the same element. CSS resolves that
+      collision by silently dropping one of them, so an owl that breathed and
+      tilted would just stop breathing with nothing to find in the inspector.
+      Hence the nested groups, one animation each.
+
+   3. Every clock is per-owl, set inline from the seed. The keyframes are shared;
+      the periods and the (negative, so they start part-way through) delays are
+      not. Twenty owls blinking on one 5s loop would read as a fault in the page.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.owl {
+  /*
+   * The night-skin token first, the application token as the fallback. The
+   * marketing pages define --m-*; the application does not, and `var(x, y)`
+   * takes y exactly when x is undefined. So the same bird can perch anywhere in
+   * the product without a second palette being written for it.
+   */
+  --o-body-c: var(--m-bg-3, var(--surface-sunken));
+  --o-sclera: var(--m-ink, var(--text-c));
+  --o-iris: var(--m-gold, var(--accent-lit));
+  --o-pupil: var(--m-bg, var(--surface));
+  --o-beak: var(--m-gold, var(--accent-lit));
+
+  /*
+   * The wing is always the body pushed a third of the way towards whatever this
+   * owl uses for the whites of its eyes. One rule, and it lands correctly on all
+   * four palettes for three different reasons: a dark bird's sclera is bone, so
+   * its wing comes out lighter; a pale bird's is the page's own ground, so its
+   * wing comes out darker; and the ghost's body is a translucent hairline
+   * colour, so mixing in an opaque one mostly makes the wing more solid. Lighter,
+   * darker or firmer — each is a legible wing, which is all this has to be.
+   */
+  --o-wing: color-mix(in oklab, var(--o-body-c) 66%, var(--o-sclera));
+
+  display: block;
+  /* The lean and the facing. Kept in `transform` so the independent `rotate`
+     property is free for the scroll-driven head turn below — two properties,
+     which compose, rather than two animations, which would not. */
+  transform: rotate(var(--o-lean, 0deg)) scaleX(var(--o-facing, 1));
+}
+
+/* A faint pale bird with dark eye sockets and a gold iris. The common case, and
+   the quietest: this is the one that reads as texture in the corner of a
+   section rather than as a picture of an owl. */
+.owl[data-palette='ghost'] {
+  --o-body-c: var(--m-line-2, var(--border-strong));
+  --o-sclera: var(--m-bg, var(--surface));
+}
+
+/* The mark itself: a dark bird, bone whites, gold iris, gold beak. */
+.owl[data-palette='ink'] {
+  --o-body-c: var(--m-bg-3, var(--surface-sunken));
+}
+
+/* Bone. The beak turns dark because gold on bone is two light values with
+   nothing between them. */
+.owl[data-palette='bone'] {
+  --o-body-c: var(--m-dim, var(--text-subtle));
+  --o-sclera: var(--m-bg, var(--surface));
+  --o-beak: var(--m-bg, var(--surface));
+}
+
+/*
+ * Gold, and rare. Held to a lower opacity in owlkit for the same reason.
+ *
+ * The eye inverts here rather than keeping the gold iris of the other three: a
+ * gold iris on a gold bird is one value against itself, and the first cut of
+ * this palette lost both eyes completely at twenty pixels — the owl became a
+ * plain tan disc. So the socket goes to the page's own ground and the iris to
+ * bone, which is the same three-ring eye read from the other side.
+ */
+.owl[data-palette='gold'] {
+  --o-body-c: var(--m-gold, var(--accent-lit));
+  --o-sclera: var(--m-bg, var(--surface));
+  --o-iris: var(--m-ink, var(--text-c));
+  --o-beak: var(--m-bg, var(--surface));
+}
+
+/*
+ * Every animated group is measured against its own bounding box rather than the
+ * viewBox. Without this a head asked to rotate about its centre rotates about
+ * the centre of a 300-unit square it only occupies part of, and swings.
+ */
+.owl .o-posture,
+.owl .o-body,
+.owl .o-head,
+.owl .o-eye,
+.owl .o-pupil,
+.owl .o-wing,
+.owl .o-tufts {
+  transform-box: fill-box;
+}
+
+.owl .o-posture,
+.owl .o-body {
+  transform-origin: 50% 100%;
+}
+.owl .o-head {
+  transform-origin: 50% 72%;
+}
+.owl .o-eye,
+.owl .o-pupil {
+  transform-origin: 50% 50%;
+}
+/* The shoulder, so a wing shuffles from where it joins the bird. */
+.owl .o-wing {
+  transform-origin: 82% 6%;
+}
+.owl .o-tufts {
+  transform-origin: 50% 100%;
+}
+
+/* ── Posture: how it is sitting before anything moves ── */
+
+.owl[data-posture='hunched'] .o-posture {
+  transform: scale(1.07, 0.9);
+}
+.owl[data-posture='tall'] .o-posture {
+  transform: scale(0.93, 1.07);
+}
+
+/* ── Blinking ─────────────────────────────────────────────────────────────
+   Squashed to a sliver rather than hidden. A closed owl eye is a line, and at
+   twenty pixels a scaleY is indistinguishable from a drawn lid while costing
+   two fewer elements per eye. The blink is ~3% of the cycle: at the 3.4–9s
+   periods owlkit deals out, that is between 100 and 270ms, which is roughly
+   what a real one takes. */
+
+@keyframes o-blink {
+  0%, 93.4% { transform: scaleY(1); }
+  95% { transform: scaleY(0.08); }
+  96.6%, 100% { transform: scaleY(1); }
+}
+
+@keyframes o-blink-double {
+  0%, 89.6% { transform: scaleY(1); }
+  90.8% { transform: scaleY(0.08); }
+  92.2% { transform: scaleY(1); }
+  93.6% { transform: scaleY(0.08); }
+  95%, 100% { transform: scaleY(1); }
+}
+
+/* Shut, mostly. A sleeping owl opens one eye occasionally and closes it again,
+   and that is the entire performance. */
+@keyframes o-doze {
+  0%, 88% { transform: scaleY(0.09); }
+  92%, 95.5% { transform: scaleY(0.86); }
+  99%, 100% { transform: scaleY(0.09); }
+}
+
+.owl .o-eye {
+  animation: o-blink var(--o-blink, 5s) var(--o-blink-in, 0s) infinite both;
+}
+.owl[data-blink='double'] .o-eye {
+  animation-name: o-blink-double;
+}
+/* A wink is one eye. The other holds, which is the whole joke. */
+.owl[data-blink='wink'] .o-eye-l {
+  animation: none;
+}
+
+/* Shut even with motion off, so a sleeper is still asleep for a reader who has
+   asked for no animation. The keyframes override this while they run. */
+.owl[data-special='sleeper'] .o-eye {
+  transform: scaleY(0.09);
+}
+.owl[data-special='sleeper'] .o-eye {
+  animation-name: o-doze;
+}
+
+/* ── The one idle habit each owl has ── */
+
+@keyframes o-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  22%, 38% { transform: rotate(-8deg); }
+  62%, 78% { transform: rotate(7deg); }
+}
+
+/* The head turn. Narrowing on the way round is what sells it as a rotation in
+   three dimensions rather than a slide. */
+@keyframes o-swivel {
+  0%, 68%, 100% { transform: scaleX(1) translateX(0); }
+  78% { transform: scaleX(0.7) translateX(6%); }
+  88% { transform: scaleX(0.92) translateX(-3%); }
+}
+
+@keyframes o-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4%); }
+}
+
+@keyframes o-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04, 1.03); }
+}
+
+/* Looking about. 26% of the pupil's own width is about seven units of three
+   hundred, which keeps it inside the iris at both ends of the travel. */
+@keyframes o-peer {
+  0%, 14% { transform: translateX(0); }
+  26%, 44% { transform: translateX(-26%); }
+  56%, 74% { transform: translateX(26%); }
+  88%, 100% { transform: translateX(0); }
+}
+
+/* A shudder, and the one habit that is stepped rather than eased — the same
+   held-frame language the rest of the site's motion is written in. */
+@keyframes o-ruffle {
+  0%, 86%, 100% { transform: rotate(0deg) scaleY(1); }
+  89% { transform: rotate(-4deg) scaleY(1.04); }
+  92% { transform: rotate(5deg) scaleY(0.97); }
+  95% { transform: rotate(-3deg) scaleY(1.02); }
+}
+
+@keyframes o-shuffle {
+  0%, 74%, 100% { transform: rotate(0deg); }
+  82% { transform: rotate(-14deg); }
+  90% { transform: rotate(4deg); }
+}
+
+@keyframes o-perk {
+  0%, 80%, 100% { transform: translateY(0) scaleY(1); }
+  85% { transform: translateY(-9%) scaleY(1.2); }
+  91% { transform: translateY(0) scaleY(1); }
+}
+
+.owl[data-idle='tilt'] .o-head,
+.owl[data-idle='swivel'] .o-head,
+.owl[data-idle='ruffle'] .o-head,
+.owl[data-idle='peer'] .o-pupil,
+.owl[data-idle='perk'] .o-tufts,
+.owl[data-idle='bob'] .o-body,
+.owl[data-idle='breathe'] .o-body,
+.owl[data-idle='shuffle'] .o-wing {
+  animation-duration: var(--o-idle, 9s);
+  animation-delay: var(--o-idle-in, 0s);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+.owl[data-idle='tilt'] .o-head { animation-name: o-tilt; }
+.owl[data-idle='swivel'] .o-head { animation-name: o-swivel; }
+.owl[data-idle='ruffle'] .o-head { animation-name: o-ruffle; animation-timing-function: steps(4, end); }
+.owl[data-idle='peer'] .o-pupil { animation-name: o-peer; }
+.owl[data-idle='perk'] .o-tufts { animation-name: o-perk; }
+.owl[data-idle='bob'] .o-body { animation-name: o-bob; }
+.owl[data-idle='breathe'] .o-body { animation-name: o-breathe; }
+.owl[data-idle='shuffle'] .o-wing { animation-name: o-shuffle; }
+
+/* ── Turning to follow the reader ─────────────────────────────────────────
+   Roughly two owls in five track you as they cross the screen.
+
+   The timeline has to live on the <svg>, not on the head: a view timeline is
+   measured from an element's principal box, and an SVG <g> has no such box, so
+   `animation-timeline: view()` on the head would attach to nothing and never
+   advance. So the root drives a registered custom property — registered, because
+   an unregistered one is a string and interpolates in a single jump — and the
+   head reads it through `rotate`, which is a property of its own and therefore
+   composes with whatever idle habit is already using `transform`.
+
+   No pointer involved anywhere. These are `pointer-events: none` by design, so
+   an owl can never take a click from a link it is sitting beside; scroll is the
+   one thing it can react to without ever being in the way. */
+
+@property --o-turn {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@keyframes o-watch {
+  from { --o-turn: 9deg; }
+  to { --o-turn: -9deg; }
+}
+
+.owl .o-head {
+  rotate: var(--o-turn, 0deg);
+}
+
+@supports (animation-timeline: view()) {
+  @media not (prefers-reduced-motion: reduce) {
+    .owl[data-watch='1'] {
+      animation: o-watch linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
+}
+
+/* Asked for stillness, and given it. The birds stay — they are drawings, and a
+   drawing is not what anybody means by reduced motion — but nothing on them
+   moves, including the scroll-driven turn. */
+@media (prefers-reduced-motion: reduce) {
+  .owl,
+  .owl * {
+    animation: none !important;
+    rotate: none !important;
+  }
+}

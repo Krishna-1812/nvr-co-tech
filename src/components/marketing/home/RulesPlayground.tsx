@@ -7,6 +7,7 @@ import { GST_RATES, TDS_SECTIONS } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { Container, Eyebrow } from '../bits';
 import { Reveal } from '../Reveal';
+import { Roost } from '../Owl';
 
 /**
  * The tax rules, as something you can drive rather than read about.
@@ -58,6 +59,8 @@ export function RulesPlayground() {
         aria-hidden
         className="m-dots pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(60%_60%_at_50%_50%,#000,transparent)]"
       />
+
+      <Roost seed="rules-gable" band="top-right" />
 
       <Container className="relative">
         <Reveal>
