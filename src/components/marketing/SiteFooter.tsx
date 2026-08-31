@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AGENTS, BRAND, CONTACT, ROSTER } from '@/lib/marketing/content';
+import { AGENTS, BRAND, CONTACT } from '@/lib/marketing/content';
 import { Container } from './bits';
 import { Logo } from './Logo';
 import { Parliament } from '@/components/brand/Owl';
@@ -104,17 +104,15 @@ export function SiteFooter() {
 
         <div className="mt-14 flex flex-col gap-4 border-t border-[var(--m-line)] pt-7 sm:flex-row sm:items-center sm:justify-between">
           <p className="m-dim-2 t-2">
-            © {YEAR} {BRAND.name}. Built by chartered accountants, in Mumbai.
+            © {YEAR} {BRAND.name}.
           </p>
 
+          {/*
+            The roster count that used to open this row is gone, and the divider
+            that separated it from the legal links with it — a divider is only a
+            divider when there is something on both sides of it.
+          */}
           <div className="m-dim-2 flex items-center gap-5 t-2">
-            {/* Figures, not words. This is a mono micro-label, where "two of 6"
-                was the worst of both and "two of six" reads as prose in a slot
-                that is not prose. */}
-            <span className="m-mono t-1 t-caps uppercase tabular-nums">
-              {ROSTER.live} of {ROSTER.total} live
-            </span>
-            <span aria-hidden className="h-3 w-px bg-[var(--m-line-2)]" />
             {LEGAL.map((l) => (
               <Link
                 key={l.href}

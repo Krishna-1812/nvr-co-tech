@@ -451,31 +451,6 @@ export const JOBS: readonly Job[] = [
 ];
 
 /**
- * What the tools have in common, said plainly.
- *
- * The reason a finance team should want six tools from one place is not a
- * bundle price, and this is the section that has to say what it actually is.
- */
-export const SHARED = [
-  {
-    title: 'One sign-in',
-    body: 'The same account across every tool. Nobody keeps a second password, and nobody is left with access to something after they have moved on.',
-  },
-  {
-    title: 'One list of who can do what',
-    body: 'Four roles, set once. Being able to approve a payment means the same thing in every tool, and the database is what enforces it rather than each screen.',
-  },
-  {
-    title: 'One set of records',
-    body: 'A payment and the reconciliation that clears it are looking at the same chapter, the same people and the same organisation. Nothing has to be kept in step by hand, and nothing has to be typed in twice.',
-  },
-  {
-    title: 'One history',
-    body: 'Every action anywhere lands in the same list, and nobody can edit or delete a line in it. One place to look when somebody asks what happened.',
-  },
-] as const;
-
-/**
  * The tax rules the interactive panel on the home page lets you drive.
  *
  * Rates only. The arithmetic is done by the application's own calcNetTotal and

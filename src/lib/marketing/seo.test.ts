@@ -78,10 +78,13 @@ describe('siteLd', () => {
   });
 
   it('claims a location only as far as the site itself does', () => {
-    // The site says "built by chartered accountants, in Mumbai" and nothing
-    // more specific. A streetAddress, a postalCode or a telephone here would be
-    // invented, and this is the assertion that keeps somebody from adding one
-    // because a validator asked for it.
+    // The site says "Chartered accountants, in Mumbai" on the contact page and
+    // nothing more specific anywhere. A streetAddress, a postalCode or a
+    // telephone here would be invented, and this is the assertion that keeps
+    // somebody from adding one because a validator asked for it.
+    //
+    // The footer used to carry that sentence too and was what this cited; it
+    // was removed, and the claim is grounded on the contact page now.
     const business = byType(graph, 'ProfessionalService') as Record<string, unknown>;
     expect(business.address).toEqual({
       '@type': 'PostalAddress',
