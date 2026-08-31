@@ -3,7 +3,7 @@ import { CARD_SIZE, CARD_TYPE, cardAlt, socialCard } from '@/lib/brand/socialCar
 const CARD = {
   eyebrow: 'About',
   headline: 'Accountants building their own tools.',
-  chips: ['Chartered accountants', 'Rules in the database', 'Built in Mumbai'],
+  chips: ['Chartered accountants', 'Rules in the database', 'Records you can audit'],
 };
 
 export const size = CARD_SIZE;

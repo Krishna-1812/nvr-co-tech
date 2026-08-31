@@ -131,11 +131,15 @@ export default function ContactPage() {
               <Reveal delay={200}>
                 <div className="m-card p-6 sm:p-7">
                   <h2 className="m-eyebrow">Elsewhere</h2>
+                  {/*
+                    Two rows removed: "Built by — Chartered accountants, in
+                    Mumbai" and "Hosting — Mumbai · ap-south-1". Both named the
+                    location, which the site no longer does anywhere, and each
+                    was a dt/dd pair rather than a line, so both halves go
+                    together — a term with nothing defining it is worse than
+                    neither.
+                  */}
                   <dl className="mt-5 space-y-4 t-3">
-                    <div>
-                      <dt className="m-dim-2">Built by</dt>
-                      <dd className="mt-1">Chartered accountants, in Mumbai</dd>
-                    </div>
                     <div>
                       <dt className="m-dim-2">Security reports</dt>
                       <dd className="mt-1">
@@ -146,10 +150,6 @@ export default function ContactPage() {
                           {CONTACT.security}
                         </a>
                       </dd>
-                    </div>
-                    <div>
-                      <dt className="m-dim-2">Hosting</dt>
-                      <dd className="mt-1">Mumbai · ap-south-1</dd>
                     </div>
                   </dl>
                 </div>

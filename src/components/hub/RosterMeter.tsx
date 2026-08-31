@@ -70,14 +70,20 @@ export function RosterMeter() {
         ))}
       </div>
 
+      {/*
+        A key, not a tally. This read "4 live · 4 on the roadmap" until the
+        counts came off the site; it now names the kinds of cell in the bar
+        above and lets the bar do the counting, which it was always doing
+        better — one cell per tool, in order, is a count you can see.
+      */}
       <p className="text-subtle mt-2.5 text-[11px]">
-        {parts.map(({ stage, n }, i) => (
+        {parts.map(({ stage }, i) => (
           <span key={stage}>
             {i > 0 && <span className="px-1.5 opacity-50">·</span>}
-            {/* Only the live count is emphasised: it is the one figure here
-                somebody can act on today. */}
+            {/* Only live is emphasised: it is the one kind here somebody can act
+                on today. */}
             <span className={stage === 'live' ? 'font-semibold text-[var(--text-c)]' : undefined}>
-              {n} {SHORT[stage]}
+              {SHORT[stage]}
             </span>
           </span>
         ))}

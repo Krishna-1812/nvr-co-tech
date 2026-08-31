@@ -42,11 +42,25 @@ const PLACE_ID = `${SITE_URL}/#business`;
 /**
  * Where the business is.
  *
- * Locality and region only. The site says "built by chartered accountants, in
- * Mumbai" and puts the data in ap-south-1, and that is the whole of what this
- * repository knows about where anybody sits. A `streetAddress` and a
- * `telephone` are what Google actually wants here, and both would have to be
- * invented, which is not a trade worth making for a rich result.
+ * Locality and region only, and that is the whole of what this repository knows
+ * about where anybody sits. A `streetAddress` and a `telephone` are what Google
+ * actually wants here, and both would have to be invented, which is not a trade
+ * worth making for a rich result.
+ *
+ * ── Read this before changing it ────────────────────────────────────────────
+ *
+ * This is now the only place on the site that states a location. The pages used
+ * to say it in four: the footer's "built by chartered accountants, in Mumbai",
+ * the contact page's "Built by" and "Hosting" rows, and the about page's
+ * "1 place your data sits — Mumbai, ap-south-1". All four were removed, and
+ * keeping this node as it is was a deliberate call rather than an oversight.
+ *
+ * The trade being made: markup that asserts a location no reader sees is the
+ * kind of mismatch Google says can get structured data ignored. Against that,
+ * the locality is true, and it is the only thing here that could earn a local
+ * result at all. If that ever looks like the wrong side of the trade, the fix
+ * is to drop `address` from localBusiness — or the node with it — and not to
+ * put a street and a telephone in to make it look more convincing.
  */
 const ADDRESS = {
   '@type': 'PostalAddress',

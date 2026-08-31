@@ -259,64 +259,26 @@ export const AGENTS: Agent[] = [
 
 export const LIVE_AGENTS = AGENTS.filter((a) => a.stage === 'live');
 
-/**
- * How many are running, said in words, derived rather than typed.
+/*
+ * The roster's derived counts, and what is left of them.
  *
- * Four places on the site said "one is live" in prose. Ledger Reconciliation
- * shipped and every one of them went on saying it, which is the expensive
- * direction for that error to run: a site that undersells is a site quietly
- * hiding a product from the people who came to look at it. Counting the roster
- * instead means there is nowhere left to forget.
+ * There were eleven fields here, plus a lookup table of number words and two
+ * helpers to render them: figures for the mono micro-labels, words for prose (a
+ * numeral mid-sentence reads as a specification), capitalised words for the ones
+ * that opened a sentence, and verbs to agree with each. All of it existed so
+ * that no page could say "one is live" after a second had shipped — which four
+ * of them had done, for months.
  *
- * Words rather than figures because these appear mid-sentence, and a numeral in
- * running prose reads as a specification.
+ * The site no longer states how many tools are live or how many are on the
+ * roster anywhere, so the counting went with the sentences that read it. The two
+ * verbs stay: the sentences that remain still have to agree as the roster
+ * changes, and that is agreement rather than a count.
  *
- * The table used to stop at six, on the reasoning that a seventh agent would
- * show up as a bare numeral and be ugly enough to notice. It was: the roster
- * reached eight and the platform section spent a while saying "Buy 8 tools from
- * 8 companies and you get 8 logins", which is precisely the register the rest of
- * this file is written to avoid. Prediction is not a safeguard. It runs to
- * twelve now, which is past any roster this is likely to hold, and `inWords`
- * still falls back to the numeral rather than throwing — a page that reads
- * slightly wrong beats a page that does not render.
+ * If a count ever comes back, it comes back derived from AGENTS the way these
+ * were. Typing one out is how the platform section spent a while saying "Buy 8
+ * tools from 8 companies and you get 8 logins".
  */
-const WORDS = [
-  'none',
-  'one',
-  'two',
-  'three',
-  'four',
-  'five',
-  'six',
-  'seven',
-  'eight',
-  'nine',
-  'ten',
-  'eleven',
-  'twelve',
-] as const;
-
-export function inWords(n: number): string {
-  return WORDS[n] ?? String(n);
-}
-
-/** For a word that has to start a sentence. */
-const opening = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1);
-
 export const ROSTER = {
-  /** Figures, for the mono micro-labels where a numeral is what reads well. */
-  live: LIVE_AGENTS.length,
-  coming: AGENTS.length - LIVE_AGENTS.length,
-  total: AGENTS.length,
-  /** "two", mid-sentence: "one of the **two** running today". */
-  liveWord: inWords(LIVE_AGENTS.length),
-  /** "four", mid-sentence: "and **four** more besides". */
-  comingWord: inWords(AGENTS.length - LIVE_AGENTS.length),
-  /** "six", mid-sentence: "buy **six** tools from six companies". */
-  totalWord: inWords(AGENTS.length),
-  /** The same three where the sentence starts on them. */
-  liveOpen: opening(inWords(LIVE_AGENTS.length)),
-  comingOpen: opening(inWords(AGENTS.length - LIVE_AGENTS.length)),
   /** Agreement, so the sentence survives the roster shrinking to one. */
   liveVerb: LIVE_AGENTS.length === 1 ? 'is' : 'are',
   comingVerb: AGENTS.length - LIVE_AGENTS.length === 1 ? 'is' : 'are',

@@ -9,7 +9,7 @@ import { CARD_SIZE, CARD_TYPE, cardAlt, socialCard } from '@/lib/brand/socialCar
 const CARD = {
   eyebrow: BRAND.tagline,
   headline: 'We handle the repetitive work. You make the calls.',
-  chips: ['Payments, GST, TDS, bank', 'One set of records', 'Hosted in Mumbai'],
+  chips: ['Payments, GST, TDS, bank', 'One set of records', 'Approvals built in'],
 };
 
 export const size = CARD_SIZE;

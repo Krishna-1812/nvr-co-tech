@@ -78,13 +78,19 @@ describe('siteLd', () => {
   });
 
   it('claims a location only as far as the site itself does', () => {
-    // The site says "Chartered accountants, in Mumbai" on the contact page and
-    // nothing more specific anywhere. A streetAddress, a postalCode or a
-    // telephone here would be invented, and this is the assertion that keeps
-    // somebody from adding one because a validator asked for it.
+    // A streetAddress, a postalCode or a telephone here would be invented, and
+    // this is the assertion that keeps somebody from adding one because a
+    // validator asked for it.
     //
-    // The footer used to carry that sentence too and was what this cited; it
-    // was removed, and the claim is grounded on the contact page now.
+    // This used to cite the visible copy that made the same claim — the footer's
+    // "built by chartered accountants, in Mumbai", then the contact page's
+    // "Built by" row after the footer line went. Both are gone now, and so is
+    // the about page's "Mumbai, ap-south-1". The locality survives only here, by
+    // decision; see the note on ADDRESS in seo.ts for the trade that was made.
+    //
+    // Which makes this test more load-bearing than it was, not less: there is no
+    // longer a page to check the markup against, so what the markup may claim is
+    // whatever this says it may claim.
     const business = byType(graph, 'ProfessionalService') as Record<string, unknown>;
     expect(business.address).toEqual({
       '@type': 'PostalAddress',

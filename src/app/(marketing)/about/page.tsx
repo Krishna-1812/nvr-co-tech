@@ -189,22 +189,30 @@ export default function AboutPage() {
         <Container wide>
           <Reveal>
             {/*
-              Four figures that are all facts about the product rather than
+              Three figures that are all facts about the product rather than
               claims about the business.
 
               The second one said 2 for months after the schema went down to a
               single signature, which is the trouble with a stats band: a figure
               in 3rem type is the most quotable thing on a page and the least
-              likely thing on it to be revisited. Each of these four now has a
-              line of SQL behind it — 32 columns in export/columns.ts, one
-              signature in submit_voucher, no UPDATE grant at all on the audit
-              table, and one region in vercel.json.
+              likely thing on it to be revisited. Each of these now has a line of
+              SQL behind it — 32 columns in export/columns.ts, one signature in
+              submit_voucher, and no UPDATE grant at all on the audit table.
+
+              There was a fourth, for the region; see below.
             */}
-            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
               <Stat value="32" label="Voucher fields" hint="Every one from the form you already use" />
               <Stat value="1" label="Signature to approve" hint="And never the person who raised it" />
               <Stat value="0" label="Ways to edit the history" hint="Not for any role, at any level" />
-              <Stat value="1" label="Place your data sits" hint="Mumbai, ap-south-1" />
+              {/*
+                The fourth figure was "1 place your data sits", hinted "Mumbai,
+                ap-south-1". The figure was fine; the hint named the location,
+                which the site no longer does anywhere, and a bare "1 place your
+                data sits" with nothing under it is a figure that raises the
+                question it used to answer. So the whole stat goes, and three
+                sit across the row.
+              */}
             </div>
           </Reveal>
         </Container>
@@ -266,16 +274,19 @@ export default function AboutPage() {
           <Reveal delay={80}>
             <p className="m-dim-2 mt-8 max-w-2xl t-3">
               {/*
-                Both halves are counted rather than written down. The verb has to
-                agree as the roster ships, and the stage names have to be the ones
-                somebody is actually standing on: this sentence promised the rest
-                were marked "in build or on the roadmap" while nothing at all was
-                in build, which is the same empty-stage claim the roster page was
-                making in its own hero.
+                The stage names are still counted rather than written down: they
+                have to be the ones somebody is actually standing on. This
+                sentence once promised the rest were marked "in build or on the
+                roadmap" while nothing at all was in build.
+
+                The count that opened it is gone, along with every other count on
+                the site. What it was there to do — say plainly that not all of
+                this exists yet — the rest of the sentence still does, and the
+                list directly above marks each one.
               */}
-              {ROSTER.liveOpen} of {ROSTER.totalWord} {ROSTER.liveVerb} up and running today. The
-              rest {ROSTER.comingVerb} marked {STAGES_IN_WAITING}. We would rather say that here
-              than have the conversation after you have signed something.
+              Not all of this is built. Each one above says which stage it is at, and the rest{' '}
+              {ROSTER.comingVerb} marked {STAGES_IN_WAITING}. We would rather say that here than
+              have the conversation after you have signed something.
             </p>
           </Reveal>
         </Container>

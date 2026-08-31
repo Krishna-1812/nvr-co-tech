@@ -1,4 +1,4 @@
-import { AGENTS, BRAND, CONTACT, ROSTER, STAGE_LABEL } from '@/lib/marketing/content';
+import { AGENTS, BRAND, CONTACT, STAGE_LABEL } from '@/lib/marketing/content';
 import { absolute } from '@/lib/marketing/seo';
 
 /**
@@ -42,8 +42,8 @@ export function GET(): Response {
     'person. The rules the tools enforce are held in the database rather than in the screens,',
     'so they apply however the request arrives.',
     '',
-    `Of ${ROSTER.total} tools on the roster, ${ROSTER.live} ${ROSTER.liveVerb} live today. The rest are being built or`,
-    'are written up and waiting their turn, and every page on the site says which is which.',
+    'Some of the tools are live today. The rest are being built or are written up and waiting',
+    'their turn, and every page on the site says which is which — as do the two lists below.',
     '',
     '## Live today',
     '',

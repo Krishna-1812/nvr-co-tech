@@ -1,6 +1,4 @@
 import { ArrowDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { ROSTER } from '@/lib/marketing/content';
 import { Aurora, CTA, Container, LineRise, Rise } from '../bits';
 import { Tilt } from '../motion';
 import { VoucherPanel } from './VoucherPanel';
@@ -64,9 +62,7 @@ export function Hero() {
               <p className="m-dim mt-7 max-w-lg t-4 sm:t-5">
                 One tool for each job your team repeats every month. Raising payments, agreeing the
                 bank, matching GST, working out TDS. They fill in the forms, do the arithmetic and
-                pass the work to the right person, then you decide.{' '}
-                {ROSTER.liveOpen} of them {ROSTER.liveVerb} running today and the rest are on the
-                way.
+                pass the work to the right person, then you decide.
               </p>
             </Rise>
 
@@ -90,23 +86,22 @@ export function Hero() {
         </div>
 
         {/*
-          The index.
+          What used to be an index — a hairline and three counts set like the
+          masthead figures on a contents page, one for live, one for in build,
+          one for the whole roster — is now the hairline and the cue that sat at
+          the end of it.
 
-          A hairline and three counts, set like the masthead figures on a
-          contents page. Every number is derived from the roster in
-          lib/marketing/content — nothing here is typed, so it cannot say "four
-          live" the month a fifth ships. That mattering is the whole reason it
-          is on the page: an index is a claim about completeness, and one that
-          drifts is worse than none.
+          The counts are gone from the site entirely, so the figures went with
+          them. The cue stays because it is not a count: it is the one thing on
+          the first screen that tells a reader there is a page below this. It
+          loses its `ml-auto` and its `lg:` gate along with the figures — pushed
+          right and hidden on small screens made sense while it was the tail of
+          a row, and neither does now that it is the row.
         */}
         <Rise delay={620}>
           <div className="mt-16 border-t border-[var(--m-line)] pt-6">
             <div className="flex flex-wrap items-end gap-x-12 gap-y-6">
-              <IndexFigure value={ROSTER.live} label="Running today" lit />
-              <IndexFigure value={ROSTER.coming} label="In build" />
-              <IndexFigure value={ROSTER.total} label="On the roster" />
-
-              <p className="m-mono m-dim-2 ml-auto hidden items-center gap-2.5 t-1 t-caps uppercase lg:flex">
+              <p className="m-mono m-dim-2 flex items-center gap-2.5 t-1 t-caps uppercase">
                 <ArrowDown
                   className="size-3 animate-[breathe_3.4s_ease-in-out_infinite] motion-reduce:animate-none"
                   aria-hidden
@@ -118,30 +113,6 @@ export function Hero() {
         </Rise>
       </Container>
     </section>
-  );
-}
-
-/**
- * A count, set as an index entry.
- *
- * Two-digit padded, because a column of figures where one is "4" and the next
- * is "12" reads as a list and a column where both are two digits reads as an
- * index. The label sits under a rule rather than beside the number, so three of
- * these across a row line up on two baselines instead of six.
- */
-function IndexFigure({ value, label, lit = false }: { value: number; label: string; lit?: boolean }) {
-  return (
-    <div className="min-w-[7rem]">
-      <p
-        className={cn(
-          'm-display m-tabular t-h2',
-          lit && 'text-[var(--m-gold)]',
-        )}
-      >
-        {String(value).padStart(2, '0')}
-      </p>
-      <p className="m-mono m-dim-2 mt-3 t-1 t-caps uppercase">{label}</p>
-    </div>
   );
 }
 

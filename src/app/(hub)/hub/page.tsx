@@ -6,7 +6,6 @@ import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { canApprove, isAdmin, isOwner, ROLE_META } from '@/lib/domain/workflow';
 import { deskBrief } from '@/lib/domain/desk';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
-import { ROSTER } from '@/lib/marketing/content';
 import { SOLUTIONS } from '@/lib/solutions';
 import { LiveSolutionCard, type Reading } from '@/components/hub/LiveSolutionCard';
 import { RequestCard } from '@/components/hub/RequestCard';
@@ -430,8 +429,8 @@ export default async function HubPage() {
               number out for itself.
             */}
             <p className="text-muted mt-3 max-w-xl text-[15px] text-pretty">
-              Everything the firm runs is here. {ROSTER.liveOpen} of these {ROSTER.liveVerb} open for
-              work today, and the rest are written down in the order they will be built.
+              Everything the firm runs is here. The ones open for work today are marked, and the
+              rest are written down in the order they will be built.
             </p>
 
             <p className="mt-4">

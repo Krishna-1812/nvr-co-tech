@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { AGENTS, ROSTER, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
+import { AGENTS, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
   ACCENT,
   Aurora,
@@ -14,16 +14,15 @@ import {
 } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
-import { Counter, Spotlight } from '@/components/marketing/motion';
+import { Spotlight } from '@/components/marketing/motion';
 import { RoadmapRail } from '@/components/marketing/agents/RoadmapRail';
 import { Roost } from '@/components/brand/Owl';
 
 export const metadata: Metadata = {
   title: 'Agents',
   description:
-    `${ROSTER.total} tools for finance teams: payments and approvals, closing the books, GST, TDS, `
-    + `reading invoices and answering audit questions. ${ROSTER.liveOpen} ${ROSTER.liveVerb} live `
-    + 'today, and the page tells you which.',
+    'Tools for finance teams: payments and approvals, closing the books, GST, TDS, reading '
+    + 'invoices and answering audit questions. Every one says whether you can use it today.',
   alternates: { canonical: '/agents' },
 };
 
@@ -53,19 +52,6 @@ const GROUPS: { stage: AgentStage; lead: string }[] = [
 ];
 
 export default function AgentsPage() {
-  /*
-   * Only stages that have something in them.
-   *
-   * Nothing is in build at the moment, and the unfiltered version of this line
-   * announced "0 in build" in the hero, which reads as a gap in the plan rather
-   * than as a stage nobody happens to be standing on. A count of zero is not a
-   * fact worth a line of the page.
-   */
-  const counts = GROUPS.map(({ stage }) => ({
-    stage,
-    n: AGENTS.filter((a) => a.stage === stage).length,
-  })).filter(({ n }) => n > 0);
-
   return (
     <>
       <section className="relative overflow-hidden">
@@ -99,17 +85,6 @@ export default function AgentsPage() {
               Payments and approvals, closing the books, GST, TDS, reading invoices, and answering
               questions about the record. Each one takes a job your team already does by hand, does
               the mechanical part of it, and then puts the decision in front of a person.
-            </p>
-          </Rise>
-
-          <Rise delay={180}>
-            <p className="m-mono m-dim-2 mt-8 t-2 t-caps uppercase">
-              {counts.map(({ stage, n }, i) => (
-                <span key={stage}>
-                  {i > 0 && <span className="px-2 opacity-50">·</span>}
-                  <Counter to={n} duration={700 + i * 200} /> {STAGE_LABEL[stage].toLowerCase()}
-                </span>
-              ))}
             </p>
           </Rise>
         </Container>

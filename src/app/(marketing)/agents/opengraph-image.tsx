@@ -1,20 +1,19 @@
-import { ROSTER } from '@/lib/marketing/content';
 import { CARD_SIZE, CARD_TYPE, cardAlt, socialCard } from '@/lib/brand/socialCard';
 
 /**
  * The roster card.
  *
- * The counts are read from ROSTER rather than written down, because a card that
- * says "two are live" after a third has shipped is a stale claim sitting in
- * every Slack thread anybody ever pasted the link into.
+ * No counts on it. A card that says "two are live" after a third has shipped is
+ * a stale claim sitting in every Slack thread anybody ever pasted the link into,
+ * and the site does not state the count anywhere any more.
  */
 const CARD = {
   eyebrow: 'The roster',
   headline: 'Tools for the work that follows rules.',
   chips: [
-    `${ROSTER.live} live today`,
-    `${ROSTER.coming} on the way`,
     'Payments, GST, TDS, bank',
+    'Approvals and audit trail',
+    'Rules in the database',
   ],
 };
 
