@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SOLUTIONS } from './solutions';
-import { ASSIST_SLUG, assistSection, reconSection, voucherSection } from './nav';
+import { ASSIST_SLUG, assistSection, landedSection, reconSection, voucherSection } from './nav';
 
 /**
  * The roster and the navigation have to agree about what a tool is called.
@@ -17,6 +17,7 @@ describe('the nav sections and the roster agree', () => {
   it.each([
     ['Voucher Desk', voucherSection({ role: 'owner' })],
     ['Ledger Reconciliation', reconSection()],
+    ['Landed Cost', landedSection()],
   ])('%s has a roster entry, so it gets its own mark and accent', (_name, section) => {
     expect(slugs.has(section.slug)).toBe(true);
   });
@@ -32,6 +33,7 @@ describe('the nav sections and the roster agree', () => {
     for (const [, section] of [
       ['Voucher Desk', voucherSection({ role: 'owner' })],
       ['Ledger Reconciliation', reconSection()],
+      ['Landed Cost', landedSection()],
     ] as const) {
       const solution = SOLUTIONS.find((entry) => entry.slug === section.slug);
       expect(solution?.stage).toBe('live');

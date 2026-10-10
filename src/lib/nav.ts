@@ -1,6 +1,7 @@
 import {
   Activity,
   AlertTriangle,
+  Building,
   Building2,
   FileText,
   History,
@@ -164,6 +165,7 @@ export function sectionFor(
   { role, pendingCount = 0 }: { role: UserRole; pendingCount?: number },
 ): Section {
   if (slug === 'ledger-reconciliation') return reconSection();
+  if (slug === LANDED_SLUG) return landedSection();
   if (slug === ASSIST_SLUG) return assistSection();
   if (slug === ANALYTICS_SLUG) return analyticsSection();
   if (slug === FINDER_SLUG) return finderSection();
@@ -350,6 +352,39 @@ export function assistSection(): Section {
         label: 'History',
         icon: History,
         hint: 'Conversations you have had, and the switch to delete them',
+      },
+      {
+        href: '/settings',
+        label: 'Settings',
+        icon: Settings,
+        hint: 'Your account and appearance',
+      },
+    ],
+  };
+}
+
+/**
+ * Landed Cost.
+ *
+ * One destination, because the tool is one screen: the schedules it keeps are
+ * picked from that screen rather than from a list page of their own, and they
+ * live in the browser, so there is no server-side history to give a page to.
+ * No role branch, for the same reason as Ledger Reconciliation below.
+ */
+export const LANDED_SLUG = 'landed-cost';
+
+export function landedSection(): Section {
+  return {
+    slug: LANDED_SLUG,
+    name: 'Landed Cost',
+    home: '/landed-cost',
+    items: [
+      {
+        href: '/landed-cost',
+        label: 'Landed cost',
+        icon: Building,
+        hint: 'Instalments, cost of funds and the cost at possession',
+        exact: true,
       },
       {
         href: '/settings',

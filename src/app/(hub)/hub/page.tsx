@@ -8,6 +8,7 @@ import { deskBrief } from '@/lib/domain/desk';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
 import { SOLUTIONS } from '@/lib/solutions';
 import { LiveSolutionCard, type Reading } from '@/components/hub/LiveSolutionCard';
+import { LandedPanel } from '@/components/landed/LandedPanel';
 import { RequestCard } from '@/components/hub/RequestCard';
 import { RosterMeter } from '@/components/hub/RosterMeter';
 import { SetupChecklist, type SetupState } from '@/components/hub/SetupChecklist';
@@ -382,6 +383,7 @@ export default async function HubPage() {
   const reconciliation = SOLUTIONS.find((s) => s.slug === 'ledger-reconciliation');
   const valuationDesk = SOLUTIONS.find((s) => s.slug === 'valuation-desk');
   const contactFinder = SOLUTIONS.find((s) => s.slug === 'contact-finder');
+  const landedCost = SOLUTIONS.find((s) => s.slug === 'landed-cost');
   /*
    * `rest` is every non-live tool, so it stays a roadmap and never gets a
    * live tool mislabelled "Not started yet". The other side of that contract
@@ -542,6 +544,18 @@ export default async function HubPage() {
           migration 0031 are readable only by that same list, and one of them
           holds revealed email addresses and phone numbers.
         */}
+        {landedCost && (
+          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
+            <LiveSolutionCard
+              solution={landedCost}
+              readings={[]}
+              note=""
+              // Counted in the browser, where the schedules are. See LandedPanel.
+              panel={<LandedPanel />}
+            />
+          </div>
+        )}
+
         {contactFinder && finderOpen && (
           <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
             <LiveSolutionCard

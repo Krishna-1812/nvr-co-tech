@@ -177,6 +177,30 @@ export const AGENTS: Agent[] = [
     href: '/contacts',
   },
   {
+    slug: 'landed-cost',
+    name: 'Landed Cost',
+    stage: 'live',
+    category: 'Property & capex',
+    accent: 'cyan',
+    summary:
+      'What an under-construction property really costs by possession: every instalment, plus what the money cost while it was tied up, own funds and loan each at its own rate.',
+    pitch:
+      'The agreement value is what you paid. It is not what the flat cost you. Money paid at booking sat in a building for two or three years before anyone could live in it, and that money either came out of a loan that charged interest or out of savings that stopped earning. Add that back and you have the number worth comparing against a ready flat.',
+    does: [
+      'Takes the down payment and each instalment as a date, an amount and a source of funds: your own money or borrowed.',
+      'Applies one cost of capital to own funds and one to borrowed funds, the same rate for every payment from that source.',
+      'Counts the cost of each payment from the day it was paid to the OC date, which it treats as possession. A payment on or after that date carries nothing, and is flagged.',
+      'Simple interest by default, which is how a lender charges pre-EMI interest during construction, with yearly, quarterly or monthly compounding if you reinvest. Days are counted actual/365.',
+      'Shows the landed cost, the carrying cost of own funds and of the loan separately, the uplift over the amount paid, and a cost per square foot when you give it the carpet area.',
+      'Recomputes as you type, so moving the OC date six months or switching a demand to the loan shows its effect at once.',
+      'Exports the summary and the payment-by-payment working to Excel, with amounts as numbers you can total.',
+      'Runs in your browser. Schedules are saved on your device and are never sent to a server.',
+    ],
+    inputs: 'Instalment dates and amounts, own or borrowed, and the OC date',
+    outputs: 'Landed cost at possession, with interest by source and by payment',
+    href: '/landed-cost',
+  },
+  {
     slug: 'gst-reconciliation',
     name: 'GST Reconciliation',
     stage: 'planned',

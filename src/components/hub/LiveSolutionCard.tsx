@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Plus, type LucideIcon } from 'lucide-react';
 import type { Solution } from '@/lib/solutions';
@@ -50,11 +50,18 @@ export function LiveSolutionCard({
   note,
   noteTone,
   shortcut,
+  panel,
 }: {
   solution: Solution;
   readings: Reading[];
   /** The routing sentence: what, if anything, is waiting for this person. */
   note: string;
+  /**
+   * Stands in for the figures and the note, for a tool whose state the server
+   * cannot read. Landed Cost keeps its schedules in the browser, so its panel
+   * is a client component that counts them where they are.
+   */
+  panel?: ReactNode;
   noteTone?: string;
   /**
    * The second reason somebody comes here. Its mark defaults to a plus, which
@@ -182,6 +189,8 @@ export function LiveSolutionCard({
           {/* ── What it says right now ── */}
           <div className="surface-sunken a-inner mt-5 rounded-2xl border p-4">
             <p className="a-label">Your desk right now</p>
+            {panel ?? (
+              <>
 
             {/*
               Abreast rather than stacked. Two or three figures side by side read
@@ -229,6 +238,8 @@ export function LiveSolutionCard({
             >
               {note}
             </p>
+              </>
+            )}
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -257,10 +268,13 @@ export function LiveSolutionCard({
               />
             </span>
 
+            {/* z-[25]: above the stretched card link (z-20) so it stays clickable,
+                and below the sticky top bar (z-30). At z-30 it tied with the bar
+                and, coming later in the page, scrolled over it. */}
             {shortcut && (
               <Link
                 href={shortcut.href}
-                className={buttonClass({ variant: 'secondary', className: 'group/s relative z-30' })}
+                className={buttonClass({ variant: 'secondary', className: 'group/s relative z-[25]' })}
               >
                 <ShortcutIcon
                   className={

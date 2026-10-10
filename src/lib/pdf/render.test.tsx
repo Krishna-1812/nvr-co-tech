@@ -112,7 +112,13 @@ function extractVisibleText(pdf: Buffer): string {
   return text;
 }
 
-describe('voucher PDF', () => {
+/*
+ * A longer limit than the 5s default. The first render in this file loads the
+ * PDF fonts cold and takes about 1.8s alone, but with every other test file
+ * running in parallel it was crossing 5s and failing on timing rather than on
+ * anything about the PDF.
+ */
+describe('voucher PDF', { timeout: 20_000 }, () => {
   it('renders a non-trivial PDF', async () => {
     const buf = await renderToBuffer(<VoucherDocument v={sample} />);
     expect(buf.subarray(0, 5).toString()).toBe('%PDF-');

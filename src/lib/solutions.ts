@@ -1,4 +1,5 @@
 import {
+  Building,
   GitCompareArrows,
   Landmark,
   MessagesSquare,
@@ -37,6 +38,7 @@ const ICON: Record<string, LucideIcon> = {
   'ledger-reconciliation': GitCompareArrows,
   'valuation-desk': Layers,
   'contact-finder': UserSearch,
+  'landed-cost': Building,
   'gst-reconciliation': Percent,
   'tds-compliance': Landmark,
   'invoice-intake': ScanText,
