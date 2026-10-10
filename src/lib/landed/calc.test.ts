@@ -4,6 +4,7 @@ import {
   dayNumber,
   daysBetween,
   landedCost,
+  parseAmount,
   problems,
   type Instalment,
   type Schedule,
@@ -177,5 +178,63 @@ describe('problems', () => {
 
   it('is empty for a complete schedule', () => {
     expect(problems(schedule({ instalments: [row({ date: '2025-01-01', amount: 1 })] }))).toEqual([]);
+  });
+});
+
+describe('naming and order', () => {
+  it('keeps an unnamed payment named by where it was typed, not where it sorts', () => {
+    const result = landedCost(
+      schedule({
+        instalments: [
+          row({ id: 'a', label: 'Booking', date: '2025-06-01', amount: 10 }),
+          row({ id: 'b', label: '', date: '2024-06-01', amount: 10 }),
+        ],
+      }),
+    );
+    // It sorts first, and is still the second payment typed.
+    expect(result.rows.map((r) => [r.id, r.name, r.position])).toEqual([
+      ['b', 'Payment 2', 2],
+      ['a', 'Booking', 1],
+    ]);
+  });
+
+  it('keeps typed order between two payments on the same day', () => {
+    const result = landedCost(
+      schedule({
+        instalments: [
+          row({ id: 'first', date: '2025-01-01', amount: 10 }),
+          row({ id: 'second', date: '2025-01-01', amount: 10, source: 'borrowed' }),
+        ],
+      }),
+    );
+    expect(result.rows.map((r) => r.id)).toEqual(['first', 'second']);
+  });
+
+  it('asks for a rate that was cleared rather than calling it negative', () => {
+    expect(problems(schedule({ rates: { self: Number.NaN, borrowed: 9 } })).map((p) => p.message)).toEqual([
+      'Enter a yearly rate for own funds, or 0.',
+    ]);
+  });
+});
+
+describe('parseAmount', () => {
+  it.each([
+    ['12,50,000', 1_250_000],
+    ['₹ 12,50,000.00', 1_250_000],
+    ['Rs. 5,00,000', 500_000],
+    ['rs 500', 500],
+    ['INR 2,000', 2000],
+    ['8.5%', 8.5],
+    ['.5', 0.5],
+    ['-100', -100],
+  ])('reads %s as %d', (raw, expected) => {
+    expect(parseAmount(raw)).toBe(expected);
+  });
+
+  it('is NaN for an empty field and null for text that is not a number', () => {
+    expect(parseAmount('  ')).toBeNaN();
+    expect(parseAmount('five lakh')).toBeNull();
+    expect(parseAmount('1.2.3')).toBeNull();
+    expect(parseAmount('1e5')).toBeNull();
   });
 });

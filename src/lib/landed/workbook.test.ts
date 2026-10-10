@@ -40,8 +40,28 @@ describe('buildLandedWorkbook', () => {
   });
 
   it('includes the cost per square foot when an area is given', () => {
-    expect(cell('Summary', 'A20').v).toBe('Landed cost per sq ft');
-    expect(cell('Summary', 'B20').v).toBeCloseTo(3584.74, 2);
+    expect(cell('Summary', 'A21').v).toBe('Landed cost per sq ft');
+    expect(cell('Summary', 'B21').v).toBeCloseTo(3584.74, 2);
+    expect(cell('Summary', 'B21').z).toBe('#,##,##0.00');
+  });
+
+  it('says how many of the payments it counted', () => {
+    expect(cell('Summary', 'A17').v).toBe('Payments counted');
+    expect(cell('Summary', 'B17').v).toBe('2 of 2');
+  });
+
+  it('notes a payment made on or after the OC date', () => {
+    const late = buildLandedWorkbook(XLSX, {
+      ...schedule,
+      instalments: [
+        ...schedule.instalments,
+        { id: 'c', label: 'On possession', date: '2027-04-15', amount: 500_000, source: 'self' },
+      ],
+    });
+    const sheet = late.Sheets.Schedule;
+    expect(sheet.A4.v).toBe('On possession');
+    expect(sheet.I4.v).toMatch(/on or after the OC date/);
+    expect(sheet.I2).toBeUndefined();
   });
 });
 

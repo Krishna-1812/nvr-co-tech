@@ -3,7 +3,7 @@
 import type { CSSProperties } from 'react';
 import { Figure } from '@/components/app/Figure';
 import { formatINRShort } from '@/lib/recon/amount';
-import { landedCost } from '@/lib/landed/calc';
+import { isIsoDate, landedCost } from '@/lib/landed/calc';
 import { useLandedStore } from '@/lib/landed/store';
 
 /**
@@ -17,24 +17,30 @@ import { useLandedStore } from '@/lib/landed/store';
 export function LandedPanel() {
   const state = useLandedStore();
   const schedules = state?.schedules ?? [];
-  const latest = [...schedules].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
-  const result = latest ? landedCost(latest) : null;
-  const counted = schedules.filter((s) => s.instalments.some((i) => i.amount > 0 && i.date));
+  const results = schedules.map((s) => ({ s, r: landedCost(s) }));
+  // Counted only once a payment has a date and an amount. The blank schedule the
+  // tool opens with on a first visit is not a property anybody entered.
+  const counted = results.filter(({ r }) => r.rows.length > 0);
+  // The most recently edited schedule that has an answer, rather than the most
+  // recently edited one: a half-typed new property would otherwise hide a
+  // finished one behind "nothing saved".
+  const latest = counted
+    .filter(({ s }) => isIsoDate(s.ocDate))
+    .sort((a, b) => b.s.updatedAt.localeCompare(a.s.updatedAt))[0];
 
   const readings = [
     { label: 'Properties on this device', value: counted.length },
-    {
-      label: 'Payments entered',
-      value: counted.reduce((n, s) => n + landedCost(s).rows.length, 0),
-    },
+    { label: 'Payments entered', value: counted.reduce((n, { r }) => n + r.rows.length, 0) },
   ];
 
   const note =
     state === null
       ? 'Reading this browser…'
-      : result && result.paid > 0 && latest.ocDate
-        ? `${latest.name.trim() || 'Untitled property'}: ${formatINRShort(result.landed)} at possession, ${formatINRShort(result.interest)} of it the cost of funds.`
-        : 'Nothing saved on this device yet. Enter a payment schedule to see what it costs by possession.';
+      : latest
+        ? `${latest.s.name.trim() || 'Untitled property'}: ${formatINRShort(latest.r.landed)} at possession, ${formatINRShort(latest.r.interest)} of it the cost of funds.`
+        : counted.length > 0
+          ? 'Add the OC date to a schedule here to see what it costs by possession.'
+          : 'Nothing saved on this device yet. Enter a payment schedule to see what it costs by possession.';
 
   return (
     <>

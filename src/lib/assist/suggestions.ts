@@ -58,6 +58,21 @@ const BY_AGENT: Record<string, Suggestion[]> = {
       question: 'When does a voucher get its number, and what do the parts of it mean?',
     },
   ],
+  'landed-cost': [
+    {
+      label: 'How is it worked out?',
+      question: 'How does Landed Cost work out the interest on each instalment up to the OC date?',
+    },
+    {
+      label: 'Simple or compound?',
+      question: 'Should I use simple interest or compounding for the cost of my own funds?',
+    },
+    {
+      label: 'Check a figure',
+      question:
+        'I paid ₹10,00,000 from my own funds on 1 April 2024 and the OC is on 31 March 2027. At 7% simple interest, what is the carrying cost?',
+    },
+  ],
   'ledger-reconciliation': [
     {
       label: 'How matching works',

@@ -22,6 +22,7 @@ import {
   COMPOUNDING_LABEL,
   SOURCE_LABEL,
   landedCost,
+  parseAmount,
   problems,
   type Compounding,
   type FundSource,
@@ -75,7 +76,7 @@ export function LandedWorkbench() {
   // A first visit has nothing saved. Start one rather than show an empty screen
   // with a button whose only job is to make the screen not empty.
   useEffect(() => {
-    if (state && state.schedules.length === 0) landedStore.create();
+    if (state && state.schedules.length === 0) landedStore.ensureOne();
   }, [state]);
 
   const active = state?.schedules.find((s) => s.id === state.activeId) ?? null;
@@ -350,7 +351,13 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
         )}
       </Card>
 
-      {ready ? <Result schedule={schedule} result={result} /> : null}
+      {ready ? (
+        <Result schedule={schedule} result={result} />
+      ) : schedule.instalments.length === 0 ? (
+        <p className="text-muted rounded-2xl border border-dashed px-5 py-8 text-center text-sm">
+          Add the down payment and each instalment to see the landed cost at possession.
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -469,9 +476,9 @@ function Result({
             </tr>
           </Thead>
           <tbody className="divide-y">
-            {result.rows.map((r, i) => (
+            {result.rows.map((r) => (
               <Tr key={r.id}>
-                <Td className="max-w-64 truncate font-medium">{r.label.trim() || `Payment ${i + 1}`}</Td>
+                <Td className="max-w-64 truncate font-medium">{r.name}</Td>
                 <Td className="whitespace-nowrap">{longDate(r.date)}</Td>
                 <Td className="whitespace-nowrap">
                   <span className="inline-flex items-center gap-1.5">
@@ -549,7 +556,19 @@ function SourceToggle({
   label: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="surface-sunken grid grid-cols-2 gap-1 rounded-full border p-1">
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="surface-sunken grid grid-cols-2 gap-1 rounded-full border p-1"
+      // A radio group is one tab stop, moved through with the arrow keys.
+      onKeyDown={(e) => {
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+        e.preventDefault();
+        const next: FundSource = value === 'self' ? 'borrowed' : 'self';
+        onChange(next);
+        e.currentTarget.querySelector<HTMLButtonElement>(`[data-source="${next}"]`)?.focus();
+      }}
+    >
       {(['self', 'borrowed'] as const).map((s) => {
         const on = value === s;
         const Icon = SOURCE_ICON[s];
@@ -559,6 +578,8 @@ function SourceToggle({
             type="button"
             role="radio"
             aria-checked={on}
+            tabIndex={on ? 0 : -1}
+            data-source={s}
             onClick={() => onChange(s)}
             style={on ? ({ '--tone': SOURCE_TONE[s] } as CSSProperties) : undefined}
             className={cn(
@@ -601,6 +622,9 @@ function NumberInput({
     v === undefined ? '' : v.toLocaleString('en-IN', { maximumFractionDigits: 2 });
   const [text, setText] = useState(() => show(value));
   const [editing, setEditing] = useState(false);
+  // Set when what is typed is not a number. The last good value is kept, and
+  // the field says so rather than silently showing it again on blur.
+  const [invalid, setInvalid] = useState(false);
 
   return (
     <div className={cn('relative', className)}>
@@ -613,16 +637,26 @@ function NumberInput({
           setText(value === undefined ? '' : String(value));
           setEditing(true);
         }}
-        onBlur={() => setEditing(false)}
+        onBlur={() => {
+          setEditing(false);
+          setInvalid(false);
+        }}
         onChange={(e) => {
           const raw = e.target.value;
           setText(raw);
-          const cleaned = raw.replace(/[,\s₹%]/g, '');
-          if (cleaned === '') return onCommit(undefined);
-          const n = Number(cleaned);
-          if (Number.isFinite(n)) onCommit(n);
+          const n = parseAmount(raw);
+          setInvalid(n === null);
+          if (n !== null) onCommit(Number.isNaN(n) ? undefined : n);
         }}
-        className={cn('numeric text-right', suffix && 'pr-8')}
+        aria-invalid={invalid || undefined}
+        className={cn(
+          'numeric text-right',
+          suffix && 'pr-8',
+          // `color:` tells the class merger this is a border colour; a bare
+          // var() reads to it as a width and the class was being dropped.
+          invalid &&
+            'border-[color:var(--status-rejected)] hover:border-[color:var(--status-rejected)] focus:border-[color:var(--status-rejected)]',
+        )}
       />
       {suffix && (
         <span aria-hidden className="text-subtle pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-sm">

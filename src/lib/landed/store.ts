@@ -127,6 +127,18 @@ function read(): State {
   }
 }
 
+/**
+ * "Property 3", numbered past the highest one already in use. Counting the list
+ * instead gave a second "Property 2" after the first one was deleted.
+ */
+function nextName(schedules: SavedSchedule[]): string {
+  const taken = schedules
+    .map((s) => /^Property (\d+)$/.exec(s.name.trim())?.[1])
+    .filter(Boolean)
+    .map(Number);
+  return `Property ${Math.max(schedules.length, ...taken) + 1}`;
+}
+
 // ── The store ───────────────────────────────────────────────────────────────
 
 let cache: State | null = null;
@@ -188,9 +200,19 @@ export const landedStore = {
   /** Start a new schedule from the remembered rates and make it the open one. */
   create(): SavedSchedule {
     const state = snapshot();
-    const fresh = blankSchedule(state.defaults, `Property ${state.schedules.length + 1}`);
+    const fresh = blankSchedule(state.defaults, nextName(state.schedules));
     write({ ...state, schedules: [fresh, ...state.schedules], activeId: fresh.id });
     return fresh;
+  },
+  /**
+   * Start a first schedule, but only if there is still none.
+   *
+   * Checked against the store rather than against the caller's render, because
+   * an effect can run twice on one render (React does exactly that in
+   * development) and both runs would see the same empty list.
+   */
+  ensureOne() {
+    if (snapshot().schedules.length === 0) this.create();
   },
   remove(id: string) {
     const state = snapshot();

@@ -1,6 +1,8 @@
-import { AGENTS, JOBS, STAGE_LABEL, TDS_SECTIONS } from '@/lib/marketing/content';
+import { AGENTS, JOBS, LIVE_AGENTS, STAGE_LABEL, TDS_SECTIONS } from '@/lib/marketing/content';
 import { ROLE_META, USER_ROLES } from '@/lib/domain/workflow';
-import { assistSection, reconSection, voucherSection } from '@/lib/nav';
+import { assistSection, landedSection, reconSection, voucherSection } from '@/lib/nav';
+
+const LIVE_COUNT = LIVE_AGENTS.length;
 
 /**
  * What the assistant is allowed to know.
@@ -134,7 +136,12 @@ function calendarDoc(): Doc {
  * marked as such rather than silently dropped.
  */
 function screensDoc(): Doc {
-  const sections = [voucherSection({ role: 'owner' }), reconSection(), assistSection()];
+  const sections = [
+    voucherSection({ role: 'owner' }),
+    reconSection(),
+    landedSection(),
+    assistSection(),
+  ];
 
   return {
     id: 'platform-screens',
@@ -238,8 +245,10 @@ const WRITTEN: Doc[] = [
       'repeats, does the routine part of it, and keeps a clear record of who did',
       'what and when.',
       '',
-      'There are six tools on the roster. Two are built and you can use them today.',
-      'Four are written up and not started. Every screen that lists them says which',
+      // Counted from the roster rather than written, because it was written: it
+      // said six tools and two built long after there were eight and four.
+      `There are ${AGENTS.length} tools on the roster. ${LIVE_COUNT} are built and you can use them today.`,
+      `${AGENTS.length - LIVE_COUNT} are written up and not started. Every screen that lists them says which`,
       'is which, and the assistant must do the same. Describing a roadmap tool as if',
       'it were available is the single worst thing it can do.',
       '',
@@ -264,6 +273,11 @@ const WRITTEN: Doc[] = [
       'uploaded. The engine that matches them runs there too. The only thing that',
       'ever reaches a server is the finished statement, and only when you save it to',
       'your history or ask for a PDF or an Excel file.',
+      '',
+      'Landed Cost keeps nothing on a server at all. The payment schedules, the rates',
+      'and the results are worked out and saved in your own browser, on the device',
+      'they were typed on. Clearing the browser deletes them, and they do not follow',
+      'you to another computer; the Excel download is the way to keep a copy.',
       '',
       'Voucher Desk keeps its records in the database, because a voucher is a record',
       'other people have to approve. Invoice attachments go to file storage, and who',

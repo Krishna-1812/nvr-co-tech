@@ -55,6 +55,10 @@ export function buildLandedWorkbook(
     ['Landed cost at OC', result.landed],
     ['Carrying cost as % of amount paid', Math.round(result.upliftPct * 100) / 100],
     ['Average days funds were tied up', Math.round(result.weightedDays)],
+    // Said in the file, because a row the screen was still warning about (no
+    // date, no amount) is left out of every figure above, and a workbook that
+    // is passed on has lost the warning.
+    ['Payments counted', `${result.rows.length} of ${schedule.instalments.length}`],
   ];
   if (result.perSqft && schedule.areaSqft) {
     summary.push(
@@ -66,7 +70,7 @@ export function buildLandedWorkbook(
   }
   const summarySheet = XLSX.utils.aoa_to_sheet(summary);
   money(summarySheet, XLSX, 1, 6, 13);
-  if (result.perSqft) money(summarySheet, XLSX, 1, 18, 19);
+  if (result.perSqft) money(summarySheet, XLSX, 1, 19, 20);
   summarySheet['!cols'] = [{ wch: 36 }, { wch: 22 }];
   XLSX.utils.book_append_sheet(book, summarySheet, 'Summary');
 
@@ -79,9 +83,10 @@ export function buildLandedWorkbook(
     'Rate (% a year)',
     'Carrying cost',
     'Value at OC',
+    'Note',
   ];
-  const rows: Cell[][] = result.rows.map((r, i) => [
-    r.label.trim() || `Payment ${i + 1}`,
+  const rows: Cell[][] = result.rows.map((r) => [
+    r.name,
     displayDate(r.date),
     SOURCE_LABEL[r.source],
     r.amount,
@@ -89,8 +94,9 @@ export function buildLandedWorkbook(
     r.rate,
     r.interest,
     r.atPossession,
+    r.afterOc ? 'Paid on or after the OC date, so no cost of funds' : null,
   ]);
-  const totals: Cell[] = ['Total', null, null, result.paid, null, null, result.interest, result.landed];
+  const totals: Cell[] = ['Total', null, null, result.paid, null, null, result.interest, result.landed, null];
   const scheduleSheet = XLSX.utils.aoa_to_sheet([header, ...rows, totals]);
   const last = rows.length + 1;
   for (const col of [3, 6, 7]) money(scheduleSheet, XLSX, col, 1, last);
@@ -103,6 +109,7 @@ export function buildLandedWorkbook(
     { wch: 15 },
     { wch: 16 },
     { wch: 16 },
+    { wch: 48 },
   ];
   XLSX.utils.book_append_sheet(book, scheduleSheet, 'Schedule');
 

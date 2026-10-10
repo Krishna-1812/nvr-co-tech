@@ -80,6 +80,14 @@ export type Schedule = {
 };
 
 export type InstalmentResult = Instalment & {
+  /**
+   * Where the payment sits in the schedule as typed, from 1. The rows come back
+   * in date order, so this is what keeps an unnamed payment called the same
+   * thing ("Payment 3") in the editor, the warnings, the table and the workbook.
+   */
+  position: number;
+  /** The label, or "Payment n" from its position when it has none. */
+  name: string;
   /** Days from payment to OC. Zero for a payment on or after the OC date. */
   days: number;
   /** Annual rate applied, as a percentage. */
@@ -167,18 +175,20 @@ function paise(x: number): number {
  */
 export function landedCost(schedule: Schedule): LandedCost {
   const oc = dayNumber(schedule.ocDate);
-  const usable = schedule.instalments.filter(
-    (i) => isIsoDate(i.date) && Number.isFinite(i.amount) && i.amount > 0,
-  );
+  const usable = schedule.instalments
+    .map((i, n) => ({ i, position: n + 1 }))
+    .filter(({ i }) => isIsoDate(i.date) && Number.isFinite(i.amount) && i.amount > 0);
 
   const rows: InstalmentResult[] = usable
-    .map((i) => {
+    .map(({ i, position }) => {
       const raw = Number.isFinite(oc) ? oc - dayNumber(i.date) : 0;
       const days = Math.max(0, raw);
       const rate = i.source === 'self' ? schedule.rates.self : schedule.rates.borrowed;
       const interest = paise(carryingCost(i.amount, rate, days, schedule.compounding));
       return {
         ...i,
+        position,
+        name: paymentName(i, position),
         days,
         rate,
         interest,
@@ -186,7 +196,8 @@ export function landedCost(schedule: Schedule): LandedCost {
         afterOc: Number.isFinite(oc) && raw <= 0,
       };
     })
-    .sort((a, b) => dayNumber(a.date) - dayNumber(b.date));
+    // Date order, and typed order between two payments on the same day.
+    .sort((a, b) => dayNumber(a.date) - dayNumber(b.date) || a.position - b.position);
 
   const totals = (source: FundSource): SourceTotals =>
     rows
@@ -217,6 +228,26 @@ export function landedCost(schedule: Schedule): LandedCost {
   };
 }
 
+/**
+ * A typed amount as a number: NaN for an empty field, null for text that is not
+ * a number. Accepts the forms a demand letter uses — "12,50,000",
+ * "₹ 12,50,000.00", "Rs. 5,00,000", "INR 5,00,000" — and a trailing "%".
+ */
+export function parseAmount(raw: string): number | null {
+  const cleaned = raw
+    .trim()
+    .replace(/^(?:rs\.?|inr|₹)\s*/i, '')
+    .replace(/[,\s₹%]/g, '');
+  if (cleaned === '') return Number.NaN;
+  if (!/^-?(?:\d+\.?\d*|\.\d+)$/.test(cleaned)) return null;
+  return Number(cleaned);
+}
+
+/** What a payment is called: its own label, or its place in the schedule. */
+export function paymentName(i: Pick<Instalment, 'label'>, position: number): string {
+  return i.label.trim() || `Payment ${position}`;
+}
+
 export type Problem = { id?: string; message: string };
 
 /** What stops a schedule from giving a complete answer, in words a reader can act on. */
@@ -230,12 +261,13 @@ export function problems(schedule: Schedule): Problem[] {
     ['borrowed', 'borrowed funds'],
   ] as const) {
     const rate = schedule.rates[key];
-    if (!Number.isFinite(rate) || rate < 0) out.push({ message: `The rate for ${label} must be zero or more.` });
+    if (!Number.isFinite(rate)) out.push({ message: `Enter a yearly rate for ${label}, or 0.` });
+    else if (rate < 0) out.push({ message: `The rate for ${label} must be zero or more.` });
     else if (rate > 100) out.push({ message: `The rate for ${label} is over 100% a year. Check it is a yearly percentage.` });
   }
 
   schedule.instalments.forEach((i, n) => {
-    const name = i.label.trim() || `Payment ${n + 1}`;
+    const name = paymentName(i, n + 1);
     if (!i.date) out.push({ id: i.id, message: `${name} has no date.` });
     else if (!isIsoDate(i.date)) out.push({ id: i.id, message: `${name} has a date that does not exist.` });
     if (!Number.isFinite(i.amount) || i.amount <= 0) out.push({ id: i.id, message: `${name} needs an amount above zero.` });

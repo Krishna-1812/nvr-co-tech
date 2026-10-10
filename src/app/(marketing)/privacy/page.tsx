@@ -13,7 +13,7 @@ const TRAIL = [
   { label: 'Privacy', href: '/privacy' },
 ] as const;
 
-const LAST_UPDATED = '22 August 2026';
+const LAST_UPDATED = '10 October 2026';
 
 /**
  * Written for somebody who checks.
@@ -64,6 +64,13 @@ const CLAUSES: Clause[] = [
     body: [
       'The two ledgers you compare in Ledger Reconciliation are opened, read and matched inside the page. They are not uploaded, not sent to a model, and never touch a server of ours.',
       'What gets saved is the statement you produced from them, kept in a history that only the account which created it can open. Not your administrator, and not us.',
+    ],
+  },
+  {
+    title: 'Property schedules stay on your device',
+    body: [
+      'The payment schedules you enter in Landed Cost, with their amounts, dates, sources of funds and rates, are worked out and saved in your own browser. They are not uploaded and are never sent to a server of ours.',
+      'That also means they exist only in the browser they were typed into. Clearing its data deletes them, and they cannot be recovered by us, because we never had them.',
     ],
   },
   {
