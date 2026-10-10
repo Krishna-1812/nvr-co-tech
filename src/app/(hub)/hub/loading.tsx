@@ -35,10 +35,10 @@ export default function HubLoading() {
 
       {/* The live card. Two columns from lg, matching LiveSolutionCard. */}
       <div className="surface-lit grid gap-7 rounded-3xl p-5 sm:p-7 lg:grid-cols-[1fr_20rem] lg:gap-9 lg:p-8">
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <div className="flex items-start gap-3.5">
             <Bar className="size-11 shrink-0 rounded-xl" />
-            <div className="space-y-2.5 pt-1">
+            <div className="min-w-0 flex-1 space-y-2.5 pt-1">
               <Bar className="h-6 w-48" />
               <Bar className="h-2.5 w-32" />
             </div>

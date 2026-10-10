@@ -28,7 +28,9 @@ export function Bar({
       aria-hidden
       style={{ ...style, ...(delayMs ? { animationDelay: `${delayMs}ms` } : null) }}
       className={cn(
-        'block animate-[shimmer_1.8s_ease-in-out_infinite] rounded-md bg-[var(--surface-sunken)]',
+        // Never wider than its column. Bars are drawn at the width of the text
+        // they stand in for, which on a 320px phone can be wider than the column.
+        'block max-w-full animate-[shimmer_1.8s_ease-in-out_infinite] rounded-md bg-[var(--surface-sunken)]',
         className,
       )}
     />
@@ -38,11 +40,14 @@ export function Bar({
 /** PageHeader: eyebrow, display title, one line of description, and the rule. */
 export function HeaderSkeleton({ withAction = true }: { withAction?: boolean }) {
   return (
-    <div className="relative flex items-end justify-between gap-4 pb-5">
+    // Wraps the way PageHeader does. Without the wrap, a full-width title block
+    // and the action bar beside it came to 448px on a 375px phone, and the
+    // whole page scrolled sideways until the real header replaced this one.
+    <div className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-5">
       <div className="w-full max-w-sm space-y-3">
         <Bar className="h-2.5 w-20" />
-        <Bar className="h-8 w-56" />
-        <Bar className="h-3.5 w-72" />
+        <Bar className="h-8 w-56 max-w-full" />
+        <Bar className="h-3.5 w-72 max-w-full" />
       </div>
       {withAction && <Bar className="h-10 w-32 shrink-0" />}
       <span
@@ -61,7 +66,7 @@ export function BriefingSkeleton() {
   return (
     <Card className="rounded-3xl p-6 sm:p-8" aria-busy="true" aria-label="Loading">
       <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Bar className="h-2.5 w-40" />
           <Bar className="h-9 w-72 max-w-full" />
           <Bar className="h-4 w-full max-w-lg" />

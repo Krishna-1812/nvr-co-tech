@@ -62,7 +62,7 @@ export function NavLink({
         href={href}
         aria-current={active ? 'page' : undefined}
         className={cn(
-          'group relative -mb-px inline-flex shrink-0 items-center gap-1.5 rounded-t-lg border-b-2 px-3.5 py-2.5 text-sm font-medium transition',
+          'group relative -mb-px inline-flex shrink-0 items-center gap-1.5 rounded-t-lg border-b-2 px-3 py-2.5 text-sm font-medium transition sm:px-3.5',
           active
             ? 'border-brand-600 text-brand-700 dark:border-brand-400 dark:text-brand-300'
             : 'text-muted border-transparent hover:border-[var(--border-strong)] hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]',
