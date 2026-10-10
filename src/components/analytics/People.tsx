@@ -62,10 +62,14 @@ export function Avatar({
       ) : (
         <span
           aria-hidden
-          className="grid size-full place-items-center rounded-full font-semibold text-white"
+          // Tinted rather than white on a full-strength fill. The accents are
+          // picked to read against the ground, so at night they are light —
+          // sun and sage especially — and white initials on them vanished.
+          // The same tint the organisation marks use, legible in both themes.
+          className="tinted grid size-full place-items-center rounded-full border font-semibold"
           style={{
             fontSize: Math.round(size * 0.36),
-            background: `linear-gradient(135deg, ${accent}, color-mix(in oklab, ${accent} 55%, black))`,
+            ['--tone' as string]: accent,
           }}
         >
           {initialsFor(name, email)}

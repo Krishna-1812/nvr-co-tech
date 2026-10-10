@@ -558,7 +558,7 @@ export function VoucherForm({
 
             <div id="f-type_of_supporting">
               <p className="mb-2 text-sm font-medium">
-                Type of supporting <span className="text-red-500">*</span>
+                Type of supporting <span className="text-[var(--status-rejected)]">*</span>
               </p>
               <div className="flex flex-wrap gap-2.5">
                 {SUPPORTING_TYPES.map((opt) => (
@@ -574,7 +574,7 @@ export function VoucherForm({
                 ))}
               </div>
               {errorFor('type_of_supporting') && (
-                <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+                <p role="alert" className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
                   {errorFor('type_of_supporting')}
                 </p>
               )}
@@ -587,7 +587,7 @@ export function VoucherForm({
                     no asterisk, and whose error was the one required-field
                     message that never rendered anywhere near its field. */}
                 <p className="mb-2 text-sm font-medium">
-                  Type of payment <span className="text-red-500" aria-label="required">*</span>
+                  Type of payment <span className="text-[var(--status-rejected)]" aria-label="required">*</span>
                 </p>
                 {rule.auto ? (
                   <div className="inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3.5 py-2 text-sm font-semibold text-brand-700 dark:border-brand-800 dark:bg-brand-900/40 dark:text-brand-200">
@@ -613,7 +613,7 @@ export function VoucherForm({
                   </div>
                 )}
                 {errorFor('type_of_payment') && (
-                  <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+                  <p role="alert" className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
                     {errorFor('type_of_payment')}
                   </p>
                 )}

@@ -1205,7 +1205,9 @@ export function Workspace() {
         <MessagesSquare className="size-4" aria-hidden />
         Ask
         {state.chat.length > 0 && (
-          <span className="numeric rounded-full bg-white/20 px-1.5 text-[11px] font-semibold">
+          // A wash of the label's own colour, not of white: the fill is ink by
+          // day and bone by night, and white at 20% vanished on bone.
+          <span className="numeric rounded-full bg-[color-mix(in_oklab,currentColor_18%,transparent)] px-1.5 text-[11px] font-semibold">
             {state.chat.filter((t) => t.role === 'assistant' && !t.pending).length}
           </span>
         )}

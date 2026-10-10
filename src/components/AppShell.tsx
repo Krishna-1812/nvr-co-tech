@@ -10,6 +10,7 @@ import { MobileDock } from './app/MobileDock';
 import { PreviewBanner } from './app/PreviewBanner';
 import { PageTiming } from './app/PageTiming';
 import { Toasts } from './app/Toasts';
+import { ThemeColor } from './app/ThemeColor';
 
 type Props = {
   user: {
@@ -110,6 +111,7 @@ export async function AppShell({ user, section, children }: Props) {
         the public site, which has its own tracker and its own consent rules.
       */}
       <PageTiming />
+      <ThemeColor />
 
       {/* Same reasoning as PageTiming: one place for the whole signed-in side,
           and never on the public site. */}

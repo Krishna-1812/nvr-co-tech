@@ -90,7 +90,7 @@ export function VoucherPipeline({ rows }: { rows: PipelineRow[] }) {
   const present = stages.filter((s) => s.count > 0);
 
   return (
-    <div className="space-y-5">
+    <div className="@container space-y-5">
       {/*
         The rail. Segments are grown by flex rather than by percentage width, so a
         stage with one voucher out of forty still gets a visible sliver instead of
@@ -123,16 +123,18 @@ export function VoucherPipeline({ rows }: { rows: PipelineRow[] }) {
       </div>
 
       {/* ── The four stages, in order ── */}
-      {/* Two by two on a phone: four in a row there left each tile about 70px,
-          and the rupee value under the count was cut to a couple of digits. */}
-      <ol className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-stretch sm:gap-x-0 sm:gap-y-2">
+      {/* Two by two until the card itself is 42rem wide: four in a row left each
+          tile about 70px on a phone, and about 120px in the dashboard's two-column
+          layout on a laptop, and the rupee value under the count was cut short.
+          It follows the card, not the window, because the card is what varies. */}
+      <ol className="grid grid-cols-2 gap-2 @2xl:flex @2xl:flex-wrap @2xl:items-stretch @2xl:gap-x-0 @2xl:gap-y-2">
         {stages.map((s, i) => (
           <li key={s.key} className="flex min-w-0 flex-1 items-center gap-1">
             <StageTile stage={s} delay={i * 70} />
             {i < stages.length - 1 && (
               <ChevronRight
                 aria-hidden
-                className="text-subtle hidden size-4 shrink-0 opacity-50 sm:block"
+                className="text-subtle hidden size-4 shrink-0 opacity-50 @2xl:block"
               />
             )}
           </li>

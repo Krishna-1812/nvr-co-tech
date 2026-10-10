@@ -263,7 +263,7 @@ function SubjectCombobox({
                 >
                   <span className="min-w-0 flex-1 truncate font-medium">{c.name}</span>
                   {current && (
-                    <Check className="text-brand-500 size-4 shrink-0" aria-hidden />
+                    <Check className="size-4 shrink-0 text-[var(--accent)]" aria-hidden />
                   )}
                 </button>
               );

@@ -266,7 +266,7 @@ function EmptyHero({ hasPayments }: { hasPayments: boolean }) {
         </div>
         <div aria-hidden className="relative mx-auto hidden h-44 w-36 md:block">
           <div className="m-arch m-arch-open absolute inset-0 overflow-hidden bg-[var(--surface-sunken)]">
-            <span className="m-sun absolute top-8 left-1/2 size-20 -translate-x-1/2" style={{ background: 'var(--color-gold-400)' }} />
+            <span className="m-sun absolute top-8 left-1/2 size-20 -translate-x-1/2" style={{ background: 'var(--scene-sun)' }} />
             <span className="absolute inset-x-0 bottom-0 h-12 bg-[var(--border-strong)] opacity-50" style={{ borderRadius: '60% 40% 0 0 / 40% 30% 0 0' }} />
           </div>
         </div>

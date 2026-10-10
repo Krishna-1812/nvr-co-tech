@@ -152,7 +152,7 @@ export function Attachments({
                   disabled={busy}
                   className="min-w-0 flex-1 text-left disabled:opacity-60"
                 >
-                  <span className="flex items-center gap-1.5 truncate text-sm font-medium hover:text-brand-600 hover:underline">
+                  <span className="flex items-center gap-1.5 truncate text-sm font-medium hover:text-[var(--accent)] hover:underline">
                     {f.file_name}
                     {busy ? (
                       <Loader2 className="size-3 shrink-0 animate-spin" aria-hidden />
@@ -214,7 +214,7 @@ export function Attachments({
             Drop the invoice here, or{' '}
             <button
               onClick={() => inputRef.current?.click()}
-              className="font-semibold text-brand-600 hover:underline"
+              className="font-semibold text-[var(--accent)] hover:underline"
             >
               choose a file
             </button>

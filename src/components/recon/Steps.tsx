@@ -71,7 +71,7 @@ export function Steps({
               </span>
               <span
                 className={cn(
-                  'block truncate text-[12px] transition-colors sm:text-[13px]',
+                  'block text-[12px] leading-tight text-balance transition-colors sm:text-[13px]',
                   on ? 'font-semibold' : done ? 'text-muted' : 'text-subtle',
                 )}
               >
