@@ -137,11 +137,16 @@ export function HeroStat({
         className,
       )}
     >
-      <p className={strong ? 'truncate text-[10px] font-semibold tracking-[0.12em] uppercase opacity-75' : 'a-label truncate'}>
-        <span className="inline-flex items-center gap-1.5">
-          {tone && <span aria-hidden className="size-2 rounded-full" style={{ background: tone }} />}
-          {label}
-        </span>
+      {/* Wraps rather than truncates: truncation on a flex child cuts the
+          label mid-word with no ellipsis, and on a phone tiles get narrow. */}
+      <p
+        className={cn(
+          'flex items-baseline gap-1.5 leading-snug',
+          strong ? 'text-[10px] font-semibold tracking-[0.12em] uppercase opacity-75' : 'a-label',
+        )}
+      >
+        {tone && <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ background: tone }} />}
+        <span className="min-w-0 break-words">{label}</span>
       </p>
       <div className="mt-1.5 truncate text-[1.15rem] font-semibold tracking-tight tabular-nums">{value}</div>
       {note && (

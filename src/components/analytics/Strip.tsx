@@ -56,19 +56,25 @@ export function SummaryStrip({ cells, className }: { cells: StripCell[]; classNa
               cells.length % 2 === 1 && index === cells.length - 1 && 'col-span-2 sm:col-span-1',
             )}
           >
+            {/* The label wraps rather than truncates. Two cells share a 320px
+                phone, and "Wanting something custom" was cut mid-word with no
+                ellipsis, because the truncation sat on a flex child. */}
             <dt
-              className={
+              className={cn(
+                'flex items-baseline gap-1.5 leading-snug',
                 cell.strong
-                  ? 'truncate text-[10px] font-semibold tracking-[0.12em] uppercase opacity-75'
-                  : 'a-label truncate'
-              }
+                  ? 'text-[10px] font-semibold tracking-[0.12em] uppercase opacity-75'
+                  : 'a-label',
+              )}
             >
-              <span className="inline-flex items-center gap-1.5">
-                {cell.tone && !cell.strong && (
-                  <span aria-hidden className="size-1.5 shrink-0 rounded-full" style={{ background: cell.tone }} />
-                )}
-                {cell.label}
-              </span>
+              {cell.tone && !cell.strong && (
+                <span
+                  aria-hidden
+                  className="size-1.5 shrink-0 -translate-y-px rounded-full"
+                  style={{ background: cell.tone }}
+                />
+              )}
+              <span className="min-w-0 break-words">{cell.label}</span>
             </dt>
             <dd className="mt-2 truncate text-[1.6rem] leading-none font-semibold tracking-[-0.03em] tabular-nums sm:text-[1.85rem]">
               {cell.value}

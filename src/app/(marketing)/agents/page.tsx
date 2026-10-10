@@ -219,10 +219,14 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
 
           <p className="m-dim relative mt-4 mb-6 t-3">{agent.summary}</p>
 
-          <div className="relative mt-auto flex items-center gap-2 border-t border-[var(--m-line)] pt-4 t-1 t-caps uppercase">
-            <span className="m-mono m-dim-2 min-w-0 flex-1 truncate">{agent.inputs}</span>
-            <ArrowRight className="m-dim-2 size-3 shrink-0" aria-hidden />
-            <span className="m-mono m-dim min-w-0 flex-1 truncate text-right">{agent.outputs}</span>
+          {/* What goes in, then what comes out. These were truncated to one line
+              each, which on a phone left a third of a sentence ("INSTALMENT
+              DATES AND…"); they wrap now, stacked on a phone and side by side
+              from sm up. */}
+          <div className="relative mt-auto flex flex-col gap-1.5 border-t border-[var(--m-line)] pt-4 t-1 t-caps leading-snug uppercase sm:flex-row sm:items-start sm:gap-2">
+            <span className="m-mono m-dim-2 min-w-0 flex-1">{agent.inputs}</span>
+            <ArrowRight className="m-dim-2 mt-0.5 size-3 shrink-0 max-sm:rotate-90" aria-hidden />
+            <span className="m-mono m-dim min-w-0 flex-1 sm:text-right">{agent.outputs}</span>
           </div>
         </Link>
       </Spotlight>

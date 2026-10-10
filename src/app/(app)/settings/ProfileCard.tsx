@@ -127,7 +127,7 @@ export function ProfileCard({
         }`}
       >
         {facts.map((f, i) => (
-          <div key={f.label} className="flex min-w-0 flex-col justify-between gap-2 px-5 py-3.5">
+          <div key={f.label} className="flex min-w-0 flex-col justify-between gap-2 px-3.5 py-3.5 sm:px-5">
             <dt className="a-label">{f.label}</dt>
             <dd>
               <Figure value={f.value} delay={i * 90} className="text-[1.4rem]" />
@@ -135,11 +135,11 @@ export function ProfileCard({
           </div>
         ))}
 
-        <div className="flex min-w-0 flex-col justify-between gap-2 px-5 py-3.5">
+        <div className="flex min-w-0 flex-col justify-between gap-2 px-3.5 py-3.5 sm:px-5">
           <dt className="a-label">With us since</dt>
           {/* Not a Figure: it is a date, and counting up to a month name is not a
               thing. Same weight and footing as the figures beside it. */}
-          <dd className="a-figure truncate text-[1.15rem]">{memberSince}</dd>
+          <dd className="a-figure text-[1.15rem] break-words">{memberSince}</dd>
         </div>
       </dl>
 

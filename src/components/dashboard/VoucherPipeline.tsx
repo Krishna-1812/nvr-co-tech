@@ -123,7 +123,9 @@ export function VoucherPipeline({ rows }: { rows: PipelineRow[] }) {
       </div>
 
       {/* ── The four stages, in order ── */}
-      <ol className="flex flex-wrap items-stretch gap-y-2">
+      {/* Two by two on a phone: four in a row there left each tile about 70px,
+          and the rupee value under the count was cut to a couple of digits. */}
+      <ol className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-stretch sm:gap-x-0 sm:gap-y-2">
         {stages.map((s, i) => (
           <li key={s.key} className="flex min-w-0 flex-1 items-center gap-1">
             <StageTile stage={s} delay={i * 70} />
