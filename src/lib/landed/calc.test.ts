@@ -8,6 +8,7 @@ import {
   landedCost,
   parseAmount,
   problems,
+  rentalYield,
   timeline,
   withDelay,
   type Instalment,
@@ -307,5 +308,85 @@ describe('withDelay', () => {
     expect(withDelay(s, 6).ocDate).toBe('2026-07-01');
     expect(later).toBeGreaterThan(now);
     expect(withDelay(s, 0)).toBe(s);
+  });
+});
+
+describe('cash cost', () => {
+  it('is paid plus loan interest, leaving out the return own funds gave up', () => {
+    const result = landedCost(
+      schedule({
+        ocDate: '2026-01-01',
+        instalments: [
+          row({ date: '2025-01-01', amount: 1_000_000, source: 'self' }),
+          row({ date: '2024-01-02', amount: 2_000_000, source: 'borrowed' }),
+        ],
+      }),
+    );
+    // 30L paid + 3.6L loan interest; the 80,000 own-funds return is not cash.
+    expect(result.cash).toBe(3_360_000);
+    expect(result.landed - result.cash).toBe(80_000);
+  });
+});
+
+describe('rentalYield', () => {
+  // 10L own at 8% and 30L borrowed at 9%, each for a year:
+  // paid 40L, interest 80,000 + 2,70,000, true cost 43.5L.
+  const base = schedule({
+    ocDate: '2026-01-01',
+    rates: { self: 8, borrowed: 9 },
+    instalments: [
+      row({ date: '2025-01-01', amount: 1_000_000, source: 'self' }),
+      row({ date: '2025-01-01', amount: 3_000_000, source: 'borrowed' }),
+    ],
+  });
+
+  it('is null until a rent is entered', () => {
+    expect(rentalYield(base)).toBeNull();
+    expect(rentalYield({ ...base, rental: { monthlyRent: 0 } })).toBeNull();
+  });
+
+  it('measures the rent against the price and against the true cost', () => {
+    const y = rentalYield({ ...base, rental: { monthlyRent: 20_000 } })!;
+    expect(y.grossAnnual).toBe(240_000);
+    expect(y.grossOnPaid).toBeCloseTo(6, 6); // 2.4L on 40L
+    expect(y.grossOnTrue).toBeCloseTo((240_000 / 4_350_000) * 100, 6);
+    expect(y.netOnTrue).toBeCloseTo(y.grossOnTrue, 6); // no costs, no vacancy
+  });
+
+  it('takes vacancy, maintenance and fixed costs off before the net yield', () => {
+    const y = rentalYield({
+      ...base,
+      rental: { monthlyRent: 20_000, vacancyPct: 10, maintenanceMonthly: 3000, annualCosts: 12_000 },
+    })!;
+    // 2,40,000 x 0.9 - 36,000 - 12,000 = 1,68,000
+    expect(y.netAnnual).toBe(168_000);
+    expect(y.netOnTrue).toBeCloseTo((168_000 / 4_350_000) * 100, 6);
+    expect(y.paybackYears).toBeCloseTo(4_350_000 / 168_000, 6);
+  });
+
+  it('weights the cost of funds by how much each source paid', () => {
+    const y = rentalYield({ ...base, rental: { monthlyRent: 20_000 } })!;
+    expect(y.blendedRate).toBeCloseTo(8.75, 6); // (10L x 8 + 30L x 9) / 40L
+    expect(y.spread).toBeCloseTo(y.netOnTrue - 8.75, 6);
+  });
+
+  it('finds the rent at which the yield exactly covers the money', () => {
+    const rental = { vacancyPct: 10, maintenanceMonthly: 3000 };
+    const y = rentalYield({ ...base, rental: { monthlyRent: 20_000, ...rental } })!;
+    const atBreakEven = rentalYield({ ...base, rental: { monthlyRent: y.breakEvenRent, ...rental } })!;
+    expect(atBreakEven.spread).toBeCloseTo(0, 6);
+  });
+
+  it('says no rent is enough when the property is empty all year', () => {
+    const y = rentalYield({ ...base, rental: { monthlyRent: 20_000, vacancyPct: 100 } })!;
+    expect(y.breakEvenRent).toBe(Number.POSITIVE_INFINITY);
+    expect(y.paybackYears).toBeNull();
+  });
+
+  it('gives a yield on market value only when one is entered', () => {
+    expect(rentalYield({ ...base, rental: { monthlyRent: 20_000 } })!.netOnMarket).toBeUndefined();
+    expect(
+      rentalYield({ ...base, rental: { monthlyRent: 20_000, marketValue: 6_000_000 } })!.netOnMarket,
+    ).toBeCloseTo(4, 6);
   });
 });

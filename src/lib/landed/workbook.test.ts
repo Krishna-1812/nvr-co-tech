@@ -70,3 +70,25 @@ describe('displayDate', () => {
     expect(displayDate('2027-03-31')).toBe('31/03/2027');
   });
 });
+
+describe('buildLandedWorkbook, cash cost and rental yield', () => {
+  const rows = (book: XLSX.WorkBook) =>
+    XLSX.utils.sheet_to_json<[string, unknown]>(book.Sheets.Summary, { header: 1 }) as [string, unknown][];
+  const find = (book: XLSX.WorkBook, label: string) => rows(book).find((r) => r[0] === label)?.[1];
+
+  it('reports the cash cost apart from the true cost', () => {
+    const book = buildLandedWorkbook(XLSX, schedule);
+    // 30L paid + 3,74,931.51 loan interest.
+    expect(find(book, 'Cash cost (payments + loan interest)')).toBeCloseTo(3_374_931.51, 2);
+  });
+
+  it('adds the yield only when a rent is entered, with money formatted as money', () => {
+    expect(find(buildLandedWorkbook(XLSX, schedule), 'Net yield on true cost (%)')).toBeUndefined();
+    const book = buildLandedWorkbook(XLSX, { ...schedule, rental: { monthlyRent: 25_000, marketValue: 5_000_000 } });
+    expect(find(book, 'Monthly rent')).toBe(25_000);
+    expect(find(book, 'Gross yield on price paid (%)')).toBe(10); // 3L on 30L
+    expect(find(book, 'Net yield on market value (%)')).toBe(6);
+    const r = rows(book).findIndex((x) => x[0] === 'Monthly rent');
+    expect(book.Sheets.Summary[XLSX.utils.encode_cell({ c: 1, r })].z).toBe('#,##,##0.00');
+  });
+});

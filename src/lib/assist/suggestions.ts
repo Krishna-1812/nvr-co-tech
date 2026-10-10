@@ -64,8 +64,9 @@ const BY_AGENT: Record<string, Suggestion[]> = {
       question: 'How does True Property Cost work out the interest on each instalment up to the OC date?',
     },
     {
-      label: 'Simple or compound?',
-      question: 'Should I use simple interest or compounding for the cost of my own funds?',
+      label: 'Is the yield good?',
+      question:
+        'My flat cost ₹95 lakh all in and should let for ₹32,000 a month. Does that rent cover a home loan at 8.5%?',
     },
     {
       label: 'Check a figure',

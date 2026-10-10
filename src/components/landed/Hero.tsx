@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type CSSProperties } from 'react';
-import { CalendarClock, Hourglass, Ruler } from 'lucide-react';
+import { Banknote, CalendarClock, Hourglass, Ruler } from 'lucide-react';
 import type { LandedCost } from '@/lib/landed/calc';
 import { formatINR } from '@/lib/recon/amount';
 import { TONE, compactINR, longDate, pct, todayIso, untilOc } from './shared';
@@ -126,6 +126,11 @@ export function Hero({
           )}
 
           <div className="mt-7 flex flex-wrap gap-2">
+            {/* The true cost includes the return own funds gave up, which is a
+                cost but not a payment. This is the part that left the account. */}
+            <Chip icon={Banknote}>
+              Cash cost {formatINR(result.cash)}: payments plus loan interest, without the return own funds gave up
+            </Chip>
             <Chip icon={Hourglass}>
               Each rupee waited {Math.round(result.weightedDays).toLocaleString('en-IN')} days on average
             </Chip>

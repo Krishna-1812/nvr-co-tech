@@ -77,6 +77,25 @@ export type Schedule = {
   instalments: Instalment[];
   /** Optional carpet area in square feet, for a cost per square foot. */
   areaSqft?: number;
+  /** Optional: what the property is expected to let for, for the yield. */
+  rental?: Rental;
+};
+
+/**
+ * What the property earns once it is let. Every field is optional except the
+ * rent itself; a blank is read as nothing rather than as a guess.
+ */
+export type Rental = {
+  /** Expected rent, per month. */
+  monthlyRent?: number;
+  /** Society maintenance the owner pays, per month. */
+  maintenanceMonthly?: number;
+  /** Property tax and other fixed owner costs, per year. */
+  annualCosts?: number;
+  /** Share of the year expected to be empty between tenants, as a percentage. */
+  vacancyPct?: number;
+  /** What the property would sell for today, for a yield on market value. */
+  marketValue?: number;
 };
 
 export type InstalmentResult = Instalment & {
@@ -112,6 +131,12 @@ export type LandedCost = {
   interest: number;
   /** paid + interest. */
   landed: number;
+  /**
+   * paid + interest on borrowed funds only: the money that actually leaves the
+   * buyer's account. The true cost adds the return own funds gave up, which is
+   * a real cost but not a payment, and finance teams report the two apart.
+   */
+  cash: number;
   /** interest as a share of paid, as a percentage. Zero when nothing is paid. */
   upliftPct: number;
   /** Amount-weighted average days a rupee was tied up before OC. */
@@ -212,6 +237,7 @@ export function landedCost(schedule: Schedule): LandedCost {
   const paid = paise(self.paid + borrowed.paid);
   const interest = paise(self.interest + borrowed.interest);
   const landed = paise(paid + interest);
+  const cash = paise(paid + borrowed.interest);
   const weightedDays = paid > 0 ? rows.reduce((acc, r) => acc + r.amount * r.days, 0) / paid : 0;
 
   const area = schedule.areaSqft;
@@ -222,6 +248,7 @@ export function landedCost(schedule: Schedule): LandedCost {
     paid,
     interest,
     landed,
+    cash,
     upliftPct: paid > 0 ? (interest / paid) * 100 : 0,
     weightedDays,
     perSqft: area && area > 0 ? { paid: paise(paid / area), landed: paise(landed / area) } : undefined,
@@ -368,4 +395,79 @@ export function timeline(schedule: Schedule, samples = 96): TimelinePoint[] {
  */
 export function withDelay(schedule: Schedule, months: number): Schedule {
   return months === 0 ? schedule : { ...schedule, ocDate: addMonths(schedule.ocDate, months) };
+}
+
+// ── Rental yield ─────────────────────────────────────────────────────────────
+
+export type RentalYield = {
+  /** Rent for a full year, before vacancy and costs. */
+  grossAnnual: number;
+  /** Rent actually expected after vacancy, less maintenance and fixed costs. */
+  netAnnual: number;
+  /** Gross rent on the price paid: the yield a broker quotes. */
+  grossOnPaid: number;
+  /** Gross rent on the true cost. */
+  grossOnTrue: number;
+  /** Net rent on the true cost: what the money actually earns. */
+  netOnTrue: number;
+  /** Net rent on today's market value, when one is given. */
+  netOnMarket?: number;
+  /**
+   * What the money in the property costs a year, as a rate: own funds and
+   * borrowed funds weighted by how much each paid.
+   */
+  blendedRate: number;
+  /** netOnTrue less blendedRate. Below zero, the rent does not cover the money. */
+  spread: number;
+  /** Monthly rent at which the net yield on true cost equals the blended rate. */
+  breakEvenRent: number;
+  /** Years of net rent to earn back the true cost, ignoring growth. */
+  paybackYears: number | null;
+};
+
+/**
+ * The yield on what the property really cost.
+ *
+ * A yield quoted on the agreement price flatters a flat bought off plan,
+ * because the money was out for years before the first month's rent. Measured
+ * against the true cost instead, and set beside what that money costs a year,
+ * it answers the question an investor actually has: does the rent cover the
+ * money?
+ *
+ * Pre-tax and without growth: no appreciation, no rent escalation, no tax on
+ * rent and no deduction for loan interest. Null until a rent is entered.
+ */
+export function rentalYield(schedule: Schedule, result: LandedCost = landedCost(schedule)): RentalYield | null {
+  const r = schedule.rental;
+  const rent = r?.monthlyRent ?? 0;
+  if (!r || !(rent > 0) || result.paid <= 0) return null;
+
+  const pos = (v: number | undefined) => (v !== undefined && Number.isFinite(v) && v > 0 ? v : 0);
+  const vacancy = Math.min(100, pos(r.vacancyPct)) / 100;
+  const grossAnnual = rent * 12;
+  const fixed = pos(r.maintenanceMonthly) * 12 + pos(r.annualCosts);
+  const netAnnual = grossAnnual * (1 - vacancy) - fixed;
+
+  const blendedRate =
+    (result.self.paid * schedule.rates.self + result.borrowed.paid * schedule.rates.borrowed) / result.paid;
+  const netOnTrue = (netAnnual / result.landed) * 100;
+  // The rent at which (12 x rent x (1 - vacancy) - fixed) / true cost equals the
+  // blended rate. With the property empty all year no rent is ever enough,
+  // which is reported as Infinity rather than as a number.
+  const breakEvenRent =
+    vacancy >= 1 ? Number.POSITIVE_INFINITY : ((blendedRate / 100) * result.landed + fixed) / (12 * (1 - vacancy));
+  const market = pos(r.marketValue);
+
+  return {
+    grossAnnual,
+    netAnnual,
+    grossOnPaid: (grossAnnual / result.paid) * 100,
+    grossOnTrue: (grossAnnual / result.landed) * 100,
+    netOnTrue,
+    netOnMarket: market > 0 ? (netAnnual / market) * 100 : undefined,
+    blendedRate,
+    spread: netOnTrue - blendedRate,
+    breakEvenRent,
+    paybackYears: netAnnual > 0 ? result.landed / netAnnual : null,
+  };
 }

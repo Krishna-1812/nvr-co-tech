@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { AlertTriangle, ArrowDownUp, Landmark, Plus, X } from 'lucide-react';
+import { AlertTriangle, ArrowDownUp, Info, Landmark, Plus, X } from 'lucide-react';
 import { Input } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils';
 import { formatINR } from '@/lib/recon/amount';
@@ -19,6 +19,9 @@ import { SOURCE_TONE, compactINR } from './shared';
  * cost by possession. That figure is the whole tool at the scale of one cheque,
  * which is where people actually make the own-or-borrowed decision.
  */
+/** Costs of buying that sit outside the builder's demand schedule. */
+const CHARGES = ['Stamp duty', 'Registration', 'GST', 'Legal fees', 'Brokerage', 'Parking', 'Club membership'];
+
 export function Payments({
   instalments,
   result,
@@ -166,6 +169,34 @@ export function Payments({
           </button>
         </li>
       </ol>
+
+      {/*
+        The charges that are part of what a flat costs but not on the builder's
+        demand schedule. They carry the cost of funds like any other payment, so
+        they go in the same list, dated, rather than in a separate box that
+        would leave them out of the interest.
+      */}
+      <div className="px-5 pb-4 sm:px-6">
+        <p className="a-label">Add a charge</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {CHARGES.map((label) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => onChange([...instalments, { ...blankInstalment('self'), label }])}
+              className="surface-sunken text-muted inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[12.5px] font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+            >
+              <Plus className="size-3" aria-hidden />
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-subtle mt-3 flex items-start gap-1.5 text-[12px] text-pretty">
+          <Info className="mt-px size-3.5 shrink-0" aria-hidden />
+          Paid partly from your own money and partly from the loan? Enter it twice on the same date, once as Own and
+          once as Borrowed.
+        </p>
+      </div>
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t px-5 py-3.5 text-[13px] sm:px-6">
         <span className="text-muted">

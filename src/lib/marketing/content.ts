@@ -183,7 +183,7 @@ export const AGENTS: Agent[] = [
     category: 'Property & capex',
     accent: 'cyan',
     summary:
-      'What an under-construction property really costs by possession: every instalment, plus what the money cost while it was tied up, own funds and loan each at its own rate.',
+      'What an under-construction property really costs by possession, and what it really yields once let: every instalment, plus what the money cost while it was tied up, own funds and loan each at its own rate.',
     pitch:
       'The agreement value is what you paid. It is not what the flat cost you. Money paid at booking sat in a building for two or three years before anyone could live in it, and that money either came out of a loan that charged interest or out of savings that stopped earning. Add that back and you have the number worth comparing against a ready flat.',
     does: [
@@ -192,12 +192,15 @@ export const AGENTS: Agent[] = [
       'Counts the cost of each payment from the day it was paid to the OC date, which it treats as possession. A payment on or after that date carries nothing, and is flagged.',
       'Simple interest by default, which is how a lender charges pre-EMI interest during construction, with yearly, quarterly or monthly compounding if you reinvest. Days are counted actual/365.',
       'Shows the true cost, the carrying cost of own funds and of the loan separately, the uplift over the amount paid, and a cost per square foot when you give it the carpet area.',
+      'Reports the cash cost beside it: payments plus loan interest, without the return own funds gave up, which is a real cost but never left the account.',
+      'Works out the rental yield on the true cost rather than the price: net of vacancy, maintenance and owner costs, set beside what the money costs a year, with the break-even rent and the payback period.',
+      'Takes stamp duty, registration, GST and other charges as dated payments, so they carry the cost of funds like any instalment.',
       'Recomputes as you type, so moving the OC date six months or switching a demand to the loan shows its effect at once.',
-      'Exports the summary and the payment-by-payment working to Excel, with amounts as numbers you can total.',
+      'Exports a PDF report, with the method and its limits stated, and an Excel workbook with amounts as numbers you can total.',
       'Runs in your browser. Schedules are saved on your device and are never sent to a server.',
     ],
-    inputs: 'Instalment dates and amounts, own or borrowed, and the OC date',
-    outputs: 'True cost at possession, with interest by source and by payment',
+    inputs: 'Instalment dates and amounts, own or borrowed, the OC date, and the expected rent',
+    outputs: 'True cost at possession, the cash cost, and the rental yield on it',
     href: '/true-property-cost',
   },
   {

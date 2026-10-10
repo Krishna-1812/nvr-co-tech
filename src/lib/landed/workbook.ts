@@ -1,5 +1,5 @@
 import type * as XLSXType from 'xlsx';
-import { COMPOUNDING_LABEL, SOURCE_LABEL, landedCost, type Schedule } from './calc';
+import { COMPOUNDING_LABEL, SOURCE_LABEL, landedCost, rentalYield, type Schedule } from './calc';
 
 /**
  * A True Property Cost schedule as a workbook.
@@ -60,6 +60,27 @@ export function buildLandedWorkbook(
     // is passed on has lost the warning.
     ['Payments counted', `${result.rows.length} of ${schedule.instalments.length}`],
   ];
+  // Money rows are named rather than counted, so adding a row cannot shift the
+  // currency format onto the wrong figure.
+  const MONEY_ROWS = new Set<string>([
+    'Paid from own funds',
+    'Carrying cost of own funds',
+    'Paid from borrowed funds',
+    'Interest on borrowed funds',
+    'Total paid',
+    'Total carrying cost to OC',
+    'True cost at OC',
+    'Paid per sq ft',
+    'True cost per sq ft',
+    'Cash cost (payments + loan interest)',
+    'Monthly rent',
+    'Maintenance a month',
+    'Other owner costs a year',
+    'Market value',
+    'Net rent a year',
+    'Break-even rent a month',
+  ]);
+
   if (result.perSqft && schedule.areaSqft) {
     summary.push(
       [null, null],
@@ -68,9 +89,42 @@ export function buildLandedWorkbook(
       ['True cost per sq ft', result.perSqft.landed],
     );
   }
+  // The money that actually left the account, apart from the return own funds
+  // gave up, which is a cost but not a payment.
+  summary.push([null, null], ['Cash cost (payments + loan interest)', result.cash]);
+
+  const y = rentalYield(schedule, result);
+  const rental = schedule.rental;
+  if (y && rental) {
+    const round2 = (v: number) => Math.round(v * 100) / 100;
+    summary.push(
+      [null, null],
+      ['Rental yield', 'Pre-tax, no appreciation or rent escalation'],
+      ['Monthly rent', rental.monthlyRent ?? 0],
+      ['Maintenance a month', rental.maintenanceMonthly ?? 0],
+      ['Other owner costs a year', rental.annualCosts ?? 0],
+      ['Vacancy (% of the year)', rental.vacancyPct ?? 0],
+      ['Net rent a year', round2(y.netAnnual)],
+      ['Gross yield on price paid (%)', round2(y.grossOnPaid)],
+      ['Gross yield on true cost (%)', round2(y.grossOnTrue)],
+      ['Net yield on true cost (%)', round2(y.netOnTrue)],
+      ['Cost of the money, blended (% a year)', round2(y.blendedRate)],
+      ['Net yield less cost of the money (%)', round2(y.spread)],
+      [
+        'Break-even rent a month',
+        Number.isFinite(y.breakEvenRent) ? round2(y.breakEvenRent) : 'No rent covers it at this vacancy',
+      ],
+      ['Payback on true cost (years)', y.paybackYears === null ? 'Never, at this net rent' : round2(y.paybackYears)],
+    );
+    if (y.netOnMarket !== undefined && rental.marketValue) {
+      summary.push(['Market value', rental.marketValue], ['Net yield on market value (%)', round2(y.netOnMarket)]);
+    }
+  }
+
   const summarySheet = XLSX.utils.aoa_to_sheet(summary);
-  money(summarySheet, XLSX, 1, 6, 13);
-  if (result.perSqft) money(summarySheet, XLSX, 1, 19, 20);
+  summary.forEach((row, r) => {
+    if (typeof row[0] === 'string' && MONEY_ROWS.has(row[0])) money(summarySheet, XLSX, 1, r, r);
+  });
   summarySheet['!cols'] = [{ wch: 36 }, { wch: 22 }];
   XLSX.utils.book_append_sheet(book, summarySheet, 'Summary');
 

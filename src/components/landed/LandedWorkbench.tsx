@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Building, Download, LineChart, Plus, Table2, Trash2 } from 'lucide-react';
+import { BookOpen, Building, Download, FileText, Lightbulb, LineChart, Plus, Table2, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Modal } from '@/components/ui/Modal';
 import { Button, DataTable, Td, Th, Thead, Tr } from '@/components/ui/primitives';
@@ -13,6 +13,7 @@ import { Hero } from './Hero';
 import { MoneyChart } from './MoneyChart';
 import { DelayPanel, FundsPanel, Panel, PropertyPanel } from './Panels';
 import { Payments } from './Payments';
+import { RentalPanel } from './Rental';
 import { SOURCE_TONE, compactINR, longDate, pct } from './shared';
 
 /**
@@ -27,6 +28,11 @@ import { SOURCE_TONE, compactINR, longDate, pct } from './shared';
  * Every edit is saved to this browser as it is made. See lib/landed/store for
  * why nothing leaves it.
  */
+/** A property name made safe to use as the start of a file name. */
+function fileBase(name: string): string {
+  return name.replace(/[^\w\- ]+/g, '').trim() || 'True property cost';
+}
+
 export function LandedWorkbench() {
   const state = useLandedStore();
 
@@ -59,6 +65,7 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
   const ready = result.rows.length > 0 && !!schedule.ocDate && !issues.some((p) => !p.id);
 
   const [exporting, setExporting] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   const download = async () => {
@@ -67,10 +74,34 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
       const XLSX = await import('xlsx');
       const { buildLandedWorkbook } = await import('@/lib/landed/workbook');
       const book = buildLandedWorkbook(XLSX, schedule);
-      const safe = schedule.name.replace(/[^\w\- ]+/g, '').trim() || 'True property cost';
-      XLSX.writeFile(book, `${safe} - true property cost.xlsx`);
+      XLSX.writeFile(book, `${fileBase(schedule.name)} - true property cost.xlsx`);
     } finally {
       setExporting(false);
+    }
+  };
+
+  /*
+   * The PDF is drawn in the browser, like everything else here, so the schedule
+   * still never leaves it. The renderer is large and only loaded on the click.
+   */
+  const downloadPdf = async () => {
+    setPrinting(true);
+    try {
+      const [{ pdf }, { TruePropertyCostDocument }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('@/lib/landed/report'),
+      ]);
+      const now = new Date();
+      const preparedOn = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      const blob = await pdf(<TruePropertyCostDocument schedule={schedule} preparedOn={preparedOn} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${fileBase(schedule.name)} - true property cost.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } finally {
+      setPrinting(false);
     }
   };
 
@@ -82,9 +113,17 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
         description="Every instalment on an under-construction property, plus what the money cost while it was tied up, up to the day of the occupancy certificate."
         action={
           <>
+            <Button variant="ghost" onClick={() => landedStore.createExample()}>
+              <Lightbulb className="size-4" aria-hidden />
+              Load example
+            </Button>
             <Button onClick={() => landedStore.create()}>
               <Plus className="size-4" aria-hidden />
               New property
+            </Button>
+            <Button onClick={downloadPdf} disabled={!ready} loading={printing}>
+              <FileText className="size-4" aria-hidden />
+              PDF
             </Button>
             <Button variant="primary" onClick={download} disabled={!ready} loading={exporting}>
               <Download className="size-4" aria-hidden />
@@ -141,7 +180,11 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
         </div>
       </div>
 
+      {ready && <RentalPanel schedule={schedule} result={result} onChange={(rental) => save({ rental })} />}
+
       {ready && <Working schedule={schedule} result={result} />}
+
+      <Method />
 
       <p className="text-subtle text-center text-xs">
         Saved in this browser only. Nothing on this page is sent to a server; use Excel to keep a copy elsewhere.
@@ -229,6 +272,47 @@ function EmptyHero({ hasPayments }: { hasPayments: boolean }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * The method and its limits, stated where the figures are.
+ *
+ * A number with no visible method is a number nobody can sign off, and the
+ * limits matter as much as the formula: the loan is assumed to stay fully
+ * drawn until possession, which is the conservative reading, and tax is out of
+ * scope entirely.
+ */
+function Method() {
+  return (
+    <Panel icon={<BookOpen className="size-4" />} title="How it is worked out" description="The method, and what it leaves out.">
+      <div className="grid gap-6 p-5 text-[13.5px] sm:p-6 md:grid-cols-2">
+        <div className="space-y-3">
+          <p className="a-label">The cost of each payment</p>
+          <p className="surface-sunken rounded-2xl border px-4 py-3 font-semibold tabular-nums">
+            Amount × rate a year × days to possession ÷ 365
+          </p>
+          <ul className="text-muted list-disc space-y-1.5 pl-5 text-pretty">
+            <li>Days run from the day after a payment up to and including the OC date. A payment made on the OC date, or after it, carries nothing.</li>
+            <li>Own funds are charged at the return they gave up. Borrowed funds at the loan rate. One rate per source, for every payment from it.</li>
+            <li>Compounding, when chosen, applies the same days and rate yearly, quarterly or monthly.</li>
+          </ul>
+        </div>
+        <div className="space-y-3">
+          <p className="a-label">What the figures mean</p>
+          <ul className="text-muted list-disc space-y-1.5 pl-5 text-pretty">
+            <li><span className="font-semibold text-[var(--text-c)]">True cost</span>: everything paid, plus the loan interest, plus the return own funds gave up.</li>
+            <li><span className="font-semibold text-[var(--text-c)]">Cash cost</span>: everything paid, plus the loan interest. What actually left the account.</li>
+            <li><span className="font-semibold text-[var(--text-c)]">Net yield</span>: rent after vacancy, maintenance and other costs, on the true cost.</li>
+          </ul>
+          <p className="a-label pt-1">Not modelled</p>
+          <p className="text-muted text-pretty">
+            EMI repayments during construction, since the borrowed principal is treated as outstanding until possession.
+            Changes in rates. Tax on rent, and tax benefits on home-loan interest. Appreciation and rent escalation.
+          </p>
+        </div>
+      </div>
+    </Panel>
   );
 }
 
