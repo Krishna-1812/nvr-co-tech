@@ -15,22 +15,22 @@ type ButtonProps = ComponentProps<'button'> & {
 
 const BUTTON_VARIANTS = {
   /*
-   * The gradient is the app's one signature. It belongs on the single most
-   * important control on a screen, which is what `primary` means.
-   *
-   * The inset white hairline along the top edge is what makes a filled button look
-   * like a physical key rather than a coloured rectangle — the same trick every
-   * raised surface in this app uses, at button scale.
+   * The single most important control on a screen, which is what `primary`
+   * means. Ink on bone, and terracotta under the pointer, exactly as the public
+   * site's buttons are. The hover has to drop the fill's background-image as
+   * well as set a colour, because .gradient-brand paints as an image and an
+   * image sits on top of any background colour.
    */
   primary:
-    'gradient-brand elev-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22),var(--elev-brand)] hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:shadow-none',
+    'gradient-brand elev-brand shadow-[var(--elev-brand)] hover:bg-none hover:bg-[var(--action-hover)] active:brightness-95 disabled:opacity-50 disabled:shadow-none',
   secondary:
     'surface text-[var(--text-c)] elev-1 hover:bg-[var(--surface-sunken)] hover:border-[var(--border-strong)] border-[var(--border-strong)]',
   ghost: 'text-muted hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]',
+  // Brick and olive, the status pigments, rather than a stock red and green.
   danger:
-    'bg-red-600 text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.2),var(--elev-1)] hover:bg-red-700 active:bg-red-800',
+    'bg-[var(--status-rejected)] text-[var(--on-tone)] shadow-[var(--elev-1)] hover:brightness-110 active:brightness-95',
   success:
-    'bg-emerald-600 text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.2),var(--elev-1)] hover:bg-emerald-700 active:bg-emerald-800',
+    'bg-[var(--status-approved)] text-[var(--on-tone)] shadow-[var(--elev-1)] hover:brightness-110 active:brightness-95',
 } as const;
 
 const BUTTON_SIZES = {
@@ -53,7 +53,7 @@ export function buttonClass({
   className,
 }: { variant?: ButtonVariant; size?: ButtonSize; className?: string } = {}) {
   return cn(
-    'inline-flex items-center justify-center rounded-lg font-semibold whitespace-nowrap',
+    'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap',
     'transition duration-150 active:scale-[0.98]',
     'disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100',
     'aria-disabled:pointer-events-none aria-disabled:opacity-50',

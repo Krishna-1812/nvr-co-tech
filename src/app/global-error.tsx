@@ -31,19 +31,19 @@ export default function GlobalError({
           placeItems: 'center',
           padding: '2rem',
           fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
-          background: '#fafafa',
-          color: '#1c1c22',
+          background: '#F6EFE4',
+          color: '#2B211B',
         }}
       >
         <div style={{ maxWidth: '28rem', textAlign: 'center' }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
             The application could not start
           </h1>
-          <p style={{ marginTop: '0.75rem', color: '#5a5a68', lineHeight: 1.6 }}>
+          <p style={{ marginTop: '0.75rem', color: '#4A3D33', lineHeight: 1.6 }}>
             This is a fault in the app itself rather than in your data. Nothing was saved.
           </p>
           {error.digest && (
-            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#8a8a99' }}>
+            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#67574A' }}>
               Reference: {error.digest}
             </p>
           )}
@@ -53,10 +53,10 @@ export default function GlobalError({
               marginTop: '1.5rem',
               height: '2.5rem',
               padding: '0 1rem',
-              borderRadius: '0.5rem',
+              borderRadius: '9999px',
               border: 'none',
-              background: '#3D52A0',
-              color: 'white',
+              background: '#2B211B',
+              color: '#FBF6EE',
               fontWeight: 600,
               fontSize: '0.875rem',
               cursor: 'pointer',

@@ -28,10 +28,9 @@ export function Backdrop() {
       <div className="absolute inset-0 bg-[linear-gradient(180deg,var(--surface-sunken),var(--surface)_38%,var(--surface))]" />
 
       {/*
-        Two lights — one cool, one warm, the only two hues in the system. There
-        used to be a third, a cyan, and three saturated fields drifting behind a
-        page of figures is both the most-copied backdrop on the web and enough
-        colour to tint the paper the numbers are printed on.
+        Two lights, the sun and the terracotta, kept faint enough that they warm
+        the plaster without tinting the paper the numbers are printed on. There
+        is no grid behind them any more: on sand it read as graph paper.
 
         The durations are deliberately co-prime-ish and the second delay
         negative, so it starts mid-cycle and the pattern of their overlap never
@@ -51,10 +50,6 @@ export function Backdrop() {
           animation: 'aurora 46s ease-in-out -11s infinite reverse',
         }}
       />
-      {/* The grid, faded out radially so it never reaches an edge and read as a
-          border. */}
-      <div className="a-grid absolute inset-0 opacity-[0.45] [mask-image:radial-gradient(80%_60%_at_50%_0%,#000,transparent)]" />
-
       {/* Grain over the lights, so it textures them rather than sitting under. */}
       <div className="a-grain absolute inset-0" />
 

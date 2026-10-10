@@ -3,73 +3,80 @@
 /*
  * The Finance Intelligence — design tokens.
  *
- * ── Ink & Gold ─────────────────────────────────────────────────────────────
+ * ── Desert ─────────────────────────────────────────────────────────────────
  *
- * Every colour in this file is taken from the owl, and there is nothing in it
- * that is not. The mark is four colours: #0B2942 navy, #123B57 the lit navy it
- * is drawn in, #E8C468 gold for the eye rings and the rupee, and #F5F0E6 for
- * the bone disc behind the bird. In OKLCH those land on two hues — 247 for the
- * navy and 88 for the gold, with the bone reading as the gold hue at a
- * fourteenth of the chroma.
+ * One palette for the public site and the signed-in app: bone and sand for the
+ * grounds, a warm ink for type, terracotta for the one thing on a screen that
+ * matters, and the sun as a fill that is never set as type. The app's light
+ * theme is that palette exactly; its dark theme is the same desert after
+ * sundown. It replaced a navy-and-gold system drawn from the owl, which is why
+ * the owl itself is still navy: the mark did not change, the room did.
  *
- * So the whole system is two hues. Cool navy for structure, ink and every
- * neutral; warm gold for the one accent; the bone as the paper the light theme
- * is printed on. It replaces an indigo→violet pair (#3D52A0 → a violet at hue
- * 306) which was carried over from the v1 voucher document and had no relation
- * to the mark at all — the owl in the header read as a sticker somebody had
- * stuck onto a purple site.
+ * Two rules are enforced throughout:
  *
- * Two rules follow from that and are enforced throughout:
+ *   1. Nothing is a two-hue gradient. Filled surfaces are flat, and what makes
+ *      them read as objects is the edge and the warm shadow under them.
  *
- *   1. Nothing is a two-hue gradient. The old --gradient-brand ran indigo to
- *      violet across every primary button, chip and rule on the site, which is
- *      the single most recognisable tell of a page nobody drew. Filled surfaces
- *      are flat ink, and what makes them read as objects is the edge, the
- *      grain and the shadow — see .surface-lit and .a-ring.
- *
- *   2. Gold is rationed. It is the only warm thing on a cool page, which is
- *      exactly why it stops working the moment it is used for more than one
- *      idea. It marks section labels, the live signal, and the one figure per
- *      screen that matters. It is never a button fill and never a large field.
+ *   2. Terracotta is rationed. It marks the live signal, a focus ring, the
+ *      selected thing and the one figure per screen that matters, and it is
+ *      what a primary button turns under the pointer. It is never a large field.
  * ───────────────────────────────────────────────────────────────────────────
  */
 
 @theme {
   /*
-   * The navy, as a scale. 700 and 800 are the mark's own two navies, coordinate
-   * for coordinate; everything above them is that hue carried up to paper.
-   *
-   * Note that the scale gets *lighter* far faster than it gets less saturated.
-   * A navy that desaturates as it lightens turns grey by 300 and the tints stop
-   * belonging to the same colour as the fills.
+   * The terracotta, as a scale. 600 is #9C4026, the desert skin's accent, and
+   * every other step is that pigment carried towards bone (50) or towards
+   * fired clay (950). The brand-* utilities across the app read these, so a
+   * focus ring, a selected chip and a link all land on the one accent.
    */
-  --color-brand-50:  oklch(0.972 0.008 247);
-  --color-brand-100: oklch(0.940 0.018 247);
-  --color-brand-200: oklch(0.882 0.032 247);
-  --color-brand-300: oklch(0.796 0.048 247);
-  --color-brand-400: oklch(0.660 0.070 247);
-  --color-brand-500: oklch(0.505 0.080 246);
-  --color-brand-600: oklch(0.400 0.078 245);
-  --color-brand-700: oklch(0.339 0.067 243);  /* #123B57 — the mark's lit navy */
-  --color-brand-800: oklch(0.273 0.058 247);  /* #0B2942 — the mark's navy */
-  --color-brand-900: oklch(0.205 0.044 247);
+  --color-brand-50:  #FAEFE8;
+  --color-brand-100: #F4DDD0;
+  --color-brand-200: #EBC1AB;
+  --color-brand-300: #DE9C7D;
+  --color-brand-400: #CB7753;
+  --color-brand-500: #B5593A;
+  --color-brand-600: #9C4026;
+  --color-brand-700: #82341F;
+  --color-brand-800: #67291A;
+  --color-brand-900: #4A1E13;
+  --color-brand-950: #2E130C;
+
+  /* The sun. 400 is #E9B44C, the disc behind the arches; never set as type. */
+  --color-gold-200: #F7E7C4;
+  --color-gold-300: #F0CE86;
+  --color-gold-400: #E9B44C;
+  --color-gold-500: #D49A2E;
+  --color-gold-600: #A87A12;
+  --color-gold-700: #7A5418;
+
+  /* Bone: the page the whole product is printed on. */
+  --color-bone: #F6EFE4;
 
   /*
-   * The gold. 400 is #E8C468 exactly — the eye rings, the beak and the rupee.
-   *
-   * It darkens towards 78° rather than staying at 88°, because gold that only
-   * loses lightness reads as mustard; rotating it a few degrees towards amber
-   * as it darkens is what keeps it reading as metal.
+   * The stock reds, greens and ambers, retuned to the same pigments as the
+   * status colours. About twenty call sites use them for an error line, a
+   * success tick or a warning badge, and a fire-engine red on sand was the one
+   * colour left in the app that came from a component library rather than from
+   * the hillside. Only the steps actually in use are restated.
    */
-  --color-gold-200: oklch(0.940 0.048 90);
-  --color-gold-300: oklch(0.898 0.080 89);
-  --color-gold-400: oklch(0.833 0.119 88);   /* #E8C468 — the mark's gold */
-  --color-gold-500: oklch(0.760 0.126 86);
-  --color-gold-600: oklch(0.660 0.118 82);
-  --color-gold-700: oklch(0.545 0.100 78);
-
-  /* The bone disc behind the owl, and the paper the light theme is printed on. */
-  --color-bone: oklch(0.956 0.014 85);        /* #F5F0E6 */
+  --color-red-50:  #FBEDE9;
+  --color-red-400: #EC9484;
+  --color-red-500: #B8402F;
+  --color-red-600: #A3352A;
+  --color-red-700: #8A2B22;
+  --color-red-800: #6E2219;
+  --color-red-950: #3A140E;
+  --color-rose-400: #DE9A93;
+  --color-rose-600: #9A4C47;
+  --color-emerald-400: #ABC27C;
+  --color-emerald-600: #4E6A2C;
+  --color-emerald-700: #3F5823;
+  --color-emerald-800: #33481C;
+  --color-amber-400: #E9B44C;
+  --color-amber-600: #A87A12;
+  --color-amber-700: #7A5418;
+  --color-amber-950: #3A2708;
 
   /*
    * ── Corners ──────────────────────────────────────────────────────────────
@@ -109,27 +116,16 @@
   --radius-4xl: 24px;
 
   /*
-   * One family for everything. --font-display is the same stack as --font-sans;
-   * what separates a headline from body text is the `opsz` and `wdth` axes, set
-   * by the .m-display utility, not a different typeface.
-   *
-   * Bricolage Grotesque, and its two axes are what make that possible. `opsz`
-   * gives a different drawing at each size rather than the same outlines scaled
-   * — see the note in layout.tsx — and `wdth` narrows the large settings, by
-   * an amount that follows the heading's rank rather than one flat number.
-   *
-   * One number worth knowing before touching any of the settings below:
-   * Bricolage's `wdth` floor is 75. Every width used here sits above it, and
-   * anything lower is silently clamped rather than rejected, which is the kind
-   * of thing that reads as "the animation does not do much" rather than as a
-   * bug.
+   * Two faces, the public site's and now the app's: Figtree for everything that
+   * is read, Gloock for headlines through .m-display. Figtree has tabular
+   * figures, so it also stands in for the old monospace wherever a figure or a
+   * label has to line up; see lib/brand/fonts.ts. --font-serif is kept as a
+   * name only, pointed at the display face, for the .m-serif accent.
    */
-  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: var(--font-sans);
-  --font-mono: var(--font-mono-stack), ui-monospace, 'Cascadia Code', monospace;
-  /* Italic accents inside headlines only — Bricolage ships no italic, and a
-     browser-synthesised slant is a sheared roman rather than an italic. */
-  --font-serif: var(--font-serif-stack), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-gloock), Georgia, 'Times New Roman', serif;
+  --font-mono: var(--font-sans);
+  --font-serif: var(--font-display);
 
   /*
    * The stepped easing, which is what gives this design its character.
@@ -167,185 +163,125 @@
  * Semantic surface tokens, defined for both themes. Components reference these
  * rather than raw palette steps, so dark mode is one definition rather than a
  * `dark:` variant on every element.
+ *
+ * ── Desert, inside as well as out ──────────────────────────────────────────
+ *
+ * The light theme is the public site's desert skin, value for value: bone for
+ * the page, a lighter card on it, sand for anything sunk, warm ink for type
+ * and terracotta for the one thing on a screen that matters. Somebody who signs
+ * in from the public site should not be able to see the seam.
+ *
+ * The dark theme is the same desert after sundown, not the old navy: a deep
+ * earth brown for the ground, bone for the type, and the terracotta and the sun
+ * lifted until they read on it.
  */
 :root {
-  /*
-   * Paper, not white.
-   *
-   * The light theme is printed on the mark's own bone — #F5F0E6 sits at the top
-   * of this ramp as --surface-raised, and the page behind it is a shade deeper
-   * so a card reads as something laid on the desk rather than as a hole cut in
-   * it. A pure white ground was the other half of why the old palette looked
-   * generated: white paper plus a violet gradient is the default of every
-   * component library shipped in the last five years.
-   *
-   * The neutrals are warm (hue 85, the gold's hue at a tenth of its chroma) and
-   * the ink on them is cool (hue 247). That opposition is the whole trick — it
-   * is what the mark does, a cool bird on a warm disc, and it is why this looks
-   * like paper rather than like grey.
-   */
-  --surface:        oklch(0.945 0.013 85);
-  --surface-raised: oklch(0.978 0.008 85);
-  --surface-sunken: oklch(0.912 0.016 85);
+  --surface:        #F6EFE4;  /* bone, the page */
+  --surface-raised: #FBF6EE;  /* the card laid on it */
+  --surface-sunken: #EBDDCB;  /* sand */
 
-  /* Edges are ink at low strength, not warm — a warm border round a warm card
-     is invisible, and these have to survive being 1px wide. */
-  --border-c:       oklch(0.878 0.014 247);
-  --border-strong:  oklch(0.775 0.024 247);
+  --border-c:       #E2D3BF;
+  --border-strong:  #BFA98E;
 
-  --text-c:         oklch(0.273 0.058 247);  /* #0B2942 — the mark's navy, as ink */
-  --text-muted:     oklch(0.475 0.040 247);
-  /* 0.545, not the 0.610 this started at. Measured against --surface-raised
-     that was 3.54:1 — under AA for the micro-labels and hints it actually
-     carries. This clears 4.5 with the hue untouched. */
-  --text-subtle:    oklch(0.545 0.032 247);
+  /* Ink and its two quieter steps. Each clears 4.5:1 on all three surfaces. */
+  --text-c:         #2B211B;
+  --text-muted:     #4A3D33;
+  --text-subtle:    #67574A;
 
   /*
    * Status colours are the one place hue is allowed to mean something other
-   * than the brand, because it is carrying information: a reader has to tell
-   * approved from rejected across a room. They are pulled to a common lightness
-   * so they read as one set of instruments, and their chroma is a step below
-   * where it was — on bone rather than white, the old values were shouting.
+   * than the brand, because they carry information: a reader has to tell
+   * approved from rejected across a room. All five are pigments from the same
+   * palette as the rest — ochre for waiting, olive for approved, brick for
+   * rejected, verdigris for paid — and none of them is a blue.
    */
-  --status-draft:    oklch(0.545 0.022 247);
-  --status-pending:  oklch(0.545 0.130 248);
-  --status-approved: oklch(0.525 0.126 158);
-  --status-rejected: oklch(0.545 0.165 27);
-  --status-paid:     oklch(0.510 0.110 192);
-  /*
-   * Not a voucher status — the colour for things that are merely wrong-looking:
-   * a voucher ageing in the queue, an approval with no invoice behind it, too
-   * few approvers to clear anything. Those were each picking their own amber.
-   *
-   * Pushed to 52° rather than the 75° it used to sit at. The brand gold is at
-   * 88° and is now everywhere; an amber warning eight degrees away from it read
-   * as a decorative highlight rather than as a problem.
-   */
-  --status-warn:     oklch(0.552 0.145 52);
+  --status-draft:    #6B5D50;
+  --status-pending:  #7A5418;
+  --status-approved: #4E6A2C;
+  --status-rejected: #A3352A;
+  --status-paid:     #2F6B5E;
+  /* Not a voucher status: the colour for things that merely look wrong, such
+     as a voucher ageing in the queue or too few approvers to clear anything. */
+  --status-warn:     #93471A;
+
+  /* Elevation, tinted with the earth rather than black. */
+  --elev-1: 0 1px 2px rgb(80 40 20 / 0.08);
+  --elev-2: 0 2px 6px rgb(80 40 20 / 0.08), 0 6px 16px rgb(80 40 20 / 0.06);
+  --elev-3: 0 6px 14px rgb(80 40 20 / 0.10), 0 18px 36px rgb(80 40 20 / 0.10);
+  --elev-4: 0 10px 20px rgb(80 40 20 / 0.12), 0 30px 60px rgb(80 40 20 / 0.14);
+  --elev-brand: 0 14px 28px -16px rgb(43 33 27 / 0.7);
 
   /*
-   * Elevation. Two stacked shadows per step — a tight contact shadow plus a
-   * wider ambient one — which reads as depth rather than as a grey halo. Tinted
-   * with the brand hue instead of pure black so it sits in the same colour
-   * world as everything else.
+   * The primary action: whatever is furthest from the page. Ink on bone here,
+   * bone on night in the dark theme, and terracotta under the pointer in both,
+   * exactly as the public site's buttons do. --on-action is the label on it,
+   * which is why call sites must not hard-code `text-white`.
    */
-  --elev-1: 0 1px 2px oklch(0.27 0.058 247 / 0.07), 0 1px 3px oklch(0.27 0.058 247 / 0.05);
-  --elev-2: 0 2px 4px oklch(0.27 0.058 247 / 0.07), 0 4px 12px oklch(0.27 0.058 247 / 0.07);
-  --elev-3: 0 4px 8px oklch(0.27 0.058 247 / 0.08), 0 12px 28px oklch(0.27 0.058 247 / 0.10);
-  --elev-4: 0 8px 16px oklch(0.27 0.058 247 / 0.09), 0 24px 56px oklch(0.27 0.058 247 / 0.13);
-  /* Lift for ink-filled surfaces. The shadow is the ink's own colour, so a
-     filled button sits on the paper rather than floating above a grey smudge. */
-  --elev-brand: 0 4px 12px oklch(0.273 0.058 247 / 0.26), 0 12px 32px oklch(0.273 0.058 247 / 0.20);
+  --action:       #2B211B;
+  --on-action:    #FBF6EE;
+  --on-tone:      #FBF6EE;
+  --action-hover: #9C4026;
 
   /*
-   * ── The primary action ──────────────────────────────────────────────────
-   *
-   * One fill, defined as "whatever is furthest from the page". On paper that is
-   * the mark's navy; on the night ground it is the mark's bone. So a primary
-   * button is always the strongest contrast available and never a colour that
-   * has to be checked against a ground it might not survive.
-   *
-   * This replaces a 135° indigo→violet gradient that ran across every filled
-   * surface in the product. It is also why --on-action exists: the label on
-   * that fill flips with it, and call sites must not hard-code `text-white`.
+   * The accent. --accent is terracotta that will be read (5.8:1 on bone);
+   * --accent-lit is the brighter cut, for rules, dots and fills that are only
+   * ever looked at.
    */
-  --action:    oklch(0.273 0.058 247);   /* #0B2942 */
-  /* The label on a tone-filled chip. See the .on-tone note further down: it is
-     its own token rather than a reuse of --on-action because it is tuned
-     against the eight tile accents and the five statuses, not against the ink. */
-  --on-tone:   oklch(0.988 0.005 85);
-  --on-action: oklch(0.978 0.008 85);
-  --action-hover: oklch(0.205 0.044 247);
+  --accent:     #9C4026;
+  --accent-lit: #C25A35;
+  --focus:      #9C4026;
 
-  /*
-   * The accent, and the only warm thing on the page. See the ration note at the
-   * top of the file — this is not a fill.
-   *
-   * Two tokens, because gold has a real problem on paper: the mark's own
-   * #E8C468 measures 2.4:1 against bone, so a gold word in a headline is
-   * decoration a third of readers cannot read. The split is by job, not by
-   * taste —
-   *
-   *   --accent      is gold that will be read. Text, icons, anything carrying
-   *                 meaning. Darkened until it clears 4.5:1 on --surface-raised.
-   *   --accent-lit  is the mark's gold exactly, for things that are only ever
-   *                 looked at: a 1px rule, a fill, a dot beside a label that
-   *                 also says the word.
-   *
-   * On the night ground the problem inverts and disappears, so both resolve
-   * near the mark's own value there.
-   */
-  --accent:     oklch(0.545 0.100 78);
-  --accent-lit: oklch(0.833 0.119 88);
-
-  /* The focus ring. Its own token because the brand step that used to serve as
-     one is near-black here and near-invisible on the night ground. */
-  --focus: oklch(0.545 0.100 78);
-
-  /* Kept under the old name so the ~50 call sites carrying `.gradient-brand`
-     keep working, but it is no longer a gradient and no longer two hues. */
-  --gradient-brand: linear-gradient(180deg, oklch(0.339 0.067 243), var(--action) 62%);
-  --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.75), oklch(1 0 0 / 0));
-  /* Faint hairline along the top of raised surfaces — catches the "light". */
-  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.7);
+  /* Kept under the old name for the call sites carrying `.gradient-brand`. One
+     stop, because it is set as background-image and a flat fill on sand reads
+     as plaster, which is the material this design is drawn in. */
+  --gradient-brand: linear-gradient(var(--action), var(--action));
+  --gradient-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0));
+  --hairline: inset 0 1px 0 rgb(255 255 255 / 0.6);
 }
 
 /*
  * The dark palette, written once and applied from two places: the OS preference
- * (unless a light choice is pinned) and an explicit dark choice. Previously the
- * light values were also repeated in a `[data-theme='light']` block; scoping the
- * media query with `:not([data-theme='light'])` makes that block unnecessary,
- * because the base `:root` light values simply stop being overridden.
+ * (unless a light choice is pinned) and an explicit dark choice.
  */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    /*
-     * Night is the mark's navy taken down, not a neutral grey given a blue
-     * cast. --surface sits below #0B2942 so the mark's own navy can be a raised
-     * surface on it; --surface-raised is #0B2942 itself, near enough.
-     */
-    --surface:        oklch(0.168 0.030 247);
-    --surface-raised: oklch(0.228 0.038 247);
-    --surface-sunken: oklch(0.132 0.026 247);
-    --border-c:       oklch(0.330 0.036 247);
-    --border-strong:  oklch(0.430 0.044 247);
+    --surface:        #1B1511;
+    --surface-raised: #261E18;
+    --surface-sunken: #140F0C;
+    --border-c:       #3A2F27;
+    --border-strong:  #574839;
 
-    /* Warm text on a cool ground — the mark's own relationship, bone on navy.
-       A neutral white here reads as clinical and kills the whole palette. */
-    --text-c:         oklch(0.960 0.010 85);
-    --text-muted:     oklch(0.740 0.018 85);
-    --text-subtle:    oklch(0.628 0.024 247);
+    --text-c:         #F3EADD;
+    --text-muted:     #D2C4B3;
+    --text-subtle:    #AE9E8D;
 
-    --status-draft:    oklch(0.660 0.020 247);
-    --status-pending:  oklch(0.760 0.120 248);
-    --status-approved: oklch(0.790 0.130 158);
-    --status-rejected: oklch(0.730 0.150 27);
-    --status-paid:     oklch(0.780 0.105 192);
-    --status-warn:     oklch(0.790 0.140 52);
+    --status-draft:    #AE9E8D;
+    --status-pending:  #E6C27F;
+    --status-approved: #ABC27C;
+    --status-rejected: #EC9484;
+    --status-paid:     #8DC6B6;
+    --status-warn:     #EFA26A;
 
-    /* Tinted shadows vanish on a dark ground, so these go to near-black. */
-    --elev-1: 0 1px 2px oklch(0 0 0 / 0.4), 0 1px 3px oklch(0 0 0 / 0.3);
-    --elev-2: 0 2px 4px oklch(0 0 0 / 0.4), 0 4px 12px oklch(0 0 0 / 0.36);
-    --elev-3: 0 4px 8px oklch(0 0 0 / 0.44), 0 12px 28px oklch(0 0 0 / 0.44);
-    --elev-4: 0 8px 16px oklch(0 0 0 / 0.5), 0 24px 56px oklch(0 0 0 / 0.55);
-    --elev-brand: 0 4px 12px oklch(0.956 0.014 85 / 0.18), 0 12px 32px oklch(0 0 0 / 0.45);
+    --elev-1: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+    --elev-2: 0 2px 4px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.36);
+    --elev-3: 0 4px 8px rgb(0 0 0 / 0.44), 0 12px 28px rgb(0 0 0 / 0.44);
+    --elev-4: 0 8px 16px rgb(0 0 0 / 0.5), 0 24px 56px rgb(0 0 0 / 0.55);
+    --elev-brand: 0 12px 28px -14px rgb(0 0 0 / 0.7);
 
-    /* The action inverts with the ground: bone on night, as the owl's own
-       eyes are. See the --action note in the light block. */
-    --action:       oklch(0.956 0.014 85);
-    --on-action:    oklch(0.180 0.038 247);
-    --on-tone:      oklch(0.148 0.030 247);
-    --action-hover: oklch(1 0 0);
+    --action:       #F6EFE4;
+    --on-action:    #2B211B;
+    --on-tone:      #1B1511;
+    --action-hover: #E9B44C;
 
-    --accent:     oklch(0.833 0.119 88);
-    --accent-lit: oklch(0.898 0.080 89);
-    --focus:      oklch(0.833 0.119 88);
+    --accent:     #E5946B;
+    --accent-lit: #E9B44C;
+    --focus:      #E5946B;
 
-    --gradient-brand: linear-gradient(180deg, oklch(0.992 0.006 85), var(--action) 62%);
-    --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0));
-    --hairline: inset 0 1px 0 oklch(1 0 0 / 0.07);
+    --gradient-brand: linear-gradient(var(--action), var(--action));
+    --gradient-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0));
+    --hairline: inset 0 1px 0 rgb(255 255 255 / 0.06);
   }
 }
 
@@ -353,40 +289,41 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --surface:        oklch(0.168 0.030 247);
-  --surface-raised: oklch(0.228 0.038 247);
-  --surface-sunken: oklch(0.132 0.026 247);
-  --border-c:       oklch(0.330 0.036 247);
-  --border-strong:  oklch(0.430 0.044 247);
-  --text-c:         oklch(0.960 0.010 85);
-  --text-muted:     oklch(0.740 0.018 85);
-  --text-subtle:    oklch(0.628 0.024 247);
+  --surface:        #1B1511;
+  --surface-raised: #261E18;
+  --surface-sunken: #140F0C;
+  --border-c:       #3A2F27;
+  --border-strong:  #574839;
 
-  --status-draft:    oklch(0.660 0.020 247);
-  --status-pending:  oklch(0.760 0.120 248);
-  --status-approved: oklch(0.790 0.130 158);
-  --status-rejected: oklch(0.730 0.150 27);
-  --status-paid:     oklch(0.780 0.105 192);
-  --status-warn:     oklch(0.790 0.140 52);
+  --text-c:         #F3EADD;
+  --text-muted:     #D2C4B3;
+  --text-subtle:    #AE9E8D;
 
-  --elev-1: 0 1px 2px oklch(0 0 0 / 0.4), 0 1px 3px oklch(0 0 0 / 0.3);
-  --elev-2: 0 2px 4px oklch(0 0 0 / 0.4), 0 4px 12px oklch(0 0 0 / 0.36);
-  --elev-3: 0 4px 8px oklch(0 0 0 / 0.44), 0 12px 28px oklch(0 0 0 / 0.44);
-  --elev-4: 0 8px 16px oklch(0 0 0 / 0.5), 0 24px 56px oklch(0 0 0 / 0.55);
-  --elev-brand: 0 4px 12px oklch(0.956 0.014 85 / 0.18), 0 12px 32px oklch(0 0 0 / 0.45);
+  --status-draft:    #AE9E8D;
+  --status-pending:  #E6C27F;
+  --status-approved: #ABC27C;
+  --status-rejected: #EC9484;
+  --status-paid:     #8DC6B6;
+  --status-warn:     #EFA26A;
 
-  --action:       oklch(0.956 0.014 85);
-  --on-action:    oklch(0.180 0.038 247);
-  --on-tone:      oklch(0.148 0.030 247);
-  --action-hover: oklch(1 0 0);
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+  --elev-2: 0 2px 4px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.36);
+  --elev-3: 0 4px 8px rgb(0 0 0 / 0.44), 0 12px 28px rgb(0 0 0 / 0.44);
+  --elev-4: 0 8px 16px rgb(0 0 0 / 0.5), 0 24px 56px rgb(0 0 0 / 0.55);
+  --elev-brand: 0 12px 28px -14px rgb(0 0 0 / 0.7);
 
-  --accent:     oklch(0.833 0.119 88);
-  --accent-lit: oklch(0.898 0.080 89);
-  --focus:      oklch(0.833 0.119 88);
+  --action:       #F6EFE4;
+  --on-action:    #2B211B;
+  --on-tone:      #1B1511;
+  --action-hover: #E9B44C;
 
-  --gradient-brand: linear-gradient(180deg, oklch(0.992 0.006 85), var(--action) 62%);
-  --gradient-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0));
-  --hairline: inset 0 1px 0 oklch(1 0 0 / 0.07);
+  --accent:     #E5946B;
+  --accent-lit: #E9B44C;
+  --focus:      #E5946B;
+
+  --gradient-brand: linear-gradient(var(--action), var(--action));
+  --gradient-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0));
+  --hairline: inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
 /* Pinning light explicitly only needs to restore the colour scheme; the base
@@ -394,19 +331,15 @@
 :root[data-theme='light'] {
   color-scheme: light;
 }
-
 /* ═══ The Desk — material for the signed-in app ═════════════════════════════
  *
- * The public site can be dark always and lean on glass and glow. The app cannot:
- * people sit in it for an hour, on whichever theme their machine is set to, and
- * they are reading money. So this layer has to do two jobs at once — give the
- * screens real depth and atmosphere, and stay out of the way of a column of
- * figures.
+ * People sit in the app for an hour and they are reading money, so this layer
+ * has two jobs at once: give the screens the same plaster-and-sun material as
+ * the public site, and stay out of the way of a column of figures.
  *
- * That is why every value below is defined twice. The dark values are the ones
- * you would expect (coloured light on near-black); the light ones are the same
- * ideas at a third of the strength, because a wash that reads as "atmospheric"
- * on a dark ground reads as "dirty" on a white one.
+ * Every value is defined twice. In the light theme panels are flat plaster
+ * with a warm shadow and no grain; after dark the same panels pick up a faint
+ * bone edge, because a brown shadow on a brown ground disappears.
  *
  * Namespaced --a-* so it cannot collide with the marketing --m-* skin, and read
  * only by the .a-* utilities further down.
@@ -414,54 +347,36 @@
 
 :root {
   /*
-   * The three light sources behind every screen. Kept faint here: the ambient
-   * field sits under body text, and anything stronger than about 18% alpha
-   * starts tinting the paper the numbers are printed on.
+   * The two light sources behind every screen: the sun and the terracotta.
+   * Faint, because the ambient field sits under body text and anything much
+   * stronger starts tinting the paper the numbers are printed on.
    */
-  /*
-   * Two light sources, not three, and both from the mark.
-   *
-   * There used to be an indigo, a violet and a cyan orbiting behind every
-   * screen. Three saturated blurred circles on independent orbits is the single
-   * most-copied background of the last two years, and at that alpha it also
-   * tinted the paper the figures are printed on. What is left is one cool
-   * source and one warm one — navy and gold, the only two hues in the system —
-   * at a strength you notice only when they are removed.
-   *
-   * The third light is gone rather than set to `transparent`. Leaving it
-   * invisible would have left the Backdrop animating a compositor layer that
-   * paints nothing, forever, on a screen people keep open all day.
-   */
-  --a-glow-1: oklch(0.505 0.080 246 / 0.10);
-  --a-glow-2: oklch(0.660 0.118 82 / 0.07);
+  --a-glow-1: rgb(233 180 76 / 0.16);
+  --a-glow-2: rgb(156 64 38 / 0.07);
 
-  /* Film grain. Low, but not zero — it is what stops large flat panels from
-     looking like untextured CSS. */
-  --a-grain: 0.055;
+  /* No film grain on plaster. */
+  --a-grain: 0;
 
-  /* Panel material. The sheen is a short top-lit gradient rather than a
-     full-height one, so a tall card does not fade out down the page. */
-  --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.7), oklch(1 0 0 / 0) 38%);
-  --a-veil: oklch(0.978 0.008 85 / 0.68);
+  /* Panel material. */
+  --a-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0) 42%);
+  --a-veil: rgb(246 239 228 / 0.7);
 
-  /* The two stops of a 1px gradient outline. Bright at the top-left corner,
-     where the notional light is. */
-  --a-ring-hi: oklch(1 0 0 / 0.95);
-  --a-ring-lo: oklch(0.273 0.058 247 / 0.14);
+  /* The two stops of a panel's 1px outline: the same quiet line as every other
+     edge on the site, a shade stronger at the top. */
+  --a-ring-hi: #D6C3AA;
+  --a-ring-lo: #E2D3BF;
 
   /* A panel's own top highlight, and the shadow it casts when raised. */
-  --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.85);
-  --a-hover: 0 8px 18px oklch(0.27 0.058 247 / 0.09), 0 24px 56px oklch(0.27 0.058 247 / 0.11);
+  --a-inner: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --a-hover: 0 10px 24px rgb(80 40 20 / 0.12), 0 30px 64px rgb(80 40 20 / 0.12);
 
-  /* Chrome: the rail, the top bar, the dock and the command palette.
-     High opacity on purpose — this is a sticky/fixed surface with content
-     scrolling directly behind it, and the blur alone was not enough to keep
-     that content from reading through at the seam. */
-  --a-chrome: oklch(0.968 0.010 85 / 0.94);
-  --a-chrome-line: oklch(0.868 0.016 247 / 0.9);
+  /* Chrome: the rail, the top bar, the dock and the command palette. Nearly
+     opaque, because content scrolls directly behind it. */
+  --a-chrome: rgb(251 246 238 / 0.95);
+  --a-chrome-line: #E2D3BF;
 
   /* Where a figure is plotted against a track — magnitude bars, heat strips. */
-  --a-track: oklch(0.273 0.058 247 / 0.10);
+  --a-track: rgb(43 33 27 / 0.09);
 
   /*
    * Width of the desktop rail, and the left inset of the content beside it.
@@ -481,93 +396,73 @@
 /* ═══ Solution accents ══════════════════════════════════════════════════════
  *
  * One colour per tool on the hub, so eight cards in a grid are told apart before
- * any of them is read. The marketing site has these already as --m-*, but those
- * are scoped to [data-skin='desert'] and the hub is inside the app, which follows
- * the reader's theme.
+ * any of them is read. They are the public site's eight earth hues, keyword for
+ * keyword, so a tool wears the same colour inside the app as on its own page:
  *
- * Written with light-dark() rather than as a fifth copy of the token block. Every
- * root state in this file already declares the colour scheme it means — dark from
- * the media query, dark from data-theme, light from data-theme, dark from the
- * night skin, and the bare :root left at `normal`, which resolves light — so one
- * declaration per accent is correct in all five. That is worth the modern-CSS
- * dependency here (Baseline 2024, and this file already relies on color-mix,
- * oklch and mask-composite).
+ *   indigo  → terracotta    emerald → olive      violet  → ochre
+ *   amber   → sun           cyan    → clay       rose    → rose clay
+ *   lime    → sage          magenta → brick
  *
- * The light values are around L 0.55 because these are read as text and as 1px
- * edges on white paper; the dark ones sit near L 0.78 for the same reason on
- * near-black. Same hue, opposite ends, and neither is a tint of the other.
+ * Written with light-dark(), so one declaration per accent is right in every
+ * root state this file declares. The light values are dark enough to be read
+ * as text on bone (4.5:1 or better) — sun and sage are taken down from their
+ * marketing values to get there — and the dark values are the same pigments
+ * lifted until they read on the night ground.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /*
-   * Eight inks, not eight colours.
-   *
-   * These have a job — a reader picks their tool out of a grid of eight before
-   * reading any of the labels — so the hue separation has to stay. What has
-   * changed is the chroma: every one of them is pulled to roughly two thirds of
-   * where it was, which is the difference between eight tinted inks that
-   * clearly belong to one set and a row of highlighter pens. On a bone ground
-   * the old values were the loudest thing on the page.
-   *
-   * Two of them are no longer arbitrary. --h-indigo is now the brand navy and
-   * --h-amber is the brand gold, so the two tools that carry them are wearing
-   * the firm's own colours rather than a near-miss of them.
-   *
-   * Ordered by hue so the gaps are visible: 27 · 88 · 130 · 165 · 205 · 247 ·
-   * 300 · 330. The tightest pair is 43° apart, which survives being a 10px dot.
-   */
-  --h-indigo:  light-dark(oklch(0.400 0.078 245), oklch(0.700 0.110 245));
-  --h-violet:  light-dark(oklch(0.500 0.125 300), oklch(0.740 0.115 300));
-  --h-cyan:    light-dark(oklch(0.535 0.078 205), oklch(0.800 0.088 205));
-  --h-emerald: light-dark(oklch(0.515 0.090 165), oklch(0.790 0.096 165));
-  --h-amber:   light-dark(oklch(0.545 0.100 78),  oklch(0.833 0.119 88));
-  --h-rose:    light-dark(oklch(0.535 0.125 27),  oklch(0.745 0.112 27));
-  --h-lime:    light-dark(oklch(0.520 0.098 130), oklch(0.810 0.104 130));
-  --h-magenta: light-dark(oklch(0.525 0.138 330), oklch(0.745 0.126 330));
+  --h-indigo:  light-dark(#9C4026, #E5946B);
+  --h-violet:  light-dark(#855C1F, #D9A55A);
+  --h-cyan:    light-dark(#96593D, #D39A7C);
+  --h-emerald: light-dark(#5F6136, #B8BA82);
+  --h-amber:   light-dark(#86600C, #E9B44C);
+  --h-rose:    light-dark(#9A4C47, #DE9A93);
+  --h-lime:    light-dark(#5E6B2E, #B9C48A);
+  --h-magenta: light-dark(#7E3426, #E08470);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --a-glow-1: oklch(0.505 0.080 246 / 0.30);
-    --a-glow-2: oklch(0.660 0.118 82 / 0.13);
-  
-    --a-grain: 0.07;
+    --a-glow-1: rgb(233 180 76 / 0.10);
+    --a-glow-2: rgb(229 148 107 / 0.08);
 
-    --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0) 42%);
-    --a-veil: oklch(0.228 0.038 247 / 0.58);
+    --a-grain: 0;
 
-    --a-ring-hi: oklch(0.900 0.030 85 / 0.30);
-    --a-ring-lo: oklch(0.720 0.040 247 / 0.05);
+    --a-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0) 42%);
+    --a-veil: rgb(38 30 24 / 0.6);
 
-    --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.07);
-    --a-hover: 0 10px 24px oklch(0 0 0 / 0.5), 0 30px 64px oklch(0 0 0 / 0.5);
+    --a-ring-hi: rgb(243 234 221 / 0.16);
+    --a-ring-lo: rgb(243 234 221 / 0.05);
 
-    --a-chrome: oklch(0.175 0.032 247 / 0.94);
-    --a-chrome-line: oklch(0.340 0.038 247 / 0.9);
+    --a-inner: inset 0 1px 0 rgb(255 255 255 / 0.05);
+    --a-hover: 0 10px 24px rgb(0 0 0 / 0.5), 0 30px 64px rgb(0 0 0 / 0.5);
 
-    --a-track: oklch(0.900 0.020 85 / 0.13);
+    --a-chrome: rgb(27 21 17 / 0.95);
+    --a-chrome-line: #3A2F27;
+
+    --a-track: rgb(243 234 221 / 0.12);
   }
 }
 
 :root[data-theme='dark'] {
-  --a-glow-1: oklch(0.505 0.080 246 / 0.30);
-  --a-glow-2: oklch(0.660 0.118 82 / 0.13);
+  --a-glow-1: rgb(233 180 76 / 0.10);
+  --a-glow-2: rgb(229 148 107 / 0.08);
 
-  --a-grain: 0.07;
+  --a-grain: 0;
 
-  --a-sheen: linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0) 42%);
-  --a-veil: oklch(0.228 0.038 247 / 0.58);
+  --a-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0) 42%);
+  --a-veil: rgb(38 30 24 / 0.6);
 
-  --a-ring-hi: oklch(0.900 0.030 85 / 0.30);
-  --a-ring-lo: oklch(0.720 0.040 247 / 0.05);
+  --a-ring-hi: rgb(243 234 221 / 0.16);
+  --a-ring-lo: rgb(243 234 221 / 0.05);
 
-  --a-inner: inset 0 1px 0 oklch(1 0 0 / 0.07);
-  --a-hover: 0 10px 24px oklch(0 0 0 / 0.5), 0 30px 64px oklch(0 0 0 / 0.5);
+  --a-inner: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --a-hover: 0 10px 24px rgb(0 0 0 / 0.5), 0 30px 64px rgb(0 0 0 / 0.5);
 
-  --a-chrome: oklch(0.175 0.032 247 / 0.94);
-  --a-chrome-line: oklch(0.340 0.038 247 / 0.9);
+  --a-chrome: rgb(27 21 17 / 0.95);
+  --a-chrome-line: #3A2F27;
 
-  --a-track: oklch(0.900 0.020 85 / 0.13);
+  --a-track: rgb(243 234 221 / 0.12);
 }
 
 /*
@@ -600,17 +495,8 @@
     color: var(--text-c);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    /*
-     * Optical sizing on, and no explicit axis anywhere near it.
-     *
-     * `font-optical-sizing: auto` asks Bricolage to retune the letterforms for
-     * whatever size each element is set at — this one line is the reason the
-     * site needs a single family rather than a display/text pairing. It only
-     * works while `opsz` is unset: naming any axis in `font-variation-settings`
-     * takes manual control of the whole set, which is why this says `normal`
-     * and why every display utility that does narrow the face lists `opsz`
-     * explicitly rather than leaving it to be inherited.
-     */
+    /* Figtree has no optical-size axis; these two lines are inert on it and
+       kept so a variable face swapped in later behaves as a face should. */
     font-variation-settings: normal;
     font-optical-sizing: auto;
     line-height: 1.55;
@@ -640,8 +526,8 @@
   }
 
   ::selection {
-    background: oklch(0.833 0.119 88 / 0.30);
-    color: oklch(0.180 0.038 247);
+    background: rgb(233 180 76 / 0.38);
+    color: #2B211B;
   }
 
   /* The default scrollbar is a bright white gutter in dark mode. */
@@ -1028,30 +914,6 @@ body:has([data-skin='desert']) {
  * ─────────────────────────────────────────────────────────────────────────── */
 
 /*
- * The display face. Gloock has one weight, so 700 would be synthesised, and the
- * width and optical-size axes it was given for Bricolage mean nothing to it.
- * Tracking comes from the display curve exactly as before.
- */
-[data-skin='desert'] .m-display,
-[data-skin='desert'] .m-display-light {
-  font-weight: 400;
-  font-variation-settings: normal;
-  font-synthesis: none;
-}
-
-/*
- * The accent word in a headline. It was an italic serif cut into a sans line;
- * in a serif headline it is the same face, upright, in terracotta. Colour
- * carries the emphasis and the line keeps one voice.
- */
-[data-skin='desert'] .m-serif {
-  font-family: inherit;
-  font-style: normal;
-  font-weight: inherit;
-  letter-spacing: inherit;
-}
-
-/*
  * Labels: Figtree in tracked capitals, olive, semibold. The extra word gap
  * t-caps adds was there because a monospaced face has none of its own; a
  * proportional face does, so the skin takes most of it back.
@@ -1402,8 +1264,9 @@ body:has([data-skin='desert']) {
    */
   .m-display {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-variation-settings: 'opsz' 72, 'wdth' var(--wd, 100), 'wght' 700;
+    /* Gloock ships one weight. Asking it for bold gets a synthesised smear. */
+    font-weight: 400;
+    font-synthesis: none;
     /*
      * Rebinding the pair, not just setting the two properties: anything nested
      * inside a headline — the serif accent, a step utility on the same element
@@ -1420,7 +1283,7 @@ body:has([data-skin='desert']) {
   .m-display-light {
     font-family: var(--font-display);
     font-weight: 400;
-    font-variation-settings: 'opsz' 72, 'wdth' var(--wd, 100), 'wght' 400;
+    font-synthesis: none;
     --trk: var(--trk-display);
     --lh: var(--lh-display);
     /*
@@ -1432,18 +1295,17 @@ body:has([data-skin='desert']) {
     line-height: calc(var(--lh-display) + 0.06em);
     text-wrap: balance;
   }
+  /*
+   * The accent word in a headline. It used to be an italic serif cut into a
+   * sans line; in a Gloock headline it is the same face, upright, and the
+   * colour (usually .m-grad-text) carries the emphasis, so the line keeps one
+   * voice.
+   */
   .m-serif {
-    font-family: var(--font-serif);
-    font-weight: 400;
-    font-style: italic;
-    /*
-     * Half the tracking of whatever it sits in. Instrument Serif italic is a
-     * narrower, lighter drawing than Bricolage at the same size, so the
-     * tightening that sets the sans around it would close this up — but it
-     * still has to move with the size rather than sit on a number of its own,
-     * which is what -0.01em was doing at every size from 18px to 68px.
-     */
-    letter-spacing: calc(var(--trk) * 0.5);
+    font-family: inherit;
+    font-style: normal;
+    font-weight: inherit;
+    letter-spacing: inherit;
   }
   .m-mono { font-family: var(--font-mono); }
 
@@ -1879,13 +1741,12 @@ body:has([data-skin='desert']) {
     pointer-events: none;
   }
 
-  /* Hairline grid. Wider gauge than the marketing one, because it sits behind
-     dense work rather than behind a headline. */
+  /* The texture behind a feature panel. It was a hairline grid, which reads
+     as graph paper on sand; it is the public site's dot field now, pressed
+     into the plaster. The name is kept for its call sites. */
   .a-grid {
-    background-image:
-      linear-gradient(to right, var(--border-c) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--border-c) 1px, transparent 1px);
-    background-size: 72px 72px;
+    background-image: radial-gradient(var(--border-strong) 1.1px, transparent 1.4px);
+    background-size: 22px 22px;
   }
 
   /* ── Materials ── */
