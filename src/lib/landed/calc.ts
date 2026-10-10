@@ -278,3 +278,94 @@ export function problems(schedule: Schedule): Problem[] {
   }
   return out;
 }
+
+// ── Over time ────────────────────────────────────────────────────────────────
+
+/** The ISO date `months` calendar months after `iso`, clamped to the month's end. */
+export function addMonths(iso: string, months: number): string {
+  const n = dayNumber(iso);
+  if (!Number.isFinite(n)) return iso;
+  const d = new Date(n * DAY_MS);
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth() + months;
+  const day = d.getUTCDate();
+  const lastDay = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  const out = new Date(Date.UTC(y, m, Math.min(day, lastDay)));
+  return out.toISOString().slice(0, 10);
+}
+
+/** ISO date from a whole-day number. */
+export function isoFromDay(day: number): string {
+  return new Date(day * DAY_MS).toISOString().slice(0, 10);
+}
+
+export type TimelinePoint = {
+  /** Whole-day number, see dayNumber. */
+  day: number;
+  /** Own funds paid by this day. */
+  self: number;
+  /** Borrowed funds paid by this day. */
+  borrowed: number;
+  /** Carrying cost accrued by this day, on everything paid so far. */
+  carry: number;
+};
+
+/**
+ * The schedule as money over time: what had been paid from each source, and
+ * what carrying cost had built up on it, on each day from the first payment to
+ * the later of the OC date and the last payment.
+ *
+ * Carrying cost stops growing at the OC date, which is the rule the totals use,
+ * and a payment made after it steps the paid line up without adding any. The
+ * last point is therefore the landed cost exactly: it is taken from
+ * landedCost() itself rather than re-summed, so the chart and the figures above
+ * it cannot disagree by a paisa of rounding.
+ *
+ * `samples` sets the even spacing between payments; every payment date is also
+ * a point, twice (the day before and the day of), so the steps are vertical.
+ */
+export function timeline(schedule: Schedule, samples = 96): TimelinePoint[] {
+  const result = landedCost(schedule);
+  const oc = dayNumber(schedule.ocDate);
+  if (result.rows.length === 0 || !Number.isFinite(oc)) return [];
+
+  const paidOn = result.rows.map((r) => ({ ...r, on: dayNumber(r.date) }));
+  const start = paidOn[0].on;
+  const end = Math.max(oc, paidOn[paidOn.length - 1].on);
+
+  const at = (day: number): TimelinePoint => {
+    let self = 0;
+    let borrowed = 0;
+    let carry = 0;
+    for (const r of paidOn) {
+      if (r.on > day) continue;
+      if (r.source === 'self') self += r.amount;
+      else borrowed += r.amount;
+      const held = Math.min(day, oc) - r.on;
+      carry += carryingCost(r.amount, r.rate, held, schedule.compounding);
+    }
+    return { day, self, borrowed, carry };
+  };
+
+  const days = new Set<number>([start, oc, end]);
+  for (let k = 0; k <= samples; k += 1) days.add(Math.round(start + ((end - start) * k) / samples));
+  for (const r of paidOn) {
+    days.add(r.on);
+    if (r.on - 1 >= start) days.add(r.on - 1);
+  }
+
+  const points = [...days].sort((a, b) => a - b).map(at);
+  const last = points[points.length - 1];
+  last.self = result.self.paid;
+  last.borrowed = result.borrowed.paid;
+  last.carry = result.interest;
+  return points;
+}
+
+/**
+ * The same schedule with possession `months` later. What the screen's "what if
+ * the OC slips" control runs, and kept here so it is tested with the rest.
+ */
+export function withDelay(schedule: Schedule, months: number): Schedule {
+  return months === 0 ? schedule : { ...schedule, ocDate: addMonths(schedule.ocDate, months) };
+}

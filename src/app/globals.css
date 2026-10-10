@@ -421,6 +421,65 @@
   --h-magenta: light-dark(#7E3426, #E08470);
 }
 
+/*
+ * Landed Cost's three series: own funds, borrowed funds and the carrying cost
+ * on both. Verdigris, ochre and terracotta, chosen with the palette validator
+ * rather than by eye: every adjacent pair clears ΔE 8 under protan, deutan and
+ * tritan simulation and 15 for normal vision, in both themes. The obvious earth
+ * pair, olive against terracotta, measured ΔE 3.4 for a deuteranope: one colour.
+ *
+ * Ochre sits under 3:1 on the light card, so it is never the only carrier of a
+ * value: every figure it marks is also a labelled number and a table row.
+ * Terracotta is the carrying cost because the carrying cost is the story.
+ */
+:root {
+  --lc-own:    light-dark(#268769, #379D7F);
+  --lc-borrow: light-dark(#CF9A35, #BA8B25);
+  --lc-carry:  light-dark(#AE4022, #BB4D2F);
+}
+
+/* Landed Cost's sliders: a track filled to the value in the series colour, and
+   a bone thumb ringed in it. --tone and --fill are set by the component. */
+.lc-range {
+  appearance: none;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+.lc-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(var(--tone), var(--tone)) no-repeat left / var(--fill, 50%) 100%, var(--a-track);
+}
+.lc-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(var(--tone), var(--tone)) no-repeat left / var(--fill, 50%) 100%, var(--a-track);
+}
+.lc-range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 3px solid var(--tone);
+  box-shadow: var(--elev-2);
+  transition: transform 0.15s ease;
+}
+.lc-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 3px solid var(--tone);
+  box-shadow: var(--elev-2);
+}
+.lc-range:hover::-webkit-slider-thumb { transform: scale(1.12); }
+.lc-range:focus-visible { outline: none; }
+.lc-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in oklab, var(--tone) 30%, transparent); }
+.lc-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px color-mix(in oklab, var(--tone) 30%, transparent); }
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --a-glow-1: rgb(233 180 76 / 0.10);

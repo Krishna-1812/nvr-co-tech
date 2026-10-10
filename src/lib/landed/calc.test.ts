@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addMonths,
   carryingCost,
   dayNumber,
   daysBetween,
+  isoFromDay,
   landedCost,
   parseAmount,
   problems,
+  timeline,
+  withDelay,
   type Instalment,
   type Schedule,
 } from './calc';
@@ -236,5 +240,72 @@ describe('parseAmount', () => {
     expect(parseAmount('five lakh')).toBeNull();
     expect(parseAmount('1.2.3')).toBeNull();
     expect(parseAmount('1e5')).toBeNull();
+  });
+});
+
+describe('addMonths', () => {
+  it('moves by calendar months and clamps to the end of a short month', () => {
+    expect(addMonths('2027-03-31', 1)).toBe('2027-04-30');
+    expect(addMonths('2027-01-31', 1)).toBe('2027-02-28');
+    expect(addMonths('2028-01-31', 1)).toBe('2028-02-29');
+    expect(addMonths('2026-11-15', 3)).toBe('2027-02-15');
+    expect(addMonths('2026-11-15', 0)).toBe('2026-11-15');
+  });
+});
+
+describe('timeline', () => {
+  const base = schedule({
+    ocDate: '2026-01-01',
+    instalments: [
+      row({ date: '2025-01-01', amount: 1_000_000, source: 'self' }),
+      row({ date: '2024-01-02', amount: 2_000_000, source: 'borrowed' }),
+      row({ date: '2026-03-01', amount: 500_000, source: 'self' }),
+    ],
+  });
+  const points = timeline(base, 24);
+  const result = landedCost(base);
+
+  it('runs from the first payment to the later of OC and the last payment', () => {
+    expect(isoFromDay(points[0].day)).toBe('2024-01-02');
+    expect(isoFromDay(points.at(-1)!.day)).toBe('2026-03-01');
+  });
+
+  it('ends on the landed cost exactly', () => {
+    const last = points.at(-1)!;
+    expect(last.self + last.borrowed + last.carry).toBeCloseTo(result.landed, 2);
+    expect(last.carry).toBe(result.interest);
+  });
+
+  it('is a step on each payment day and never goes down', () => {
+    const before = points.find((p) => isoFromDay(p.day) === '2024-12-31')!;
+    const on = points.find((p) => isoFromDay(p.day) === '2025-01-01')!;
+    expect(on.self - before.self).toBe(1_000_000);
+    for (let i = 1; i < points.length; i += 1) {
+      const a = points[i - 1];
+      const b = points[i];
+      expect(b.self + b.borrowed + b.carry).toBeGreaterThanOrEqual(a.self + a.borrowed + a.carry - 0.01);
+    }
+  });
+
+  it('stops accruing at the OC date', () => {
+    const atOc = points.find((p) => isoFromDay(p.day) === '2026-01-01')!;
+    const last = points.at(-1)!;
+    expect(last.carry).toBeCloseTo(atOc.carry, 1);
+  });
+
+  it('is empty without an OC date or a usable payment', () => {
+    expect(timeline(schedule({ ocDate: '' , instalments: [row({ amount: 1 })] }))).toEqual([]);
+    expect(timeline(schedule())).toEqual([]);
+  });
+});
+
+describe('withDelay', () => {
+  it('costs more the later possession comes', () => {
+    const s = schedule({ instalments: [row({ date: '2025-01-01', amount: 1_000_000 })] });
+    const now = landedCost(s).interest;
+    const later = landedCost(withDelay(s, 6)).interest;
+    expect(withDelay(s, 6).ocDate).toBe('2026-07-01');
+    expect(later).toBeGreaterThan(now);
+    expect(withDelay(s, 0)).toBe(s);
   });
 });
