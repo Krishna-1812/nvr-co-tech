@@ -2,7 +2,7 @@ import type * as XLSXType from 'xlsx';
 import { COMPOUNDING_LABEL, SOURCE_LABEL, landedCost, type Schedule } from './calc';
 
 /**
- * A landed-cost schedule as a workbook.
+ * A True Property Cost schedule as a workbook.
  *
  * Two sheets: Summary, which is what gets read, and Schedule, which is what gets
  * checked, one row per payment with the days and the rate that produced its
@@ -39,7 +39,7 @@ export function buildLandedWorkbook(
   const book = XLSX.utils.book_new();
 
   const summary: Cell[][] = [
-    ['Landed cost', schedule.name],
+    ['True property cost', schedule.name],
     ['Possession (OC) date', displayDate(schedule.ocDate)],
     ['Cost of own funds (% a year)', schedule.rates.self],
     ['Cost of borrowed funds (% a year)', schedule.rates.borrowed],
@@ -52,7 +52,7 @@ export function buildLandedWorkbook(
     [null, null],
     ['Total paid', result.paid],
     ['Total carrying cost to OC', result.interest],
-    ['Landed cost at OC', result.landed],
+    ['True cost at OC', result.landed],
     ['Carrying cost as % of amount paid', Math.round(result.upliftPct * 100) / 100],
     ['Average days funds were tied up', Math.round(result.weightedDays)],
     // Said in the file, because a row the screen was still warning about (no
@@ -65,7 +65,7 @@ export function buildLandedWorkbook(
       [null, null],
       ['Carpet area (sq ft)', schedule.areaSqft],
       ['Paid per sq ft', result.perSqft.paid],
-      ['Landed cost per sq ft', result.perSqft.landed],
+      ['True cost per sq ft', result.perSqft.landed],
     );
   }
   const summarySheet = XLSX.utils.aoa_to_sheet(summary);

@@ -7,7 +7,7 @@ import { Button, buttonClass } from '@/components/ui/primitives';
 import { logClientError } from '@/lib/errors/client';
 
 /**
- * A screen inside Landed Cost threw.
+ * A screen inside True Property Cost threw.
  *
  * Its own boundary so the shell survives the failure, as in the other groups.
  * Every edit is saved to this browser as it is made, so the reassurance that

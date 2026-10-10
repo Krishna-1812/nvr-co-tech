@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
    */
   productionBrowserSourceMaps: false,
 
+  /*
+   * Landed Cost was renamed True Property Cost. Its two old addresses forward
+   * for good, so a bookmark, a shared link or an indexed page still arrives.
+   * These run before the proxy, so the signed-in one then asks for a session
+   * at its new address like any other tool.
+   */
+  async redirects() {
+    return [
+      { source: '/landed-cost', destination: '/true-property-cost', permanent: true },
+      { source: '/agents/landed-cost', destination: '/agents/true-property-cost', permanent: true },
+    ];
+  },
+
   images: {
     /*
      * The only external image this site loads, and it is admin-only.

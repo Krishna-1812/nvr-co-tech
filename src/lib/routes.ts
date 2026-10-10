@@ -27,9 +27,10 @@ export const PROTECTED_PREFIXES = [
   // Valuation Desk. Reads the shared company registry, which every signed-in
   // person may read and none may write — see migration 0028.
   '/comps',
-  // Landed Cost. Runs entirely in the browser, but sits behind sign-in like
-  // every other tool, so the workspace around it is the same one.
-  '/landed-cost',
+  // True Property Cost. Runs entirely in the browser, but sits behind sign-in
+  // like every other tool, so the workspace around it is the same one. Its old
+  // address, /landed-cost, is a redirect in next.config.
+  '/true-property-cost',
   // Signed in, but not yet a member of an organization — see requireOrgMember().
   '/onboarding',
   // Visitor intelligence. Gated a second time inside its own layout against the

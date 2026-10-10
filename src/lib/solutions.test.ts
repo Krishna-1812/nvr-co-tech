@@ -17,7 +17,7 @@ describe('the nav sections and the roster agree', () => {
   it.each([
     ['Voucher Desk', voucherSection({ role: 'owner' })],
     ['Ledger Reconciliation', reconSection()],
-    ['Landed Cost', landedSection()],
+    ['True Property Cost', landedSection()],
   ])('%s has a roster entry, so it gets its own mark and accent', (_name, section) => {
     expect(slugs.has(section.slug)).toBe(true);
   });
@@ -33,7 +33,7 @@ describe('the nav sections and the roster agree', () => {
     for (const [, section] of [
       ['Voucher Desk', voucherSection({ role: 'owner' })],
       ['Ledger Reconciliation', reconSection()],
-      ['Landed Cost', landedSection()],
+      ['True Property Cost', landedSection()],
     ] as const) {
       const solution = SOLUTIONS.find((entry) => entry.slug === section.slug);
       expect(solution?.stage).toBe('live');

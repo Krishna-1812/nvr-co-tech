@@ -58,7 +58,7 @@ export function LiveSolutionCard({
   note: string;
   /**
    * Stands in for the figures and the note, for a tool whose state the server
-   * cannot read. Landed Cost keeps its schedules in the browser, so its panel
+   * cannot read. True Property Cost keeps its schedules in the browser, so its panel
    * is a client component that counts them where they are.
    */
   panel?: ReactNode;

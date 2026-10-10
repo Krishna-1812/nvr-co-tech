@@ -3,7 +3,7 @@ import { landedSection } from '@/lib/nav';
 import { AppShell } from '@/components/AppShell';
 
 /**
- * Landed Cost.
+ * True Property Cost.
  *
  * Its own route group for the same reason Ledger Reconciliation has one: the
  * shell is shared, and the Section handed to it is what makes the rail, the

@@ -16,7 +16,7 @@ import { Payments } from './Payments';
 import { SOURCE_TONE, compactINR, longDate, pct } from './shared';
 
 /**
- * Landed Cost: what an under-construction property costs by possession.
+ * True Property Cost: what an under-construction property costs by possession.
  *
  * The answer leads, because it recomputes on every keystroke and the useful
  * question here is "what if": the hero and the chart are what move when a date
@@ -41,7 +41,7 @@ export function LandedWorkbench() {
   if (!state || !active) {
     return (
       <div className="space-y-6" aria-busy="true">
-        <PageHeader eyebrow="Landed Cost" title="Landed cost to possession" />
+        <PageHeader eyebrow="True Property Cost" title="True cost to possession" />
         <div className="surface-lit h-80 animate-[shimmer_1.8s_ease-in-out_infinite] rounded-[2rem]" />
       </div>
     );
@@ -67,8 +67,8 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
       const XLSX = await import('xlsx');
       const { buildLandedWorkbook } = await import('@/lib/landed/workbook');
       const book = buildLandedWorkbook(XLSX, schedule);
-      const safe = schedule.name.replace(/[^\w\- ]+/g, '').trim() || 'Landed cost';
-      XLSX.writeFile(book, `${safe} - landed cost.xlsx`);
+      const safe = schedule.name.replace(/[^\w\- ]+/g, '').trim() || 'True property cost';
+      XLSX.writeFile(book, `${safe} - true property cost.xlsx`);
     } finally {
       setExporting(false);
     }
@@ -77,7 +77,7 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Landed Cost"
+        eyebrow="True Property Cost"
         title={schedule.name.trim() || 'Untitled property'}
         description="Every instalment on an under-construction property, plus what the money cost while it was tied up, up to the day of the occupancy certificate."
         action={
@@ -171,7 +171,7 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
   );
 }
 
-/** Every saved property as a chip with its landed figure, for switching between them. */
+/** Every saved property as a chip with its true cost, for switching between them. */
 function PropertyStrip({ all, activeId }: { all: SavedSchedule[]; activeId: string }) {
   return (
     <nav aria-label="Saved properties" className="scroll-x-hint -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
@@ -195,7 +195,7 @@ function PropertyStrip({ all, activeId }: { all: SavedSchedule[]; activeId: stri
             <span className="min-w-0">
               <span className="block max-w-48 truncate text-[13px] font-semibold">{s.name.trim() || 'Untitled property'}</span>
               <span className={cn('block text-[11.5px] tabular-nums', on ? 'opacity-75' : 'text-subtle')}>
-                {r.rows.length > 0 && s.ocDate ? `${compactINR(r.landed)} landed` : 'Not finished'}
+                {r.rows.length > 0 && s.ocDate ? `${compactINR(r.landed)} true cost` : 'Not finished'}
               </span>
             </span>
           </button>
@@ -211,14 +211,14 @@ function EmptyHero({ hasPayments }: { hasPayments: boolean }) {
     <section className="surface-lit a-ring relative overflow-hidden rounded-[2rem]">
       <div className="grid items-center gap-6 p-6 sm:p-9 md:grid-cols-[minmax(0,1fr)_12rem]">
         <div>
-          <p className="a-label">Landed cost at possession</p>
+          <p className="a-label">True cost at possession</p>
           <h2 className="m-display mt-3 text-[clamp(1.8rem,4vw,2.6rem)] text-balance">
             {hasPayments ? 'Almost there.' : 'Start with the booking amount.'}
           </h2>
           <p className="text-muted mt-3 max-w-lg text-[15px] text-pretty">
             {hasPayments
-              ? 'Give each payment a date and an amount, and the property its OC date. The landed cost appears here the moment there is enough to work it out.'
-              : 'Add the down payment and each instalment below, with where the money came from. The landed cost appears here as you type.'}
+              ? 'Give each payment a date and an amount, and the property its OC date. The true cost appears here the moment there is enough to work it out.'
+              : 'Add the down payment and each instalment below, with where the money came from. The true cost appears here as you type.'}
           </p>
         </div>
         <div aria-hidden className="relative mx-auto hidden h-44 w-36 md:block">

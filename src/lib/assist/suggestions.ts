@@ -58,10 +58,10 @@ const BY_AGENT: Record<string, Suggestion[]> = {
       question: 'When does a voucher get its number, and what do the parts of it mean?',
     },
   ],
-  'landed-cost': [
+  'true-property-cost': [
     {
       label: 'How is it worked out?',
-      question: 'How does Landed Cost work out the interest on each instalment up to the OC date?',
+      question: 'How does True Property Cost work out the interest on each instalment up to the OC date?',
     },
     {
       label: 'Simple or compound?',

@@ -229,7 +229,7 @@ export function DelayPanel({ schedule }: { schedule: Schedule }) {
             <dd className="text-subtle text-[12px]">{months === 0 ? 'Move the slider' : `≈ ${compactINR(perMonth)} a month`}</dd>
           </div>
           <div className="surface-sunken rounded-2xl border p-3.5">
-            <dt className="a-label">Landed cost then</dt>
+            <dt className="a-label">True cost then</dt>
             <dd className="mt-1.5 text-lg font-semibold tabular-nums">{compactINR(late.landed)}</dd>
             <dd className="text-subtle text-[12px]">{pct(Math.round(late.upliftPct * 100) / 100)} over paid</dd>
           </div>

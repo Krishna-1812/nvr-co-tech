@@ -172,7 +172,7 @@ export function MoneyChart({
         ref={host}
         role="img"
         tabIndex={0}
-        aria-label={`Money tied up from ${longDate(isoFromDay(geo.first))} to ${longDate(isoFromDay(geo.last))}, ending at ${formatINR(endTotal)}. Use the left and right arrow keys to read it day by day.`}
+        aria-label={`Money tied up from ${longDate(isoFromDay(geo.first))} to ${longDate(isoFromDay(geo.last))}, ending at a true cost of ${formatINR(endTotal)}. Use the left and right arrow keys to read it day by day.`}
         onPointerMove={(e: PointerEvent<HTMLDivElement>) => pick(e.clientX)}
         onPointerLeave={() => setHover(null)}
         onKeyDown={onKey}
@@ -248,7 +248,7 @@ export function MoneyChart({
                 paintOrder="stroke"
                 className="fill-[var(--text-c)] text-[12px] font-semibold tabular-nums"
               >
-                {compactINR(endTotal)} landed
+                {compactINR(endTotal)} true cost
               </text>
             </g>
           )}

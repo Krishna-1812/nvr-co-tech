@@ -383,7 +383,7 @@ export default async function HubPage() {
   const reconciliation = SOLUTIONS.find((s) => s.slug === 'ledger-reconciliation');
   const valuationDesk = SOLUTIONS.find((s) => s.slug === 'valuation-desk');
   const contactFinder = SOLUTIONS.find((s) => s.slug === 'contact-finder');
-  const landedCost = SOLUTIONS.find((s) => s.slug === 'landed-cost');
+  const landedCost = SOLUTIONS.find((s) => s.slug === 'true-property-cost');
   /*
    * `rest` is every non-live tool, so it stays a roadmap and never gets a
    * live tool mislabelled "Not started yet". The other side of that contract

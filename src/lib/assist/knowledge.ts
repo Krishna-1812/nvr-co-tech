@@ -274,7 +274,7 @@ const WRITTEN: Doc[] = [
       'ever reaches a server is the finished statement, and only when you save it to',
       'your history or ask for a PDF or an Excel file.',
       '',
-      'Landed Cost keeps nothing on a server at all. The payment schedules, the rates',
+      'True Property Cost keeps nothing on a server at all. The payment schedules, the rates',
       'and the results are worked out and saved in your own browser, on the device',
       'they were typed on. Clearing the browser deletes them, and they do not follow',
       'you to another computer; the Excel download is the way to keep a copy.',

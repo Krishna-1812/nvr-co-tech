@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { LandedWorkbench } from '@/components/landed/LandedWorkbench';
 
-export const metadata: Metadata = { title: 'Landed cost' };
+export const metadata: Metadata = { title: 'True Property Cost' };
 
 /**
  * The tool. A server page holding one client component, because there is

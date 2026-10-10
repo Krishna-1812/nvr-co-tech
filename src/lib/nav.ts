@@ -364,24 +364,24 @@ export function assistSection(): Section {
 }
 
 /**
- * Landed Cost.
+ * True Property Cost.
  *
  * One destination, because the tool is one screen: the schedules it keeps are
  * picked from that screen rather than from a list page of their own, and they
  * live in the browser, so there is no server-side history to give a page to.
  * No role branch, for the same reason as Ledger Reconciliation below.
  */
-export const LANDED_SLUG = 'landed-cost';
+export const LANDED_SLUG = 'true-property-cost';
 
 export function landedSection(): Section {
   return {
     slug: LANDED_SLUG,
-    name: 'Landed Cost',
-    home: '/landed-cost',
+    name: 'True Property Cost',
+    home: '/true-property-cost',
     items: [
       {
-        href: '/landed-cost',
-        label: 'Landed cost',
+        href: '/true-property-cost',
+        label: 'Calculator',
         icon: Building,
         hint: 'Instalments, cost of funds and the cost at possession',
         exact: true,

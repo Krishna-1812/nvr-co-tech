@@ -23,9 +23,9 @@ describe('buildLandedWorkbook', () => {
   });
 
   it('writes amounts as numbers with an Indian money format, not as text', () => {
-    // Landed cost at OC: 30L paid + 2,09,808.22 + 3,74,931.51.
+    // True cost at OC: 30L paid + 2,09,808.22 + 3,74,931.51.
     const landed = cell('Summary', 'B14');
-    expect(cell('Summary', 'A14').v).toBe('Landed cost at OC');
+    expect(cell('Summary', 'A14').v).toBe('True cost at OC');
     expect(landed.t).toBe('n');
     expect(landed.v).toBeCloseTo(3_584_739.73, 2);
     expect(landed.z).toBe('#,##,##0.00');
@@ -40,7 +40,7 @@ describe('buildLandedWorkbook', () => {
   });
 
   it('includes the cost per square foot when an area is given', () => {
-    expect(cell('Summary', 'A21').v).toBe('Landed cost per sq ft');
+    expect(cell('Summary', 'A21').v).toBe('True cost per sq ft');
     expect(cell('Summary', 'B21').v).toBeCloseTo(3584.74, 2);
     expect(cell('Summary', 'B21').z).toBe('#,##,##0.00');
   });

@@ -69,7 +69,7 @@ const CLAUSES: Clause[] = [
   {
     title: 'Property schedules stay on your device',
     body: [
-      'The payment schedules you enter in Landed Cost, with their amounts, dates, sources of funds and rates, are worked out and saved in your own browser. They are not uploaded and are never sent to a server of ours.',
+      'The payment schedules you enter in True Property Cost, with their amounts, dates, sources of funds and rates, are worked out and saved in your own browser. They are not uploaded and are never sent to a server of ours.',
       'That also means they exist only in the browser they were typed into. Clearing its data deletes them, and they cannot be recovered by us, because we never had them.',
     ],
   },

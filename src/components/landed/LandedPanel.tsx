@@ -7,7 +7,7 @@ import { isIsoDate, landedCost } from '@/lib/landed/calc';
 import { useLandedStore } from '@/lib/landed/store';
 
 /**
- * Landed Cost's figures on the workspace card.
+ * True Property Cost's figures on the workspace card.
  *
  * The other cards are read from the database on the server. This tool keeps
  * nothing there, so its figures are counted here, in the browser that holds

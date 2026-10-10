@@ -11,7 +11,7 @@ import { TONE, compactINR, longDate, pct, todayIso, untilOc } from './shared';
  * standing beside an arch with the sun in it.
  *
  * Under the figure is the sum that produced it — paid, plus carrying cost,
- * equals landed — and the bar that says how much of the landed cost came from
+ * equals the true cost — and the bar that says how much of it came from
  * each place. The arch is decoration and is hidden from assistive technology;
  * everything it might seem to say is said in text beside it.
  */
@@ -51,7 +51,7 @@ export function Hero({
       <div className="relative grid gap-8 p-6 sm:p-9 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="a-label">Landed cost at possession</span>
+            <span className="a-label">True cost at possession</span>
             {when && (
               <span
                 style={{ '--tone': when.past ? 'var(--status-approved)' : TONE.carry } as CSSProperties}
@@ -85,7 +85,7 @@ export function Hero({
               tone={TONE.carry}
             />
             <Op>=</Op>
-            <Term label="Landed" value={result.landed} note="at possession" strong />
+            <Term label="True cost" value={result.landed} note="at possession" strong />
           </div>
 
           {/* Where it came from: one bar, three parts, a 2px gap between them. */}
@@ -131,7 +131,7 @@ export function Hero({
             </Chip>
             {result.perSqft && (
               <Chip icon={Ruler}>
-                {formatINR(result.perSqft.landed)} / sq ft landed, against {formatINR(result.perSqft.paid)} paid
+                {formatINR(result.perSqft.landed)} / sq ft true cost, against {formatINR(result.perSqft.paid)} paid
               </Chip>
             )}
           </div>
