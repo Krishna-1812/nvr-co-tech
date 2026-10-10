@@ -56,7 +56,7 @@ export function Composer({
   return (
     <div
       className={cn(
-        'surface-lit a-ring relative rounded-2xl transition',
+        'surface-lit a-ring elev-2 relative rounded-[1.25rem] transition',
         'focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/12',
       )}
     >

@@ -57,8 +57,8 @@ export function VoucherFilters({
   const filtered = Boolean(query || status || chapter);
 
   return (
-    <div className="surface-lit overflow-hidden rounded-2xl">
-      <div className="flex flex-wrap items-center gap-2.5 p-3">
+    <div className="surface-lit a-ring overflow-hidden rounded-3xl">
+      <div className="flex flex-wrap items-center gap-2.5 p-3 sm:p-4">
         <div className="relative min-w-56 flex-1">
           <Search
             className="text-subtle pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
@@ -106,7 +106,7 @@ export function VoucherFilters({
         Scrolls rather than wraps below sm. Seven pills wrapping to three rows
         makes the toolbar taller than the first row of the table it is filtering.
       */}
-      <div className="scroll-x-hint flex gap-1.5 overflow-x-auto border-t px-3 py-2.5">
+      <div className="scroll-x-hint flex gap-1.5 overflow-x-auto border-t px-3 py-2.5 sm:px-4">
         <Pill active={!status} onClick={() => apply({ status: '' })}>
           All
         </Pill>

@@ -1,3 +1,4 @@
+import { Wrench } from 'lucide-react';
 import { Card, CardTitle } from '@/components/ui/primitives';
 import { number, NUM } from '@/components/analytics/Figures';
 import { Avatar } from '@/components/analytics/People';
@@ -6,6 +7,7 @@ import { aliasAgent } from '@/lib/analytics/aliases';
 import { accentFor, displayName } from '@/lib/analytics/identity';
 import type { RunEvent } from '@/lib/analytics/people';
 import { cn } from '@/lib/utils';
+import { ChartEmpty } from './Charts';
 
 /**
  * Tool usage, summarised at the foot of the members page.
@@ -71,6 +73,7 @@ export function AgentDigest({
   return (
     <Card className="overflow-hidden">
       <CardTitle
+        icon={<Wrench className="size-4" />}
         title="What they do once they are in"
         description={
           'Tool opens for whichever half of the roster is showing above. This used to be a summary '
@@ -88,10 +91,10 @@ export function AgentDigest({
       </div>
 
       {runs.length === 0 ? (
-        <p className="text-subtle px-5 py-8 text-center text-[12.5px]">
+        <ChartEmpty>
           Nobody has opened a tool yet. A run is recorded when a reconciliation is saved or the
           assistant answers something, so this stays empty until real work happens.
-        </p>
+        </ChartEmpty>
       ) : (
         <>
           <ul className="grid gap-2 border-b px-5 py-4 sm:grid-cols-2">

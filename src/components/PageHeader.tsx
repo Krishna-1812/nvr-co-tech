@@ -43,8 +43,15 @@ export function PageHeader({
         <div className="min-w-0">
           {eyebrow && (
             <p className="mb-2.5 flex items-center gap-2">
-              {/* A short brand rule anchors the eyebrow to the title beneath it. */}
-              <span aria-hidden className="gradient-brand h-3 w-[3px] rounded-full" />
+              {/* A small arch with the sun in it anchors the eyebrow to the title
+                  beneath it: the public site's mark beside a heading, and the
+                  same shape every tool's hero stands in. */}
+              <span
+                aria-hidden
+                className="m-arch relative h-3.5 w-2.5 shrink-0 overflow-hidden bg-[var(--lc-carry)]"
+              >
+                <span className="absolute top-[3px] left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-[var(--scene-sun)]" />
+              </span>
               <span className="a-label">{eyebrow}</span>
             </p>
           )}

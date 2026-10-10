@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FileQuestion } from 'lucide-react';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { NotFoundPanel } from '@/components/marketing/NotFoundPanel';
 import { PublicShell } from '@/components/marketing/PublicShell';
+import { ArchScene } from '@/components/ui/Scene';
 
 /**
  * Every URL on this origin that matches no route at all, plus the deliberate
@@ -84,20 +84,19 @@ async function hasSession(): Promise<boolean> {
 function AppNotFound() {
   return (
     <div className="grid min-h-screen place-items-center px-5 py-12">
-      <div className="animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] w-full max-w-md text-center">
-        <div className="relative mx-auto w-fit">
-          <span
-            aria-hidden
-            className="absolute inset-0 -z-10 m-auto size-24 rounded-full bg-[radial-gradient(circle,var(--color-brand-500),transparent_70%)] opacity-20 blur-2xl"
-          />
-          <span className="surface-lit text-subtle grid size-16 place-items-center rounded-2xl">
-            <FileQuestion className="size-7" aria-hidden />
-          </span>
-        </div>
+      <div className="w-full max-w-md animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] text-center">
+        {/*
+          The row of doorways from the workspace's own hub, which is where the
+          one button below goes. A plain picture rather than a claim: the copy
+          names nothing, for the reason given above, and so does the scene.
+        */}
+        <ArchScene motif="doorways" className="mx-auto h-60 min-h-0 w-48" />
 
-        <p className="numeric text-subtle mt-6 text-sm font-semibold">404</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">This page does not exist</h1>
-        <p className="text-muted mt-2 text-sm leading-relaxed">
+        <p className="a-label mt-8">Error 404</p>
+        <h1 className="m-display mt-3 text-[2.25rem] leading-[1.1] tracking-tight">
+          This page does not exist
+        </h1>
+        <p className="text-muted mx-auto mt-3 max-w-sm text-sm leading-relaxed">
           The link may be out of date. Whatever it pointed at may have been deleted, or it may
           belong to somebody whose records you cannot see.
         </p>
@@ -105,7 +104,7 @@ function AppNotFound() {
         <div className="mt-8 flex flex-wrap justify-center gap-2">
           <Link
             href="/hub"
-            className="gradient-brand elev-brand inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold transition hover:brightness-110"
+            className="elev-2 inline-flex h-11 items-center rounded-full bg-[var(--action)] px-6 text-sm font-semibold text-[var(--on-action)] transition hover:bg-[var(--action-hover)]"
           >
             Your workspace
           </Link>

@@ -37,8 +37,18 @@ export function Steps({
 }) {
   const index = STEPS.findIndex((s) => s.id === current);
 
+  /*
+   * A segmented track rather than four numbers on a hairline. It sits inside the
+   * hero now, under the headline, and at that size a row of 24px dots read as a
+   * footnote; four cells on one track read as a journey with a length. The cell
+   * for the current step is raised off the track, the way a selected segment is
+   * everywhere else in the app.
+   */
   return (
-    <ol className="flex items-center gap-1.5 sm:gap-2" aria-label="Progress">
+    <ol
+      className="surface-sunken a-inner grid grid-cols-4 gap-1 rounded-2xl border p-1"
+      aria-label="Progress"
+    >
       {STEPS.map((step, i) => {
         const done = i < index;
         const on = i === index;
@@ -50,51 +60,49 @@ export function Steps({
               aria-hidden
               className={cn(
                 'grid size-6 shrink-0 place-items-center rounded-lg text-[11px] font-bold transition',
-                done || on
-                  ? 'gradient-brand elev-brand'
-                  : 'surface-sunken text-subtle border',
+                done || on ? 'gradient-brand elev-brand' : 'surface text-subtle border',
               )}
             >
               {done ? <Check className="size-3" strokeWidth={3.5} /> : i + 1}
             </span>
-            <span
-              className={cn(
-                'truncate text-[12.5px] transition-colors',
-                on ? 'font-semibold' : done ? 'text-muted' : 'text-subtle',
-              )}
-            >
-              {/* The long label from `sm`, where there is room for four of them. */}
-              <span className="hidden sm:inline">{step.label}</span>
-              <span className="sm:hidden">{step.short}</span>
+            <span className="block min-w-0">
+              <span className="text-subtle hidden text-[10px] font-semibold tracking-[0.1em] uppercase md:block">
+                Step {i + 1}
+              </span>
+              <span
+                className={cn(
+                  'block truncate text-[12px] transition-colors sm:text-[13px]',
+                  on ? 'font-semibold' : done ? 'text-muted' : 'text-subtle',
+                )}
+              >
+                {/* The long label from `sm`, where there is room for four of them. */}
+                <span className="hidden sm:inline">{step.label}</span>
+                <span className="sm:hidden">{step.short}</span>
+              </span>
             </span>
           </>
         );
 
+        // Stacked on a phone, where a quarter of 320px will not take a tile and
+        // a word side by side; in a row from `sm`.
+        const cell = cn(
+          'flex h-full w-full min-w-0 flex-col items-start gap-1.5 rounded-xl px-2 py-2 text-left sm:flex-row sm:items-center sm:gap-2.5 sm:px-3 sm:py-2.5',
+          on && 'surface-lit elev-1',
+        );
+
         return (
-          <li key={step.id} className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-            {i > 0 && (
-              <span
-                aria-hidden
-                className={cn(
-                  'h-px w-3 shrink-0 rounded-full sm:w-6',
-                  done || on ? 'bg-[var(--color-brand-500)]' : 'bg-[var(--border-strong)]',
-                )}
-              />
-            )}
+          <li key={step.id} className="min-w-0">
             {reachable ? (
               <button
                 type="button"
                 onClick={() => onGo?.(step.id)}
-                aria-current={on ? 'step' : undefined}
-                className="flex min-w-0 items-center gap-2 rounded-lg py-0.5 transition hover:opacity-80"
+                title={`Back to ${step.label.toLowerCase()}`}
+                className={cn(cell, 'transition hover:bg-[var(--surface-raised)]')}
               >
                 {body}
               </button>
             ) : (
-              <span
-                aria-current={on ? 'step' : undefined}
-                className="flex min-w-0 items-center gap-2 py-0.5"
-              >
+              <span aria-current={on ? 'step' : undefined} className={cell}>
                 {body}
               </span>
             )}

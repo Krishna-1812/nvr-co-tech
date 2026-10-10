@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import {
   AGENTS,
   LIVE_AGENTS,
+  STAGE_LABEL,
   STAGE_NOTE,
   agentBySlug,
   type Agent,
@@ -13,12 +14,16 @@ import {
 import {
   ACCENT,
   ACCENT_TEXT,
+  ON_ACCENT,
   Container,
   CTA,
   Eyebrow,
+  Rise,
   Section,
   StageBadge,
+  motifFor,
 } from '@/components/marketing/bits';
+import { ArchScene as SceneArch } from '@/components/ui/Scene';
 import { serviceLd } from '@/lib/marketing/seo';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { JsonLd } from '@/components/marketing/JsonLd';
@@ -70,97 +75,145 @@ export default async function AgentPage({ params }: Params) {
       <section className="relative overflow-hidden">
         <Roost seed="agent-alcove" band="top-right" />
 
-        <Container wide className="relative pt-10 pb-16 sm:pt-14 sm:pb-24">
+        <Container wide className="relative pt-10 pb-20 sm:pt-14 sm:pb-28">
           {/* This used to be a lone "All agents" link, which told you one way
               out but not where you were standing. The trail says both, and it is
               the same array the BreadcrumbList is built from. */}
-          <Reveal>
+          <Rise>
             <Breadcrumbs trail={trail} />
-          </Reveal>
+          </Rise>
 
-          <div className="mt-10 grid gap-12 lg:grid-cols-[1.15fr_1fr] lg:items-start lg:gap-16">
-            <div>
-              <Reveal delay={60}>
+          <div className="mt-10 grid gap-14 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:gap-16">
+            <div className="min-w-0">
+              <Rise delay={60}>
                 <div className="flex flex-wrap items-center gap-3">
                   <StageBadge stage={agent.stage} />
                   <span className="m-mono t-1 t-caps text-[var(--m-olive)] uppercase">
                     {agent.category}
                   </span>
                 </div>
-              </Reveal>
+              </Rise>
 
-              <Reveal delay={110}>
+              <Rise delay={110}>
                 <h1 className="m-display mt-6 t-h1">{agent.name}</h1>
-              </Reveal>
+              </Rise>
 
-              <Reveal delay={160}>
-                <p className="m-dim mt-6 max-w-xl t-4 sm:t-5">
-                  {agent.summary}
-                </p>
-              </Reveal>
+              <Rise delay={160}>
+                <p className="m-dim mt-6 max-w-xl t-4 sm:t-5">{agent.summary}</p>
+              </Rise>
 
-              <Reveal delay={210}>
+              <Rise delay={210}>
                 <div className="mt-9 flex flex-wrap items-center gap-3">
                   <StageActions agent={agent} />
                 </div>
-              </Reveal>
+              </Rise>
 
-              <Reveal delay={260}>
-                <StageNote agent={agent} className="mt-8 max-w-lg" />
-              </Reveal>
+              {/*
+                What goes in and what comes back, as the two plates a reader
+                scans before deciding whether to read on. The same two strings
+                the flow diagram further down is drawn from, so the hero cannot
+                describe the tool differently from the page under it.
+              */}
+              <Rise delay={250}>
+                <dl className="mt-10 grid max-w-xl gap-3 sm:grid-cols-2">
+                  <Plate label="Takes in" body={agent.inputs} />
+                  <Plate label="Gives back" body={agent.outputs} tone={ACCENT_TEXT[agent.accent]} />
+                </dl>
+              </Rise>
+
+              <Rise delay={290}>
+                <StageNote agent={agent} className="mt-7 max-w-lg" />
+              </Rise>
             </div>
 
             {/*
-              The case for it, standing in the agent's own doorway.
+              The agent's own doorway: framed in its colour, with the scene its
+              screen opens on standing inside. For a live tool that is the very
+              picture a visitor meets after signing in, which says the product is
+              real more plainly than a screenshot that dates the week it was
+              taken.
 
-              The same window as the home page's hero, walled in this agent's
-              colour, so eight pages built from one template open on eight
-              different arches rather than one page with the name swapped. The
-              sun comes up behind the card; the card is what the door opens on.
+              A plaque hangs across the threshold with the name and the stage in
+              words, so nothing the arch implies is carried by the picture alone.
+              Shown on phones too, smaller: this page has no other image.
             */}
-            <Reveal delay={200}>
+            <Rise
+              delay={180}
+              className="relative mx-auto w-full max-w-[19rem] sm:max-w-[23rem] lg:max-w-[26rem]"
+            >
               <div
-                className="m-arch m-arch-open relative overflow-hidden px-4 pt-40 pb-5 sm:px-7 sm:pt-48 sm:pb-8"
+                aria-hidden
+                className="m-arch m-arch-open relative p-3 shadow-[var(--m-shadow)] sm:p-4"
                 style={{ background: accent }}
               >
-                {/* Sun on a sun-coloured wall is one value against itself, so
-                    the one agent walled in sun gets a terracotta disc. */}
-                <span
-                  aria-hidden
-                  className="m-sun absolute top-12 left-1/2 size-36 -translate-x-1/2 sm:size-44"
-                  style={agent.accent === 'amber' ? { background: 'var(--m-gold)' } : undefined}
+                <SceneArch
+                  motif={motifFor(agent.slug)}
+                  className="h-[19rem] min-h-0 sm:h-[25rem] lg:h-[30rem]"
                 />
-                <span
-                  aria-hidden
-                  className="absolute inset-x-0 bottom-0 h-32 bg-[var(--m-bg-3)]"
-                  style={{ borderRadius: '60% 40% 0 0 / 30% 25% 0 0' }}
-                />
-                <figure className="m-card relative p-7 shadow-[var(--m-shadow)] sm:p-9">
-                  <Eyebrow>The case for it</Eyebrow>
-                  <blockquote className="mt-5">
-                    <p className="t-4 text-[var(--m-ink)] sm:t-5">
-                      {agent.pitch}
-                    </p>
-                  </blockquote>
-                  <figcaption className="m-dim-2 m-mono mt-7 border-t border-[var(--m-line)] pt-5 t-1 t-caps uppercase">
-                    {agent.name} · {agent.category}
-                  </figcaption>
-                </figure>
               </div>
-            </Reveal>
+              <div className="m-card absolute -bottom-6 left-1/2 flex max-w-[calc(100%+2rem)] -translate-x-1/2 items-center gap-3 rounded-2xl px-4 py-3 whitespace-nowrap shadow-[0_18px_34px_-20px_rgb(80_40_20_/_0.6)]">
+                <span aria-hidden className="m-arch h-6 w-5 shrink-0" style={{ background: accent }} />
+                <span className="truncate t-3 font-semibold text-[var(--m-ink)]">{agent.name}</span>
+                <span className="m-mono m-dim-2 t-1 t-caps uppercase">
+                  {STAGE_LABEL[agent.stage]}
+                </span>
+              </div>
+            </Rise>
           </div>
         </Container>
       </section>
 
+      {/*
+        The case for it, given a section of its own.
+
+        It used to be a card standing inside the hero's arch, which made it the
+        most important paragraph on the page and the hardest one to read: five
+        lines of body type over a sun. Set in the display face across the page
+        it reads as what it is, the argument, and the hero's arch is free to
+        hold the picture.
+      */}
       <Section>
         <Container wide>
-          <div className="grid gap-10 lg:grid-cols-[0.85fr_1.4fr] lg:gap-16">
+          <Reveal>
+            <figure className="m-card relative overflow-hidden rounded-[2rem] px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+              <span
+                aria-hidden
+                className="m-arch absolute -right-10 -bottom-10 hidden h-80 w-56 opacity-[0.14] md:block"
+                style={{ background: accent }}
+              />
+              <span
+                aria-hidden
+                className="m-sun absolute top-10 right-24 hidden size-16 opacity-80 md:block"
+                style={{ '--sun-from': '40px' } as React.CSSProperties}
+              />
+
+              <div className="relative max-w-4xl">
+                <div className="flex items-center gap-3.5">
+                  <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
+                  <Eyebrow>The case for it</Eyebrow>
+                </div>
+                <blockquote className="mt-7">
+                  <p className="m-display t-6 !leading-[1.3] text-[var(--m-ink)] sm:t-7 lg:t-8">
+                    {agent.pitch}
+                  </p>
+                </blockquote>
+                <figcaption className="m-mono m-dim-2 mt-9 flex items-center gap-3 t-1 t-caps uppercase">
+                  <span aria-hidden className="m-arch h-5 w-4" style={{ background: accent }} />
+                  {agent.name} · {agent.category}
+                </figcaption>
+              </div>
+            </figure>
+          </Reveal>
+        </Container>
+      </Section>
+
+      <Section>
+        <Container wide>
+          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.5fr] lg:gap-16">
             <Reveal>
               <div className="lg:sticky lg:top-28">
                 <Eyebrow>What it does</Eyebrow>
-                <h2 className="m-display mt-4 t-h3">
-                  The specifics.
-                </h2>
+                <h2 className="m-display mt-4 t-h3">The specifics.</h2>
                 {/* A live agent's list is a description, not a plan, and saying
                     so is the point of writing these down to this level. */}
                 <p className="m-dim mt-5 max-w-sm t-3">
@@ -171,19 +224,28 @@ export default async function AgentPage({ params }: Params) {
               </div>
             </Reveal>
 
-            <ol className="border-t border-[var(--m-line)]">
+            {/*
+              Plates rather than ruled lines. A tool with eleven specifics was a
+              long column of hairlines; two columns of cards halve its height and
+              let each line read as one thing it does. The number stands in the
+              agent's own doorway, so the list is visibly this agent's.
+            */}
+            <ol className="grid gap-4 sm:grid-cols-2">
               {agent.does.map((item, i) => (
-                <Reveal as="li" key={item} delay={i * 55} className="border-b border-[var(--m-line)]">
-                  <div className="flex gap-5 py-5">
-                    <span
-                      className="m-mono mt-0.5 shrink-0 t-2 t-caps tabular-nums"
-                      style={{ color: ACCENT_TEXT[agent.accent] }}
-                      aria-hidden
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <p className="t-3 text-[var(--m-ink)]">{item}</p>
-                  </div>
+                <Reveal
+                  as="li"
+                  key={item}
+                  delay={Math.min(i, 6) * 55}
+                  className="m-card flex gap-4 rounded-2xl p-5 sm:p-6"
+                >
+                  <span
+                    aria-hidden
+                    className="m-arch m-mono grid h-9 w-7 shrink-0 place-items-center pt-1 t-1 font-bold tabular-nums"
+                    style={{ background: accent, color: ON_ACCENT[agent.accent] }}
+                  >
+                    {i + 1}
+                  </span>
+                  <p className="min-w-0 t-3 text-[var(--m-ink)]">{item}</p>
                 </Reveal>
               ))}
             </ol>
@@ -195,9 +257,7 @@ export default async function AgentPage({ params }: Params) {
         <Container wide>
           <Reveal>
             <Eyebrow>Where it fits</Eyebrow>
-            <h2 className="m-display mt-4 t-h3">
-              What goes in, and what you get back.
-            </h2>
+            <h2 className="m-display mt-4 t-h3">What goes in, and what you get back.</h2>
           </Reveal>
 
           <Reveal delay={70}>
@@ -218,28 +278,40 @@ export default async function AgentPage({ params }: Params) {
       <Section>
         <Container wide>
           <Reveal>
-            <div className="m-card relative overflow-hidden px-6 py-14 sm:px-12 sm:py-18">
+            <div className="m-card relative overflow-hidden rounded-[2rem] px-6 py-14 sm:px-12 sm:py-18">
+              {/*
+                A small skyline of doorways at the panel's foot, this agent's at
+                the front with the sun behind it. Decoration only, and only where
+                there is room for it beside the text.
+              */}
+              <div aria-hidden className="absolute right-10 bottom-0 hidden h-64 w-80 lg:block">
+                <span className="m-arch absolute right-0 bottom-0 h-44 w-28 bg-[var(--m-bg-2)]" />
+                <span
+                  className="m-sun absolute right-[7.5rem] bottom-36 size-24"
+                  style={{ '--sun-from': '60px' } as React.CSSProperties}
+                />
+                <span
+                  className="m-arch absolute right-24 bottom-0 h-56 w-36"
+                  style={{ background: accent }}
+                />
+                <span className="m-arch absolute right-[15rem] bottom-0 h-28 w-16 bg-[var(--m-bg-3)]" />
+              </div>
 
-              <div className="relative grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-end">
-                <div className="max-w-xl">
-                  <h2 className="m-display t-h3">
-                    {agent.stage === 'live'
-                      ? 'It is running. Go and use it.'
-                      : `Talk to us about ${agent.name}.`}
-                  </h2>
-                  <p className="m-dim mt-5 t-4">
-                    {agent.stage === 'live'
-                      ? 'Sign in and it is there. If you would rather somebody showed you round first, we are happy to do that instead.'
-                      : 'A walkthrough covers what you can use today, what this one will do, and where it sits in the queue. We will not give you a date on the call that we are not sure of.'}
-                  </p>
-                  <div className="mt-8 flex flex-wrap gap-3">
-                    <StageActions agent={agent} />
-                  </div>
+              <div className="relative max-w-xl">
+                <h2 className="m-display t-h3">
+                  {agent.stage === 'live'
+                    ? 'It is running. Go and use it.'
+                    : `Talk to us about ${agent.name}.`}
+                </h2>
+                <p className="m-dim mt-5 t-4">
+                  {agent.stage === 'live'
+                    ? 'Sign in and it is there. If you would rather somebody showed you round first, we are happy to do that instead.'
+                    : 'A walkthrough covers what you can use today, what this one will do, and where it sits in the queue. We will not give you a date on the call that we are not sure of.'}
+                </p>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <StageActions agent={agent} />
                 </div>
-
-                <div className="lg:justify-self-end">
-                  <StageNote agent={agent} className="max-w-sm" />
-                </div>
+                <StageNote agent={agent} className="mt-8 max-w-sm" />
               </div>
             </div>
           </Reveal>
@@ -251,24 +323,46 @@ export default async function AgentPage({ params }: Params) {
           <Reveal>
             <Link
               href={`/agents/${next.slug}`}
-              className="group flex flex-col gap-4 border-t border-[var(--m-line)] pt-8 sm:flex-row sm:items-end sm:justify-between"
+              className="group m-card m-card-lift flex items-center gap-5 rounded-[1.75rem] p-5 transition-[transform,box-shadow] duration-300 sm:gap-7 sm:p-6"
             >
-              <span>
+              <span
+                aria-hidden
+                className="m-arch relative h-20 w-16 shrink-0 overflow-hidden sm:h-24 sm:w-[4.5rem]"
+                style={{ background: ACCENT[next.accent] }}
+              >
+                <span className="absolute bottom-0 left-1/2 size-10 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
+              </span>
+              <span className="min-w-0 flex-1">
                 <span className="m-eyebrow block">Next agent</span>
-                <span className="m-display mt-3 block t-h4 transition-colors group-hover:text-[var(--m-cyan)]">
+                <span className="m-display mt-2 block t-h4 transition-colors group-hover:text-[var(--m-gold)]">
                   {next.name}
                 </span>
-                <span className="m-dim-2 mt-2 block t-3">{next.category}</span>
+                <span className="m-dim-2 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 t-3">
+                  {next.category}
+                  <StageBadge stage={next.stage} />
+                </span>
               </span>
               <ArrowRight
                 aria-hidden
-                className="m-dim-2 size-6 transition-transform group-hover:translate-x-1.5"
+                className="m-dim-2 size-6 shrink-0 transition-transform group-hover:translate-x-1.5"
               />
             </Link>
           </Reveal>
         </Container>
       </Section>
     </>
+  );
+}
+
+/** One of the hero's two plates: a label and the line under it. */
+function Plate({ label, body, tone }: { label: string; body: string; tone?: string }) {
+  return (
+    <div className="m-card min-w-0 rounded-2xl px-4 py-3.5 shadow-[0_14px_30px_-24px_rgb(80_40_20_/_0.55)]">
+      <dt className="m-eyebrow t-1">{label}</dt>
+      <dd className="mt-1.5 t-3 font-medium" style={{ color: tone ?? 'var(--m-ink)' }}>
+        {body}
+      </dd>
+    </div>
   );
 }
 

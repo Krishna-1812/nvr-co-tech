@@ -23,7 +23,7 @@ export function Sources({ sources }: { sources: Source[] }) {
   if (sources.length === 0) return null;
 
   return (
-    <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
+    <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-dashed pt-3">
       <span className="a-label mr-0.5 inline-flex items-center gap-1.5">
         <BookOpen className="size-3" aria-hidden />
         Read from
@@ -45,7 +45,7 @@ export function Sources({ sources }: { sources: Source[] }) {
         );
 
         const className =
-          'surface-sunken text-muted inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] transition';
+          'surface-sunken text-muted inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition';
 
         // A chip is only a link where there is a page to send somebody to. The
         // rest are documents that exist here and nowhere else, and a link that

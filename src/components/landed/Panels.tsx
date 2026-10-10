@@ -127,7 +127,9 @@ export function FundsPanel({
                   value={Number.isFinite(value) ? value : undefined}
                   onCommit={(v) => rate(s, v)}
                   suffix="%"
-                  className="w-24"
+                  // Never squeezed by a label that wraps: at 1440px the two
+                  // source cards sit side by side and "8.5" was clipping to "8.".
+                  className="w-24 shrink-0"
                   inputClassName="h-9 py-1 font-semibold"
                 />
               </div>

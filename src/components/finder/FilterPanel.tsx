@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronDown, Info, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { buttonClass } from '@/components/ui/primitives';
 import { Combobox } from './Combobox';
 import { advancedCount, groupsFor, type Entity, type Field, type PanelValues } from './filters';
 
@@ -37,7 +38,7 @@ function Note({ text }: { text: string }) {
       */}
       <span
         role="tooltip"
-        className="a-ring elev-4 pointer-events-none absolute inset-x-0 top-full z-50 mt-1.5 rounded-lg border bg-[var(--surface-raised)] px-2.5 py-2 text-xs leading-relaxed opacity-0 transition group-hover/note:opacity-100"
+        className="a-ring elev-4 pointer-events-none absolute inset-x-0 top-full z-50 mt-1.5 rounded-xl border bg-[var(--surface-raised)] px-3 py-2 text-xs leading-relaxed opacity-0 transition group-hover/note:opacity-100"
       >
         {text}
       </span>
@@ -81,7 +82,7 @@ function Control({
               aria-pressed={active}
               onClick={() => set(field.key, active ? on.filter((x) => x !== v) : [...on, v])}
               className={cn(
-                'rounded-md border px-2 py-1 text-xs font-medium transition',
+                'rounded-full border px-2.5 py-1 text-xs font-medium transition',
                 active
                   ? 'gradient-brand border-transparent shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
                   : 'surface-sunken text-muted hover:text-[var(--text-c)]',
@@ -115,7 +116,7 @@ function Control({
         aria-label={field.label}
         value={String(value ?? '')}
         onChange={(e) => set(field.key, e.target.value)}
-        className="min-w-0 flex-1 rounded-lg border bg-[var(--surface-raised)] px-2.5 py-2 text-base shadow-[var(--elev-1)] transition hover:border-[var(--border-strong)] focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 lg:text-sm"
+        className="min-w-0 flex-1 rounded-xl border bg-[var(--surface-raised)] px-3 py-2 text-base shadow-[var(--elev-1)] transition hover:border-[var(--border-strong)] focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 lg:text-sm"
       >
         {(field.options ?? []).map(([v, label]) => (
           <option key={v} value={v}>
@@ -135,7 +136,7 @@ function Control({
       value={isCsv && Array.isArray(value) ? (value as string[]).join(', ') : String(value ?? '')}
       onChange={(e) => set(field.key, e.target.value)}
       className={cn(
-        'min-w-0 rounded-lg border bg-[var(--surface-raised)] px-2.5 py-2 text-base shadow-[var(--elev-1)] transition lg:text-sm',
+        'min-w-0 rounded-xl border bg-[var(--surface-raised)] px-3 py-2 text-base shadow-[var(--elev-1)] transition lg:text-sm',
         'placeholder:text-[var(--text-subtle)] hover:border-[var(--border-strong)]',
         'focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15',
         field.kind === 'number' || field.kind === 'date' ? 'w-full' : 'flex-1',
@@ -306,7 +307,7 @@ export function FilterPanel({
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
-            className="text-muted flex w-full items-center gap-2 rounded-lg border border-dashed px-2.5 py-2 text-sm transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+            className="text-muted flex w-full items-center gap-2 rounded-2xl border border-dashed px-3 py-2.5 text-sm font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
           >
             <ChevronDown className={cn('size-4 transition', open && 'rotate-180')} aria-hidden />
             More filters
@@ -397,7 +398,8 @@ export function FilterPanel({
           <button
             type="button"
             onClick={onClear}
-            className="text-muted rounded-lg border px-2.5 py-2 text-sm transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+            title="Clear filters"
+            className="text-muted grid size-10 shrink-0 place-items-center rounded-full border transition hover:border-[var(--border-strong)] hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]"
           >
             <X className="size-4" aria-hidden />
             <span className="sr-only">Clear filters</span>
@@ -427,7 +429,7 @@ export function FilterPanel({
             type="button"
             onClick={onSearch}
             disabled={loading}
-            className="gradient-brand elev-brand inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition hover:brightness-110 disabled:opacity-60"
+            className={buttonClass({ variant: 'primary', className: 'shrink-0 gap-1.5' })}
           >
             <Search className="size-4" aria-hidden />
             {loading ? 'Searching…' : 'Search'}

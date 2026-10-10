@@ -13,6 +13,7 @@ import {
   Th,
   Thead,
   Tr,
+  buttonClass,
 } from '@/components/ui/primitives';
 import { formatINR } from '@/lib/recon/amount';
 import { formatLedgerDate } from '@/lib/recon/dates';
@@ -78,7 +79,7 @@ export function DifferenceTable({ result }: { result: ReconResult }) {
             onClick={() => downloadCsv(rows, result)}
             disabled={rows.length === 0}
             title="Download what is shown, as a CSV"
-            className="text-subtle inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)] disabled:cursor-not-allowed disabled:opacity-40"
+            className={buttonClass({ size: 'sm' })}
           >
             <Download className="size-3.5" aria-hidden />
             CSV
@@ -87,7 +88,7 @@ export function DifferenceTable({ result }: { result: ReconResult }) {
       />
 
       <CardBody className="px-0 py-0">
-        <div className="scroll-x-hint flex gap-1.5 overflow-x-auto border-b px-5 py-3">
+        <div className="scroll-x-hint surface-sunken flex gap-1.5 overflow-x-auto border-b px-5 py-3 sm:px-6">
           {chips.map((chip) => {
             const active = filter === chip.id;
             return (

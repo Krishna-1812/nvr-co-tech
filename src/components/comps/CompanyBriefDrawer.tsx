@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ExternalLink,
   RefreshCw,
+  Sparkles,
   TrendingDown,
   TrendingUp,
 } from 'lucide-react';
@@ -54,19 +55,6 @@ const SEVERITY_COLOR: Record<Severity, string> = {
   medium: 'var(--h-amber)',
   high: 'var(--h-rose)',
 };
-
-const REGISTRY_TILE_ACCENT = [
-  'var(--h-indigo)',
-  'var(--h-emerald)',
-  'var(--h-cyan)',
-  'var(--h-violet)',
-  'var(--h-amber)',
-  'var(--h-indigo)',
-  'var(--h-lime)',
-  'var(--h-cyan)',
-  'var(--h-violet)',
-  'var(--h-magenta)',
-];
 
 export function CompanyBriefDrawer({
   comparable,
@@ -148,17 +136,24 @@ export function CompanyBriefDrawer({
       {c && (
         <>
           {/* ── Hero ───────────────────────────────────────────────────────── */}
-          <div
-            className="border-b px-6 py-6"
-            style={{
-              background: 'linear-gradient(160deg, color-mix(in oklab, var(--h-violet) 9%, transparent), transparent 60%)',
-            }}
-          >
-            <h2 className="text-[1.5rem] leading-tight font-semibold tracking-tight text-pretty pr-10">
+          <div className="relative isolate overflow-hidden border-b px-5 pt-7 pb-6 sm:px-7">
+            {/* The same light and dot field the tool heroes stand in, so the
+                modal reads as the desk opened up rather than a different app. */}
+            <span
+              aria-hidden
+              className="a-orb -top-32 -left-20 size-[26rem] opacity-[0.14]"
+              style={{ background: 'radial-gradient(circle, var(--lc-carry), transparent 66%)' }}
+            />
+            <span
+              aria-hidden
+              className="a-grid pointer-events-none absolute inset-0 -z-10 opacity-30 [mask-image:radial-gradient(60%_80%_at_10%_0%,#000,transparent)]"
+            />
+            <p className="a-label">Peer brief</p>
+            <h2 className="m-display mt-2 pr-10 text-[clamp(1.6rem,4vw,2.2rem)] leading-[1.05] text-balance">
               {c.name}
             </h2>
             <div className="text-muted mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
-              <span className="tinted rounded-full border px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase" style={{ ['--tone' as string]: 'var(--h-violet)' }}>
+              <span className="tinted rounded-full border px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase" style={{ ['--tone' as string]: c.listingStatus === 'listed' ? 'var(--status-approved)' : 'var(--status-draft)' }}>
                 {c.listingStatus}
               </span>
               <span>{c.country}</span>
@@ -170,22 +165,31 @@ export function CompanyBriefDrawer({
               )}
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
-              {registryTiles.map((t, i) => (
-                <Tile key={t.label} label={t.label} value={t.value} accent={REGISTRY_TILE_ACCENT[i % REGISTRY_TILE_ACCENT.length]} />
+            <p className="a-label mt-6 mb-2">From the registry</p>
+            <div className="stagger grid grid-cols-2 gap-2 sm:grid-cols-5">
+              {registryTiles.map((t) => (
+                <Tile key={t.label} label={t.label} value={t.value} />
               ))}
             </div>
           </div>
 
           {/* ── AI research ────────────────────────────────────────────────── */}
-          <div className="px-6 py-5">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="a-label">AI research</h3>
+          <div className="px-5 py-6 sm:px-7">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="flex items-center gap-2.5 font-semibold tracking-tight">
+                <span
+                  aria-hidden
+                  className="surface-sunken text-muted a-inner grid size-8 place-items-center rounded-xl border"
+                >
+                  <Sparkles className="size-4" />
+                </span>
+                AI research
+              </h3>
               {state.status === 'ready' && (
                 <button
                   type="button"
                   onClick={() => load(c.companyId, true)}
-                  className="text-subtle inline-flex items-center gap-1 text-xs transition hover:text-[var(--text-c)]"
+                  className="surface-sunken text-muted inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
                 >
                   <RefreshCw className="size-3" aria-hidden />
                   Refresh
@@ -196,9 +200,20 @@ export function CompanyBriefDrawer({
             {state.status === 'loading' && <BriefSkeleton />}
 
             {state.status === 'error' && (
-              <div className="flex items-start gap-2.5 rounded-xl border border-[var(--status-warn)]/30 bg-[var(--status-warn)]/8 p-3.5 text-sm">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[var(--status-warn)]" aria-hidden />
-                <span>{state.message}</span>
+              <div
+                style={{ ['--tone' as string]: 'var(--status-warn)' }}
+                className="tinted flex flex-wrap items-start gap-x-3 gap-y-2 rounded-2xl border p-4 text-sm"
+              >
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1">{state.message}</span>
+                <button
+                  type="button"
+                  onClick={() => load(c.companyId, false)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-current/30 px-3 py-1 text-xs font-semibold transition hover:bg-[color-mix(in_oklab,var(--tone)_10%,transparent)]"
+                >
+                  <RefreshCw className="size-3" aria-hidden />
+                  Try again
+                </button>
               </div>
             )}
 
@@ -206,7 +221,7 @@ export function CompanyBriefDrawer({
           </div>
 
           {state.status === 'ready' && (
-            <div className="border-t px-6 py-4">
+            <div className="surface-sunken border-t px-5 py-4 sm:px-7">
               {state.citations.length > 0 && (
                 <>
                   <p className="text-subtle mb-1.5 text-[11px] font-semibold tracking-[0.06em] uppercase">
@@ -370,22 +385,23 @@ function PointList({
   );
 }
 
-function Tile({ label, value, accent }: { label: string; value: string; accent: string }) {
+/**
+ * A registry figure, set like the hero tiles: label above, figure below, the
+ * dash dimmed so an absent figure reads as absent. These used to be ten
+ * different gradient inks, which made ten figures of the same kind look like
+ * ten kinds of thing.
+ */
+function Tile({ label, value }: { label: string; value: string }) {
+  const absent = value === '—';
   return (
-    <div className="surface-lit rounded-xl border p-2.5">
+    <div className="surface-sunken min-w-0 rounded-2xl border px-3 py-2.5">
+      <p className="a-label truncate text-[9.5px]">{label}</p>
       <p
-        className="numeric truncate text-[1.05rem] font-semibold"
-        style={{
-          background: `linear-gradient(135deg, var(--text-c) 15%, color-mix(in oklab, ${accent} 85%, var(--text-c)) 95%)`,
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          color: 'transparent',
-        }}
+        className={cn('mt-1 truncate text-[1.05rem] font-semibold tracking-tight tabular-nums', absent && 'text-subtle')}
         title={value}
       >
         {value}
       </p>
-      <p className="a-label mt-0.5 text-[9px]">{label}</p>
     </div>
   );
 }

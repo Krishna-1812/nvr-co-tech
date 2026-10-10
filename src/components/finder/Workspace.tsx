@@ -17,7 +17,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Drawer } from '@/components/ui/Drawer';
+import { buttonClass, Card, EmptyState, Skeleton } from '@/components/ui/primitives';
 import { AskBar } from './AskBar';
+import { FinderHero, ResultsHead } from './Hero';
 import { InvalidCodes, QueryBar, RejectionBanner } from './Banners';
 import { Chat, type ChatContext, type EnrichChip, type Turn } from './Chat';
 import { FilterPanel } from './FilterPanel';
@@ -675,9 +677,26 @@ export function Workspace() {
   );
 
   return (
+    <div className="space-y-6">
+      {/*
+        The hero, only until something has been searched. `shownEntity` is set
+        by a completed search and never before, so the hero stays standing while
+        the first search is in flight and gives way to the results head once
+        there is something to put in it. See Hero.tsx for why the screen never
+        carries both.
+      */}
+      {state.shownEntity == null && (
+        <FinderHero
+          entity={state.entity}
+          count={state.count}
+          counting={state.counting}
+          filtersSet={setFilterCount}
+        />
+      )}
+
     <div
       className={cn(
-        'grid min-h-0 gap-4',
+        'grid min-h-0 gap-5',
         /*
           Two shapes, and which one is in use is decided by whether anything has
           been searched for yet.
@@ -744,10 +763,22 @@ export function Workspace() {
         // `2xl` hands that length straight to the conversation beside it, which
         // is how the two stay the same height without either being capped.
         className={cn(
-          'surface-lit a-ring flex flex-col rounded-2xl p-3.5',
+          'surface-lit a-ring flex flex-col rounded-3xl p-4',
           centerIdle ? '2xl:h-full' : 'max-h-[calc(100vh-11rem)] xl:h-[calc(100vh-11rem)]',
         )}
       >
+        {/*
+          The panel header from True Property Cost, a size smaller: this is a
+          rail with forty controls under it, and every pixel spent above them
+          is one more filter below the fold.
+        */}
+        <RailHeader
+          icon={<SlidersHorizontal className="size-4" aria-hidden />}
+          title="Who you are looking for"
+          description="Describe it in a sentence, or set the filters by hand."
+          tone={state.entity === 'companies' ? 'var(--h-cyan)' : 'var(--h-indigo)'}
+        />
+
         {/*
           Above the tabs, because a sentence decides which tab it belongs on.
           Below nothing, because it is the first thing most people will try.
@@ -771,7 +802,7 @@ export function Workspace() {
           type="button"
           onClick={() => setRailOpen((o) => !o)}
           aria-expanded={railOpen}
-          className="surface-sunken text-muted mb-3 flex shrink-0 items-center gap-2 rounded-xl border px-2.5 py-2 text-sm transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)] xl:hidden"
+          className="surface-sunken text-muted mb-3 flex shrink-0 items-center gap-2 rounded-2xl border px-3 py-2.5 text-sm font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)] xl:hidden"
         >
           <SlidersHorizontal className="size-4" aria-hidden />
           {railOpen ? 'Hide filters' : 'Set filters by hand'}
@@ -786,7 +817,7 @@ export function Workspace() {
           role="radiogroup"
           aria-label="What to search for"
           className={cn(
-            'surface-sunken mb-3 shrink-0 rounded-xl border p-1',
+            'surface-sunken a-inner mb-3.5 shrink-0 rounded-full border p-1',
             railOpen ? 'flex' : 'hidden xl:flex',
           )}
         >
@@ -805,7 +836,7 @@ export function Workspace() {
                 aria-checked={on}
                 onClick={() => dispatch({ type: 'entity', entity: value })}
                 className={cn(
-                  'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-sm font-medium transition',
+                  'flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-sm font-semibold transition',
                   on
                     ? 'gradient-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
                     : 'text-muted hover:text-[var(--text-c)]',
@@ -844,64 +875,144 @@ export function Workspace() {
         whether or not anything sits in it. Removing the section from the grid
         entirely — not just leaving it visually empty — is what lets the rail
         beside it actually claim that width instead of it sitting idle. */}
-      <section className={cn('min-w-0 space-y-3 pb-16 2xl:pb-0', centerIdle && 'xl:hidden')}>
+      <section className={cn('min-w-0 space-y-4 pb-16 2xl:pb-0', centerIdle && 'xl:hidden')}>
         {/*
-          The workspace bar. Everything here is free — nothing on this row can
-          spend a credit — which is why it sits above the results rather than
-          among the buttons that can.
+          The head of the column: how many came back, set as the answer, with
+          the free actions on those rows under it. Everything on its action row
+          is free — nothing there can spend a credit except Reveal, which says
+          so and only appears once somebody has ticked whom to buy.
         */}
         {state.results.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => void addToList(pickedRows, shown)}
-              className="surface-lit a-ring text-muted inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
-            >
-              <ListPlus className="size-3.5" aria-hidden />
-              {selectedCount > 0 ? `Add ${selectedCount} to list` : 'Add all to list'}
-            </button>
+          <ResultsHead
+            entity={shown}
+            shown={state.results.length}
+            total={state.total}
+            at={state.resolved?.[0]}
+            removed={
+              state.rejected && Object.values(state.rejected).some((v) => v > 0)
+                ? state.rejectedTotal
+                : 0
+            }
+            described={state.described}
+            selected={selectedCount}
+            tools={
+              <div className="surface-sunken flex rounded-full border p-0.5" role="group" aria-label="Layout">
+                {(
+                  [
+                    ['cards', LayoutGrid],
+                    ['table', Rows3],
+                  ] as const
+                ).map(([v, Icon]) => (
+                  <button
+                    key={v}
+                    type="button"
+                    aria-pressed={state.view === v}
+                    aria-label={`${v} view`}
+                    onClick={() => dispatch({ type: 'view', view: v })}
+                    className={cn(
+                      'rounded-full px-2.5 py-1.5 transition',
+                      state.view === v
+                        ? 'elev-1 bg-[var(--surface-raised)] text-[var(--text-c)]'
+                        : 'text-subtle hover:text-[var(--text-c)]',
+                    )}
+                  >
+                    <Icon className="size-3.5" aria-hidden />
+                  </button>
+                ))}
+              </div>
+            }
+            actions={
+              <>
+                <button
+                  type="button"
+                  onClick={() => void addToList(pickedRows, shown)}
+                  className={buttonClass({ size: 'sm' })}
+                >
+                  <ListPlus className="size-3.5" aria-hidden />
+                  {selectedCount > 0 ? `Add ${selectedCount} to list` : 'Add all to list'}
+                </button>
 
-            {/*
-              Where the rows just added went, said once they exist. Adding to a
-              list you cannot see from here is a button with no receipt, and the
-              count is the receipt — it is also the only thing on this screen
-              that knows the list has anything on it at all.
-            */}
-            {state.listCount > 0 && (
-              <Link
-                href="/contacts/activity"
-                className="text-subtle inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs transition hover:text-[var(--text-c)]"
-              >
-                <span className="numeric font-semibold text-[var(--text-muted)]">
-                  {state.listCount}
-                </span>
-                on your list
-                <ArrowUpRight className="size-3.5" aria-hidden />
-              </Link>
-            )}
+                {(
+                  [
+                    ['xlsx', 'Excel'],
+                    ['csv', 'CSV'],
+                  ] as const
+                ).map(([format, label]) => (
+                  <button
+                    key={format}
+                    type="button"
+                    onClick={() => exportRows(shown, pickedRows, format)}
+                    title={
+                      format === 'xlsx'
+                        ? 'A workbook, with a second sheet saying what search produced these rows'
+                        : 'A flat table, no second sheet, for importing somewhere else'
+                    }
+                    className={buttonClass({ size: 'sm' })}
+                  >
+                    <Download className="size-3.5" aria-hidden />
+                    {label}
+                  </button>
+                ))}
 
-            {(
-              [
-                ['xlsx', 'Excel'],
-                ['csv', 'CSV'],
-              ] as const
-            ).map(([format, label]) => (
-              <button
-                key={format}
-                type="button"
-                onClick={() => exportRows(shown, pickedRows, format)}
-                title={
-                  format === 'xlsx'
-                    ? 'A workbook, with a second sheet saying what search produced these rows'
-                    : 'A flat table, no second sheet, for importing somewhere else'
-                }
-                className="surface-lit a-ring text-muted inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
-              >
-                <Download className="size-3.5" aria-hidden />
-                {label}
-              </button>
-            ))}
-          </div>
+                {/*
+                  Where the rows just added went, said once they exist. Adding to a
+                  list you cannot see from here is a button with no receipt, and the
+                  count is the receipt — it is also the only thing on this screen
+                  that knows the list has anything on it at all.
+                */}
+                {state.listCount > 0 && (
+                  <Link
+                    href="/contacts/activity"
+                    className="text-subtle inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs transition hover:text-[var(--text-c)]"
+                  >
+                    <span className="font-semibold text-[var(--text-c)] tabular-nums">
+                      {state.listCount}
+                    </span>
+                    on your list
+                    <ArrowUpRight className="size-3.5" aria-hidden />
+                  </Link>
+                )}
+
+                <span className="flex-1" />
+
+                {selectedCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => dispatch({ type: 'clearSelection' })}
+                    className={buttonClass({ variant: 'ghost', size: 'sm' })}
+                  >
+                    Clear selection
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: 'selectAll', ids })}
+                  className={buttonClass({ variant: 'ghost', size: 'sm' })}
+                >
+                  Select all
+                </button>
+
+                {/*
+                  People only, and only when something is ticked. A company row
+                  already holds everything the paid search returned, so a bulk
+                  button on that tab would sell a second copy of what is on screen.
+                */}
+                {selectedCount > 0 && shown === 'people' && (
+                  <button
+                    type="button"
+                    onClick={() => void revealSelected()}
+                    disabled={state.revealing}
+                    title="Buys the full record for each ticked person: contact details, real surname, employer. About one credit each, and nothing for anyone already bought."
+                    className={buttonClass({ variant: 'primary', size: 'sm' })}
+                  >
+                    <Sparkles className="size-3.5" aria-hidden />
+                    {state.revealing ? 'Revealing…' : `Reveal ${selectedCount}`}
+                  </button>
+                )}
+              </>
+            }
+          />
         )}
 
         <QueryBar
@@ -909,27 +1020,17 @@ export function Workspace() {
           onRemove={(key) => dispatch({ type: 'set', key, value: undefined })}
         />
 
-        {state.failure && (
-          <div
-            className="a-ring rounded-2xl border px-3.5 py-3 text-sm"
-            style={{ background: 'color-mix(in oklab, var(--h-rose) 8%, var(--surface-raised))' }}
-          >
-            {state.failure}
-          </div>
-        )}
+        {state.failure && <Alert tone="var(--status-rejected)">{state.failure}</Alert>}
 
-        {state.notice && (
-          <div className="surface-lit a-ring text-muted rounded-2xl px-3.5 py-3 text-sm">
-            {state.notice}
-          </div>
-        )}
+        {state.notice && <Alert tone="var(--h-cyan)">{state.notice}</Alert>}
 
         {state.choices && (
-          <div className="surface-lit a-ring rounded-2xl px-3.5 py-3">
-            <p className="text-sm">
+          <div className="surface-lit a-ring rounded-3xl p-5">
+            <p className="a-label">More than one company</p>
+            <p className="mt-1.5 text-sm font-medium">
               That name matches more than one company. Which did you mean?
             </p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {state.choices.map((c) => (
                 <button
                   key={c.id ?? c.domain}
@@ -938,10 +1039,17 @@ export function Workspace() {
                     const values = { ...state.values, company_domains: c.domain || c.name || '' };
                     void search(true, { values });
                   }}
-                  className="surface-sunken rounded-lg border px-2.5 py-1.5 text-left text-xs transition hover:border-[var(--border-strong)]"
+                  className="surface-sunken a-lift flex min-w-0 items-center gap-3 rounded-2xl border px-3 py-2.5 text-left"
                 >
-                  <span className="block font-medium">{c.name}</span>
-                  <span className="text-subtle block">{c.domain || c.hq || 'no domain on file'}</span>
+                  <span className="surface-lit a-ring grid size-8 shrink-0 place-items-center rounded-xl">
+                    <Building2 className="text-subtle size-4" aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{c.name}</span>
+                    <span className="text-subtle block truncate text-xs">
+                      {c.domain || c.hq || 'no domain on file'}
+                    </span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -962,95 +1070,26 @@ export function Workspace() {
           />
         )}
 
-        {state.results.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-muted text-sm">
-              <span className="numeric font-semibold text-[var(--text-c)]">
-                {state.results.length.toLocaleString('en-IN')}
-              </span>{' '}
-              {shown === 'companies' ? 'companies' : 'people'}
-              {state.total != null && (
-                <span className="text-subtle">
-                  {' '}
-                  of {state.total.toLocaleString('en-IN')}
-                </span>
-              )}
-              {state.resolved?.[0] && (
-                <span className="text-subtle"> at {state.resolved[0]}</span>
-              )}
-            </p>
-
-            {state.described && state.described.orgs > 0 && (
-              <p className="text-subtle text-xs">
-                {state.described.orgs} employers described
-                {state.described.fetched === 0
-                  ? ', all from cache'
-                  : `, ${state.described.fetched} newly fetched`}
-              </p>
-            )}
-
-            <span className="flex-1" />
-
-            {selectedCount > 0 && (
-              <button
-                type="button"
-                onClick={() => dispatch({ type: 'clearSelection' })}
-                className="text-subtle text-xs hover:text-[var(--text-c)]"
-              >
-                {selectedCount} selected · clear
-              </button>
-            )}
-
-            {/*
-              People only, and only when something is ticked. A company row
-              already holds everything the paid search returned, so a bulk
-              button on that tab would sell a second copy of what is on screen.
-            */}
-            {selectedCount > 0 && shown === 'people' && (
-              <button
-                type="button"
-                onClick={() => void revealSelected()}
-                disabled={state.revealing}
-                title="Buys the full record for each ticked person: contact details, real surname, employer. About one credit each, and nothing for anyone already bought."
-                className="gradient-brand inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)] transition disabled:opacity-60"
-              >
-                <Sparkles className="size-3.5" aria-hidden />
-                {state.revealing ? 'Revealing…' : `Reveal ${selectedCount}`}
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => dispatch({ type: 'selectAll', ids })}
-              className="text-muted rounded-lg border px-2 py-1 text-xs transition hover:border-[var(--border-strong)]"
-            >
-              Select all
-            </button>
-
-            <div className="surface-sunken flex rounded-lg border p-0.5" role="group" aria-label="Layout">
-              {(
-                [
-                  ['cards', LayoutGrid],
-                  ['table', Rows3],
-                ] as const
-              ).map(([v, Icon]) => (
-                <button
-                  key={v}
-                  type="button"
-                  aria-pressed={state.view === v}
-                  aria-label={`${v} view`}
-                  onClick={() => dispatch({ type: 'view', view: v })}
-                  className={cn(
-                    'rounded-md px-2 py-1 transition',
-                    state.view === v
-                      ? 'elev-1 bg-[var(--surface-raised)]'
-                      : 'text-subtle hover:text-[var(--text-c)]',
-                  )}
-                >
-                  <Icon className="size-3.5" aria-hidden />
-                </button>
-              ))}
-            </div>
+        {/*
+          The first search, in flight. Before this the column drew nothing at
+          all while Apollo was asked, so a search looked like a click that had
+          not landed. Shaped like the cards that are coming, so the column does
+          not jump when they arrive.
+        */}
+        {state.loading && state.results.length === 0 && (
+          <div aria-busy="true" aria-label="Searching" className="grid gap-4 sm:grid-cols-2">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="surface-lit a-ring space-y-3 rounded-3xl p-5">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="size-10 rounded-xl" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-2/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+                <Skeleton className="h-20 rounded-2xl" />
+              </div>
+            ))}
           </div>
         )}
 
@@ -1079,18 +1118,13 @@ export function Workspace() {
            * would read as the search never having happened at all.
            */
           state.shownEntity && (
-            <div className="surface-lit a-ring flex items-center gap-3 rounded-2xl px-4 py-3.5">
-              <span className="surface-sunken a-ring text-subtle grid size-9 shrink-0 place-items-center rounded-xl border">
-                <Search className="size-4" aria-hidden />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium">Nothing matched</p>
-                <p className="text-muted text-xs leading-relaxed">
-                  Apollo answered and had nothing for these filters. Widening one of them is the
-                  usual fix.
-                </p>
-              </div>
-            </div>
+            <Card>
+              <EmptyState
+                icon={<Search className="size-6" aria-hidden />}
+                title="Nothing matched"
+                description="Apollo answered and had nothing for these filters. Widening one of them is the usual fix — each chip above removes its own filter."
+              />
+            </Card>
           )
         )}
 
@@ -1099,7 +1133,7 @@ export function Workspace() {
             type="button"
             onClick={() => void search(false)}
             disabled={state.loading}
-            className="surface-lit a-ring w-full rounded-2xl py-2.5 text-sm font-medium transition hover:border-[var(--border-strong)] disabled:opacity-60"
+            className="surface-lit a-ring a-lift w-full rounded-full py-3 text-sm font-semibold disabled:opacity-60"
           >
             {state.loading ? 'Loading…' : 'Load more'}
           </button>
@@ -1142,10 +1176,16 @@ export function Workspace() {
         <div className={cn(centerIdle ? 'h-full' : 'sticky top-4 self-start')}>
           <aside
             className={cn(
-              'surface-lit a-ring flex flex-col rounded-2xl p-3.5',
+              'surface-lit a-ring flex flex-col rounded-3xl p-4',
               centerIdle ? 'h-full' : 'h-[calc(100vh-11rem)]',
             )}
           >
+            <RailHeader
+              icon={<MessagesSquare className="size-4" aria-hidden />}
+              title="Ask about a company or a person"
+              description="Answered from what came back, and it says when the web filled a gap."
+              tone="var(--h-violet)"
+            />
             {chat}
           </aside>
         </div>
@@ -1193,6 +1233,68 @@ export function Workspace() {
       )}
 
     </div>
+    </div>
+  );
+}
+
+/**
+ * A sentence the column needs to say before its rows: a failed search, a
+ * notice, a reveal that could not be sent.
+ *
+ * Tinted by the tone it is about, with a rule down its leading edge so it reads
+ * as a note on the results rather than as one more card among them. The words
+ * carry the meaning; the colour only says which kind of note it is.
+ */
+function Alert({ tone, children }: { tone: string; children: React.ReactNode }) {
+  return (
+    <div
+      role="status"
+      style={{ '--tone': tone } as React.CSSProperties}
+      className="a-ring relative isolate overflow-hidden rounded-2xl border py-3 pr-4 pl-5 text-sm leading-relaxed"
+    >
+      <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-[var(--tone)]" />
+      <span
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-[color-mix(in_oklab,var(--tone)_7%,var(--surface-raised))]"
+      />
+      {children}
+    </div>
+  );
+}
+
+/**
+ * The heading a rail opens with.
+ *
+ * `CardTitle`'s shape — tile, title, one line — without its padding and rule,
+ * because the rails pad themselves and a full-bleed border inside a padded
+ * panel stops short of both edges. The tile carries the rail's own hue, so the
+ * filters and the conversation read as two instruments rather than two boxes.
+ */
+function RailHeader({
+  icon,
+  title,
+  description,
+  tone,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  tone: string;
+}) {
+  return (
+    <div className="mb-3.5 flex shrink-0 items-start gap-3 border-b border-[color-mix(in_oklab,var(--border-c)_70%,transparent)] pb-3.5">
+      <span
+        aria-hidden
+        style={{ '--tone': tone } as React.CSSProperties}
+        className="tinted a-inner grid size-9 shrink-0 place-items-center rounded-xl border"
+      >
+        {icon}
+      </span>
+      <div className="min-w-0 pt-px">
+        <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
+        <p className="text-muted mt-0.5 text-[13px] leading-snug text-pretty">{description}</p>
+      </div>
+    </div>
   );
 }
 
@@ -1206,14 +1308,7 @@ export function Workspace() {
  */
 function RevealNote({ outcome }: { outcome: RevealOutcome }) {
   if (outcome.error) {
-    return (
-      <div
-        className="a-ring rounded-2xl border px-3.5 py-3 text-sm"
-        style={{ background: 'color-mix(in oklab, var(--h-rose) 8%, var(--surface-raised))' }}
-      >
-        {outcome.error}
-      </div>
-    );
+    return <Alert tone="var(--status-rejected)">{outcome.error}</Alert>;
   }
 
   const parts: string[] = [];
@@ -1222,7 +1317,7 @@ function RevealNote({ outcome }: { outcome: RevealOutcome }) {
   if (parts.length === 0) parts.push('nobody new');
 
   return (
-    <div className="surface-lit a-ring rounded-2xl px-3.5 py-2.5 text-sm">
+    <div className="surface-lit a-ring rounded-2xl px-4 py-3 text-sm">
       <p className="text-muted">
         <Sparkles
           className="mr-1.5 inline size-3.5 align-[-2px]"

@@ -66,7 +66,7 @@ export default function AboutPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <ArchScene />
+        <ArchScene motif="owl" />
 
         <Roost seed="about-attic" band="top-right" />
 
@@ -196,7 +196,7 @@ export default function AboutPage() {
 
               There was a fourth, for the region; see below.
             */}
-            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Stat value="32" label="Voucher fields" hint="Every one from the form you already use" />
               <Stat value="1" label="Signature to approve" hint="And never the person who raised it" />
               <Stat value="0" label="Ways to edit the history" hint="Not for any role, at any level" />
@@ -300,7 +300,13 @@ export default function AboutPage() {
           <ul className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {HOW_WE_BUILD.map((item, i) => (
               <Reveal as="li" key={item.title} delay={i * 70} className="h-full">
-                <div className="m-card flex h-full flex-col p-6 sm:p-7">
+                <div className="m-card flex h-full flex-col rounded-3xl p-6 sm:p-8">
+                  <span
+                    aria-hidden
+                    className="m-arch m-mono mb-5 grid h-10 w-8 place-items-center bg-[var(--m-gold)] pt-1 t-2 font-bold text-[var(--m-on-grad)] tabular-nums"
+                  >
+                    {i + 1}
+                  </span>
                   <h3 className="m-display t-5">{item.title}</h3>
                   <p className="m-dim mt-3 t-3">{item.body}</p>
                 </div>

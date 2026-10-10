@@ -22,7 +22,7 @@ import { LEDGER_TONE } from './tone';
  */
 export function LedgerCards({ a, b }: { a: LedgerSummary; b: LedgerSummary }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
       <Summary summary={a} />
       <Summary summary={b} />
     </div>
@@ -36,35 +36,49 @@ function Summary({ summary }: { summary: LedgerSummary }) {
   return (
     <div
       style={{ '--tone': tone } as CSSProperties}
-      className="surface-lit a-ring relative overflow-hidden rounded-2xl p-5"
+      className="surface-lit a-ring relative min-w-0 overflow-hidden rounded-3xl p-5 sm:p-6"
     >
+      <span
+        aria-hidden
+        className="a-orb -top-24 -right-16 size-56 opacity-[0.12]"
+        style={{ background: `radial-gradient(circle, ${tone}, transparent 68%)` }}
+      />
       <span
         aria-hidden
         className="absolute inset-x-0 top-0 h-px"
         style={{ background: `linear-gradient(90deg, transparent, ${tone}, transparent)` }}
       />
 
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="a-label" style={{ color: tone }}>
-            Ledger {summary.key}
-          </p>
-          <p className="mt-1.5 truncate font-semibold tracking-tight">{summary.name}</p>
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {/* The letter it was given on the upload step, in the same tile. */}
+          <span
+            aria-hidden
+            className="tinted grid size-10 shrink-0 place-items-center rounded-xl border text-sm font-bold"
+          >
+            {summary.key}
+          </span>
+          <div className="min-w-0">
+            <p className="a-label" style={{ color: tone }}>
+              Ledger {summary.key}
+            </p>
+            <p className="mt-1 truncate font-semibold tracking-tight">{summary.name}</p>
+          </div>
         </div>
         <span className="tinted shrink-0 rounded-lg border px-2 py-0.5 text-xs font-bold">
           {summary.balanceType}
         </span>
       </div>
 
-      <div className="surface-sunken a-inner mt-4 rounded-xl border px-4 py-3.5">
+      <div className="surface-sunken a-inner relative mt-5 rounded-2xl border px-4 py-4">
         <p className="a-label">Closing balance</p>
-        <p className="a-figure mt-1.5 text-[1.7rem]">
+        <p className="mt-2 text-[1.6rem] leading-none font-semibold tracking-tight tabular-nums sm:text-[1.75rem]">
           {formatINR(summary.calculatedClosing)}
           <span className="text-muted ml-1.5 text-sm font-medium">{summary.balanceType}</span>
         </p>
       </div>
 
-      <dl className="mt-4 divide-y divide-dashed text-sm">
+      <dl className="relative mt-4 divide-y divide-dashed text-sm">
         <Row label="Opening balance" value={formatINR(Math.abs(summary.openingBalance))} />
         <Row label="Total debits" value={formatINR(summary.totalDebits)} />
         <Row label="Total credits" value={formatINR(summary.totalCredits)} />
@@ -79,7 +93,7 @@ function Summary({ summary }: { summary: LedgerSummary }) {
       {contradicts && (
         <p
           style={{ '--tone': 'var(--status-warn)' } as CSSProperties}
-          className="tinted mt-4 flex items-start gap-2 rounded-xl border px-3 py-2 text-xs leading-relaxed font-medium text-pretty"
+          className="tinted relative mt-4 flex items-start gap-2 rounded-xl border px-3 py-2 text-xs leading-relaxed font-medium text-pretty"
         >
           <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
           This file disagrees with itself: the closing balance it prints does not follow from the
@@ -94,7 +108,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3 py-2">
       <dt className="text-muted min-w-0 truncate text-[13px]">{label}</dt>
-      <dd className="numeric shrink-0 text-[13px] font-medium">{value}</dd>
+      <dd className="shrink-0 text-[13px] font-medium tabular-nums">{value}</dd>
     </div>
   );
 }

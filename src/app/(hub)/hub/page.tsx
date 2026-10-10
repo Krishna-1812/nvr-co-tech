@@ -1,6 +1,13 @@
-import type { CSSProperties } from 'react';
 import type { Metadata } from 'next';
-import { History, UploadCloud } from 'lucide-react';
+import Link from 'next/link';
+import {
+  ArrowRight,
+  CalendarDays,
+  History,
+  ShieldCheck,
+  Sparkles,
+  UploadCloud,
+} from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { canApprove, isAdmin, isOwner, ROLE_META } from '@/lib/domain/workflow';
@@ -13,6 +20,12 @@ import { RequestCard } from '@/components/hub/RequestCard';
 import { RosterMeter } from '@/components/hub/RosterMeter';
 import { SetupChecklist, type SetupState } from '@/components/hub/SetupChecklist';
 import { SolutionCard } from '@/components/hub/SolutionCard';
+import { AskCard, remaining } from '@/components/hub/AskCard';
+import { cn } from '@/lib/utils';
+import { Figure } from '@/components/app/Figure';
+import { buttonClass } from '@/components/ui/primitives';
+import { ArchScene, SealFigure } from '@/components/ui/Scene';
+import { HeroChip, HeroStat, ToolHero } from '@/components/ui/ToolHero';
 import { myFeatureRequests } from '@/app/actions/access';
 
 export const metadata: Metadata = { title: 'Workspace' };
@@ -125,9 +138,15 @@ export default async function HubPage() {
      * brief ranks it first, and it needed counting before it could be said.
      */
     count().eq('created_by', user.id).eq('status', 'rejected'),
-    count().eq('created_by', user.id).in('status', [...PENDING]),
+    count()
+      .eq('created_by', user.id)
+      .in('status', [...PENDING]),
     // You can never approve your own voucher, so it must not appear in your queue.
-    approver ? count().in('status', [...PENDING]).neq('created_by', user.id) : null,
+    approver
+      ? count()
+          .in('status', [...PENDING])
+          .neq('created_by', user.id)
+      : null,
     count().eq('created_by', user.id).gte('created_at', fyStart),
     /*
      * Everything, at any status, from anybody — the one figure here that is not
@@ -170,7 +189,10 @@ export default async function HubPage() {
    */
   const [companiesTotal, companiesListed] = await Promise.all([
     supabase.from('companies').select('id', { count: 'exact', head: true }),
-    supabase.from('companies').select('id', { count: 'exact', head: true }).eq('listing_status', 'listed'),
+    supabase
+      .from('companies')
+      .select('id', { count: 'exact', head: true })
+      .eq('listing_status', 'listed'),
   ]);
 
   const n2 = {
@@ -343,7 +365,10 @@ export default async function HubPage() {
 
   const valuationBrief =
     n2.companiesTotal === 0
-      ? { text: 'Nothing in the registry yet. Seed a few companies to get started.', tone: 'var(--status-draft)' }
+      ? {
+          text: 'Nothing in the registry yet. Seed a few companies to get started.',
+          tone: 'var(--status-draft)',
+        }
       : {
           text: `${n2.companiesTotal} ${plural(n2.companiesTotal, 'company', 'companies')} on file, ${n2.companiesListed} ready to be a subject.`,
           tone: undefined,
@@ -397,65 +422,142 @@ export default async function HubPage() {
   const rest = SOLUTIONS.filter((s) => s.stage !== 'live');
   const firstName = (user.full_name ?? user.email).split(/[\s@.]+/)[0];
 
+  /*
+   * The hero's figures, all counted from what this page already has.
+   *
+   * "Open to you" counts the live cards actually rendered below, not every live
+   * tool on the roster: Contact Finder is live and still closed to anybody off
+   * its allowlist, and a figure that promised them a door they cannot find
+   * would be the first untrue thing on the screen. The pill says how many are
+   * live on the platform, which is a different and also true number.
+   *
+   * "Waiting on you" is the three states nobody else can clear for you — a
+   * voucher sent back, a queue you can approve, a reconciliation that does not
+   * tie out. Only an approver has a queue, for the same reason the brief only
+   * ranks one for them.
+   */
+  const liveTotal = SOLUTIONS.filter((s) => s.stage === 'live').length;
+  const openToYou = [
+    voucherDesk,
+    reconciliation,
+    valuationDesk,
+    landedCost,
+    finderOpen ? contactFinder : undefined,
+  ].filter(Boolean).length;
+  const waiting = n.sentBack + (approver ? n.queue : 0) + n.reconOpen;
+
   return (
     <div className="space-y-8">
-      {/* ── Who you are, when it is, and how much of this exists ── */}
-      <header className="animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] relative pb-6">
-        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-          <div className="min-w-0">
-            <p className="flex items-center gap-2">
-              <span
-                aria-hidden
-                className="a-blip size-1.5 rounded-full"
-                style={{ background: 'var(--status-approved)' }}
+      {/* ── Who you are, when it is, and how much of this exists ──
+          The workspace's one signature moment, in the same frame every tool
+          opens with: the greeting as the headline, the doorways — one per tool,
+          the middle one lit — standing beside it, and the working under it. */}
+      <ToolHero
+        id="hub-greeting"
+        label={`${weekday} ${partOfDay} · FY ${fiscal.label} · India`}
+        pill={{ text: `${liveTotal} live`, tone: 'var(--status-approved)', live: true }}
+        title={`Good ${partOfDay}, ${firstName}.`}
+        glow="var(--color-brand-500)"
+        /*
+          Two corrections, both about not saying more than is true.
+
+          This claimed the rest were "being built in the order below", which
+          everything under it contradicted: nothing is in build and all four
+          roadmap cards say Not started yet. The order is real, so the order
+          is what it claims.
+
+          And the count is counted rather than written. It said "Two of these"
+          in prose, a few pixels from a meter that works the same number out
+          for itself.
+        */
+        sub="Everything the firm runs is here. The ones open for work today are marked, and the rest are written down in the order they will be built."
+        scene={
+          <ArchScene
+            motif="doorways"
+            className="h-full min-h-[19rem]"
+            seal={
+              <SealFigure
+                value={openToYou}
+                note={openToYou === 1 ? 'tool open to you' : 'tools open to you'}
               />
-              <span className="a-label">
-                {weekday} {partOfDay} · FY {fiscal.label} · India
-              </span>
-            </p>
-
-            <h1 className="m-display mt-3 text-[clamp(1.9rem,4.4vw,2.85rem)] text-balance">
-              Good {partOfDay}, {firstName}.
-            </h1>
-
-            {/*
-              Two corrections, both about not saying more than is true.
-
-              This claimed the rest were "being built in the order below", which
-              everything under it contradicted: nothing is in build and all four
-              roadmap cards say Not started yet. The order is real, so the order
-              is what it claims.
-
-              And the count is counted rather than written. It said "Two of
-              these" in prose, a few pixels from a meter that works the same
-              number out for itself.
-            */}
-            <p className="text-muted mt-3 max-w-xl text-[15px] text-pretty">
-              Everything the firm runs is here. The ones open for work today are marked, and the
-              rest are written down in the order they will be built.
-            </p>
-
-            <p className="mt-4">
-              <span
-                style={{ '--tone': 'var(--color-brand-600)' } as CSSProperties}
-                className="tinted inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold"
-                title={ROLE_META[user.role].grants}
-              >
-                {ROLE_META[user.role].label}
-                <span className="opacity-60">·</span>
-                <span className="font-normal opacity-90">{ROLE_META[user.role].grants}</span>
-              </span>
-            </p>
-          </div>
-
-          <RosterMeter />
+            }
+          />
+        }
+      >
+        <div className="mt-7 flex flex-wrap items-center gap-2.5">
+          {/* The desk's own recommendation, from the same ranking the dashboard
+              uses, so the first button on the first screen is the thing most
+              likely to need you. */}
+          <Link
+            href={brief.cta.href}
+            className={buttonClass({ variant: 'primary', className: 'group' })}
+          >
+            {brief.cta.label}
+            <ArrowRight
+              className="size-4 transition-transform group-hover:translate-x-0.5"
+              aria-hidden
+            />
+          </Link>
+          <Link href="/ask" className={buttonClass({ className: 'group' })}>
+            <Sparkles className="size-4 transition-transform group-hover:scale-110" aria-hidden />
+            Ask which tool fits
+          </Link>
         </div>
 
-        <span
-          aria-hidden
-          className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,var(--border-strong),transparent_65%)]"
-        />
-      </header>
+        {/*
+          The working: what you can open, what is waiting, what is still to
+          come, and the roster bar that shows all three at once. Every figure
+          is a count this page already made, and the bar is drawn from the same
+          SOLUTIONS list the cards below are.
+        */}
+        <div className="surface-sunken a-inner mt-8 rounded-2xl border p-4 sm:p-5">
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            <HeroStat
+              strong
+              label="Open to you"
+              value={<Figure value={openToYou} delay={120} />}
+              note={`Of ${SOLUTIONS.length} on the roster`}
+            />
+            <HeroStat
+              label="Waiting on you"
+              tone={waiting > 0 ? 'var(--status-pending)' : undefined}
+              value={<Figure value={waiting} delay={200} />}
+              note={
+                approver
+                  ? 'Sent back, yours to approve, or not tying out'
+                  : 'Sent back to you, or not tying out'
+              }
+            />
+            <HeroStat
+              label="On the way"
+              tone="var(--status-draft)"
+              value={<Figure value={rest.length} delay={280} />}
+              note="Written down, in build order"
+            />
+          </div>
+
+          <p className="a-label mt-5">The roster</p>
+          <RosterMeter className="mt-2.5" />
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          <HeroChip icon={ShieldCheck} className="max-w-full">
+            <span className="min-w-0" title={ROLE_META[user.role].grants}>
+              <span className="font-semibold text-[var(--text-c)]">
+                {ROLE_META[user.role].label}
+              </span>
+              <span className="px-1.5 opacity-50">·</span>
+              {ROLE_META[user.role].grants}
+            </span>
+          </HeroChip>
+          <HeroChip icon={CalendarDays}>
+            <span>
+              <span className="numeric font-semibold text-[var(--text-c)]">{fiscal.daysLeft}</span>{' '}
+              {fiscal.daysLeft === 1 ? 'day' : 'days'} left in FY {fiscal.label}
+            </span>
+          </HeroChip>
+        </div>
+      </ToolHero>
 
       {/* ── What is not set up yet, while any of it is not ──
           Above the tools rather than below them, because the tools are what it is
@@ -484,53 +586,60 @@ export default async function HubPage() {
         scroll-driven, and an element that is already on screen at load has
         nothing to scroll into.
       */}
-      <div className="grid items-stretch gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {voucherDesk && (
-          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_60ms_backwards]">
-            <LiveSolutionCard
-              solution={voucherDesk}
-              readings={readings}
-              note={brief.note}
-              noteTone={brief.tone}
-              shortcut={{ href: '/vouchers/new', label: 'New voucher' }}
-            />
-          </div>
-        )}
+      <section aria-labelledby="hub-live">
+        <SectionHead
+          id="hub-live"
+          count={openToYou}
+          title="Open for work"
+          note="The figures are live, read from each tool as this page opens."
+        />
+        <div className="mt-5 grid items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {voucherDesk && (
+            <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_60ms_backwards]">
+              <LiveSolutionCard
+                solution={voucherDesk}
+                readings={readings}
+                note={brief.note}
+                noteTone={brief.tone}
+                shortcut={{ href: '/vouchers/new', label: 'New voucher' }}
+              />
+            </div>
+          )}
 
-        {reconciliation && (
-          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_120ms_backwards]">
-            <LiveSolutionCard
-              solution={reconciliation}
-              readings={reconReadings}
-              note={reconBrief.text}
-              noteTone={reconBrief.tone}
-              shortcut={{ href: '/reconcile/history', label: 'History', icon: History }}
-            />
-          </div>
-        )}
+          {reconciliation && (
+            <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_120ms_backwards]">
+              <LiveSolutionCard
+                solution={reconciliation}
+                readings={reconReadings}
+                note={reconBrief.text}
+                noteTone={reconBrief.tone}
+                shortcut={{ href: '/reconcile/history', label: 'History', icon: History }}
+              />
+            </div>
+          )}
 
-        {valuationDesk && (
-          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_180ms_backwards]">
-            <LiveSolutionCard
-              solution={valuationDesk}
-              readings={valuationReadings}
-              note={valuationBrief.text}
-              noteTone={valuationBrief.tone}
-              // Seeding writes into data every workspace on the platform reads,
-              // so the shortcut that does it is for an admin only — see
-              // src/app/actions/valuationIngest.ts for why. Anybody else has no
-              // second reason to come here beyond opening Comparables, which
-              // the card itself already is.
-              shortcut={
-                isAdmin(user.role)
-                  ? { href: '/comps/ingest', label: 'Seed the registry', icon: UploadCloud }
-                  : undefined
-              }
-            />
-          </div>
-        )}
+          {valuationDesk && (
+            <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_180ms_backwards]">
+              <LiveSolutionCard
+                solution={valuationDesk}
+                readings={valuationReadings}
+                note={valuationBrief.text}
+                noteTone={valuationBrief.tone}
+                // Seeding writes into data every workspace on the platform reads,
+                // so the shortcut that does it is for an admin only — see
+                // src/app/actions/valuationIngest.ts for why. Anybody else has no
+                // second reason to come here beyond opening Comparables, which
+                // the card itself already is.
+                shortcut={
+                  isAdmin(user.role)
+                    ? { href: '/comps/ingest', label: 'Seed the registry', icon: UploadCloud }
+                    : undefined
+                }
+              />
+            </div>
+          )}
 
-        {/*
+          {/*
           Shown to whoever can actually open it, which today is the platform
           allowlist rather than every signed-in person.
 
@@ -544,46 +653,63 @@ export default async function HubPage() {
           migration 0031 are readable only by that same list, and one of them
           holds revealed email addresses and phone numbers.
         */}
-        {landedCost && (
-          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
-            <LiveSolutionCard
-              solution={landedCost}
-              readings={[]}
-              note=""
-              // Counted in the browser, where the schedules are. See LandedPanel.
-              panel={<LandedPanel />}
-            />
-          </div>
-        )}
+          {landedCost && (
+            <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
+              <LiveSolutionCard
+                solution={landedCost}
+                readings={[]}
+                note=""
+                // Counted in the browser, where the schedules are. See LandedPanel.
+                panel={<LandedPanel />}
+              />
+            </div>
+          )}
 
-        {contactFinder && finderOpen && (
-          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
-            <LiveSolutionCard
-              solution={contactFinder}
-              readings={finderReadings}
-              note={finderBrief.text}
-              noteTone={finderBrief.tone}
-            />
-          </div>
-        )}
-      </div>
+          {contactFinder && finderOpen && (
+            <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
+              <LiveSolutionCard
+                solution={contactFinder}
+                readings={finderReadings}
+                note={finderBrief.text}
+                noteTone={finderBrief.tone}
+              />
+            </div>
+          )}
+
+          {/*
+          The last cell of the grid, and the one place on the screen that
+          answers "which of these do I want" for somebody who does not know
+          yet. Spans whatever the row has left, so the live tools never end
+          on a hole; see AskCard for why it is a door rather than a filler.
+        */}
+          <AskCard liveCount={openToYou} />
+        </div>
+      </section>
 
       {/* ── The rest of the roster ── */}
-      <section>
-        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-          <h2 className="m-display text-[1.35rem]">On the way</h2>
-          <p className="text-subtle text-xs">
-            Not switched on yet. Each one says where it has got to.
-          </p>
-        </div>
+      <section aria-labelledby="hub-roadmap">
+        <SectionHead
+          id="hub-roadmap"
+          count={rest.length}
+          title="On the way"
+          note="Not switched on yet. Each one says where it has got to, and asking for one counts."
+        />
 
-        <ul className="stagger mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="stagger mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((solution) => (
             <li key={solution.slug} className="h-full">
               <SolutionCard solution={solution} asked={askedSet.has(solution.slug)} />
             </li>
           ))}
-          <li className="h-full">
+          {/* Closes the row rather than leaving a hole after the last roadmap
+              card, the same way AskCard closes the live grid. */}
+          <li
+            className={cn(
+              'h-full',
+              SM_SPAN[remaining(rest.length, 2) as 1 | 2],
+              LG_SPAN[remaining(rest.length, 3) as 1 | 2 | 3],
+            )}
+          >
             <RequestCard />
           </li>
         </ul>
@@ -591,6 +717,41 @@ export default async function HubPage() {
     </div>
   );
 }
+
+/**
+ * The heading over each half of the screen: a count in a tile, the title in
+ * the display face, and one line saying what is under it. Local because the
+ * hub is the only screen with two grids of tools to tell apart.
+ */
+function SectionHead({
+  id,
+  count,
+  title,
+  note,
+}: {
+  id: string;
+  count: number;
+  title: string;
+  note: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="surface-sunken a-inner grid h-9 min-w-9 place-items-center rounded-xl border px-2 text-[15px] font-semibold tracking-tight tabular-nums">
+          {count}
+        </span>
+        <h2 id={id} className="m-display text-[1.45rem] leading-tight">
+          {title}
+        </h2>
+      </div>
+      <p className="text-subtle text-[12px] text-pretty">{note}</p>
+    </div>
+  );
+}
+
+/** Whole class names, because Tailwind cannot see a class built at runtime. */
+const SM_SPAN = { 1: 'sm:col-span-1', 2: 'sm:col-span-2' } as const;
+const LG_SPAN = { 1: 'lg:col-span-1', 2: 'lg:col-span-2', 3: 'lg:col-span-3' } as const;
 
 /** Local because it is two words of grammar, not a utility. */
 function plural(n: number, one: string, many: string) {

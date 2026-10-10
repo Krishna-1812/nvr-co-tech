@@ -113,6 +113,7 @@ export default function PrivacyPage() {
       trail={TRAIL}
       related={{ href: '/terms', label: 'the terms that apply to using the platform' }}
       accent="var(--m-cyan)"
+      motif="ledger"
     >
       <div className="m-card p-6 sm:p-7">
         <h2 className="m-eyebrow">Asking us something</h2>

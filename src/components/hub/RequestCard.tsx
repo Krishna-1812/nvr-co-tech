@@ -12,17 +12,17 @@ import { ArrowUpRight, Sparkles } from 'lucide-react';
  */
 export function RequestCard() {
   return (
-    <div className="relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-2xl border border-dashed border-[var(--border-strong)] p-5">
+    <div className="relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-dashed border-[var(--border-strong)] p-5 sm:p-6">
       <div aria-hidden className="a-hatch absolute inset-0 opacity-40" />
 
       <div className="relative">
         <span
           aria-hidden
-          className="surface-sunken text-subtle grid size-10 place-items-center rounded-xl border border-dashed"
+          className="surface-sunken text-subtle grid size-11 place-items-center rounded-2xl border border-dashed"
         >
-          <Sparkles className="size-[1.15rem]" />
+          <Sparkles className="size-5" />
         </span>
-        <h3 className="m-display mt-4 text-[1.1rem]">Something else</h3>
+        <h3 className="m-display mt-4 text-[1.15rem] leading-tight">Something else</h3>
         <p className="text-muted mt-3 text-[13px] leading-relaxed text-pretty">
           Every tool on this list started as somebody here saying which job they were sick of. If
           the work follows rules, it can be built.

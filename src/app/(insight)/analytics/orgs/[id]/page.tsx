@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BookOpen, Globe, ListChecks, MonitorSmartphone } from 'lucide-react';
 import { Card, CardTitle } from '@/components/ui/primitives';
-import { BarList } from '@/components/analytics/Charts';
+import { BarList, ChartEmpty } from '@/components/analytics/Charts';
 import { Fact } from '@/components/analytics/Activation';
 import { number } from '@/components/analytics/Figures';
 import { WindowTabs, windowFrom } from '@/components/analytics/Window';
@@ -85,27 +85,61 @@ export default async function TenantPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          href={`/analytics/orgs?days=${days}`}
-          className="a-ring text-muted inline-flex items-center gap-1.5 rounded-lg text-[11.5px] font-medium transition hover:text-[var(--text-c)]"
-        >
-          <ArrowLeft className="size-3.5" aria-hidden />
-          All organisations
-        </Link>
+      {/*
+        The tenant's own header: a lit panel in the organisation's colour, with
+        its mark, rather than a bare title. Not a hero — the section has one, on
+        the overview — but enough that landing here from a card reads as having
+        opened that card.
+      */}
+      <header
+        style={{ ['--tone' as string]: detail.accent }}
+        className="surface-lit a-ring relative isolate animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] overflow-hidden rounded-3xl"
+      >
+        <span
+          aria-hidden
+          className="a-orb -top-32 -left-20 size-80 opacity-[0.14]"
+          style={{ background: 'radial-gradient(circle, var(--tone), transparent 68%)' }}
+        />
+        <span
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-[3px]"
+          style={{ background: 'linear-gradient(90deg, color-mix(in oklab, var(--tone) 35%, transparent), var(--tone))' }}
+        />
+        <div className="relative p-5 sm:p-7">
+          <Link
+            href={`/analytics/orgs?days=${days}`}
+            className="a-ring text-muted inline-flex items-center gap-1.5 rounded-lg text-[12px] font-medium transition hover:text-[var(--text-c)]"
+          >
+            <ArrowLeft className="size-3.5" aria-hidden />
+            All organisations
+          </Link>
 
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <span className="a-label" style={{ color: detail.accent }}>
-              Organisation
-            </span>
-            <h1 className="mt-1.5 text-[1.7rem] leading-tight tracking-tight text-pretty">
-              {detail.name}
-            </h1>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <span
+                aria-hidden
+                className="tinted a-inner grid size-14 shrink-0 place-items-center rounded-2xl border text-[17px] font-bold tracking-tight"
+              >
+                {initials(detail.name)}
+              </span>
+              <div className="min-w-0">
+                <p className="a-label">
+                  Organisation · joined{' '}
+                  {new Date(detail.createdAt).toLocaleDateString('en-IN', {
+                    month: 'short',
+                    year: 'numeric',
+                    timeZone: 'Asia/Kolkata',
+                  })}
+                </p>
+                <h1 className="m-display mt-1.5 text-[clamp(1.6rem,3.2vw,2.15rem)] leading-tight text-balance break-words">
+                  {detail.name}
+                </h1>
+              </div>
+            </div>
+            <WindowTabs current={days as 7 | 30 | 90} base={`/analytics/orgs/${id}`} />
           </div>
-          <WindowTabs current={days as 7 | 30 | 90} base={`/analytics/orgs/${id}`} />
         </div>
-      </div>
+      </header>
 
       <TenantBoard
         detail={detail}
@@ -125,11 +159,12 @@ export default async function TenantPage({
         */}
       <Card className="overflow-hidden">
         <CardTitle
+          icon={<ListChecks className="size-4" />}
           title="What they have done"
           description="Milestones recorded by the database itself, for the life of this organisation. No voucher amount, vendor or number is exposed here — the function behind it returns counts only."
         />
         {counts ? (
-          <div className="grid gap-4 px-5 py-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-4 px-5 py-5 sm:grid-cols-3 sm:px-6 lg:grid-cols-6">
             <Fact label="People" value={number(counts.members)} />
             <Fact
               label="Drafted"
@@ -150,12 +185,12 @@ export default async function TenantPage({
             <Fact label="Reconciled" value={number(counts.reconciliations_saved)} />
           </div>
         ) : (
-          <p className="text-subtle px-5 py-8 text-center text-sm">
+          <ChartEmpty>
             No milestones recorded for this organisation.
-          </p>
+          </ChartEmpty>
         )}
         {counts && (
-          <div className="grid gap-4 border-t px-5 py-4 sm:grid-cols-3">
+          <div className="surface-sunken grid gap-4 border-t px-5 py-5 sm:grid-cols-3 sm:px-6">
             <Fact
               label="Invites"
               value={
@@ -188,20 +223,39 @@ export default async function TenantPage({
         )}
       </Card>
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid gap-6 lg:grid-cols-3">
         <Card className="overflow-hidden">
-          <CardTitle title="Most read" description="Pages opened by this organisation." />
+          <CardTitle
+            icon={<BookOpen className="size-4" />}
+            title="Most read"
+            description="Pages opened by this organisation."
+          />
           <BarList items={tally(theirViews.map((r) => r.page_title), 8)} tone={detail.accent} />
         </Card>
         <Card className="overflow-hidden">
-          <CardTitle title="Browsers" description="Share of their page views." />
+          <CardTitle
+            icon={<Globe className="size-4" />}
+            title="Browsers"
+            description="Share of their page views."
+          />
           <BarList items={tally(theirViews.map((r) => r.browser))} tone="var(--h-violet)" />
         </Card>
         <Card className="overflow-hidden">
-          <CardTitle title="Devices" description="Share of their page views." />
+          <CardTitle
+            icon={<MonitorSmartphone className="size-4" />}
+            title="Devices"
+            description="Share of their page views."
+          />
           <BarList items={tally(theirViews.map((r) => r.device))} tone="var(--h-cyan)" />
         </Card>
       </section>
     </div>
   );
+}
+
+/** Two letters from an organisation's name, for its mark. The same rule as the list's cards. */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return (parts[0]?.slice(0, 2) ?? '??').toUpperCase();
 }

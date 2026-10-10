@@ -76,9 +76,9 @@ function Label({ children }: { children: React.ReactNode }) {
 function Figure({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
-    <div className="surface-sunken min-w-0 rounded-xl border px-3 py-2">
+    <div className="surface-sunken min-w-0 rounded-2xl border px-3.5 py-2.5">
       <p className="a-label truncate">{label}</p>
-      <p className="numeric mt-0.5 truncate text-sm font-semibold">{value}</p>
+      <p className="numeric mt-1 truncate text-[15px] font-semibold tracking-tight tabular-nums">{value}</p>
     </div>
   );
 }
@@ -86,7 +86,7 @@ function Figure({ label, value }: { label: string; value: string }) {
 function Chip({ children, tone }: { children: React.ReactNode; tone?: string }) {
   return (
     <span
-      className="tinted inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium"
+      className="tinted inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium"
       style={tone ? ({ '--tone': tone } as React.CSSProperties) : undefined}
     >
       {children}
@@ -115,7 +115,7 @@ function Detail({
   const [copied, setCopied] = useState(false);
 
   return (
-    <div className="surface-sunken flex items-center gap-2.5 rounded-xl border px-3 py-2">
+    <div className="surface-sunken flex items-center gap-2.5 rounded-2xl border px-3.5 py-2.5">
       <span className="text-subtle shrink-0">{icon}</span>
       <div className="min-w-0 flex-1">
         {href ? (
@@ -157,6 +157,7 @@ function Detail({
  * would make every reveal look like a commitment.
  */
 function Hero({
+  kicker,
   tone,
   photo,
   title,
@@ -165,6 +166,8 @@ function Hero({
   aside,
   children,
 }: {
+  /** What kind of record this is, above the name. */
+  kicker?: string;
   tone: string;
   photo: string;
   title: string;
@@ -204,7 +207,10 @@ function Hero({
         )}
 
         <div className="min-w-0 flex-1">
-          <h2 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">
+          {kicker && <p className="a-label mb-1.5">{kicker}</p>}
+          {/* The display face, as every hero in the app sets its answer: the
+              name is the thing this record is the answer to. */}
+          <h2 className="m-display text-[1.65rem] leading-[1.05] text-balance sm:text-[2.1rem]">
             {title}
           </h2>
           {subtitle && <p className="text-muted mt-0.5 text-sm">{subtitle}</p>}
@@ -224,7 +230,7 @@ function Cost({ credits }: { credits: number | null }) {
   if (credits === null) return null;
   return (
     <span
-      className="tinted inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-medium"
+      className="tinted inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium"
       style={{ '--tone': credits > 0 ? 'var(--h-amber)' : 'var(--h-emerald)' } as React.CSSProperties}
     >
       <Sparkles className="size-3" aria-hidden />
@@ -252,6 +258,7 @@ function PersonBody({ p }: { p: Record<string, unknown> }) {
   return (
     <>
       <Hero
+        kicker="Person · full record"
         tone="var(--h-indigo)"
         photo={s(p.photo)}
         title={s(p.name) || 'Name withheld'}
@@ -372,7 +379,7 @@ function PersonBody({ p }: { p: Record<string, unknown> }) {
         {/* The employer, free with the person: bulk_match returns the whole
             organisation record, so these figures cost nothing extra. */}
         {company.name ? (
-          <aside className="surface-lit a-ring min-w-0 self-start rounded-2xl p-4">
+          <aside className="surface-lit a-ring min-w-0 self-start rounded-3xl p-5">
             <div className="flex items-start gap-3">
               <span
                 className="on-tone grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold"
@@ -406,7 +413,7 @@ function PersonBody({ p }: { p: Record<string, unknown> }) {
             <ChipRow label="Tagged" values={arr(company.keywords)} />
           </aside>
         ) : (
-          <aside className="surface-lit a-ring text-muted min-w-0 self-start rounded-2xl p-4 text-sm">
+          <aside className="surface-lit a-ring text-muted min-w-0 self-start rounded-3xl p-5 text-sm">
             Apollo returned no employer record with this person, so there is nothing here to show
             about where they work.
           </aside>
@@ -459,6 +466,7 @@ function CompanyBody({ c }: { c: Record<string, unknown> }) {
   return (
     <>
       <Hero
+        kicker="Company · full profile"
         tone="var(--h-cyan)"
         photo={s(c.logo)}
         title={s(c.name) || 'Unnamed company'}
@@ -510,7 +518,7 @@ function CompanyBody({ c }: { c: Record<string, unknown> }) {
           <ChipRow label="Tagged" values={arr(c.keywords)} />
         </div>
 
-        <aside className="surface-lit a-ring min-w-0 self-start rounded-2xl p-4">
+        <aside className="surface-lit a-ring min-w-0 self-start rounded-3xl p-5">
           <Label>Who is at the top</Label>
           {leadership.length === 0 ? (
             <p className="text-muted text-sm">
@@ -690,10 +698,15 @@ export function RevealButton({
           : 'Buys the full record: contact details, history and the employer. About one credit.'
       }
       className={cn(
-        'inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-medium transition disabled:opacity-60',
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition disabled:opacity-60',
+        /*
+          Two looks because they are two prices. A row already bought opens for
+          nothing and reads as quiet; one that will spend a credit carries the
+          accent, so the button that costs is never mistaken for one that does not.
+        */
         enriched
-          ? 'text-muted hover:border-[var(--border-strong)]'
-          : 'hover:border-[var(--border-strong)]',
+          ? 'text-muted hover:border-[var(--border-strong)] hover:bg-[var(--surface-sunken)]'
+          : 'border-[color-mix(in_oklab,var(--accent)_45%,var(--border-c))] bg-[color-mix(in_oklab,var(--accent)_10%,var(--surface-raised))] hover:border-[var(--accent)]',
         className,
       )}
     >

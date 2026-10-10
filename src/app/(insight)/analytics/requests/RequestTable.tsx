@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Download, Inbox, Search } from 'lucide-react';
-import { Card, CardTitle, EmptyState, Input } from '@/components/ui/primitives';
+import { Card, CardTitle, EmptyState, Input, buttonClass } from '@/components/ui/primitives';
 import { NUM } from '@/components/analytics/Figures';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +31,7 @@ export type Column<Row> = {
 export function RequestTable<Row>({
   title,
   description,
+  icon,
   rows,
   columns,
   /** Every searchable field of a row, lowercased once by the server. */
@@ -41,6 +42,8 @@ export function RequestTable<Row>({
 }: {
   title: string;
   description: string;
+  /** The panel's icon tile. A client component cannot be handed a component, so an element. */
+  icon?: React.ReactNode;
   rows: Row[];
   columns: Column<Row>[];
   haystacks: string[];
@@ -81,6 +84,7 @@ export function RequestTable<Row>({
   return (
     <Card className="overflow-hidden">
       <CardTitle
+        icon={icon}
         title={title}
         description={description}
         action={
@@ -88,7 +92,7 @@ export function RequestTable<Row>({
             <button
               type="button"
               onClick={exportCsv}
-              className="a-ring text-muted inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11.5px] font-medium transition hover:text-[var(--text-c)]"
+              className={buttonClass({ size: 'sm' })}
             >
               <Download className="size-3.5" aria-hidden />
               Export what is shown
@@ -101,8 +105,8 @@ export function RequestTable<Row>({
         <EmptyState icon={<Inbox className="size-6" />} title={emptyTitle} description={emptyBody} />
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
-            <span className="relative min-w-[13rem] flex-1">
+          <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3 sm:px-6">
+            <span className="relative min-w-0 flex-1 basis-[13rem]">
               <Search
                 className="text-subtle pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2"
                 aria-hidden
@@ -132,8 +136,8 @@ export function RequestTable<Row>({
                 carries its own header in a data attribute.
               */}
               <table className="w-full text-left text-[12.5px] max-sm:block">
-                <thead className="max-sm:hidden">
-                  <tr className="[&>th]:a-label [&>th]:border-b [&>th]:px-5 [&>th]:pb-2">
+                <thead className="surface-sunken max-sm:hidden">
+                  <tr className="[&>th]:a-label [&>th]:border-b [&>th]:px-5 [&>th]:py-2.5">
                     {columns.map((column) => (
                       <th key={column.header}>{column.header}</th>
                     ))}
@@ -141,13 +145,16 @@ export function RequestTable<Row>({
                 </thead>
                 <tbody className="divide-y max-sm:block">
                   {shown.map(({ row, i }) => (
-                    <tr key={i} className="max-sm:block max-sm:px-5 max-sm:py-3">
+                    <tr
+                      key={i}
+                      className="transition-colors hover:bg-[var(--surface-sunken)] max-sm:block max-sm:px-5 max-sm:py-3"
+                    >
                       {columns.map((column) => (
                         <td
                           key={column.header}
                           data-label={column.header}
                           className={cn(
-                            'px-5 py-2.5 align-top',
+                            'px-5 py-3 align-top',
                             'max-sm:flex max-sm:gap-3 max-sm:px-0 max-sm:py-1',
                             "max-sm:before:content-[attr(data-label)] max-sm:before:text-subtle max-sm:before:w-28 max-sm:before:shrink-0 max-sm:before:text-[10px] max-sm:before:uppercase",
                             column.className,

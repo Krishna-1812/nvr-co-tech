@@ -1,7 +1,11 @@
-import { Layers } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Layers, UploadCloud } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { PageHeader } from '@/components/PageHeader';
-import { Card, EmptyState } from '@/components/ui/primitives';
+import { Card, EmptyState, buttonClass } from '@/components/ui/primitives';
+import { ToolHero } from '@/components/ui/ToolHero';
+import { ArchScene } from '@/components/ui/Scene';
 import { ComparablesTable } from '@/components/comps/ComparablesTable';
 import { Verdict } from '@/components/comps/Verdict';
 import { MethodBreakdown } from '@/components/comps/MethodBreakdown';
@@ -67,21 +71,51 @@ export default async function CompsPage({
   const choices = (listed ?? []) as { id: string; name: string }[];
 
   if (choices.length === 0) {
+    /*
+     * An empty registry gets the tool's own hero rather than a box with an owl
+     * in it: it is the first thing a new desk ever shows, and it should look
+     * like the tool it is about to become. The way out is "Seed the registry",
+     * offered only to the people the rail offers it to — the same
+     * `isAnalyticsAdmin()` the layout asks, memoised per request.
+     */
+    const canSeed = await isAnalyticsAdmin();
     return (
-      <>
+      <div className="space-y-6">
         <PageHeader
           eyebrow="Valuation Desk"
           title="Comparables"
           description="Value a company against its listed peers, then check the answer against the market."
         />
-        <Card>
-          <EmptyState
-            icon={<Layers className="size-6" aria-hidden />}
-            title="The company registry is empty"
-            description="Nothing has been ingested yet, so there are no peers to compare. Run an ingest pass against a source and this screen fills itself."
-          />
-        </Card>
-      </>
+        <ToolHero
+          id="comps-empty"
+          as="h2"
+          label="Comparable companies"
+          pill={{ icon: Layers, text: 'Registry empty', tone: 'var(--status-draft)' }}
+          title="There are no companies to compare yet"
+          sub={
+            canSeed
+              ? 'Nothing has been ingested, so there are no peers to value against. Seed the registry from a free source and this screen fills itself in.'
+              : 'Nothing has been ingested, so there are no peers to value against. A platform admin seeds the registry; once they have, this screen fills itself in.'
+          }
+          scene={<ArchScene motif="columns" className="h-full min-h-[18rem]" />}
+        >
+          {canSeed && (
+            <div className="mt-7 flex flex-wrap gap-2.5">
+              <Link
+                href="/comps/ingest"
+                className={buttonClass({ variant: 'primary', className: 'group' })}
+              >
+                <UploadCloud className="size-4" aria-hidden />
+                Seed the registry
+                <ArrowRight
+                  className="size-4 transition-transform group-hover:translate-x-0.5"
+                  aria-hidden
+                />
+              </Link>
+            </div>
+          )}
+        </ToolHero>
+      </div>
     );
   }
 
@@ -113,11 +147,13 @@ export default async function CompsPage({
 
   if (!subjectCompany) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         {header}
         {controls}
         <Card>
-          <EmptyState title="That company is no longer in the registry" description="Pick another from the box above." />
+          <EmptyState
+            icon={<Layers className="size-6" aria-hidden />}
+            title="That company is no longer in the registry" description="Pick another from the box above." />
         </Card>
       </div>
     );
@@ -181,7 +217,7 @@ export default async function CompsPage({
 
   if (!view) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         {header}
         {controls}
         <Card>
@@ -197,12 +233,15 @@ export default async function CompsPage({
 
   const peerSetPane = (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-4 sm:px-6">
         <p className="text-muted text-sm">
-          {view.subject.name} against {count(view.comparables.length, 'peer')}, as at{' '}
-          {shortDate(view.asOf)}.
+          <span className="font-semibold text-[var(--text-c)]">{view.subject.name}</span> against{' '}
+          {count(view.comparables.length, 'peer')}, as at {shortDate(view.asOf)}. Open a company for
+          its brief.
         </p>
-        <p className="text-subtle text-xs">{view.screenNote}.</p>
+        <p className="surface-sunken text-subtle rounded-full border px-2.5 py-1 text-[11.5px]">
+          Screen: {view.screenNote}
+        </p>
       </div>
       <ComparablesTable
         comparables={view.comparables}
@@ -213,7 +252,7 @@ export default async function CompsPage({
   );
 
   const basisPane = (
-    <div className="text-muted space-y-3 px-5 py-5 text-xs leading-relaxed">
+    <div className="text-muted max-w-3xl space-y-3 px-5 py-5 text-[13px] leading-relaxed text-pretty sm:px-6">
       <p>
         Figures are {view.basis} and are the newest period each company has filed, which is not
         necessarily the same period for every company on the schedule — the date beside each row is
@@ -253,7 +292,7 @@ export default async function CompsPage({
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {header}
       {controls}
 
@@ -271,7 +310,11 @@ export default async function CompsPage({
         quoteAsOf={view.subjectQuoteAsOf}
       />
 
-      <MethodBreakdown conclusion={view.conclusion} />
+      <MethodBreakdown
+        conclusion={view.conclusion}
+        comparables={view.comparables}
+        spreads={view.spreads}
+      />
 
       <DetailTabs tabs={tabs} />
     </div>

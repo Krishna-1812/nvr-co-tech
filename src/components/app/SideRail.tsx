@@ -114,19 +114,65 @@ export function SideRail({ section, fiscal }: { section: Section; fiscal: Fiscal
  * left" is a question somebody in this app asks weekly. A four-pixel bar answers
  * it without being asked.
  */
+/** A quadratic arc from the April horizon to the March one, peaking mid-year. */
+const ARC = 'M8 46 Q110 -22 212 46';
+
+/**
+ * Where on ARC a share of its *length* falls. The terracotta stroke is cut by
+ * length (pathLength 100), and a Bézier's parameter does not run at constant
+ * speed, so placing the sun by parameter left it short of the stroke's end
+ * everywhere but the middle of the year.
+ */
+function pointAlongArc(share: number) {
+  const at = (t: number) => ({ x: 8 + 204 * t, y: 46 - 136 * t * (1 - t) });
+  const steps = 120;
+  const points = Array.from({ length: steps + 1 }, (_, i) => at(i / steps));
+  const lengths = [0];
+  for (let i = 1; i <= steps; i++) {
+    lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
+  }
+  const target = Math.min(1, Math.max(0, share)) * lengths[steps];
+  const i = Math.max(1, lengths.findIndex((l) => l >= target));
+  const f = (target - lengths[i - 1]) / (lengths[i] - lengths[i - 1] || 1);
+  return {
+    x: points[i - 1].x + (points[i].x - points[i - 1].x) * f,
+    y: points[i - 1].y + (points[i].y - points[i - 1].y) * f,
+  };
+}
+
 function FiscalMeter({ fiscal }: { fiscal: Fiscal }) {
+  const sun = pointAlongArc(fiscal.progress / 100);
   return (
     <div className="a-rail-wide">
       <div className="flex items-baseline justify-between gap-2">
         <span className="a-label">FY {fiscal.label}</span>
         <span className="text-subtle numeric text-[10px]">{fiscal.daysLeft}d left</span>
       </div>
-      <div className="a-track relative mt-2 h-1 overflow-hidden rounded-full">
-        <span
-          className="a-fill gradient-brand absolute inset-y-0 left-0 rounded-full"
-          style={{ width: `${fiscal.progress}%` }}
+      {/* The year as the sun's path across the sky: April rises on the left,
+          March sets on the right, and the sun stands where today is. The arc
+          travelled is in terracotta; the rest of the year is still to come. */}
+      <svg viewBox="0 0 220 50" className="mt-1.5 block h-auto w-full overflow-visible" aria-hidden>
+        <path d="M2 46 H218" stroke="var(--border-strong)" strokeWidth="1" strokeDasharray="2 3" />
+        <path d={ARC} fill="none" stroke="var(--a-track)" strokeWidth="3" strokeLinecap="round" />
+        <path
+          d={ARC}
+          fill="none"
+          stroke="var(--lc-carry)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          pathLength={100}
+          strokeDasharray={`${fiscal.progress} 100`}
         />
-      </div>
+        <circle cx={sun.x} cy={sun.y} r="10" fill="var(--scene-sun)" opacity="0.25" />
+        <circle
+          cx={sun.x}
+          cy={sun.y}
+          r="6"
+          fill="var(--scene-sun)"
+          stroke="var(--surface-raised)"
+          strokeWidth="2"
+        />
+      </svg>
     </div>
   );
 }

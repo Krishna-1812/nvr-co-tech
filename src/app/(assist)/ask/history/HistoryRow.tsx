@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Trash2 } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { ArrowRight, MessagesSquare, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { removeConversation } from '@/app/actions/assist';
 import { Button } from '@/components/ui/primitives';
@@ -27,6 +28,7 @@ export function HistoryRow({
   when,
   turnCount,
   agentName,
+  tone,
 }: {
   id: string;
   title: string;
@@ -34,6 +36,8 @@ export function HistoryRow({
   turnCount: number;
   /** The tool it was begun inside, if it was begun inside one. */
   agentName: string | null;
+  /** That tool's accent, for the tile and the chip. */
+  tone?: string;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -53,7 +57,10 @@ export function HistoryRow({
   };
 
   return (
-    <div className="surface-lit a-lift group relative overflow-hidden rounded-2xl">
+    <div
+      style={{ '--tone': tone ?? 'var(--color-brand-500)' } as CSSProperties}
+      className="surface-lit a-ring a-lift group relative overflow-hidden rounded-2xl"
+    >
       <Link
         href={`/ask?c=${id}`}
         className="absolute inset-0 z-10 rounded-2xl focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] focus-visible:outline-none"
@@ -61,16 +68,35 @@ export function HistoryRow({
         <span className="sr-only">Open {title}</span>
       </Link>
 
-      <div className="flex items-center gap-4 p-4 sm:p-5">
+      <div className="flex items-center gap-3.5 p-4 sm:gap-4 sm:p-5">
+        {/* Tinted by the tool it was begun inside, the same accent the hub
+            gives that tool, and plain brand when it was begun nowhere. */}
+        <span
+          aria-hidden
+          className="tinted a-inner hidden size-10 shrink-0 place-items-center rounded-xl border min-[380px]:grid"
+        >
+          <MessagesSquare className="size-[18px]" />
+        </span>
+
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold tracking-tight" title={title}>
             {title}
           </p>
-          <p className="text-subtle mt-1 text-xs">
-            {when}
-            {' · '}
-            {turnCount} {turnCount === 1 ? 'turn' : 'turns'}
-            {agentName && ` · about ${agentName}`}
+          <p className="text-subtle mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            <span>{when}</span>
+            <span aria-hidden className="opacity-50">
+              ·
+            </span>
+            <span>
+              <span className="numeric font-semibold text-[var(--text-c)]">{turnCount}</span>{' '}
+              {turnCount === 1 ? 'turn' : 'turns'}
+            </span>
+            {agentName && (
+              <span className="tinted inline-flex items-center rounded-full border px-2 py-0.5 text-[10.5px] font-semibold">
+                <span className="sr-only">About </span>
+                {agentName}
+              </span>
+            )}
           </p>
         </div>
 

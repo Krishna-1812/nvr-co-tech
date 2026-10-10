@@ -7,9 +7,11 @@ import {
   Compass,
   Gauge,
   Inbox,
+  MonitorSmartphone,
   Radar,
   TrendingUp,
   Users,
+  type LucideIcon,
 } from 'lucide-react';
 import {
   byDevice,
@@ -26,13 +28,13 @@ import {
   readVisitorViews,
 } from '@/lib/analytics/store';
 import { activation } from '@/lib/analytics/funnel';
-import { PageHeader } from '@/components/PageHeader';
-import { Card, CardTitle, EmptyState } from '@/components/ui/primitives';
+import { Card, CardTitle, buttonClass } from '@/components/ui/primitives';
 import { BarList, Split, Trend } from '@/components/analytics/Charts';
 import { duration, number } from '@/components/analytics/Figures';
 import { KpiCard, KpiRow } from '@/components/analytics/Kpi';
 import { Vitals } from '@/components/analytics/Vitals';
-import { WindowTabs, windowFrom } from '@/components/analytics/Window';
+import { windowFrom } from '@/components/analytics/Window';
+import { OverviewHero } from '@/components/analytics/OverviewHero';
 
 export const metadata = { title: 'Overview' };
 export const dynamic = 'force-dynamic';
@@ -79,191 +81,205 @@ export default async function AnalyticsOverviewPage({
   const totals = overview(rows);
 
   /*
-   * The product row, computed before the early return below, because it is the
-   * half of this page that does not depend on there being any traffic. A brand
-   * new deployment with tenants and no marketing visitors used to render an
-   * empty state on this screen and say nothing about the tenants.
+   * The product half, computed before anything that depends on traffic, because
+   * it is the half of this page that does not. A brand new deployment with
+   * tenants and no marketing visitors used to render an empty state on this
+   * screen and say nothing about the tenants.
    */
   const funnel = activation(events);
   const waiting = stuck.reduce((n, row) => n + row.waiting, 0);
-  const product = (
-    <KpiRow flow="flex">
-      <KpiCard
-        label="Signed up"
-        value={funnel[0]?.reached ?? 0}
-        caption="Accounts that exist, counted by the database itself rather than by the app."
-        accent="var(--h-indigo)"
-        href="/analytics/activation"
-      />
-      <KpiCard
-        label="Started a workspace"
-        value={funnel[1]?.reached ?? 0}
-        caption={
-          funnel[1]?.fromPrevious === null
-            ? 'Nobody has onboarded yet.'
-            : `${funnel[1]?.fromPrevious}% of the people who signed up.`
-        }
-        accent="var(--h-violet)"
-        href="/analytics/activation"
-      />
-      <KpiCard
-        label="Ever submitted a voucher"
-        value={funnel[3]?.reached ?? 0}
-        caption="Organisations that got past every validation. The line between trying it and using it."
-        accent="var(--h-emerald)"
-        href="/analytics/activation"
-      />
-      <KpiCard
-        label="Waiting on somebody"
-        value={waiting}
-        caption={
-          waiting === 0
-            ? 'Nothing has sat in one state for a fortnight.'
-            : 'Vouchers stuck for more than a fortnight. Nothing emails the person holding them.'
-        }
-        accent={waiting > 0 ? 'var(--status-rejected)' : 'var(--h-lime)'}
-        href="/analytics/activation"
-      />
-    </KpiRow>
-  );
-
-  if (totals.pageViews === 0) {
-    return (
-      <div className="space-y-6">
-        <Header days={days} />
-        {product}
-        <Card className="overflow-hidden">
-          <EmptyState
-            icon={<Activity className="size-6" />}
-            title="Nothing has been recorded yet"
-            description={
-              'The tracker runs on every public page and sends one beacon when a visitor leaves it, '
-              + 'so the first rows appear a minute or two after the first real visit. Visitors with '
-              + 'Do Not Track or Global Privacy Control set are never recorded at all, which is '
-              + 'deliberate and will always leave a gap here.'
-            }
-          />
-        </Card>
-        <Directory />
-      </div>
-    );
-  }
-
+  const hasTraffic = totals.pageViews > 0;
   const conversion = conversionRate(rows);
 
   return (
     <div className="space-y-6">
-      <Header days={days} />
+      <OverviewHero
+        days={days}
+        funnel={funnel.map((stage) => ({ reached: stage.reached, fromPrevious: stage.fromPrevious }))}
+        waiting={waiting}
+        traffic={
+          hasTraffic
+            ? {
+                pageViews: totals.pageViews,
+                visitors: totals.visitors,
+                newVisitors: totals.newVisitors,
+                returningVisitors: totals.returningVisitors,
+                botViews: totals.botViews,
+                converted: conversion.converted,
+                rate: conversion.rate,
+              }
+            : null
+        }
+      />
 
-      {product}
-
-      {/*
-        * Traffic, second and smaller.
-        *
-        * It used to be first and ten cards long, five of which could not move:
-        * two counted things that do not exist on the site, and three counted
-        * de-anonymisation that has since been switched off for being wrong. What
-        * is left is the four figures that describe the public site honestly, plus
-        * the one conversion it exists to produce.
-        */}
-      <KpiRow flow="flex">
-        <KpiCard
-          label="Page views"
-          value={totals.pageViews}
-          caption={`${number(totals.botViews)} bot ${totals.botViews === 1 ? 'visit' : 'visits'} excluded from every figure here`}
-          accent="var(--h-cyan)"
-        />
-        <KpiCard
-          label="People"
-          value={totals.visitors}
-          caption={`${number(totals.newVisitors)} new · ${number(totals.returningVisitors)} came back`}
-          accent="var(--h-amber)"
-          href={`/analytics/visitors?days=${days}`}
-        />
-        <KpiCard
-          label="Visits"
-          value={totals.sessions}
-          caption={`${totals.bounceRate}% read one page and left`}
-          accent="var(--h-rose)"
-          href={`/analytics/visitors?days=${days}`}
-        />
-        <KpiCard
-          label="Attention per visit"
-          value={duration(totals.averageEngaged)}
-          caption="Counted only while the tab was in front and something was being touched"
-          accent="var(--h-magenta)"
-        />
-        <KpiCard
-          label="Asked to be contacted"
-          value={conversion.converted}
-          caption={`${conversion.rate}% of ${number(conversion.visitors)} people`}
-          accent="var(--h-lime)"
-          href="/analytics/requests"
-        />
-      </KpiRow>
-
-      <Card>
-        <CardTitle
-          icon={<Activity className="size-4" />}
-          title="Traffic"
-          description={`Page views by day for the last ${days} days. Hover to read one.`}
-        />
-        <div className="px-5 py-4">
-          <Trend points={daily(rows, days)} />
-        </div>
-      </Card>
-
-      <section className="grid gap-4 lg:grid-cols-2">
-        <Card className="overflow-hidden">
-          <CardTitle
-            icon={<ArrowUpRight className="size-4" />}
-            title="Most read"
-            description="Every page view, not one per visit."
+      {!hasTraffic ? (
+        /*
+          The public site with nothing in it. A banner rather than the tall
+          empty card, because the hero above has already said "nothing
+          recorded" and the product half of the page is not empty at all: this
+          only has to explain why, and offer the one thing worth trying.
+        */
+        <Card className="relative overflow-hidden">
+          <span
+            aria-hidden
+            className="a-grid pointer-events-none absolute inset-0 opacity-25 [mask-image:radial-gradient(50%_120%_at_0%_50%,#000,transparent)]"
           />
-          <BarList items={topPages(rows, 8)} tone="var(--h-indigo)" />
+          <div className="relative flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
+            <span
+              aria-hidden
+              className="surface-sunken text-muted a-inner grid size-12 shrink-0 place-items-center rounded-2xl border"
+            >
+              <Activity className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold tracking-tight">
+                No public-site visits in the last {days} days
+              </h2>
+              <p className="text-muted mt-1 max-w-3xl text-[13px] leading-relaxed text-pretty">
+                The tracker runs on every public page and sends one beacon when a visitor leaves it,
+                so the first rows appear a minute or two after the first real visit. Visitors with
+                Do Not Track or Global Privacy Control set are never recorded at all, which is
+                deliberate and will always leave a gap here.
+              </p>
+            </div>
+            {days !== 90 && (
+              <Link
+                href="/analytics?days=90"
+                className={buttonClass({ size: 'sm', className: 'self-start sm:self-center' })}
+              >
+                Look back 90 days
+              </Link>
+            )}
+          </div>
         </Card>
+      ) : (
+        <>
+          {/*
+            * Traffic, second and smaller.
+            *
+            * It used to be first and ten cards long, five of which could not move:
+            * two counted things that do not exist on the site, and three counted
+            * de-anonymisation that has since been switched off for being wrong. What
+            * is left is the four figures that describe the public site honestly, plus
+            * the one conversion it exists to produce.
+            */}
+          <section aria-labelledby="ov-traffic" className="space-y-3">
+            <SectionLabel id="ov-traffic" icon={Radar}>
+              The public site · last {days} days
+            </SectionLabel>
+            <KpiRow flow="flex">
+              <KpiCard
+                label="Page views"
+                value={totals.pageViews}
+                caption={`${number(totals.botViews)} bot ${totals.botViews === 1 ? 'visit' : 'visits'} excluded from every figure here`}
+                accent="var(--h-cyan)"
+              />
+              <KpiCard
+                label="People"
+                value={totals.visitors}
+                caption={`${number(totals.newVisitors)} new · ${number(totals.returningVisitors)} came back`}
+                accent="var(--h-amber)"
+                href={`/analytics/visitors?days=${days}`}
+              />
+              <KpiCard
+                label="Visits"
+                value={totals.sessions}
+                caption={`${totals.bounceRate}% read one page and left`}
+                accent="var(--h-rose)"
+                href={`/analytics/visitors?days=${days}`}
+              />
+              <KpiCard
+                label="Attention per visit"
+                value={duration(totals.averageEngaged)}
+                caption="Counted only while the tab was in front and something was being touched"
+                accent="var(--h-magenta)"
+              />
+              <KpiCard
+                label="Asked to be contacted"
+                value={conversion.converted}
+                caption={`${conversion.rate}% of ${number(conversion.visitors)} people`}
+                accent="var(--h-lime)"
+                href="/analytics/requests"
+              />
+            </KpiRow>
+          </section>
 
-        <Card className="overflow-hidden">
-          <CardTitle
-            icon={<Compass className="size-4" />}
-            title="Where they came from"
-            description="Referring site, with www stripped so one source is one line."
-          />
-          <BarList items={topReferrers(rows, 8)} tone="var(--h-violet)" />
-        </Card>
+          <Card>
+            <CardTitle
+              icon={<Activity className="size-4" />}
+              title="Traffic"
+              description={`Page views by day for the last ${days} days. Hover to read one.`}
+            />
+            <div className="px-5 py-5 sm:px-6">
+              <Trend points={daily(rows, days)} />
+            </div>
+          </Card>
 
-        <Card className="overflow-hidden">
-          <CardTitle
-            icon={<Gauge className="size-4" />}
-            title="What they were on"
-            description="Share of page views by device."
-          />
-          <Split items={byDevice(rows)} />
-        </Card>
-      </section>
+          <section className="grid gap-6 lg:grid-cols-2">
+            <Card className="overflow-hidden">
+              <CardTitle
+                icon={<ArrowUpRight className="size-4" />}
+                title="Most read"
+                description="Every page view, not one per visit."
+              />
+              <BarList items={topPages(rows, 8)} tone="var(--h-indigo)" />
+            </Card>
 
-      <Card className="overflow-hidden">
-        <CardTitle
-          icon={<Gauge className="size-4" />}
-          title="How the site is holding up"
-          description="Measured in real visitors' browsers, not in a lab."
-        />
-        <Vitals vitals={webVitals(rows)} />
-      </Card>
+            <Card className="overflow-hidden">
+              <CardTitle
+                icon={<Compass className="size-4" />}
+                title="Where they came from"
+                description="Referring site, with www stripped so one source is one line."
+              />
+              <BarList items={topReferrers(rows, 8)} tone="var(--h-violet)" />
+            </Card>
+
+            <Card className="overflow-hidden">
+              <CardTitle
+                icon={<MonitorSmartphone className="size-4" />}
+                title="What they were on"
+                description="Share of page views by device."
+              />
+              <Split items={byDevice(rows)} />
+            </Card>
+
+            <Card className="overflow-hidden">
+              <CardTitle
+                icon={<Gauge className="size-4" />}
+                title="How the site is holding up"
+                description="Measured in real visitors' browsers, not in a lab."
+              />
+              <Vitals vitals={webVitals(rows)} />
+            </Card>
+          </section>
+        </>
+      )}
 
       <Directory />
     </div>
   );
 }
 
-function Header({ days }: { days: number }) {
+/** A mono label heading a run of panels, with the icon tile the panels use. */
+function SectionLabel({
+  id,
+  icon: Icon,
+  children,
+}: {
+  id?: string;
+  icon: LucideIcon;
+  children: React.ReactNode;
+}) {
   return (
-    <PageHeader
-      eyebrow="Overview"
-      title="What is happening"
-      description="The product first, the public site second. Everything here is measured by our own tracker, on our own origin, into our own database. There is no Google Analytics and no third-party pixel, and anybody sending Do Not Track is never recorded at all."
-      action={<WindowTabs current={days as 7 | 30 | 90} base="/analytics" />}
-    />
+    <h2 id={id} className="flex items-center gap-2.5">
+      <span
+        aria-hidden
+        className="surface-sunken text-subtle grid size-6 place-items-center rounded-lg border"
+      >
+        <Icon className="size-3.5" />
+      </span>
+      <span className="a-label">{children}</span>
+    </h2>
   );
 }
 
@@ -301,32 +317,40 @@ const AREAS = [
 
 function Directory() {
   return (
-    <section className="space-y-5">
+    <section aria-labelledby="ov-directory" className="space-y-6 pt-2">
+      <div>
+        <h2 id="ov-directory" className="m-display text-[1.45rem] leading-tight">
+          Everything else in this section
+        </h2>
+        <p className="text-muted mt-1 text-[13px]">
+          Grouped by the one distinction that organises it: whether we know who the person is.
+        </p>
+      </div>
       {AREAS.map((area) => (
         <div key={area.group}>
-          <h2 className="a-label mb-3">{area.group}</h2>
-          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <h3 className="a-label mb-3">{area.group}</h3>
+          <ul className="stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {area.items.map((item) => (
-              <li key={item.href}>
+              <li key={item.href} className="min-w-0">
                 <Link
                   href={item.href}
-                  className="hover-lift a-ring group flex h-full gap-3 rounded-xl border bg-[var(--surface-raised)] p-4"
+                  className="surface-lit a-ring a-lift group flex h-full gap-3.5 rounded-2xl border p-4 sm:p-5"
                 >
                   <span
                     aria-hidden
-                    className="text-muted surface-sunken mt-px grid size-8 shrink-0 place-items-center rounded-lg border"
+                    className="surface-sunken text-muted a-inner grid size-9 shrink-0 place-items-center rounded-xl border transition-colors group-hover:text-[var(--accent)]"
                   >
                     <item.icon className="size-4" />
                   </span>
                   <span className="min-w-0">
-                    <span className="flex items-center gap-1 text-[13px] font-semibold">
+                    <span className="flex items-center gap-1 text-[14px] font-semibold tracking-tight">
                       {item.label}
                       <ArrowUpRight
-                        className="size-3 opacity-0 transition group-hover:opacity-100"
+                        className="size-3.5 opacity-40 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
                         aria-hidden
                       />
                     </span>
-                    <span className="text-subtle mt-1 block text-[11.5px] leading-snug text-pretty">
+                    <span className="text-subtle mt-1 block text-[12px] leading-snug text-pretty">
                       {item.note}
                     </span>
                   </span>

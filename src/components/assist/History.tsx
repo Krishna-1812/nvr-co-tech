@@ -6,11 +6,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ArrowUpRight, Check, History as HistoryIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchConversations, openConversation } from '@/app/actions/assist';
-import {
-  whenLabel,
-  type ConversationSummary,
-  type SavedConversation,
-} from '@/lib/assist/history';
+import { whenLabel, type ConversationSummary, type SavedConversation } from '@/lib/assist/history';
 import { cn } from '@/lib/utils';
 
 /**
@@ -112,7 +108,10 @@ export function History({
                       {opening === conversation.id ? (
                         <Loader2 className="size-3.5 animate-spin" aria-hidden />
                       ) : conversation.id === current ? (
-                        <Check className="size-3.5 text-brand-600 dark:text-brand-300" aria-hidden />
+                        <Check
+                          className="size-3.5 text-brand-600 dark:text-brand-300"
+                          aria-hidden
+                        />
                       ) : null}
                     </span>
 

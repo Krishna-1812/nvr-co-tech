@@ -1,6 +1,8 @@
-import { KeyRound } from 'lucide-react';
-import { PageHeader } from '@/components/PageHeader';
-import { Card, EmptyState } from '@/components/ui/primitives';
+import Link from 'next/link';
+import { History, KeyRound, MessagesSquare, SlidersHorizontal, Wand2 } from 'lucide-react';
+import { buttonClass } from '@/components/ui/primitives';
+import { HeroChip, ToolHero } from '@/components/ui/ToolHero';
+import { ArchScene } from '@/components/ui/Scene';
 import { Workspace } from '@/components/finder/Workspace';
 import { apolloConfigured } from '@/lib/finder/apollo/config';
 import { PREVIEW } from '@/lib/preview';
@@ -33,33 +35,48 @@ export const metadata = { title: 'Contact Finder' };
  * nothing there" share a code path. A refused credential, a rate limit and a
  * genuinely empty result are three different facts, and only one of them is
  * about the world.
+ *
+ * ── Where the heading went ─────────────────────────────────────────────────
+ *
+ * The workspace opens with its own hero, because what that hero says depends on
+ * state only the client holds — the live count of the filters as they are set.
+ * A page heading above it would be a second title saying less.
  */
 export default async function ContactsPage() {
   const configured = !PREVIEW && apolloConfigured();
 
-  return (
-    <div className="space-y-5">
-      <PageHeader
-        eyebrow="Contact Finder"
-        title="Find the person"
-        description="Search live for people and companies by role, seniority, industry or size, or ask a plain question and get an answer built only from what came back."
-      />
-
-      {configured ? (
-        <Workspace />
-      ) : (
-        <Card>
-          <EmptyState
-            icon={<KeyRound className="size-6" aria-hidden />}
-            title="No contact database is connected here"
-            description={
-              PREVIEW
-                ? 'Preview mode runs on sample data and never calls a paid service, so nothing on this screen will search for real.'
-                : 'APOLLO_API_KEY is not set on this environment. Nothing is broken and nothing is empty: there is simply no credential to search with.'
-            }
-          />
-        </Card>
-      )}
-    </div>
+  return configured ? (
+    <Workspace />
+  ) : (
+    /*
+     * Not connected. Still the tool's own opening rather than an empty card,
+     * because this is the screen somebody lands on from the rail and it should
+     * say what the tool is before it says what is missing — and the one place
+     * that still works without a key, the record of what was already done, is
+     * one click away.
+     */
+    <ToolHero
+      label="Contact Finder"
+      pill={{ icon: KeyRound, text: 'Not connected', tone: 'var(--status-pending)' }}
+      title="No contact database is connected here."
+      sub={
+        PREVIEW
+          ? 'Preview mode runs on sample data and never calls a paid service, so nothing on this screen will search for real.'
+          : 'APOLLO_API_KEY is not set on this environment. Nothing is broken and nothing is empty: there is simply no credential to search with.'
+      }
+      scene={<ArchScene motif="seekers" className="h-full min-h-[17rem]" />}
+    >
+      <div className="mt-7 flex flex-wrap gap-2">
+        <HeroChip icon={Wand2}>Describe who you want in a sentence</HeroChip>
+        <HeroChip icon={SlidersHorizontal}>Narrow by role, seniority, industry or size</HeroChip>
+        <HeroChip icon={MessagesSquare}>Ask a plain question about a company</HeroChip>
+      </div>
+      <div className="mt-7 flex flex-wrap gap-2.5">
+        <Link href="/contacts/activity" className={buttonClass({ className: 'group' })}>
+          <History className="size-4" aria-hidden />
+          Searches already run
+        </Link>
+      </div>
+    </ToolHero>
   );
 }

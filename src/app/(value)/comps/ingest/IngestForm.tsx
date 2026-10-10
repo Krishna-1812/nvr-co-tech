@@ -1,9 +1,23 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { UploadCloud } from 'lucide-react';
+import {
+  Building2,
+  CandlestickChart,
+  Check,
+  ClipboardCheck,
+  Clock,
+  Database,
+  FileSpreadsheet,
+  Globe,
+  History,
+  Landmark,
+  ListPlus,
+  RefreshCw,
+  type LucideIcon,
+} from 'lucide-react';
 import {
   fetchEdgarUniverse,
   runValuationIngest,
@@ -15,7 +29,8 @@ import { KNOWN_STATES } from '@/lib/comps/sources/mcaLive';
 import { tallySkips } from '@/lib/comps/sources/mcaMaster';
 import type { Skip } from '@/lib/comps/sources/types';
 import { readCsv, readWorkbook, type RawSheet } from '@/lib/recon/parse/sheet';
-import { Button, Card, CardTitle, Input, Select, Textarea } from '@/components/ui/primitives';
+import { Button, Card, CardTitle, Field, Input, Textarea } from '@/components/ui/primitives';
+import { cn } from '@/lib/utils';
 
 type Source = 'edgar' | 'nse' | 'mca_master';
 
@@ -405,51 +420,97 @@ export function IngestForm() {
     }
   };
 
-  return (
-    <Card className="overflow-hidden">
-      <CardTitle
-        icon={<UploadCloud className="size-4" />}
-        title="Seed the registry"
-        description="Fetch real companies from a source and write them in. This is what makes the comparables screen have something to show."
-      />
-      <div className="space-y-3 px-5 py-4">
-        <div className="w-full sm:w-96">
-          <label htmlFor="ingest_source" className="text-subtle mb-1.5 block text-xs font-medium">
-            Source
-          </label>
-          <Select id="ingest_source" value={source} onChange={(e) => setSource(e.target.value as Source)}>
-            {(Object.keys(SOURCE_META) as Source[]).map((s) => (
-              <option key={s} value={s}>
-                {SOURCE_META[s].label}
-              </option>
-            ))}
-          </Select>
-          <p className="text-subtle mt-1.5 text-xs leading-snug">{SOURCE_META[source].hint}</p>
-        </div>
+  const anyRunning = busy || edgarSyncing || mcaSyncing;
 
-        {source === 'mca_master' ? (
-          <div className="space-y-4">
-            <div className="border-subtle rounded-md border p-3">
-              <p className="text-sm font-medium">Sync automatically from data.gov.in</p>
-              <p className="text-subtle mt-1 text-xs leading-snug">
-                Pulls every state this API can reach, no file needed — complete for 10 small states/UTs
-                (~16,000 companies), capped at the first 10,000 rows for the ~25 larger ones. That cap is
-                data.gov.in&apos;s own search index, not this tool — the government platform refuses any
-                request asking for more than 10,000 rows of a filtered result, and no combination of its
-                filters gets a state like Maharashtra (821,545 companies) under that. Real completeness for a
-                large state needs a paid MCA21 export or a licensed vendor; this gets everything free access
-                can reach. Takes roughly 20&ndash;40 minutes — keep this tab open.
+  return (
+    <div className="space-y-6">
+      {/* ── Where from ─────────────────────────────────────────────────── */}
+      <Card className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_backwards] overflow-hidden">
+        <CardTitle
+          icon={<Database className="size-4" />}
+          title="Choose a source"
+          description="Each one writes into the same shared registry. What it can reach from here differs, and the note under it says how."
+        />
+        <div className="space-y-4 px-5 py-5 sm:px-6">
+          <div role="radiogroup" aria-label="Source" className="grid gap-3 md:grid-cols-3">
+            {(Object.keys(SOURCE_META) as Source[]).map((s) => {
+              const on = s === source;
+              const Icon = SOURCE_FACE[s].icon;
+              return (
+                <label
+                  key={s}
+                  className={cn(
+                    'group relative flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand-500/25',
+                    on
+                      ? 'border-[var(--border-strong)] bg-[var(--surface-raised)] shadow-[var(--elev-2)]'
+                      : 'surface-sunken hover:border-[var(--border-strong)]',
+                    anyRunning && !on && 'cursor-not-allowed opacity-60',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="ingest_source"
+                    value={s}
+                    checked={on}
+                    disabled={anyRunning && !on}
+                    onChange={() => setSource(s)}
+                    className="sr-only"
+                  />
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'grid size-9 shrink-0 place-items-center rounded-xl border transition',
+                      on ? 'border-transparent bg-[var(--action)] text-[var(--on-action)]' : 'bg-[var(--surface-raised)] text-muted',
+                    )}
+                  >
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold tracking-tight">{SOURCE_FACE[s].name}</span>
+                    <span className="text-subtle mt-0.5 block text-[12px]">{SOURCE_FACE[s].reach}</span>
+                  </span>
+                  {on && (
+                    <Check aria-hidden className="absolute top-3.5 right-3.5 size-4 text-[var(--status-approved)]" />
+                  )}
+                </label>
+              );
+            })}
+          </div>
+          <p className="text-muted surface-sunken rounded-2xl border px-4 py-3 text-[13px] leading-relaxed text-pretty">
+            <span className="font-semibold text-[var(--text-c)]">{SOURCE_META[source].label}.</span>{' '}
+            {SOURCE_META[source].hint}
+          </p>
+        </div>
+      </Card>
+
+      {/* ── How ──────────────────────────────────────────────────────────── */}
+      {source === 'mca_master' ? (
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+          <Card className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_0.08s_backwards] overflow-hidden">
+            <CardTitle
+              icon={<RefreshCw className="size-4" />}
+              title="Sync automatically from data.gov.in"
+              description="Every state this API can reach, no file needed."
+            />
+            <div className="space-y-4 px-5 py-5 sm:px-6">
+              <p className="text-muted text-[13px] leading-relaxed text-pretty">
+                Complete for 10 small states/UTs (~16,000 companies), capped at the first 10,000 rows for the
+                ~25 larger ones. That cap is data.gov.in&apos;s own search index, not this tool — the
+                government platform refuses any request asking for more than 10,000 rows of a filtered result,
+                and no combination of its filters gets a state like Maharashtra (821,545 companies) under that.
+                Real completeness for a large state needs a paid MCA21 export or a licensed vendor; this gets
+                everything free access can reach.
               </p>
+              <HowLong>Roughly 20&ndash;40 minutes. Keep this tab open.</HowLong>
               {mcaResumeCount > 0 && !mcaSyncing && (
-                <p className="text-subtle mt-2 text-xs">
+                <ResumeNote>
                   {mcaResumeCount} of {KNOWN_STATES.length} states already done from a previous run — starting
                   again will pick up where it left off.
-                </p>
+                </ResumeNote>
               )}
               <Button
                 type="button"
                 variant="primary"
-                className="mt-3"
                 loading={mcaSyncing}
                 disabled={mcaSyncing || busy}
                 onClick={() => void syncMcaLive()}
@@ -457,79 +518,99 @@ export function IngestForm() {
                 {mcaResumeCount > 0 ? 'Resume automatic sync' : 'Sync automatically'}
               </Button>
               {mcaSyncProgress && (
-                <p className="text-subtle mt-2 text-xs tabular-nums">
-                  State {mcaSyncProgress.stateIndex + 1} of {KNOWN_STATES.length} ({mcaSyncProgress.stateName}) ·{' '}
-                  {mcaSyncProgress.rowsDone.toLocaleString('en-IN')} of{' '}
-                  {mcaSyncProgress.reachable.toLocaleString('en-IN')} reachable rows
-                </p>
+                <ProgressMeter
+                  label={`State ${mcaSyncProgress.stateIndex + 1} of ${KNOWN_STATES.length} · ${mcaSyncProgress.stateName}`}
+                  done={mcaSyncProgress.rowsDone}
+                  total={mcaSyncProgress.reachable}
+                  unit="reachable rows"
+                  locale="en-IN"
+                />
               )}
             </div>
+          </Card>
 
-            <div className="border-subtle border-t pt-4">
-              <p className="text-subtle mb-2 text-xs font-medium">Or upload a fuller export from elsewhere</p>
-              <form onSubmit={submitMcaFile} className="space-y-3">
-                <div>
-                  <label htmlFor="ingest_file" className="text-subtle mb-1.5 block text-xs font-medium">
-                    Company master file (.csv or .xlsx)
-                  </label>
-                  <Input
-                    key={inputKey}
-                    id="ingest_file"
-                    type="file"
-                    accept=".csv,.txt,.xlsx"
-                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  />
-                </div>
-                <Button type="submit" variant="secondary" loading={busy} disabled={!file || mcaSyncing}>
-                  Run ingest
-                </Button>
-                {progress && (
-                  <p className="text-subtle text-xs tabular-nums">
-                    {progress.done.toLocaleString('en-IN')} of {progress.total.toLocaleString('en-IN')} rows written
-                  </p>
-                )}
-              </form>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <form onSubmit={submitIdentifiers} className="space-y-3">
-              <div>
-                <label htmlFor="ingest_identifiers" className="text-subtle mb-1.5 block text-xs font-medium">
-                  Identifiers, comma or line separated
-                </label>
+          <Card className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_0.16s_backwards] overflow-hidden">
+            <CardTitle
+              icon={<FileSpreadsheet className="size-4" />}
+              title="Or upload a fuller export"
+              description="A company master file from elsewhere, read in this browser and sent in batches."
+            />
+            <form onSubmit={submitMcaFile} className="space-y-4 px-5 py-5 sm:px-6">
+              <Field label="Company master file (.csv or .xlsx)" htmlFor="ingest_file" hint={`Up to ${MAX_MCA_FILE_MB} MB. data.gov.in publishes this per state.`}>
+                <Input
+                  key={inputKey}
+                  id="ingest_file"
+                  type="file"
+                  accept=".csv,.txt,.xlsx"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+              </Field>
+              <Button type="submit" variant="secondary" loading={busy} disabled={!file || mcaSyncing}>
+                Run ingest
+              </Button>
+              {progress && (
+                <ProgressMeter
+                  label={file?.name ?? 'Writing rows'}
+                  done={progress.done}
+                  total={progress.total}
+                  unit="rows written"
+                  locale="en-IN"
+                />
+              )}
+            </form>
+          </Card>
+        </div>
+      ) : (
+        <div className={cn('grid gap-6 lg:items-start', source === 'edgar' && 'lg:grid-cols-2')}>
+          <Card className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_0.08s_backwards] overflow-hidden">
+            <CardTitle
+              icon={<ListPlus className="size-4" />}
+              title={source === 'edgar' ? 'Fetch a few by CIK' : 'Fetch by NSE symbol'}
+              description="Paste identifiers to pull just those companies. The quickest way to test a source."
+            />
+            <form onSubmit={submitIdentifiers} className="space-y-4 px-5 py-5 sm:px-6">
+              <Field label="Identifiers, comma or line separated" htmlFor="ingest_identifiers">
                 <Textarea
                   id="ingest_identifiers"
-                  rows={3}
+                  rows={4}
                   placeholder={IDENTIFIER_PLACEHOLDER[source]}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
+                  className="font-mono"
                 />
-              </div>
+              </Field>
               <Button type="submit" variant="primary" loading={busy} disabled={!text.trim() || edgarSyncing}>
                 Run ingest
               </Button>
             </form>
+          </Card>
 
-            {source === 'edgar' && (
-              <div className="border-subtle border-t pt-4">
-                <p className="text-sm font-medium">Sync every SEC-registered company</p>
-                <p className="text-subtle mt-1 text-xs leading-snug">
-                  Pulls SEC&apos;s own free, keyless list of every registered ticker (~10,400 — Nasdaq, NYSE,
-                  OTC and CBOE) and runs each one through this exact pipeline. Genuinely the whole universe,
-                  not a partial slice. Takes roughly an hour at EDGAR&apos;s own rate limit — keep this tab
-                  open; closing it is safe, re-running just skips ahead to where it left off.
+          {source === 'edgar' && (
+            <Card className="animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_0.16s_backwards] overflow-hidden">
+              <CardTitle
+                icon={<Globe className="size-4" />}
+                title="Sync every SEC-registered company"
+                description="The whole free universe, about 10,400 tickers, through this same pipeline."
+              />
+              <div className="space-y-4 px-5 py-5 sm:px-6">
+                <p className="text-muted text-[13px] leading-relaxed text-pretty">
+                  Pulls SEC&apos;s own free, keyless list of every registered ticker — Nasdaq, NYSE, OTC and
+                  CBOE — and runs each one through this exact pipeline. Genuinely the whole universe, not a
+                  partial slice.
                 </p>
+                <HowLong>
+                  Roughly an hour at EDGAR&apos;s own rate limit. Keep this tab open; closing it is safe, and
+                  re-running skips ahead to where it left off.
+                </HowLong>
                 {edgarResume > 0 && !edgarSyncing && (
-                  <p className="text-subtle mt-2 text-xs">
-                    {edgarResume.toLocaleString('en-US')} companies already attempted — resuming continues
-                    from there.
-                  </p>
+                  <ResumeNote>
+                    {edgarResume.toLocaleString('en-US')} companies already attempted — resuming continues from
+                    there.
+                  </ResumeNote>
                 )}
                 <Button
                   type="button"
                   variant="primary"
-                  className="mt-3"
                   loading={edgarSyncing}
                   disabled={edgarSyncing || busy}
                   onClick={() => void syncEdgarUniverse(edgarResume)}
@@ -537,29 +618,116 @@ export function IngestForm() {
                   {edgarResume > 0 ? 'Resume full sync' : 'Sync every SEC company'}
                 </Button>
                 {edgarSyncProgress && (
-                  <p className="text-subtle mt-2 text-xs tabular-nums">
-                    {edgarSyncProgress.done.toLocaleString('en-US')} of{' '}
-                    {edgarSyncProgress.total.toLocaleString('en-US')} companies attempted
-                  </p>
+                  <ProgressMeter
+                    label="SEC universe"
+                    done={edgarSyncProgress.done}
+                    total={edgarSyncProgress.total}
+                    unit="companies attempted"
+                    locale="en-US"
+                  />
                 )}
               </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {result && (
-        <div className="border-t px-5 py-4 text-sm">
-          <p className="font-medium">{result.headline}</p>
-          {result.skipped.length > 0 && (
-            <ul className="text-subtle mt-2 space-y-1 font-mono text-xs">
-              {result.skipped.map((line, i) => (
-                <li key={i}>{line}</li>
-              ))}
-            </ul>
+            </Card>
           )}
         </div>
       )}
-    </Card>
+
+      {/* ── What happened ────────────────────────────────────────────────── */}
+      {result && (
+        <Card className="animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] overflow-hidden">
+          <CardTitle
+            icon={<ClipboardCheck className="size-4" />}
+            title="Last run"
+            description={result.headline}
+          />
+          <div className="px-5 py-5 sm:px-6">
+            {result.skipped.length > 0 ? (
+              <>
+                <p className="a-label mb-2">Skipped, by reason</p>
+                <ul className="surface-sunken a-inner scroll-x-hint overflow-x-auto rounded-2xl border px-4 py-3 font-mono text-xs leading-relaxed whitespace-pre">
+                  {result.skipped.map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="text-muted inline-flex items-center gap-2 text-sm">
+                <Check className="size-4 text-[var(--status-approved)]" aria-hidden />
+                Nothing was skipped.
+              </p>
+            )}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/**
+ * How each source looks on its card: a name short enough to sit on one line,
+ * and what it reaches. The long label and hint stay in SOURCE_META, unchanged,
+ * and are said in full under the cards for whichever one is picked.
+ */
+const SOURCE_FACE: Record<Source, { name: string; reach: string; icon: LucideIcon }> = {
+  edgar: { name: 'SEC EDGAR', reach: 'US filers, by CIK', icon: Landmark },
+  nse: { name: 'NSE', reach: 'Indian listed companies, by symbol', icon: CandlestickChart },
+  mca_master: { name: 'MCA master data', reach: 'Indian company identity, by state', icon: Building2 },
+};
+
+/**
+ * A long run's progress as a bar as well as a count. The count is the figure;
+ * the bar is so that a glance across the room says how far it has got.
+ */
+function ProgressMeter({
+  label,
+  done,
+  total,
+  unit,
+  locale,
+}: {
+  label: string;
+  done: number;
+  total: number;
+  unit: string;
+  locale: string;
+}) {
+  const share = total > 0 ? Math.min(1, done / total) : 0;
+  return (
+    <div className="surface-sunken a-inner rounded-2xl border p-4" role="status" aria-live="polite">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="min-w-0 truncate text-[13px] font-semibold">{label}</p>
+        <p className="text-sm font-semibold tabular-nums">{Math.round(share * 100)}%</p>
+      </div>
+      <div className="a-track mt-2.5 h-2 overflow-hidden rounded-full">
+        <div
+          className="h-full rounded-full bg-[var(--action)] transition-[width] duration-500 ease-out"
+          style={{ width: `${share * 100}%` }}
+        />
+      </div>
+      <p className="text-subtle mt-2 text-[12px] tabular-nums">
+        {done.toLocaleString(locale)} of {total.toLocaleString(locale)} {unit}
+      </p>
+    </div>
+  );
+}
+
+function HowLong({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-muted inline-flex items-start gap-2 text-[12.5px] leading-relaxed">
+      <Clock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+      <span>{children}</span>
+    </p>
+  );
+}
+
+function ResumeNote({ children }: { children: ReactNode }) {
+  return (
+    <p
+      style={{ '--tone': 'var(--status-pending)' } as CSSProperties}
+      className="tinted flex items-start gap-2 rounded-xl border px-3 py-2 text-[12.5px] leading-relaxed"
+    >
+      <History className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+      <span>{children}</span>
+    </p>
   );
 }

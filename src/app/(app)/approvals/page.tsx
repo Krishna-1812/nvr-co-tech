@@ -1,5 +1,6 @@
-import type { CSSProperties } from 'react';
-import { Inbox, Layers, Timer, Wallet } from 'lucide-react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { ArrowRight, CheckCheck, Eye, Timer } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { personCols, tolerateMissingColumns } from '@/lib/supabase/columns';
 import {
@@ -8,12 +9,12 @@ import {
   approvalBlockedReason,
   type VoucherLike,
 } from '@/lib/domain/workflow';
+import { fmtRupees } from '@/lib/domain/voucher';
 import { ageInDays } from '@/lib/utils';
-import { PageHeader } from '@/components/PageHeader';
-import { Card, EmptyState } from '@/components/ui/primitives';
-import { Figure } from '@/components/app/Figure';
+import { buttonClass } from '@/components/ui/primitives';
+import { ToolHero, HeroStat, HeroChip } from '@/components/ui/ToolHero';
+import { ArchScene, SealFigure } from '@/components/ui/Scene';
 import { ApprovalCard, type ApprovalRow } from './ApprovalCard';
-import { redirect } from 'next/navigation';
 
 export const metadata = { title: 'Approvals' };
 
@@ -75,73 +76,210 @@ export default async function ApprovalsPage() {
     (v) => (v.voucher_attachments?.length ?? 0) === 0,
   ).length;
 
+  /*
+   * The queue's value by how long it has waited, for the bar under the hero.
+   * The same three bands as the card rails and the age chips (fresh, ageing,
+   * overdue), so the amber in the bar and the amber on the third card down are
+   * one fact. Bands with nothing in them are dropped rather than drawn as a
+   * sliver.
+   */
+  const bands = [
+    {
+      key: 'fresh',
+      label: `Under ${STALE_DAYS} days`,
+      tone: 'var(--status-approved)',
+      rows: actionable.filter((v) => ageInDays(v.submitted_at) < STALE_DAYS),
+    },
+    {
+      key: 'ageing',
+      label: `${STALE_DAYS} to ${OVERDUE_DAYS - 1} days`,
+      tone: 'var(--status-warn)',
+      rows: actionable.filter((v) => {
+        const d = ageInDays(v.submitted_at);
+        return d >= STALE_DAYS && d < OVERDUE_DAYS;
+      }),
+    },
+    {
+      key: 'overdue',
+      label: `${OVERDUE_DAYS} days or more`,
+      tone: 'var(--status-rejected)',
+      rows: actionable.filter((v) => ageInDays(v.submitted_at) >= OVERDUE_DAYS),
+    },
+  ]
+    .map((b) => ({ ...b, value: b.rows.reduce((s, v) => s + Number(v.grand_total ?? 0), 0) }))
+    .filter((b) => b.rows.length > 0);
+
+  const ageTone =
+    oldestDays >= OVERDUE_DAYS
+      ? 'var(--status-rejected)'
+      : oldestDays >= STALE_DAYS
+        ? 'var(--status-warn)'
+        : 'var(--status-approved)';
+  const days = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
+  const count = actionable.length;
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Queue"
-        title="Approvals"
-        description={
-          actionable.length === 0
-            ? 'Nothing is waiting on you.'
-            : 'Oldest first. The top of this list is what has been waiting longest.'
-        }
-      />
+      {/*
+        The answer first, as every tool now opens: how deep the queue is, what it
+        is worth, how long its head has waited. Those three used to be a row of
+        cards under a plain title; they are the hero's sentence and its working
+        now, because an approver's first question is not "what is in the queue",
+        it is "does this need an hour or five minutes".
+      */}
+      {count > 0 ? (
+        <ToolHero
+          id="queue"
+          label="Approvals · oldest first"
+          pill={{
+            icon: Timer,
+            text: oldestDays === 0 ? 'All raised today' : `Oldest ${days(oldestDays)}`,
+            tone: ageTone,
+            live: true,
+          }}
+          title={`${count === 1 ? 'One voucher is' : `${count} vouchers are`} waiting on you.`}
+          glow={ageTone}
+          sub={
+            <>
+              <span className="numeric font-semibold text-[var(--text-c)]">
+                {fmtRupees(totalValue)}
+              </span>{' '}
+              in all, authorised by you if you approve every one.{' '}
+              {oldestDays === 0
+                ? 'Everything here arrived today.'
+                : `The oldest has waited ${days(oldestDays)}.`}
+            </>
+          }
+          scene={
+            <ArchScene
+              motif="voucher"
+              className="h-full min-h-[18rem]"
+              seal={
+                oldestDays > 0 ? (
+                  <SealFigure value={days(oldestDays)} note="the longest wait" />
+                ) : undefined
+              }
+            />
+          }
+        >
+          <dl className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+            <HeroStat
+              label="Waiting"
+              value={count}
+              note={
+                missingInvoice > 0
+                  ? `${missingInvoice} with no invoice attached`
+                  : 'Every one has a document'
+              }
+              tone={missingInvoice > 0 ? 'var(--status-warn)' : undefined}
+            />
+            <HeroStat
+              label="Longest wait"
+              value={days(oldestDays)}
+              note={
+                stale > 1 ? `${stale} have waited ${STALE_DAYS} days or more` : 'The head of the queue'
+              }
+              tone={ageTone}
+            />
+            <HeroStat
+              label="Queue value"
+              value={fmtRupees(totalValue)}
+              note="If you approve all of it"
+              strong
+              className="col-span-2 sm:col-span-1"
+            />
+          </dl>
 
-      {actionable.length > 0 && (
-        <dl className="stagger grid gap-3 sm:grid-cols-3">
-          <QueueStat
-            label="Waiting on you"
-            value={actionable.length}
-            icon={<Layers className="size-4" />}
-            note={
-              missingInvoice > 0
-                ? `${missingInvoice} with no invoice attached`
-                : 'Every one has a document behind it'
-            }
-            tone={missingInvoice > 0 ? 'var(--status-warn)' : 'var(--status-pending)'}
-          />
-          <QueueStat
-            label="Total value"
-            value={totalValue}
-            kind="rupees"
-            icon={<Wallet className="size-4" />}
-            note="Authorised by you, if you approve all of it"
-            tone="var(--status-pending)"
-            delay={90}
-          />
-          <QueueStat
-            label="Longest waiting"
-            value={oldestDays}
-            suffix={oldestDays === 1 ? ' day' : ' days'}
-            icon={<Timer className="size-4" />}
-            note={stale > 1 ? `${stale} have waited ${STALE_DAYS} days or more` : 'The head of the queue'}
-            tone={
-              oldestDays >= OVERDUE_DAYS
-                ? 'var(--status-rejected)'
-                : oldestDays >= STALE_DAYS
-                  ? 'var(--status-warn)'
-                  : 'var(--status-approved)'
-            }
-            alarm={oldestDays >= OVERDUE_DAYS}
-            delay={180}
-          />
-        </dl>
+          {/* What the money has been waiting, in one bar: 2px gaps, and a legend
+              under it with each band's value and count in words. */}
+          {totalValue > 0 && (
+            <div className="mt-7">
+              <div className="flex h-3 gap-[2px] overflow-hidden rounded-full">
+                {bands.map((b, i) => (
+                  <span
+                    key={b.key}
+                    title={`${b.label}: ${fmtRupees(b.value)}`}
+                    className="a-fill h-full"
+                    style={{
+                      flexGrow: Math.max(b.value, totalValue * 0.02),
+                      flexBasis: 0,
+                      background: b.tone,
+                      animationDelay: `${150 + i * 120}ms`,
+                    }}
+                  />
+                ))}
+              </div>
+              <dl className="mt-3.5 grid grid-cols-1 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-3">
+                {bands.map((b) => (
+                  <div key={b.key} className="flex items-baseline justify-between gap-3 sm:block">
+                    <dt className="text-muted inline-flex items-center gap-2">
+                      <span
+                        aria-hidden
+                        className="size-2.5 rounded-[3px]"
+                        style={{ background: b.tone }}
+                      />
+                      Waiting {b.label.toLowerCase()}
+                    </dt>
+                    <dd className="mt-0.5 font-semibold tabular-nums sm:pl-[1.125rem]">
+                      {fmtRupees(b.value)}{' '}
+                      <span className="text-subtle font-normal">
+                        · {b.rows.length} {b.rows.length === 1 ? 'voucher' : 'vouchers'}
+                      </span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
+          {blocked.length > 0 && (
+            <div className="mt-7 flex flex-wrap gap-2">
+              <HeroChip icon={Eye}>
+                {blocked.length} more in the queue, waiting on someone else
+              </HeroChip>
+            </div>
+          )}
+        </ToolHero>
+      ) : (
+        <ToolHero
+          id="queue"
+          label="Approvals"
+          pill={{ icon: CheckCheck, text: 'Queue clear', tone: 'var(--status-approved)' }}
+          title="Nothing is waiting on you."
+          sub={
+            blocked.length > 0
+              ? `${blocked.length === 1 ? 'One voucher is' : `${blocked.length} vouchers are`} in the queue, but not yours to action. They are listed below so you can see where they stand.`
+              : 'Vouchers submitted for approval appear here, oldest first, the moment they are sent.'
+          }
+          scene={<ArchScene motif="voucher" className="h-full min-h-[18rem]" />}
+        >
+          <div className="mt-7 flex flex-wrap gap-2.5">
+            <Link href="/vouchers" className={buttonClass({ className: 'group' })}>
+              Open the register
+              <ArrowRight
+                className="size-4 transition-transform group-hover:translate-x-0.5"
+                aria-hidden
+              />
+            </Link>
+          </div>
+        </ToolHero>
       )}
 
-      {actionable.length === 0 && blocked.length === 0 ? (
-        <Card>
-          <EmptyState
-            icon={<Inbox className="size-6" />}
-            title="Queue is clear"
-            description="Vouchers submitted for approval will appear here, oldest first."
-          />
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {actionable.map((v) => (
-            <ApprovalCard key={v.id} voucher={v} currentUserId={user.id} />
-          ))}
-        </div>
+      {count > 0 && (
+        <section aria-labelledby="queue-list" className="space-y-3">
+          <h2
+            id="queue-list"
+            className="text-subtle flex items-center gap-3 text-[11px] font-semibold tracking-[0.06em] uppercase"
+          >
+            Yours to decide ({count})
+            <span aria-hidden className="h-px flex-1 bg-[var(--border-c)]" />
+          </h2>
+          <div className="stagger space-y-3">
+            {actionable.map((v) => (
+              <ApprovalCard key={v.id} voucher={v} currentUserId={user.id} />
+            ))}
+          </div>
+        </section>
       )}
 
       {blocked.length > 0 && (
@@ -161,70 +299,5 @@ export default async function ApprovalsPage() {
         </section>
       )}
     </div>
-  );
-}
-
-/**
- * One figure from the top of the queue.
- *
- * `tone` is not decoration: it is the same traffic light the cards below use, so
- * an amber "longest waiting" and an amber ageing chip on the third card down are
- * saying the same thing. `alarm` adds a lit top edge, and is reserved for a queue
- * that has genuinely been left too long.
- */
-function QueueStat({
-  label,
-  value,
-  kind = 'count',
-  suffix,
-  icon,
-  note,
-  tone,
-  alarm = false,
-  delay = 0,
-}: {
-  label: string;
-  value: number;
-  kind?: 'count' | 'rupees';
-  suffix?: string;
-  icon: React.ReactNode;
-  note: string;
-  tone: string;
-  alarm?: boolean;
-  delay?: number;
-}) {
-  return (
-    <Card
-      style={{ '--tone': tone } as CSSProperties}
-      className="relative overflow-hidden p-4 sm:p-5"
-    >
-      {alarm && (
-        <span
-          aria-hidden
-          className="absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,transparent,var(--tone),transparent)]"
-        />
-      )}
-      <div className="flex items-start justify-between gap-3">
-        <dt className="a-label pt-1">{label}</dt>
-        <span
-          aria-hidden
-          className="grid size-8 shrink-0 place-items-center rounded-xl border"
-          style={{
-            color: tone,
-            borderColor: 'color-mix(in oklab, var(--tone) 30%, transparent)',
-            background: 'color-mix(in oklab, var(--tone) 10%, transparent)',
-          }}
-        >
-          {icon}
-        </span>
-      </div>
-      <dd className="mt-3">
-        <span className="flex items-baseline gap-1" style={{ color: alarm ? tone : undefined }}>
-          <Figure value={value} kind={kind} delay={delay} className="text-3xl" />
-          {suffix && <span className="text-muted text-sm font-medium">{suffix}</span>}
-        </span>
-        <p className="text-subtle mt-2 text-xs">{note}</p>
-      </dd>
-    </Card>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, Check, Mail } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, Mail } from 'lucide-react';
 import { requestAccess } from '@/app/actions/access';
 import { AGENTS, CONTACT, STAGE_LABEL } from '@/lib/marketing/content';
 
@@ -45,7 +45,7 @@ export function RequestForm() {
 
   if (done) {
     return (
-      <div className="m-card p-6 sm:p-9">
+      <div className="m-card rounded-[2rem] p-6 shadow-[var(--m-shadow)] sm:p-9">
         <span
           aria-hidden
           className="grid size-11 place-items-center rounded-full bg-[var(--m-gold)]"
@@ -69,8 +69,16 @@ export function RequestForm() {
   }
 
   return (
-    <form onSubmit={submit} data-lead-form="" className="m-card p-6 sm:p-9">
-      <h2 className="m-display t-6">Your details</h2>
+    <form onSubmit={submit} data-lead-form="" className="m-card rounded-[2rem] p-6 shadow-[var(--m-shadow)] sm:p-9">
+      <div className="flex items-center gap-3.5">
+        <span
+          aria-hidden
+          className="m-arch grid h-12 w-10 shrink-0 place-items-center bg-[var(--m-gold)] pt-1.5 text-[var(--m-on-grad)]"
+        >
+          <CalendarDays className="size-[18px]" />
+        </span>
+        <h2 className="m-display t-7">Your details</h2>
+      </div>
       <p className="m-dim mt-3 t-3">
         This comes straight to us. Nothing is shared with anybody else, and there is no mailing
         list to be added to.
@@ -109,7 +117,7 @@ export function RequestForm() {
             // light, so the open list is a light sheet on a light page; this used
             // to force dark, for the night skin it replaced.
             style={{ colorScheme: 'light' }}
-            className="mt-2.5 w-full appearance-none rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition hover:border-[var(--m-line-2)]"
+            className="mt-2.5 w-full appearance-none rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition hover:border-[var(--m-line-2)] focus:border-[var(--m-gold)] focus:ring-4 focus:ring-[color-mix(in_oklab,var(--m-gold)_14%,transparent)] focus:outline-none"
           >
             <option value="Not sure yet">Not sure yet</option>
             <option value="Build something custom">Something built for us</option>
@@ -130,7 +138,7 @@ export function RequestForm() {
             name="message"
             rows={5}
             placeholder="How many vouchers you do in a month, who approves them at the moment, and what tends to go wrong."
-            className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
+            className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)] focus:border-[var(--m-gold)] focus:ring-4 focus:ring-[color-mix(in_oklab,var(--m-gold)_14%,transparent)] focus:outline-none"
           />
         </div>
       </div>
@@ -183,7 +191,7 @@ function Field({
       </label>
       <input
         id={id}
-        className="mt-2.5 w-full rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
+        className="mt-2.5 w-full rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)] focus:border-[var(--m-gold)] focus:ring-4 focus:ring-[color-mix(in_oklab,var(--m-gold)_14%,transparent)] focus:outline-none"
         {...input}
       />
     </div>

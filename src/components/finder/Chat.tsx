@@ -230,7 +230,7 @@ function Bubble({
   }
 
   return (
-    <div className="surface-lit a-ring rounded-2xl rounded-bl-md px-3.5 py-3">
+    <div className="surface-lit a-ring rounded-2xl rounded-bl-md px-4 py-3.5">
       {turn.pending ? (
         <p className="text-muted flex items-center gap-2 text-sm">
           <Sparkles className="size-3.5 animate-pulse" aria-hidden />
@@ -335,14 +335,14 @@ export function Chat({
             prompts would otherwise stretch into a single thin line each.
           */
           <div className="flex min-h-full items-center justify-center py-2">
-            <div className="surface-sunken a-ring w-full max-w-md rounded-2xl px-4 py-4">
+            <div className="surface-sunken a-ring w-full max-w-md rounded-3xl px-5 py-5">
               <p className="flex items-center gap-2 text-sm font-medium">
                 <MessagesSquare
                   className="size-4"
                   style={{ color: 'var(--h-violet)' }}
                   aria-hidden
                 />
-                Ask about a company or a person
+                Start with a question
               </p>
               <p className="text-muted mt-1.5 text-xs leading-relaxed text-pretty">
                 Answers are grounded in what we actually hold, and say plainly when we hold
@@ -365,7 +365,7 @@ export function Chat({
                     key={example}
                     type="button"
                     onClick={() => onSend(example)}
-                    className="surface-lit a-ring text-muted group flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition hover:border-[var(--border-strong)] hover:text-[var(--text-c)]"
+                    className="surface-lit a-ring a-lift text-muted group flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs hover:text-[var(--text-c)]"
                   >
                     <span className="min-w-0 flex-1">{example}</span>
                     <ArrowUp className="text-subtle size-3 shrink-0 rotate-45" aria-hidden />
@@ -405,7 +405,7 @@ export function Chat({
           </div>
         )}
 
-        <div className="surface-sunken a-ring flex items-end gap-2 rounded-xl p-2">
+        <div className="surface-sunken a-ring flex items-end gap-2 rounded-2xl p-2">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -426,7 +426,7 @@ export function Chat({
             disabled={busy || !text.trim()}
             aria-label="Send"
             className={cn(
-              'grid size-8 shrink-0 place-items-center rounded-lg transition',
+              'grid size-9 shrink-0 place-items-center rounded-full transition',
               busy || !text.trim()
                 ? 'text-subtle border'
                 : 'gradient-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]',

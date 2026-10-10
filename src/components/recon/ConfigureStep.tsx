@@ -83,10 +83,10 @@ export function ConfigureStep({
         description="The book you are starting from, and the date you are reconciling to."
       />
 
-      <CardBody className="space-y-7">
+      <CardBody className="space-y-4 py-5 sm:space-y-5 sm:py-6">
         {/* ── Which book ── */}
         <fieldset>
-          <legend className="text-sm font-medium">Start from</legend>
+          <legend className="text-sm font-semibold">Start from</legend>
           <p className="text-subtle mt-1 text-xs">
             The statement begins at this balance and works towards the other one.
           </p>
@@ -107,15 +107,23 @@ export function ConfigureStep({
                   onClick={() => onStartingLedger(key)}
                   style={{ '--tone': tone } as CSSProperties}
                   className={cn(
-                    'hover-lift rounded-2xl border p-4 text-left transition',
+                    'hover-lift relative min-w-0 overflow-hidden rounded-2xl border p-4 text-left transition sm:p-5',
                     active
                       ? 'border-[var(--tone)] bg-[color-mix(in_oklab,var(--tone)_9%,var(--surface-raised))] ring-1 ring-[var(--tone)]'
                       : 'surface hover:border-[var(--border-strong)]',
                   )}
                 >
                   <span className="flex items-center justify-between gap-2">
-                    <span className="a-label" style={{ color: tone }}>
-                      Ledger {key}
+                    <span className="flex min-w-0 items-center gap-2.5">
+                      <span
+                        aria-hidden
+                        className="tinted grid size-7 shrink-0 place-items-center rounded-lg border text-xs font-bold"
+                      >
+                        {key}
+                      </span>
+                      <span className="a-label" style={{ color: tone }}>
+                        Ledger {key}
+                      </span>
                     </span>
                     <span
                       aria-hidden
@@ -130,11 +138,11 @@ export function ConfigureStep({
                     </span>
                   </span>
 
-                  <span className="mt-2 block truncate text-sm font-semibold">{ledger.name}</span>
+                  <span className="mt-3 block truncate text-sm font-semibold">{ledger.name}</span>
 
                   {summary && (
                     <>
-                      <span className="a-figure mt-2 block text-[1.35rem]">
+                      <span className="mt-2 block text-[1.35rem] leading-tight font-semibold tracking-tight tabular-nums">
                         {formatINR(summary.calculatedClosing)}
                         <span className="text-muted ml-1.5 text-sm font-medium">
                           {summary.balanceType}
@@ -152,10 +160,8 @@ export function ConfigureStep({
           </div>
         </fieldset>
 
-        <hr />
-
         {/* ── As of when ── */}
-        <div>
+        <div className="surface-sunken a-inner rounded-2xl border p-4 sm:p-5">
           <Field
             label="Reconcile as at"
             htmlFor="recon-date"
@@ -164,7 +170,11 @@ export function ConfigureStep({
                 ? `The latest date in either file is ${formatLedgerDate(autoDate)}.`
                 : 'Neither file has a readable date, so every line counts as posted.'
             }
-            error={tooEarly ? `That is before either file starts (${formatLedgerDate(minDate)}).` : undefined}
+            error={
+              tooEarly
+                ? `That is before either file starts (${formatLedgerDate(minDate)}).`
+                : undefined
+            }
             action={
               autoDate && date !== autoDate ? (
                 <Button size="sm" onClick={() => onDate(autoDate)}>
@@ -185,15 +195,16 @@ export function ConfigureStep({
           </Field>
         </div>
 
-        <hr />
-
         {/* ── The timing window ── */}
-        <fieldset>
-          <legend className="text-sm font-medium">Timing tolerance</legend>
+        <fieldset className="surface-sunken a-inner rounded-2xl border p-4 sm:p-5">
+          <legend className="sr-only">Timing tolerance</legend>
+          <p aria-hidden className="text-sm font-semibold">
+            Timing tolerance
+          </p>
           <p className="text-subtle mt-1 max-w-2xl text-xs leading-relaxed text-pretty">
-            Off by default. Turned on, a line that both books have posted but that cleared more
-            than this many days apart is flagged rather than passed as a clean match. It never
-            changes a balance, only what gets your attention.
+            Off by default. Turned on, a line that both books have posted but that cleared more than
+            this many days apart is flagged rather than passed as a clean match. It never changes a
+            balance, only what gets your attention.
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -220,9 +231,7 @@ export function ConfigureStep({
               }}
               className="w-20"
             />
-            <span
-              className={cn('text-sm', toleranceDays === null && 'text-[var(--text-subtle)]')}
-            >
+            <span className={cn('text-sm', toleranceDays === null && 'text-[var(--text-subtle)]')}>
               days apart
             </span>
           </div>
@@ -236,12 +245,15 @@ export function ConfigureStep({
         )}
 
         {error && (
-          <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">
+          <p
+            role="alert"
+            className="text-sm font-medium text-[color-mix(in_oklab,var(--status-rejected)_82%,var(--text-c))]"
+          >
             {error}
           </p>
         )}
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="surface-sunken flex items-center justify-between gap-3 rounded-2xl border p-3">
           <Button variant="secondary" onClick={onBack} disabled={busy}>
             <ArrowLeft className="size-4" aria-hidden />
             Back

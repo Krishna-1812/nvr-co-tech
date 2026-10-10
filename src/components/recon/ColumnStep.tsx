@@ -1,7 +1,15 @@
 'use client';
 
 import { ArrowLeft, ArrowRight, Columns3, Info, Lock } from 'lucide-react';
-import { Button, Card, CardBody, CardTitle, Field, Input, Select } from '@/components/ui/primitives';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardTitle,
+  Field,
+  Input,
+  Select,
+} from '@/components/ui/primitives';
 import {
   FIELDS,
   FIELD_EFFECT,
@@ -87,7 +95,7 @@ export function ColumnStep({
         description="Read from the headers. Change anything that was guessed wrongly, and give the two files the same names where they mean the same thing."
       />
 
-      <CardBody className="space-y-5">
+      <CardBody className="space-y-5 py-5 sm:py-6">
         <div className="grid gap-4 lg:grid-cols-2">
           {panels.map((panel) => (
             <LedgerColumns
@@ -110,12 +118,15 @@ export function ColumnStep({
         </p>
 
         {error && (
-          <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">
+          <p
+            role="alert"
+            className="text-sm font-medium text-[color-mix(in_oklab,var(--status-rejected)_82%,var(--text-c))]"
+          >
             {error}
           </p>
         )}
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="surface-sunken flex items-center justify-between gap-3 rounded-2xl border p-3">
           <Button variant="secondary" onClick={onBack}>
             <ArrowLeft className="size-4" aria-hidden />
             Back
@@ -147,17 +158,44 @@ function LedgerColumns({
     FIELDS.find((f) => panel.mapping[f] === column) ?? '';
 
   return (
-    <div className="surface-sunken overflow-hidden rounded-2xl border">
-      <div className="border-b px-4 py-3" style={{ '--tone': tone } as React.CSSProperties}>
-        <p className="a-label" style={{ color: tone }}>
-          Ledger {panel.key}
-        </p>
+    <div
+      className="surface-sunken relative min-w-0 overflow-hidden rounded-2xl border"
+      style={{ '--tone': tone } as React.CSSProperties}
+    >
+      {/* The ledger's colour, as light along the top edge, as on step one. */}
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${tone}, transparent)` }}
+      />
+      <div className="surface-lit border-b px-4 py-4 sm:px-5">
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden
+            className="tinted grid size-9 shrink-0 place-items-center rounded-xl border text-sm font-bold"
+          >
+            {panel.key}
+          </span>
+          <div className="min-w-0">
+            <p className="a-label" style={{ color: tone }}>
+              Ledger {panel.key}
+            </p>
+            {panel.headerDetected && (
+              <p className="text-subtle mt-0.5 text-xs">
+                {panel.headers.length} {panel.headers.length === 1 ? 'column' : 'columns'}
+                {missing.length === 0
+                  ? ', all four needed ones found'
+                  : `, ${missing.length} needed ${missing.length === 1 ? 'one' : 'ones'} still to assign`}
+              </p>
+            )}
+          </div>
+        </div>
         {/*
           The name is an input, not a caption. It is what the statement calls this
           book on every line of the output — "Balance as per Company books" reads
           as a reconciliation and "Balance as per Ledger A" reads as a test file.
         */}
-        <div className="mt-2">
+        <div className="mt-3.5">
           <Field label="Name on the statement" htmlFor={`name-${panel.key}`}>
             <Input
               id={`name-${panel.key}`}
@@ -183,13 +221,19 @@ function LedgerColumns({
               const required = role !== '' && (REQUIRED_FIELDS as readonly string[]).includes(role);
 
               return (
-                <li key={column} className="flex items-center gap-3 px-4 py-2.5">
+                <li key={column} className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-medium">
-                      {header || `Column ${column + 1}`}
+                    <span className="flex min-w-0 items-center gap-2 text-[13px] font-medium">
+                      {/* Lit in the ledger's colour once the column stands for something. */}
+                      <span
+                        aria-hidden
+                        className="size-1.5 shrink-0 rounded-full"
+                        style={{ background: role === '' ? 'var(--border-strong)' : tone }}
+                      />
+                      <span className="truncate">{header || `Column ${column + 1}`}</span>
                     </span>
                     {role !== '' && (
-                      <span className="text-subtle mt-0.5 block truncate text-[11px]">
+                      <span className="text-subtle mt-0.5 block truncate pl-3.5 text-[11px]">
                         {FIELD_EFFECT[role]}
                       </span>
                     )}
@@ -224,8 +268,10 @@ function LedgerColumns({
 
           <p
             className={cn(
-              'flex items-start gap-2 border-t px-4 py-2.5 text-xs',
-              missing.length ? 'font-medium text-red-600 dark:text-red-400' : 'text-subtle',
+              'flex items-start gap-2 border-t px-4 py-3 text-xs sm:px-5',
+              missing.length
+                ? 'font-medium text-[color-mix(in_oklab,var(--status-rejected)_82%,var(--text-c))]'
+                : 'text-subtle',
             )}
           >
             <Lock className="mt-px size-3.5 shrink-0" aria-hidden />

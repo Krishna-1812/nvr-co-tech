@@ -115,7 +115,7 @@ export default async function SettingsPage() {
       <Card>
         <CardBody className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 items-start gap-3">
-            <IconTile>
+            <IconTile className="a-inner size-9 rounded-xl">
               <UserRound className="size-4" />
             </IconTile>
             <div className="min-w-0 pt-0.5">
@@ -130,7 +130,7 @@ export default async function SettingsPage() {
 
         <CardBody className="flex flex-wrap items-center justify-between gap-4 border-t">
           <div className="flex min-w-0 items-start gap-3">
-            <IconTile>
+            <IconTile className="a-inner size-9 rounded-xl">
               <ShieldOff className="size-4" />
             </IconTile>
             <div className="min-w-0 pt-0.5">
@@ -197,8 +197,8 @@ function RoleLadder({ current }: { current: UserRole }) {
             <div
               className={
                 you
-                  ? 'min-w-0 flex-1 rounded-xl border border-brand-500 bg-brand-50 px-3.5 py-2.5 dark:bg-brand-900/30'
-                  : 'min-w-0 flex-1 rounded-xl border border-transparent px-3.5 py-2.5'
+                  ? 'tinted min-w-0 flex-1 rounded-2xl border px-3.5 py-2.5 [--tone:var(--accent)]'
+                  : 'min-w-0 flex-1 rounded-2xl border border-transparent px-3.5 py-2.5'
               }
             >
               {/*
@@ -209,7 +209,7 @@ function RoleLadder({ current }: { current: UserRole }) {
               <p className={has ? 'text-sm font-semibold' : 'text-muted text-sm font-semibold'}>
                 {meta.label}
                 {you && (
-                  <span className="ml-2 rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase">
+                  <span className="on-tone ml-2 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase">
                     You
                   </span>
                 )}

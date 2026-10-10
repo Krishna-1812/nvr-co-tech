@@ -77,16 +77,25 @@ function Panel({
   return (
     <div
       style={{ '--tone': tone } as CSSProperties}
-      className="tinted rounded-2xl border px-4 py-3.5"
+      className="tinted a-inner animate-[rise_0.5s_cubic-bezier(0.22,1,0.36,1)_backwards] rounded-3xl border px-5 py-4 sm:px-6"
     >
-      <p className="flex items-start gap-2.5 text-sm font-semibold">
-        <span className="mt-px shrink-0">{icon}</span>
+      <p className="flex items-center gap-3 text-sm font-semibold">
+        {/* The panel tile, in the issue's own colour. */}
+        <span
+          aria-hidden
+          className="grid size-9 shrink-0 place-items-center rounded-xl border border-[color-mix(in_oklab,var(--tone)_35%,var(--border-c))] bg-[var(--surface-raised)]"
+        >
+          {icon}
+        </span>
         <span className="text-pretty">{title}</span>
       </p>
 
-      <ul className="mt-2.5 space-y-1.5 pl-6.5">
+      <ul className="mt-3 space-y-1.5 pl-12">
         {shown.map((issue, i) => (
-          <li key={i} className="text-[13px] leading-relaxed text-pretty opacity-90">
+          <li
+            key={i}
+            className="list-disc text-[13px] leading-relaxed text-pretty opacity-90 marker:opacity-50"
+          >
             {issue.message}
           </li>
         ))}
@@ -96,10 +105,13 @@ function Panel({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="mt-2.5 ml-6.5 inline-flex items-center gap-1 text-xs font-semibold underline-offset-2 hover:underline"
+          className="mt-2.5 ml-12 inline-flex items-center gap-1 text-xs font-semibold underline-offset-2 hover:underline"
         >
           {open ? 'Show fewer' : `Show ${hidden} more`}
-          <ChevronDown className={cn('size-3.5 transition-transform', open && 'rotate-180')} aria-hidden />
+          <ChevronDown
+            className={cn('size-3.5 transition-transform', open && 'rotate-180')}
+            aria-hidden
+          />
         </button>
       )}
     </div>

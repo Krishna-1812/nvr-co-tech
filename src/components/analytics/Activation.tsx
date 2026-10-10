@@ -1,4 +1,5 @@
 import type { Stage } from '@/lib/analytics/funnel';
+import { ChartEmpty } from './Charts';
 import { NUM, number } from './Figures';
 import { cn } from '@/lib/utils';
 
@@ -42,11 +43,11 @@ export function ActivationFunnel({ stages }: { stages: Stage[] }) {
 
   if (top === 0 && stages.every((s) => s.occurrences === 0)) {
     return (
-      <p className="text-subtle px-5 py-10 text-center text-sm text-pretty">
+      <ChartEmpty>
         Nothing has been recorded yet. These figures are written by triggers inside the database
         rather than by the application, so the first row appears the moment somebody signs up —
         there is nothing to switch on.
-      </p>
+      </ChartEmpty>
     );
   }
 
@@ -62,7 +63,7 @@ export function ActivationFunnel({ stages }: { stages: Stage[] }) {
         const comparable = previous?.subject === stage.subject;
 
         return (
-          <li key={stage.event} className="px-5 py-4" style={{ ['--tone' as string]: tone }}>
+          <li key={stage.event} className="px-5 py-4 sm:px-6 sm:py-5" style={{ ['--tone' as string]: tone }}>
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <div className="flex min-w-0 items-baseline gap-2">
                 <span className="text-[13px] font-semibold">{stage.label}</span>
@@ -72,7 +73,7 @@ export function ActivationFunnel({ stages }: { stages: Stage[] }) {
               </div>
 
               <div className="flex items-baseline gap-2.5">
-                <span className={cn(NUM, 'text-[1.35rem] leading-none font-semibold')}>
+                <span className="text-[1.5rem] leading-none font-semibold tracking-tight tabular-nums">
                   {number(stage.reached)}
                 </span>
                 {stage.fromPrevious !== null && comparable && (
@@ -91,11 +92,12 @@ export function ActivationFunnel({ stages }: { stages: Stage[] }) {
 
             <span
               aria-hidden
-              className="mt-2 block h-2 w-full overflow-hidden rounded-full bg-[var(--a-track)]"
+              className="mt-2.5 block h-2.5 w-full overflow-hidden rounded-full bg-[var(--a-track)]"
             >
               <span
-                className="block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="a-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
                 style={{
+                  animationDelay: `${index * 90}ms`,
                   width: `${Math.max(share * 100, stage.reached > 0 ? 1.5 : 0)}%`,
                   background:
                     'linear-gradient(90deg, color-mix(in oklab, var(--tone) 55%, transparent), var(--tone))',
@@ -155,7 +157,7 @@ export function Fact({
     <div className="border-t pt-3 first:border-t-0 first:pt-0 sm:border-t sm:pt-3">
       <p className="a-label">{label}</p>
       <p
-        className={cn(NUM, 'mt-1 text-[1.25rem] leading-none font-semibold')}
+        className="mt-1.5 text-[1.35rem] leading-none font-semibold tracking-tight tabular-nums"
         style={tone ? { color: tone } : undefined}
       >
         {value}

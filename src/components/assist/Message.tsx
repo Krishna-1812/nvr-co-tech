@@ -36,14 +36,21 @@ function Mark({ sample }: { sample: boolean }) {
     return (
       <span
         aria-hidden
-        className="surface-sunken text-subtle a-ring mt-0.5 grid size-7 shrink-0 place-items-center rounded-xl border"
+        className="surface-sunken text-subtle a-inner mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl border"
       >
         <FlaskConical className="size-3.5" />
       </span>
     );
   }
 
-  return <LogoMark id="assist-mark" className="mt-0.5 size-7 shrink-0" />;
+  return (
+    <span
+      aria-hidden
+      className="surface-sunken a-inner mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl border"
+    >
+      <LogoMark id="assist-mark" className="size-5.5" />
+    </span>
+  );
 }
 
 export function Message({ turn, streaming = false }: { turn: Turn; streaming?: boolean }) {
@@ -54,7 +61,7 @@ export function Message({ turn, streaming = false }: { turn: Turn; streaming?: b
   if (turn.role === 'user') {
     return (
       <div className={cn('flex justify-end', enter)}>
-        <div className="surface-lit max-w-[85%] rounded-2xl rounded-br-md px-3.5 py-2.5 text-[14px] leading-relaxed whitespace-pre-wrap">
+        <div className="surface-lit a-ring max-w-[85%] rounded-[1.25rem] rounded-br-md px-4 py-2.5 text-[14px] leading-relaxed break-words whitespace-pre-wrap">
           {turn.content}
         </div>
       </div>
@@ -93,11 +100,7 @@ export function Message({ turn, streaming = false }: { turn: Turn; streaming?: b
             arrive first and an empty gap while one runs looks like a stall. */}
         <Workings traces={turn.tools ?? []} />
 
-        {turn.content ? (
-          <Markdown source={turn.content} />
-        ) : (
-          streaming && <Thinking />
-        )}
+        {turn.content ? <Markdown source={turn.content} /> : streaming && <Thinking />}
 
         {/* Only once the answer is finished. A row of chips appearing under a
             half-written sentence pulls the eye off the sentence. */}

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { PageHeader } from '@/components/PageHeader';
 import { ledgerMaxDate, ledgerMinDate } from '@/lib/recon/calculator';
 import { openLedger, remapLedger, type OpenedLedger } from '@/lib/recon/parse';
 import type { Field as ColumnField } from '@/lib/recon/parse/columns';
@@ -15,6 +14,7 @@ import { Issues } from './Issues';
 import { ResultView } from './ResultView';
 import { Steps, type StepId } from './Steps';
 import { UploadStep } from './UploadStep';
+import { WizardHero } from './WizardHero';
 
 /**
  * The whole reconciliation, in one client component.
@@ -43,11 +43,21 @@ type Slot = {
   mapping: Record<ColumnField, number | null>;
 };
 
-const EMPTY: Slot = { file: null, opened: null, busy: false, error: null, name: '', mapping: {} as Record<ColumnField, number | null> };
+const EMPTY: Slot = {
+  file: null,
+  opened: null,
+  busy: false,
+  error: null,
+  name: '',
+  mapping: {} as Record<ColumnField, number | null>,
+};
 
 /** "sample-bank-statement.csv" → "Sample bank statement". */
 function nameFromFilename(filename: string): string {
-  const stem = filename.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim();
+  const stem = filename
+    .replace(/\.[^.]+$/, '')
+    .replace(/[-_]+/g, ' ')
+    .trim();
   if (!stem) return '';
   return (stem.charAt(0).toUpperCase() + stem.slice(1)).slice(0, 60);
 }
@@ -143,7 +153,13 @@ export function Workbench() {
     setRunning(true);
     setRunError(null);
     try {
-      setResult(reconcile(ledgers.A, ledgers.B, { reconciliationDate: date, startingLedger, toleranceDays }));
+      setResult(
+        reconcile(ledgers.A, ledgers.B, {
+          reconciliationDate: date,
+          startingLedger,
+          toleranceDays,
+        }),
+      );
       setStep('result');
     } catch (error) {
       setRunError(messageFrom(error));
@@ -194,31 +210,44 @@ export function Workbench() {
       mapping: slots[key].mapping,
     }));
 
-  return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader
-        eyebrow="Ledger Reconciliation"
-        title={
-          step === 'result' && result
-            ? `${result.summaryA.name} against ${result.summaryB.name}`
-            : 'Reconcile two ledgers'
-        }
-        description={
-          step === 'result'
-            ? undefined
-            : 'Your books against a bank statement, or two sides of the same intercompany account. Everything is read in this browser.'
-        }
-      />
+  const steps = (
+    <Steps
+      current={step}
+      onGo={(target) => {
+        // Only backwards, and only to a step whose input still exists.
+        if (target === 'upload') setStep('upload');
+        else if (target === 'columns' && bothOpen) setStep('columns');
+        else if (target === 'configure' && ledgers) setStep('configure');
+      }}
+    />
+  );
 
-      <Steps
-        current={step}
-        onGo={(target) => {
-          // Only backwards, and only to a step whose input still exists.
-          if (target === 'upload') setStep('upload');
-          else if (target === 'columns' && bothOpen) setStep('columns');
-          else if (target === 'configure' && ledgers) setStep('configure');
-        }}
-      />
+  /*
+   * The files as the hero names them. Before the columns are confirmed the line
+   * count is the first reading of the file; after, it is the reading under the
+   * mapping that was confirmed, which is the one the run will use.
+   */
+  const files = (['A', 'B'] as const).flatMap((key) => {
+    const opened = slots[key].opened;
+    if (!opened) return [];
+    const lines = (step === 'configure' && ledgers ? ledgers[key] : opened.ledger).transactions
+      .length;
+    return [{ name: opened.filename, lines }];
+  });
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-6">
+      {/* The hero is the page heading on every step: the task until there is
+          an answer, and then the answer, in the same frame. */}
+      {step !== 'result' && (
+        <WizardHero
+          step={step}
+          steps={steps}
+          onSample={loadSamples}
+          files={files}
+          span={{ from: dates.min, to: dates.auto }}
+        />
+      )}
 
       {/* The file problems, shown from the moment they are known and kept on
           screen through the steps where they can still be acted on. */}
@@ -231,12 +260,12 @@ export function Workbench() {
             label: key === 'A' ? 'First ledger' : 'Second ledger',
             hint: key === 'A' ? 'Usually your own books' : 'Usually the bank statement',
             file: slots[key].file,
+            lines: slots[key].opened?.ledger.transactions.length ?? null,
             busy: slots[key].busy,
             error: slots[key].error,
           }))}
           onFile={acceptFile}
           onClear={clearFile}
-          onSample={loadSamples}
           canContinue={bothOpen}
           onContinue={() => setStep('columns')}
         />
@@ -277,7 +306,12 @@ export function Workbench() {
       )}
 
       {step === 'result' && result && (
-        <ResultView result={result} onBack={() => setStep('configure')} onReset={reset} />
+        <ResultView
+          result={result}
+          onBack={() => setStep('configure')}
+          onReset={reset}
+          footer={steps}
+        />
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { CalendarClock, LogIn, ShieldCheck, type LucideIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import { BRAND, CONTACT } from '@/lib/marketing/content';
 import { ArchScene, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
@@ -42,7 +43,7 @@ export default function ContactPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <ArchScene />
+        <ArchScene motif="sundial" />
 
         <Roost seed="contact-sill" band="top-right" />
 
@@ -81,7 +82,7 @@ export default function ContactPage() {
             <div className="space-y-4">
               <Reveal delay={80}>
                 <div className="m-card p-6 sm:p-7">
-                  <h2 className="m-eyebrow">What happens next</h2>
+                  <PanelHead icon={CalendarClock} title="What happens next" />
                   <ol className="mt-5 space-y-4">
                     {NEXT_STEPS.map((step, i) => (
                       <li key={step} className="flex gap-3.5">
@@ -100,7 +101,7 @@ export default function ContactPage() {
 
               <Reveal delay={140}>
                 <div className="m-card p-6 sm:p-7">
-                  <h2 className="m-eyebrow">Already using it</h2>
+                  <PanelHead icon={LogIn} title="Already using it" />
                   <p className="m-dim mt-4 t-3">
                     If your firm is already on {BRAND.name} you do not need a call. Sign in, or ask
                     whoever set your organisation up to send you an invite link. Following one puts
@@ -125,7 +126,7 @@ export default function ContactPage() {
 
               <Reveal delay={200}>
                 <div className="m-card p-6 sm:p-7">
-                  <h2 className="m-eyebrow">Elsewhere</h2>
+                  <PanelHead icon={ShieldCheck} title="Elsewhere" />
                   {/*
                     Two rows removed: "Built by — Chartered accountants, in
                     Mumbai" and "Hosting — Mumbai · ap-south-1". Both named the
@@ -154,5 +155,25 @@ export default function ContactPage() {
         </Container>
       </Section>
     </>
+  );
+}
+
+/**
+ * A side panel's header: the label beside a small tile with its icon, the
+ * public site's version of the app's panel header. The tile is the arch, so the
+ * three panels down the side read as three small doorways rather than three
+ * boxes with a caption on top.
+ */
+function PanelHead({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
+  return (
+    <div className="flex items-center gap-3 border-b border-[var(--m-line)] pb-4">
+      <span
+        aria-hidden
+        className="m-arch grid h-10 w-8 shrink-0 place-items-center bg-[var(--m-bg-2)] pt-1 text-[var(--m-gold)]"
+      >
+        <Icon className="size-4" />
+      </span>
+      <h2 className="m-eyebrow">{title}</h2>
+    </div>
   );
 }

@@ -1,20 +1,23 @@
 import { Skeleton } from '@/components/ui/primitives';
+import { HeroSkeleton } from '@/components/ui/Skeletons';
 
-/** The shape of the upload step, so the page does not jump when it arrives. */
+/** The shape of the upload step — the hero, then the two ledgers side by side —
+ *  so the page does not jump when it arrives. */
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="space-y-3 pb-5">
-        <Skeleton className="h-3 w-40" />
-        <Skeleton className="h-9 w-80 max-w-full" />
-        <Skeleton className="h-4 w-full max-w-xl" />
-      </div>
-      <Skeleton className="h-6 w-72 max-w-full" />
-      <div className="surface-lit rounded-2xl p-5">
-        <Skeleton className="h-5 w-48" />
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <Skeleton className="h-40" />
-          <Skeleton className="h-40" />
+    <div className="mx-auto max-w-6xl space-y-6">
+      <HeroSkeleton working={false} />
+      <div className="surface-lit a-ring rounded-3xl p-5 sm:p-6">
+        <div className="flex items-start gap-3">
+          <Skeleton className="size-9 rounded-xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-3 w-full max-w-md" />
+          </div>
+        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 sm:gap-5">
+          <Skeleton className="h-60 rounded-3xl" />
+          <Skeleton className="h-60 rounded-3xl" />
         </div>
       </div>
     </div>

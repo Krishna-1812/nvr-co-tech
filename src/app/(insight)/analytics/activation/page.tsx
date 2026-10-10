@@ -33,7 +33,7 @@ import {
 import { renderedAt } from '@/lib/analytics/people';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardTitle, DataTable, Td, Th, Thead, Tr } from '@/components/ui/primitives';
-import { Split, Trend } from '@/components/analytics/Charts';
+import { ChartEmpty, Split, Trend } from '@/components/analytics/Charts';
 import { ActivationFunnel, Fact } from '@/components/analytics/Activation';
 import { NUM, Pill, ago, number } from '@/components/analytics/Figures';
 import { WindowTabs, windowFrom } from '@/components/analytics/Window';
@@ -273,9 +273,9 @@ export default async function ActivationPage({
             description="Median and the ninetieth percentile, because the tail here is made of vouchers somebody forgot about and a mean would report the tail as normal."
           />
           {stages.length === 0 ? (
-            <p className="text-subtle px-5 py-8 text-center text-sm text-pretty">
+            <ChartEmpty>
               No voucher has moved through two states yet, so there is nothing to time.
-            </p>
+            </ChartEmpty>
           ) : (
             <DataTable>
               <Thead>
@@ -321,11 +321,11 @@ export default async function ActivationPage({
           }
         />
         {stalled.length === 0 ? (
-          <p className="text-subtle px-5 py-8 text-center text-sm text-pretty">
+          <ChartEmpty>
             Nothing has stopped moving. Worth knowing what this table cannot catch: nothing
             currently tells an approver a voucher is waiting, because notification email is switched
             off. An empty table here is the only place that absence would ever show up.
-          </p>
+          </ChartEmpty>
         ) : (
           <div className="scroll-x-hint">
             <DataTable>
@@ -396,9 +396,9 @@ export default async function ActivationPage({
           description="Read through a function that returns counts and nothing else. The tenant screens used to read the tables directly, which is why they only ever showed one row: the policy on organizations scopes it to your own."
         />
         {tenants.length === 0 ? (
-          <p className="text-subtle px-5 py-8 text-center text-sm text-pretty">
+          <ChartEmpty>
             No organisation has been created yet.
-          </p>
+          </ChartEmpty>
         ) : (
           <div className="scroll-x-hint">
             <DataTable>
@@ -453,9 +453,9 @@ export default async function ActivationPage({
             }
           />
           {onboarding.length === 0 ? (
-            <p className="text-subtle px-5 py-8 text-center text-sm text-pretty">
+            <ChartEmpty>
               Everybody who signed up went on to create or join an organisation.
-            </p>
+            </ChartEmpty>
           ) : (
             <DataTable>
               <Thead>

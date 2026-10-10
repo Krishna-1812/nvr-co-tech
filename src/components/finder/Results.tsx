@@ -72,7 +72,7 @@ function monogram(name: string): string {
 function Chip({ children, tone }: { children: React.ReactNode; tone?: string }) {
   return (
     <span
-      className="tinted inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium"
+      className="tinted inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium"
       style={tone ? ({ '--tone': tone } as React.CSSProperties) : undefined}
     >
       {children}
@@ -85,7 +85,7 @@ function Figure({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
       <p className="a-label truncate">{label}</p>
-      <p className="numeric truncate text-sm font-semibold">{value}</p>
+      <p className="numeric mt-0.5 truncate text-sm font-semibold tracking-tight tabular-nums">{value}</p>
     </div>
   );
 }
@@ -148,11 +148,11 @@ function PersonCard({
   const g = growth(row.organization_growth12) ?? growth(row.organization_growth6);
 
   return (
-    <article className="surface-lit a-ring hover-lift flex flex-col gap-3 rounded-2xl p-4">
+    <article className="surface-lit a-ring a-lift @container flex min-w-0 flex-col gap-4 rounded-3xl p-5">
       <div className="flex items-start gap-3">
         <Tick on={on} onClick={toggle} label={`Select ${name}`} />
 
-        <span className="gradient-brand grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold">
+        <span className="gradient-brand a-inner grid size-10 shrink-0 place-items-center rounded-2xl text-[13px] font-bold tracking-tight">
           {monogram(name)}
         </span>
 
@@ -198,7 +198,7 @@ function PersonCard({
       )}
 
       {employer && (
-        <div className="surface-sunken rounded-xl border p-3">
+        <div className="surface-sunken rounded-2xl border p-3.5">
           <div className="flex items-center gap-2">
             <Building2 className="text-subtle size-3.5 shrink-0" aria-hidden />
             <p className="truncate text-sm font-medium">{employer}</p>
@@ -217,7 +217,7 @@ function PersonCard({
               This company could not be looked up, so nothing here was checked against it.
             </p>
           ) : (
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <div className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-2.5 @xs:grid-cols-3">
               <Figure label="Industry" value={s(row.organization_industry)} />
               <Figure label="People" value={count(row.organization_employees)} />
               <Figure label="HQ" value={place(row, 'organization_')} />
@@ -291,12 +291,12 @@ function CompanyCard({
   const tech = arr(row.technologies);
 
   return (
-    <article className="surface-lit a-ring hover-lift flex flex-col gap-3 rounded-2xl p-4">
+    <article className="surface-lit a-ring a-lift @container flex min-w-0 flex-col gap-4 rounded-3xl p-5">
       <div className="flex items-start gap-3">
         <Tick on={on} onClick={toggle} label={`Select ${name}`} />
 
         <span
-          className="on-tone grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold"
+          className="on-tone a-inner grid size-10 shrink-0 place-items-center rounded-2xl text-[13px] font-bold tracking-tight"
           style={{ background: 'var(--h-cyan)' }}
         >
           {monogram(name)}
@@ -346,7 +346,7 @@ function CompanyCard({
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 @xs:grid-cols-3 @md:grid-cols-4">
         <Figure label="People" value={count(row.estimated_num_employees)} />
         <Figure label="Revenue" value={compact(row.annual_revenue)} />
         <Figure label="Raised" value={compact(row.total_funding)} />
@@ -427,10 +427,10 @@ function ResultTable({
   const columns = entity === 'companies' ? COMPANY_COLUMNS : PERSON_COLUMNS;
 
   return (
-    <div className="surface-lit a-ring overflow-x-auto rounded-2xl">
+    <div className="surface-lit a-ring overflow-x-auto rounded-3xl">
       <table className="w-full min-w-[52rem] text-sm">
         <thead>
-          <tr className="border-b">
+          <tr className="border-b bg-[color-mix(in_oklab,var(--surface-sunken)_60%,transparent)]">
             <th className="w-9 px-3 py-2" />
             {columns.map(([label]) => (
               <th key={label} className="a-label whitespace-nowrap px-3 py-2 text-left">
@@ -507,7 +507,13 @@ export function Results({
   }
 
   return (
-    <div className="stagger grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+    /*
+      Columns by the width of the results column, not the window's. At 2xl the
+      page is capped and the column sits between two rails, so a viewport rule
+      put three cards in about 560px and truncated every name to four letters.
+    */
+    <div className="@container">
+    <div className="stagger grid gap-4 @lg:grid-cols-2 @5xl:grid-cols-3">
       {rows.map((row) => {
         const id = rowId(row);
         const props = {
@@ -522,6 +528,7 @@ export function Results({
           <PersonCard key={id} {...props} />
         );
       })}
+    </div>
     </div>
   );
 }

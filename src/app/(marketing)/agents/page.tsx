@@ -11,7 +11,9 @@ import {
   Rise,
   Section,
   StageBadge,
+  motifFor,
 } from '@/components/marketing/bits';
+import { ArchScene as SceneArch } from '@/components/ui/Scene';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Spotlight } from '@/components/marketing/motion';
@@ -39,7 +41,7 @@ const TRAIL = [
 const GROUPS: { stage: AgentStage; lead: string }[] = [
   {
     stage: 'live',
-    lead: 'Up and running, with the rules held in the database rather than in the screens. Sign in and you can raise a voucher or reconcile two ledgers today.',
+    lead: 'Up and running and open to use. Sign in and every one of them is there today, under the one login.',
   },
   {
     stage: 'building',
@@ -55,7 +57,7 @@ export default function AgentsPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <ArchScene />
+        <ArchScene motif="doorways" />
 
         <Roost seed="agents-roost" band="top-right" />
 
@@ -156,6 +158,27 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
           above the background and below the link's content. */}
       <Spotlight color={accent} className="m-card m-card-lift h-full overflow-hidden rounded-2xl">
         <Link href={`/agents/${agent.slug}`} className="group relative flex h-full flex-col p-6">
+          {/*
+            A live tool gets a window onto the scene its own screen opens on,
+            so the roster shows each working tool as the thing you will meet
+            after signing in rather than as a line of copy. Roadmap tools keep
+            the plain doorway: there is no screen yet for a picture to promise.
+          */}
+          {agent.stage === 'live' && (
+            <div
+              aria-hidden
+              className="relative -mx-2 -mt-2 mb-6 flex h-48 items-end justify-center overflow-hidden rounded-2xl"
+              style={{ background: `color-mix(in oklab, ${accent} 14%, var(--m-bg))` }}
+            >
+              <div
+                className="m-arch relative p-2 transition-transform duration-500 group-hover:-translate-y-1"
+                style={{ background: accent }}
+              >
+                <SceneArch motif={motifFor(agent.slug)} sun={false} className="h-[9.5rem] min-h-0 w-[8rem]" />
+              </div>
+            </div>
+          )}
+
           <div className="relative flex items-start justify-between gap-3">
             {/*
               The agent's own doorway, in its colour, with the sun inside it.
@@ -164,13 +187,18 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
               above, so a card and its arch on the rail are visibly the same
               thing. The sun climbs a little on hover.
             */}
-            <span
-              aria-hidden
-              className="m-arch relative h-14 w-11 shrink-0 overflow-hidden"
-              style={{ background: accent }}
-            >
-              <span className="absolute bottom-0 left-1/2 size-7 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
-            </span>
+            {agent.stage === 'live' ? (
+              // The window above already carries the doorway; the name leads.
+              <h3 className="m-display t-6">{agent.name}</h3>
+            ) : (
+              <span
+                aria-hidden
+                className="m-arch relative h-14 w-11 shrink-0 overflow-hidden"
+                style={{ background: accent }}
+              >
+                <span className="absolute bottom-0 left-1/2 size-7 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
+              </span>
+            )}
             <span className="flex items-center gap-3">
               <StageBadge stage={agent.stage} />
               <ArrowUpRight
@@ -180,14 +208,16 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
             </span>
           </div>
 
-          <h3 className="m-display relative mt-5 t-6">{agent.name}</h3>
+          {agent.stage !== 'live' && (
+            <h3 className="m-display relative mt-5 t-6">{agent.name}</h3>
+          )}
           {/* Olive rather than the agent's colour: two of the eight earth hues
               (sun and sage) are too light to set small type in. */}
           <p className="m-mono relative mt-2 t-1 t-caps text-[var(--m-olive)] uppercase">
             {agent.category}
           </p>
 
-          <p className="m-dim relative mt-4 t-3">{agent.summary}</p>
+          <p className="m-dim relative mt-4 mb-6 t-3">{agent.summary}</p>
 
           <div className="relative mt-auto flex items-center gap-2 border-t border-[var(--m-line)] pt-4 t-1 t-caps uppercase">
             <span className="m-mono m-dim-2 min-w-0 flex-1 truncate">{agent.inputs}</span>

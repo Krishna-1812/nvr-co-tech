@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { DataTable, Td, Th, Thead, Tr } from '@/components/ui/primitives';
 import { CompanyBriefDrawer } from '@/components/comps/CompanyBriefDrawer';
 import { crore, coverage, percent, shortDate } from '@/lib/comps/format';
@@ -42,11 +42,30 @@ import { cn } from '@/lib/utils';
 
 const MULTIPLES: MethodKey[] = ['ev_revenue', 'ev_ebitda', 'pe'];
 
+/*
+ * Crore, without the unit on every cell. The unit is said once, under each money
+ * column's header: "Cr" repeated sixty times was the widest thing in the
+ * table, and it is what pushed the multiples — the columns this table exists
+ * for — off the right edge on a laptop. The figure itself is the same string
+ * `crore()` returns; only the suffix moves.
+ */
+const cr = (v: number | null) => crore(v, { symbol: false }).replace(/ Cr$/, '');
+
+function MoneyTh({ children }: { children: string }) {
+  return (
+    <Th align="right" className="px-3">
+      {children}
+      <span className="block text-[10px] font-normal tracking-normal normal-case opacity-80">₹ Cr</span>
+    </Th>
+  );
+}
+
 /** A figure cell. Absent renders as a dash and is dimmed, so gaps read as gaps. */
 function Figure({ value, render }: { value: number | null; render: (v: number | null) => string }) {
   const known = isKnown(value);
   return (
-    <Td align="right" className={cn('tabular-nums', !known && 'text-subtle')}>
+    // nowrap: "1,200 Cr" broken over two lines reads as two figures.
+    <Td align="right" className={cn('px-3 tabular-nums whitespace-nowrap', !known && 'text-subtle')}>
       {render(value)}
     </Td>
   );
@@ -72,16 +91,16 @@ export function ComparablesTable({
     <DataTable>
       <Thead>
         <tr>
-          <Th>Company</Th>
-          <Th>Period</Th>
-          <Th align="right">Revenue</Th>
-          <Th align="right">Growth</Th>
-          <Th align="right">EBITDA</Th>
-          <Th align="right">Market cap</Th>
-          <Th align="right">Net debt</Th>
-          <Th align="right">EV</Th>
+          <Th className="px-3">Company</Th>
+          <Th className="px-3">Period</Th>
+          <MoneyTh>Revenue</MoneyTh>
+          <Th align="right" className="px-3">Growth</Th>
+          <MoneyTh>EBITDA</MoneyTh>
+          <MoneyTh>Market cap</MoneyTh>
+          <MoneyTh>Net debt</MoneyTh>
+          <MoneyTh>EV</MoneyTh>
           {MULTIPLES.map((m) => (
-            <Th key={m} align="right">
+            <Th key={m} align="right" className="px-3">
               {METHOD_LABEL[m]}
             </Th>
           ))}
@@ -97,13 +116,23 @@ export function ComparablesTable({
 
           return (
             <Tr key={c.companyId}>
-              <Td>
+              <Td className="min-w-[13rem] px-3">
                 <button
                   type="button"
                   onClick={() => setOpened(c)}
-                  className="cursor-pointer font-medium underline decoration-[var(--border-c)] underline-offset-2 transition hover:decoration-current"
+                  className="group inline-flex cursor-pointer items-center gap-2.5 text-left font-medium"
                 >
-                  {c.name}
+                  {/* A monogram, so the column reads as a list of companies at a
+                      glance and the click target is bigger than the name. */}
+                  <span
+                    aria-hidden
+                    className="surface-sunken text-muted grid size-7 shrink-0 place-items-center rounded-lg border text-[11px] font-semibold transition group-hover:border-[var(--border-strong)] group-hover:text-[var(--text-c)]"
+                  >
+                    {c.name.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <span className="underline decoration-[var(--border-c)] underline-offset-[3px] transition group-hover:decoration-current">
+                    {c.name}
+                  </span>
                 </button>
                 {c.listingStatus !== 'listed' && (
                   /*
@@ -112,18 +141,21 @@ export function ComparablesTable({
                    * three dashes at the end of a row deserves to know why
                    * without having to work it out.
                    */
-                  <span className="text-subtle ml-2 text-[11px] tracking-wide uppercase">
+                  <span
+                    style={{ '--tone': 'var(--status-draft)' } as CSSProperties}
+                    className="tinted mt-1 ml-[2.375rem] block w-fit rounded-full border px-1.5 py-px text-[10px] font-semibold tracking-wide whitespace-nowrap uppercase"
+                  >
                     {c.listingStatus}
                   </span>
                 )}
               </Td>
-              <Td className="text-muted text-xs whitespace-nowrap">{shortDate(c.periodEnd)}</Td>
-              <Figure value={c.revenue} render={(v) => crore(v, { symbol: false })} />
+              <Td className="text-muted px-3 text-xs whitespace-nowrap">{shortDate(c.periodEnd)}</Td>
+              <Figure value={c.revenue} render={cr} />
               <Figure value={revenueGrowth(c)} render={percent} />
-              <Figure value={c.ebitda} render={(v) => crore(v, { symbol: false })} />
-              <Figure value={c.marketCap} render={(v) => crore(v, { symbol: false })} />
-              <Figure value={netDebt} render={(v) => crore(v, { symbol: false })} />
-              <Figure value={c.multiples.enterpriseValue} render={(v) => crore(v, { symbol: false })} />
+              <Figure value={c.ebitda} render={cr} />
+              <Figure value={c.marketCap} render={cr} />
+              <Figure value={netDebt} render={cr} />
+              <Figure value={c.multiples.enterpriseValue} render={cr} />
 
               {MULTIPLES.map((m) => {
                 const value = PICK[m](c);
@@ -132,15 +164,20 @@ export function ComparablesTable({
                   <Td
                     key={m}
                     align="right"
-                    className={cn(
-                      'tabular-nums',
-                      !isKnown(value) && 'text-subtle',
-                      isOutlier && 'font-semibold text-[var(--status-warn)]',
-                    )}
+                    className={cn('px-3 tabular-nums whitespace-nowrap', !isKnown(value) && 'text-subtle')}
                     title={isOutlier ? 'Outside the 1.5 × IQR fence. Kept in the set.' : undefined}
                   >
-                    {formatMultiple(value)}
-                    {isOutlier && <span aria-label=" outlier"> *</span>}
+                    {isOutlier ? (
+                      <span
+                        style={{ '--tone': 'var(--status-warn)' } as CSSProperties}
+                        className="tinted inline-flex rounded-md border px-1.5 py-px font-semibold"
+                      >
+                        {formatMultiple(value)}
+                        <span aria-label=" outlier"> *</span>
+                      </span>
+                    ) : (
+                      formatMultiple(value)
+                    )}
                   </Td>
                 );
               })}
@@ -155,13 +192,13 @@ export function ComparablesTable({
         is the median OF the table; in the footer of the column it cannot be
         anything else.
       */}
-      <tfoot className="border-t-2">
+      <tfoot className="surface-sunken border-t-2">
         <tr className="text-xs">
-          <Td colSpan={8} className="text-muted">
+          <Td colSpan={8} className="a-label">
             {statistic === 'median' ? 'Median' : statistic === 'mean' ? 'Mean' : statistic === 'q1' ? 'Lower quartile' : 'Upper quartile'}
           </Td>
           {MULTIPLES.map((m) => (
-            <Td key={m} align="right" className="font-semibold tabular-nums">
+            <Td key={m} align="right" className="px-3 text-[13px] font-semibold whitespace-nowrap tabular-nums">
               {formatMultiple(
                 statistic === 'median'
                   ? spreads[m].median
@@ -180,7 +217,7 @@ export function ComparablesTable({
             Quartiles
           </Td>
           {MULTIPLES.map((m) => (
-            <Td key={m} align="right" className="text-subtle tabular-nums">
+            <Td key={m} align="right" className="text-subtle px-3 whitespace-nowrap tabular-nums">
               {formatMultiple(spreads[m].q1)} – {formatMultiple(spreads[m].q3)}
             </Td>
           ))}
@@ -196,7 +233,7 @@ export function ComparablesTable({
             Computed from
           </Td>
           {MULTIPLES.map((m) => (
-            <Td key={m} align="right" className="text-subtle">
+            <Td key={m} align="right" className="text-subtle px-3 whitespace-nowrap">
               {coverage(spreads[m].n, spreads[m].missing)}
             </Td>
           ))}

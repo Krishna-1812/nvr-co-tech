@@ -6,6 +6,7 @@ import { AuthSignOut } from '@/components/auth/AuthSignOut';
 import { BRAND } from '@/lib/marketing/content';
 import { createClient } from '@/lib/supabase/server';
 import { DESERT_FONTS } from '@/lib/brand/fonts';
+import { ArchScene as SceneArch } from '@/components/ui/Scene';
 
 /**
  * Shell for /login and /signup.
@@ -44,28 +45,65 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
     >
       <Backdrop />
 
-      <div className="relative w-full max-w-[26.5rem]">
-        <Link
-          href="/"
-          className="mx-auto mb-9 flex w-fit rounded-lg transition hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[var(--m-gold)] focus-visible:outline-none"
-        >
-          <Logo id="auth-mark" />
-        </Link>
+      <div className="relative grid w-full max-w-6xl items-center justify-items-center gap-16 lg:grid-cols-2">
+        <Gate />
 
-        {children}
-
-        <div className="mt-8 flex flex-col items-center gap-3 text-center">
+        <div className="relative w-full max-w-[26.5rem]">
           <Link
             href="/"
-            className="m-dim-2 inline-flex items-center gap-1.5 text-xs transition hover:text-[var(--m-ink)]"
+            className="mx-auto mb-9 flex w-fit rounded-lg transition hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[var(--m-gold)] focus-visible:outline-none"
           >
-            <ArrowLeft className="size-3" aria-hidden />
-            Back to {BRAND.name}
+            <Logo id="auth-mark" />
           </Link>
 
-          {user && <AuthSignOut email={user.email ?? null} />}
+          {children}
+
+          <div className="mt-8 flex flex-col items-center gap-3 text-center">
+            <Link
+              href="/"
+              className="m-dim-2 inline-flex items-center gap-1.5 text-xs transition hover:text-[var(--m-ink)]"
+            >
+              <ArrowLeft className="size-3" aria-hidden />
+              Back to {BRAND.name}
+            </Link>
+
+            {user && <AuthSignOut email={user.email ?? null} />}
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The gate, beside the form, from lg up.
+ *
+ * This is not the split screen that was taken out. That put a lit brand panel
+ * beside a flat form column, two grounds meeting at a seam, and spent its half
+ * of the page explaining database internals. Here there is one ground and no
+ * seam: the scene stands on the same bone as the form, the way the arches on
+ * the public pages stand beside their headlines, and it says one thing.
+ *
+ * The scene is the gate from the tools' set (components/ui/Scene), framed in
+ * terracotta like the doorways on the inner pages, so the last picture before
+ * the product is the same family as the first one inside it. Below lg there is
+ * no room beside the card, and the screen falls back to the single column
+ * standing in its arch.
+ */
+function Gate() {
+  return (
+    <div className="hidden w-full max-w-[24rem] flex-col items-center text-center lg:flex">
+      <div
+        aria-hidden
+        className="m-arch m-arch-open w-full p-3.5 shadow-[var(--m-shadow)]"
+        style={{ background: 'var(--m-gold)' }}
+      >
+        <SceneArch motif="gate" className="h-[min(30rem,58vh)] min-h-[20rem]" />
+      </div>
+      <p className="m-eyebrow mt-10">One door in</p>
+      <p className="m-display mt-3 max-w-[20rem] text-[1.6rem] leading-[1.2] text-[var(--m-ink)]">
+        Every tool your organisation uses, behind the one sign-in.
+      </p>
     </div>
   );
 }
@@ -90,7 +128,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 function Backdrop() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-      <div className="m-arch m-arch-open absolute top-[6vh] left-1/2 h-[120vh] w-[min(40rem,92vw)] -translate-x-1/2 bg-[var(--m-bg-2)]" />
+      <div className="m-arch m-arch-open absolute top-[6vh] left-1/2 h-[120vh] w-[min(40rem,92vw)] -translate-x-1/2 bg-[var(--m-bg-2)] lg:left-[calc(50%+min(19rem,25vw))] lg:w-[31rem]" />
     </div>
   );
 }

@@ -74,7 +74,7 @@ export function QueryBar({
       {chips.map(([key, text]) => (
         <span
           key={key}
-          className="surface-lit inline-flex max-w-full items-center gap-1 rounded-lg px-2 py-1 text-xs"
+          className="surface-lit a-ring inline-flex max-w-full items-center gap-1.5 rounded-full py-1 pr-1.5 pl-3 text-xs"
         >
           <span className="truncate">{text}</span>
           <button
@@ -129,7 +129,7 @@ export function RejectionBanner({
 
   return (
     <div
-      className="a-ring rounded-2xl border px-3.5 py-3"
+      className="a-ring rounded-2xl border px-4 py-3.5"
       style={{ background: 'color-mix(in oklab, var(--h-amber) 7%, var(--surface-raised))' }}
     >
       {reasons.length > 0 && (
@@ -151,7 +151,7 @@ export function RejectionBanner({
               const words = `${n} ${labels[reason] ?? reason}`;
               if (keys.length === 0) {
                 return (
-                  <span key={reason} className="surface-lit rounded-lg px-2 py-1 text-xs">
+                  <span key={reason} className="surface-lit rounded-full px-2.5 py-1 text-xs">
                     {words}
                   </span>
                 );
@@ -162,7 +162,7 @@ export function RejectionBanner({
                   type="button"
                   onClick={() => onRelax(keys)}
                   title="Drop this filter and search again"
-                  className="surface-lit inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition hover:border-[var(--border-strong)]"
+                  className="surface-lit a-lift inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition hover:border-[var(--border-strong)]"
                 >
                   <Undo2 className="size-3" aria-hidden />
                   {words}
@@ -197,7 +197,7 @@ export function InvalidCodes({
 }) {
   return (
     <div
-      className="a-ring rounded-2xl border px-3.5 py-3 text-sm"
+      className="a-ring rounded-2xl border px-4 py-3.5 text-sm"
       style={{ background: 'color-mix(in oklab, var(--h-rose) 7%, var(--surface-raised))' }}
     >
       {Object.entries(codes).map(([kind, { codes: bad, hint }]) => (

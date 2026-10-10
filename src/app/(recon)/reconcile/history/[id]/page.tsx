@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, History } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { formatLedgerDate } from '@/lib/recon/dates';
 import type { ReconResult } from '@/lib/recon/types';
-import { PageHeader } from '@/components/PageHeader';
 import { ResultView } from '@/components/recon/ResultView';
 import { buttonClass } from '@/components/ui/primitives';
 
@@ -21,6 +20,11 @@ export const metadata: Metadata = { title: 'Saved reconciliation' };
  * even though the two files behind it have long since been superseded.
  *
  * Saving is off here, for the obvious reason.
+ *
+ * No page header above it: the result opens with its own hero, and a header
+ * saying "Company books against Bank statement" over a hero saying the same thing
+ * was the page saying it twice. What the header did carry that the hero does
+ * not — when this was run — goes on the hero's label instead.
  */
 export default async function SavedReconciliationPage({
   params,
@@ -49,20 +53,29 @@ export default async function SavedReconciliationPage({
   }).format(new Date(data.created_at));
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader
-        eyebrow={`Run ${ranAt}`}
-        title={`${result.summaryA.name} against ${result.summaryB.name}`}
-        description={`Reconciled as at ${formatLedgerDate(result.statement.reconciliationDate)}. Kept exactly as it came out.`}
-        action={
-          <Link href="/reconcile/history" className={buttonClass()}>
-            <ArrowLeft className="size-4" aria-hidden />
-            All reconciliations
-          </Link>
-        }
-      />
+    <div className="mx-auto max-w-6xl space-y-4">
+      <nav aria-label="Breadcrumb" className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href="/reconcile/history"
+          className={buttonClass({ variant: 'ghost', size: 'sm', className: 'group -ml-2' })}
+        >
+          <ArrowLeft
+            className="size-4 transition-transform group-hover:-translate-x-0.5"
+            aria-hidden
+          />
+          All reconciliations
+        </Link>
+        <p className="text-subtle inline-flex items-center gap-1.5 text-xs">
+          <History className="size-3.5" aria-hidden />
+          Kept exactly as it came out
+        </p>
+      </nav>
 
-      <ResultView result={result} autoSave={false} />
+      <ResultView
+        result={result}
+        autoSave={false}
+        label={`Run ${ranAt} · as at ${formatLedgerDate(result.statement.reconciliationDate)}`}
+      />
     </div>
   );
 }

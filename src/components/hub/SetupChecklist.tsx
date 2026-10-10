@@ -56,7 +56,7 @@ export function SetupChecklist({ state }: { state: SetupState }) {
   return (
     <section
       style={{ '--tone': 'var(--color-brand-600)' } as CSSProperties}
-      className="surface-lit a-ring animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_30ms_backwards] relative overflow-hidden rounded-2xl"
+      className="surface-lit a-ring animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_30ms_backwards] relative overflow-hidden rounded-3xl"
       aria-labelledby="setup-checklist"
     >
       {/* The same lit top edge the live tool cards carry, in the brand colour
@@ -64,16 +64,18 @@ export function SetupChecklist({ state }: { state: SetupState }) {
       <span
         aria-hidden
         className="absolute inset-x-0 top-0 h-px"
-        style={{ background: 'linear-gradient(90deg, transparent, var(--color-brand-500), transparent)' }}
+        style={{
+          background: 'linear-gradient(90deg, transparent, var(--color-brand-500), transparent)',
+        }}
       />
 
-      <div className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-3 border-b px-5 py-4">
+      <div className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-3 border-b px-5 py-5 sm:px-6">
         <div className="flex min-w-0 items-start gap-3.5">
           <span
             aria-hidden
-            className="tinted grid size-10 shrink-0 place-items-center rounded-xl border"
+            className="tinted a-inner grid size-11 shrink-0 place-items-center rounded-2xl border"
           >
-            <ListChecks className="size-[1.15rem]" />
+            <ListChecks className="size-5" />
           </span>
           <div className="min-w-0">
             <h2 id="setup-checklist" className="m-display text-[1.15rem]">
@@ -85,14 +87,38 @@ export function SetupChecklist({ state }: { state: SetupState }) {
           </div>
         </div>
 
-        <p className="a-label shrink-0">
-          {done} of {steps.length} settled
-        </p>
+        {/* The count, and the same count as a bar of one segment per step, so
+            how far along this is can be seen from across the room. */}
+        <div className="w-full shrink-0 sm:w-44">
+          <p className="a-label sm:text-right">
+            <span className="text-[var(--text-c)] tabular-nums">{done}</span> of {steps.length}{' '}
+            settled
+          </p>
+          <div aria-hidden className="mt-2 flex h-2 gap-[2px]">
+            {steps.map((step, i) => (
+              <span
+                key={step.title}
+                className={cn(
+                  'a-track relative flex-1 overflow-hidden',
+                  i === 0 && 'rounded-l-full',
+                  i === steps.length - 1 && 'rounded-r-full',
+                )}
+              >
+                {step.done && (
+                  <span
+                    className="a-fill absolute inset-0 bg-[var(--status-approved)]"
+                    style={{ animationDelay: `${200 + i * 90}ms` }}
+                  />
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       <ol className="relative divide-y">
         {steps.map((step) => (
-          <li key={step.href + step.title} className="flex items-start gap-3.5 px-5 py-4">
+          <li key={step.href + step.title} className="flex items-start gap-3.5 px-5 py-4 sm:px-6">
             {/*
               Amber for outstanding rather than grey, matching the People screen's
               own warning about having nobody to approve — the same fact, one

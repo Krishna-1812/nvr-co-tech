@@ -187,6 +187,7 @@ export default async function DashboardPage() {
           count: unsettled.length,
           share: totalValue ? inFlightValue / totalValue : 0,
         }}
+        registerValue={totalValue}
       />
 
       <div

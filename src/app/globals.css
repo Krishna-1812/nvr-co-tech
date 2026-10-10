@@ -408,12 +408,20 @@
  * as text on bone (4.5:1 or better) — sun and sage are taken down from their
  * marketing values to get there — and the dark values are the same pigments
  * lifted until they read on the night ground.
+ *
+ * Except cyan. Clay sat beside terracotta at a hue nobody could tell apart, and
+ * indigo and cyan are this app's standard pair for two series — the two ledgers
+ * in a reconciliation, people against companies, visits against page views —
+ * so every one of those pairs read as one colour. Cyan is verdigris now, the
+ * patina on desert copper, and the pair passes the palette validator in both
+ * themes: CVD ΔE 11.1 on bone and 8.3 on night, normal vision well clear. The
+ * night terracotta came down a step to sit in the validator's lightness band.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --h-indigo:  light-dark(#9C4026, #E5946B);
+  --h-indigo:  light-dark(#9C4026, #CF7853);
   --h-violet:  light-dark(#855C1F, #D9A55A);
-  --h-cyan:    light-dark(#96593D, #D39A7C);
+  --h-cyan:    light-dark(#008779, #0E9C8E);
   --h-emerald: light-dark(#5F6136, #B8BA82);
   --h-amber:   light-dark(#86600C, #E9B44C);
   --h-rose:    light-dark(#9A4C47, #DE9A93);
@@ -436,6 +444,10 @@
   --lc-own:    light-dark(#268769, #379D7F);
   --lc-borrow: light-dark(#CF9A35, #BA8B25);
   --lc-carry:  light-dark(#AE4022, #BB4D2F);
+  /* The sun in the tools' arches (components/ui/Scene.tsx). Noon gold on sand;
+     at night a lower, burnt amber, so the bone-drawn scenes keep their edge
+     against it instead of dissolving into it. */
+  --scene-sun: light-dark(#E9B44C, #B9702F);
 }
 
 /* Landed Cost's sliders: a track filled to the value in the series colour, and
@@ -1080,6 +1092,37 @@ body:has([data-skin='desert']) {
   }
 }
 
+/*
+ * The scenes in the tools' arches (components/ui/Scene.tsx). Each moves once,
+ * or so slowly it reads as weather: a balance coming to rest, a glass passing
+ * over the ridge, a sundial's shadow, an owl blinking. All of it is transform
+ * only, and all of it stops for anyone who has asked for less motion.
+ */
+@keyframes sc-tip {
+  0%   { transform: rotate(-9deg); }
+  55%  { transform: rotate(3deg); }
+  80%  { transform: rotate(-1deg); }
+  100% { transform: none; }
+}
+@keyframes sc-seek {
+  0%, 100% { transform: translate(-14px, 4px); }
+  50%      { transform: translate(10px, -2px); }
+}
+@keyframes sc-shadow {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(62deg); }
+}
+@keyframes sc-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(0.1); }
+}
+@media not (prefers-reduced-motion: reduce) {
+  .sc-tip    { animation: sc-tip 2.4s cubic-bezier(0.3, 0.6, 0.2, 1) 0.9s backwards; }
+  .sc-seek   { animation: sc-seek 9s ease-in-out infinite; }
+  .sc-shadow { animation: sc-shadow 18s ease-in-out infinite; }
+  .sc-blink  { animation: sc-blink 6s ease-in-out infinite; }
+}
+
 /* The sun itself. Sized and placed by the call site. */
 .m-sun {
   border-radius: 9999px;
@@ -1681,7 +1724,7 @@ body:has([data-skin='desert']) {
    * tile, a status disc, an urgent icon.
    *
    * Every one of these was `text-white`, and every one of them was wrong in one
-   * theme. The tones invert: --h-cyan is L 0.535 on paper and L 0.800 on night,
+   * theme. The tones invert: --h-indigo is about L 0.48 on paper and L 0.67 on night,
    * and the status colours do the same, because both are chosen to be legible
    * against the ground rather than to be a fixed colour. So white sat at 4.7:1
    * in the light theme and about 1.3:1 in the dark one — a monogram you simply

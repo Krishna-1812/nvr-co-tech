@@ -1,5 +1,6 @@
 'use client';
 
+import { Globe, Sparkles } from 'lucide-react';
 import { AGENTS } from '@/lib/marketing/content';
 import { NUM } from '@/components/analytics/Figures';
 import type { AccessRequestRow, FeatureRequestRow } from '@/lib/supabase/types';
@@ -120,6 +121,7 @@ export function AccessRequestsTable({ rows }: { rows: AccessRequestRow[] }) {
   return (
     <RequestTable
       title="From the public site"
+      icon={<Globe className="size-4" />}
       description="Newest first. Nothing here is filtered by date."
       rows={rows}
       columns={columns}
@@ -197,6 +199,7 @@ export function FeatureRequestsTable({ rows }: { rows: FeatureRequestRow[] }) {
   return (
     <RequestTable
       title="Asked for from inside the product"
+      icon={<Sparkles className="size-4" />}
       description="One row per person per tool, deduplicated when it is written rather than when it is read."
       rows={rows}
       columns={columns}

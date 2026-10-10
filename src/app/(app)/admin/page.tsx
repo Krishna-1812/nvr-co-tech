@@ -6,6 +6,7 @@ import { isOwner, type UserRole } from '@/lib/domain/workflow';
 import { listPendingInvites } from '@/app/actions/invites';
 import { emailConfigured } from '@/lib/notify';
 import { Card, CardTitle, DataTable, EmptyState, Th, Thead } from '@/components/ui/primitives';
+import { HeroStat } from '@/components/ui/ToolHero';
 import { UserRow } from './UserRow';
 import { InviteForm } from './InviteForm';
 import { PendingInvites } from './PendingInvites';
@@ -65,16 +66,54 @@ export default async function AdminPeoplePage() {
   const approvers = rows.filter((u) => u.role !== 'member' && u.is_active).length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/*
+        The organisation at a glance, before the forms that change it: who is
+        here, how many of them can clear a voucher, and how much they have used
+        it. Every figure is from the rows this page already reads.
+      */}
+      <Card className="p-4 sm:p-5">
+        <dl className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          <HeroStat
+            label="Accounts"
+            value={rows.length}
+            note={`${rows.filter((u) => u.is_active).length} active`}
+          />
+          <HeroStat
+            label="Able to approve"
+            value={approvers}
+            note={
+              !requiresApproval
+                ? 'Approval is switched off'
+                : approvers < 2
+                  ? 'Two or more are needed'
+                  : 'Enough to clear any voucher'
+            }
+            tone={
+              requiresApproval && approvers < 2 ? 'var(--status-warn)' : 'var(--status-approved)'
+            }
+          />
+          <HeroStat
+            label="Vouchers raised"
+            value={(counts ?? []).length}
+            note={`By ${byUser.size} ${byUser.size === 1 ? 'person' : 'people'}`}
+          />
+          <HeroStat
+            label="Invites open"
+            value={invites.length}
+            note={invites.length === 0 ? 'Nobody waiting to join' : 'Waiting to be accepted'}
+            tone={invites.length > 0 ? 'var(--status-pending)' : undefined}
+          />
+        </dl>
+      </Card>
+
       <InviteForm emailEnabled={emailConfigured()} />
 
       {/*
         Only once there is something outstanding. An empty card above the People
         table on every visit would be a permanent reminder of nothing.
       */}
-      {invites.length > 0 && (
-        <PendingInvites invites={invites} emailEnabled={emailConfigured()} />
-      )}
+      {invites.length > 0 && <PendingInvites invites={invites} emailEnabled={emailConfigured()} />}
 
       {isOwner(me.role) && <ApprovalPolicyCard requiresApproval={requiresApproval} />}
 
@@ -90,15 +129,15 @@ export default async function AdminPeoplePage() {
         <div
           role="alert"
           style={{ '--tone': 'var(--status-warn)' } as CSSProperties}
-          className="tinted flex gap-3 rounded-xl border p-4 text-sm"
+          className="tinted flex gap-3 rounded-2xl border p-4 text-sm sm:p-5"
         >
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
           <div>
             <p className="font-semibold">You need at least two people who can approve</p>
             <p className="mt-1 text-pretty opacity-90">
-              A voucher&apos;s approval can never come from the person who raised it. With {approvers}{' '}
-              {approvers === 1 ? 'person' : 'people'} able to approve, some vouchers will have nobody
-              left to clear them.
+              A voucher&apos;s approval can never come from the person who raised it. With{' '}
+              {approvers} {approvers === 1 ? 'person' : 'people'} able to approve, some vouchers
+              will have nobody left to clear them.
             </p>
           </div>
         </div>

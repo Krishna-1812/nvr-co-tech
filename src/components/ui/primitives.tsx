@@ -100,7 +100,7 @@ export function Button({
  * in globals.css rather than a sweep through forty components.
  */
 export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('surface-lit rounded-2xl', className)} {...props} />;
+  return <div className={cn('surface-lit a-ring rounded-3xl', className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
@@ -113,7 +113,7 @@ export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
 }
 
 export function CardBody({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('px-5 py-4', className)} {...props} />;
+  return <div className={cn('px-5 py-4 sm:px-6', className)} {...props} />;
 }
 
 /**
@@ -157,12 +157,26 @@ export function CardTitle({
   className?: string;
 }) {
   return (
-    <div className={cn('flex items-start justify-between gap-4 border-b px-5 py-3.5', className)}>
+    <div
+      className={cn(
+        'flex items-start justify-between gap-4 border-b border-[color-mix(in_oklab,var(--border-c)_70%,transparent)] px-5 py-4 sm:px-6',
+        className,
+      )}
+    >
       <div className="flex min-w-0 items-start gap-3">
-        {icon && <IconTile>{icon}</IconTile>}
-        <div className="min-w-0 pt-0.5">
+        {/* The panel tile from True Property Cost: a size up from the row tile,
+            because it heads a whole panel rather than one line in it. */}
+        {icon && (
+          <span
+            aria-hidden
+            className="surface-sunken text-muted a-inner grid size-9 shrink-0 place-items-center rounded-xl border"
+          >
+            {icon}
+          </span>
+        )}
+        <div className="min-w-0 pt-px">
           <h2 className="font-semibold tracking-tight">{title}</h2>
-          {description && <p className="text-muted mt-1 text-sm text-pretty">{description}</p>}
+          {description && <p className="text-muted mt-0.5 text-[13px] text-pretty">{description}</p>}
         </div>
       </div>
       {action && <div className="shrink-0 pt-0.5">{action}</div>}

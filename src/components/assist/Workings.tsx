@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { AlertTriangle, Sigma } from 'lucide-react';
 import type { ToolTrace } from '@/lib/assist/types';
 
@@ -33,7 +34,7 @@ export function Workings({ traces }: { traces: ToolTrace[] }) {
   if (traces.length === 0) return null;
 
   return (
-    <div className="mt-3.5 space-y-2">
+    <div className="mt-3.5 space-y-2.5">
       {traces.map((trace, i) => {
         const args = Object.entries(trace.args).filter(
           // A zero the model sent because a field exists is noise; a zero the
@@ -42,36 +43,54 @@ export function Workings({ traces }: { traces: ToolTrace[] }) {
           // are all in the summary line.
           ([, v]) => v !== null && v !== undefined && v !== '' && v !== 0,
         );
+        const tone = trace.ok ? 'var(--status-approved)' : 'var(--status-warn)';
 
+        /*
+         * Set like the working under a True Property Cost answer: a tile for
+         * the kind of thing it is, the label in mono, the result as a figure,
+         * and the inputs as a row of chips underneath that can be checked one
+         * by one against a spreadsheet. Whether it worked is said in words as
+         * well as in the colour of the tile.
+         */
         return (
           <div
             key={`${trace.name}-${i}`}
-            className="surface-sunken a-ring overflow-hidden rounded-xl border"
+            className="surface-sunken a-inner overflow-hidden rounded-2xl border"
           >
-            <div className="flex items-start gap-2.5 px-3 py-2">
+            <div className="flex items-start gap-3 px-3.5 py-3">
               <span
                 aria-hidden
-                className="mt-0.5 shrink-0"
-                style={{ color: trace.ok ? 'var(--status-approved)' : 'var(--status-warn)' }}
+                style={{ '--tone': tone } as CSSProperties}
+                className="tinted mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg border"
               >
                 {trace.ok ? <Sigma className="size-3.5" /> : <AlertTriangle className="size-3.5" />}
               </span>
 
               <div className="min-w-0 flex-1">
-                <p className="a-label">{trace.label}</p>
-                <p className="numeric mt-1 text-[12.5px] leading-relaxed text-[var(--text-c)]">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <span className="a-label">{trace.label}</span>
+                  <span className="text-subtle text-[10.5px]">
+                    {trace.ok ? 'Worked out by the app' : 'Could not be worked out'}
+                  </span>
+                </p>
+                <p className="numeric mt-1 text-[13px] leading-relaxed font-semibold tracking-tight text-[var(--text-c)] tabular-nums">
                   {trace.summary}
                 </p>
 
                 {args.length > 0 && (
-                  <p className="text-subtle numeric mt-1.5 text-[11px] leading-relaxed">
-                    {args.map(([key, v], j) => (
-                      <span key={key}>
-                        {j > 0 && <span className="opacity-40"> · </span>}
-                        {label(key)} {value(v)}
-                      </span>
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {args.map(([key, v]) => (
+                      <li
+                        key={key}
+                        className="surface-lit numeric inline-flex max-w-full items-baseline gap-1.5 rounded-md px-2 py-0.5 text-[11px]"
+                      >
+                        <span className="text-subtle">{label(key)}</span>
+                        <span className="min-w-0 truncate font-medium tabular-nums">
+                          {value(v)}
+                        </span>
+                      </li>
                     ))}
-                  </p>
+                  </ul>
                 )}
               </div>
             </div>

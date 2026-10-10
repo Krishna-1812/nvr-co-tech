@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
+import { ArchScene as SceneArch, type SceneMotif } from '@/components/ui/Scene';
 
 /**
  * The vocabulary the public site is built from. Every marketing page composes
@@ -226,29 +227,58 @@ export function Section({
 }
 
 /**
+ * Which of the tools' scenes stands in an agent's doorway.
+ *
+ * The live tools use the motif their own screen opens on (components/ui/Scene),
+ * so the arch on /agents/true-property-cost is the same tower a visitor meets
+ * after signing in, and the public page and the product read as one thing.
+ * The roadmap ones borrow the nearest picture of the job: a ledger for matching
+ * GST, a sundial for the TDS calendar, the gate for documents coming in, and
+ * the owl for the one that answers questions.
+ */
+export const AGENT_MOTIF: Record<string, SceneMotif> = {
+  'voucher-desk': 'voucher',
+  'ledger-reconciliation': 'scales',
+  'valuation-desk': 'columns',
+  'contact-finder': 'seekers',
+  'true-property-cost': 'tower',
+  'gst-reconciliation': 'ledger',
+  'tds-compliance': 'sundial',
+  'invoice-intake': 'gate',
+  'audit-copilot': 'owl',
+};
+
+/** A slug added to the roster without a motif still gets a doorway. */
+export const motifFor = (slug: string): SceneMotif => AGENT_MOTIF[slug] ?? 'doorways';
+
+/**
  * The arch every inner page stands in front of.
  *
- * A doorway in the page's colour at the right of a hero, with the sun coming
- * up inside it and a dune at its foot. It is the same picture as the home
- * page's window without the product in it, so every page opens on the site's
- * one image while the words stay where they are.
+ * A doorway at the right of a hero, framed in the page's colour, with one of
+ * the tools' scenes standing inside it: the row of doorways on /agents, the owl
+ * on /about, the sundial on /contact, a ledger and a balance on the two legal
+ * pages. It used to be the same empty window with the sun in it on every page,
+ * the site's one image said six times over; the frame keeps that image and the
+ * scene says what this particular page is about.
  *
- * It replaced two blurred colour fields and a hairline grid on every hero,
- * which were what stopped a near-black page reading as flat. On sand they
- * read as stains. The arch is drawn up from the floor on arrival, and only
- * from lg up: below that the hero's text takes the whole width, and a doorway
- * squeezed in beside it would be a sliver.
+ * The frame is a second arch drawn round the scene's own. With a uniform inset
+ * both semicircles share a centre, so the band between them is an even width
+ * all the way over the crown, the way a stone surround is cut.
  *
- * `color` is the wall of the arch. Legal pages pass their own earth hue.
+ * Only from lg up: below that the hero's text takes the whole width, and a
+ * doorway squeezed in beside it would be a sliver.
  *
  * It is absolutely placed, so the hero it sits in has to leave it room: each
  * one pads its text column by lg:pr-[25rem] xl:pr-[28rem], which is the arch's
  * width plus its inset from the edge plus a gutter.
  */
 export function ArchScene({
-  color = 'var(--m-bg-2)',
+  motif = 'doorways',
+  color = 'var(--m-bg-3)',
   className,
 }: {
+  motif?: SceneMotif;
+  /** The frame round the doorway. The legal pages pass their own earth hue. */
   color?: string;
   className?: string;
 }) {
@@ -256,17 +286,12 @@ export function ArchScene({
     <div
       aria-hidden
       className={cn(
-        'm-arch m-arch-open pointer-events-none absolute right-[5%] bottom-0 hidden h-[min(30rem,calc(100%-4rem))] w-[20rem] overflow-hidden lg:block xl:right-[8%]',
+        'm-arch m-arch-open pointer-events-none absolute right-[5%] bottom-0 hidden h-[min(31rem,calc(100%-3rem))] w-[20rem] p-3 lg:block xl:right-[8%]',
         className,
       )}
       style={{ background: color }}
     >
-      <span className="m-sun absolute top-20 left-1/2 size-44 -translate-x-1/2" />
-      <span
-        className="absolute inset-x-0 bottom-0 h-28 bg-[var(--m-bg-3)]"
-        style={{ borderRadius: '60% 40% 0 0 / 34% 28% 0 0' }}
-      />
-      <span className="m-arch absolute bottom-0 left-1/2 h-24 w-20 -translate-x-1/2 bg-[var(--m-bg)]" />
+      <SceneArch motif={motif} className="h-full min-h-0" />
     </div>
   );
 }
@@ -388,7 +413,14 @@ export function ArrowLink({
   );
 }
 
-/** A single large figure with a caption. Used in the stats band. */
+/**
+ * A single large figure with a caption, set as a plate. Used in the stats band.
+ *
+ * A plate rather than bare type on the ground: three figures in 3rem with
+ * nothing round them read as a row of loose numbers, where on cards each reads
+ * as a fact with its own edge. The arch in the corner, with the sun low in it,
+ * is the site's mark at the size of a stamp.
+ */
 export function Stat({
   value,
   label,
@@ -399,10 +431,16 @@ export function Stat({
   hint?: string;
 }) {
   return (
-    <div>
-      <p className="m-display t-h1">{value}</p>
-      <p className="m-eyebrow mt-3">{label}</p>
-      {hint && <p className="m-dim-2 mt-1.5 t-1">{hint}</p>}
+    <div className="m-card relative h-full overflow-hidden rounded-3xl p-7 sm:p-8">
+      <span
+        aria-hidden
+        className="m-arch absolute top-6 right-6 h-14 w-11 overflow-hidden bg-[var(--m-bg-2)]"
+      >
+        <span className="absolute bottom-0 left-1/2 size-7 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)]" />
+      </span>
+      <p className="m-display t-h1 tabular-nums">{value}</p>
+      <p className="m-eyebrow mt-4">{label}</p>
+      {hint && <p className="m-dim-2 mt-1.5 t-3">{hint}</p>}
     </div>
   );
 }

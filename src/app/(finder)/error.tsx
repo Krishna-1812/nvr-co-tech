@@ -42,12 +42,12 @@ export default function FinderError({
             aria-hidden
             className="absolute inset-0 -z-10 m-auto size-24 rounded-full bg-[radial-gradient(circle,var(--status-rejected),transparent_70%)] opacity-20 blur-2xl"
           />
-          <span className="surface-lit grid size-16 place-items-center rounded-2xl text-red-600 dark:text-red-400">
+          <span className="surface-lit a-ring grid size-16 place-items-center rounded-2xl text-[var(--status-rejected)]">
             <AlertTriangle className="size-7" aria-hidden />
           </span>
         </div>
 
-        <h1 className="mt-6 text-2xl font-bold tracking-tight">Something went wrong</h1>
+        <h1 className="m-display mt-6 text-[2rem] leading-tight">Something went wrong</h1>
         <p className="text-muted mt-2 text-sm leading-relaxed">
           This screen failed while drawing itself, so nothing was searched and no credits were
           spent. Your filters are still here; any results that were on screen are not, and running

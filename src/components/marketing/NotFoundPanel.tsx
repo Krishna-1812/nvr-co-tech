@@ -1,4 +1,7 @@
-import { Container, CTA } from './bits';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import { LIVE_AGENTS } from '@/lib/marketing/content';
+import { ACCENT, Container, CTA } from './bits';
 import { Roost } from '@/components/brand/Owl';
 
 /**
@@ -29,13 +32,16 @@ export function NotFoundPanel() {
         */}
         <div
           aria-hidden
-          className="m-arch m-arch-open relative mx-auto mb-10 h-64 w-52 overflow-hidden bg-[var(--m-bg-2)]"
+          className="m-arch m-arch-open relative mx-auto mb-10 h-72 w-60 overflow-hidden border-[10px] border-b-0 border-[var(--m-gold)] bg-[var(--m-bg-2)] shadow-[var(--m-shadow)]"
         >
           <span
             className="m-sun absolute bottom-6 left-1/2 size-28 -translate-x-1/2"
             style={{ '--sun-from': '-120px' } as React.CSSProperties}
           />
-          <span className="absolute inset-x-0 bottom-0 h-14 bg-[var(--m-bg-3)]" />
+          <span
+            className="absolute inset-x-0 bottom-0 h-16 bg-[var(--m-bg-3)]"
+            style={{ borderRadius: '60% 40% 0 0 / 34% 28% 0 0' }}
+          />
         </div>
         <p className="m-eyebrow">Error 404</p>
         <h1 className="m-display mt-5 t-h1">
@@ -60,6 +66,48 @@ export function NotFoundPanel() {
           <CTA href="/contact" variant="ghost">
             Book a walkthrough
           </CTA>
+        </div>
+
+        {/*
+          The working tools, by name and in their own doorways. A stale link
+          into this site was most often a link to one of these, and naming them
+          here turns a dead end into a choice. Live ones only: offering a
+          roadmap page to somebody who is already lost is a second dead end.
+        */}
+        <div className="mx-auto mt-20 max-w-4xl text-left">
+          <div className="flex items-center justify-center gap-3.5">
+            <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
+            <p className="m-eyebrow">Or go straight to a tool</p>
+            <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
+          </div>
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {LIVE_AGENTS.map((agent) => (
+              <li key={agent.slug}>
+                <Link
+                  href={`/agents/${agent.slug}`}
+                  className="group m-card m-card-lift flex items-center gap-4 rounded-2xl p-4 transition-[transform,box-shadow] duration-300"
+                >
+                  <span
+                    aria-hidden
+                    className="m-arch relative h-12 w-10 shrink-0 overflow-hidden"
+                    style={{ background: ACCENT[agent.accent] }}
+                  >
+                    <span className="absolute bottom-0 left-1/2 size-6 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="m-display block t-5">{agent.name}</span>
+                    <span className="m-mono m-dim-2 mt-1 block truncate t-1 t-caps uppercase">
+                      {agent.category}
+                    </span>
+                  </span>
+                  <ArrowRight
+                    aria-hidden
+                    className="m-dim-2 size-4 shrink-0 transition-transform group-hover:translate-x-1"
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </Container>
     </section>

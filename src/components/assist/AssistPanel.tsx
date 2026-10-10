@@ -100,10 +100,23 @@ export function AssistPanel({
           <span
             aria-hidden
             className={cn('h-[3px] shrink-0', !tone && 'gradient-brand')}
-            style={tone ? { backgroundImage: `linear-gradient(135deg, ${tone}, var(--color-accent-500))` } : undefined}
+            style={
+              tone
+                ? { backgroundImage: `linear-gradient(135deg, ${tone}, var(--color-accent-500))` }
+                : undefined
+            }
           />
 
-          <div className="flex shrink-0 items-center gap-3 border-b px-4 py-3">
+          <div className="flex shrink-0 items-center gap-3 border-b px-4 py-3.5">
+            {/* The panel tile from True Property Cost, in the colour of the
+                tool this was opened from, so the sheet says whose it is
+                before a word of it is read. */}
+            <span
+              aria-hidden
+              className="surface-sunken a-inner grid size-9 shrink-0 place-items-center rounded-xl border"
+            >
+              <Sparkles className="size-4" style={{ color: tone ?? 'var(--color-brand-500)' }} />
+            </span>
             <div className="min-w-0 flex-1">
               <Dialog.Title className="truncate text-[14px] font-semibold tracking-tight">
                 Ask

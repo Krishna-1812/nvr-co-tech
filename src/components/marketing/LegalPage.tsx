@@ -4,6 +4,7 @@ import { Breadcrumbs } from './Breadcrumbs';
 import { Reveal } from './Reveal';
 import { Roost } from '@/components/brand/Owl';
 import type { Crumb } from '@/lib/marketing/seo';
+import type { SceneMotif } from '@/components/ui/Scene';
 
 /**
  * The shape both /privacy and /terms are built from.
@@ -55,6 +56,7 @@ export function LegalPage({
   related,
   children,
   accent = 'var(--m-gold)',
+  motif = 'ledger',
 }: {
   eyebrow: string;
   title: React.ReactNode;
@@ -75,11 +77,13 @@ export function LegalPage({
   /** The closing block, which differs between the two pages. */
   children?: React.ReactNode;
   accent?: string;
+  /** What stands in the hero's doorway. */
+  motif?: SceneMotif;
 }) {
   return (
     <>
       <section className="relative overflow-hidden">
-        <ArchScene color={accent} />
+        <ArchScene color={accent} motif={motif} />
 
         <Roost seed="legal-margin" band="top-right" />
 
@@ -97,15 +101,21 @@ export function LegalPage({
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">{lead}</p>
           </Rise>
           <Rise delay={170}>
-            <p className="m-mono m-dim-2 mt-8 flex flex-wrap items-center gap-x-3 gap-y-1 t-2 t-caps uppercase">
-              <span>Last updated {updated}</span>
-              <span aria-hidden className="opacity-40">
-                ·
-              </span>
-              <span>
-                {clauses.length} {clauses.length === 1 ? 'clause' : 'clauses'}
-              </span>
-            </p>
+            {/* The two facts a reader of a policy checks first, set as plates
+                rather than a run of caps, so they read as the document's
+                particulars and not as a footnote to the standfirst. */}
+            <dl className="mt-9 flex flex-wrap gap-3">
+              <div className="m-card rounded-2xl px-4 py-3 shadow-[0_10px_24px_-18px_rgb(80_40_20_/_0.5)]">
+                <dt className="m-eyebrow t-1">Last updated</dt>
+                <dd className="mt-1 t-3 font-semibold text-[var(--m-ink)] tabular-nums">{updated}</dd>
+              </div>
+              <div className="m-card rounded-2xl px-4 py-3 shadow-[0_10px_24px_-18px_rgb(80_40_20_/_0.5)]">
+                <dt className="m-eyebrow t-1">Length</dt>
+                <dd className="mt-1 t-3 font-semibold text-[var(--m-ink)] tabular-nums">
+                  {clauses.length} {clauses.length === 1 ? 'clause' : 'clauses'}
+                </dd>
+              </div>
+            </dl>
           </Rise>
         </Container>
       </section>
@@ -123,20 +133,30 @@ export function LegalPage({
             pair would pull the body off the left edge the hero sets, and a
             document with two different left margins reads as a mistake.
           */}
-          <div className="grid gap-12 lg:grid-cols-[13.5rem_minmax(0,64ch)] lg:gap-16">
+          <div className="grid gap-12 lg:grid-cols-[15.5rem_minmax(0,64ch)] lg:gap-16">
             {/*
               Ordered, because it is a table of contents for a numbered
               document, and the number in each link is the clause number rather
               than a counter that happens to agree with it.
             */}
-            <nav aria-label="Contents" className="lg:sticky lg:top-28 lg:self-start">
-              <p className="m-eyebrow">Contents</p>
-              <ol className="mt-5 space-y-1">
+            <nav
+              aria-label="Contents"
+              className="m-card rounded-3xl p-5 shadow-[0_24px_44px_-34px_rgb(80_40_20_/_0.55)] lg:sticky lg:top-28 lg:self-start"
+            >
+              <div className="flex items-center gap-2.5">
+                <span
+                  aria-hidden
+                  className="m-arch h-5 w-4 shrink-0"
+                  style={{ background: accent }}
+                />
+                <p className="m-eyebrow">Contents</p>
+              </div>
+              <ol className="mt-4 space-y-0.5 border-t border-[var(--m-line)] pt-3">
                 {clauses.map((clause, i) => (
                   <li key={clause.title}>
                     <a
                       href={`#${slug(clause.title)}`}
-                      className="group flex gap-3 rounded-lg py-1.5 transition"
+                      className="group -mx-2 flex gap-3 rounded-xl px-2 py-1.5 transition hover:bg-[var(--m-bg)]"
                     >
                       <span
                         className="m-mono m-dim-2 shrink-0 pt-px t-1 t-caps tabular-nums transition-colors group-hover:text-[var(--m-gold)]"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Clock3, Search, Sparkles } from 'lucide-react';
+import { Building2, Clock3, Cpu, Lightbulb, MonitorSmartphone, Search, Sparkles, Users } from 'lucide-react';
 import type { Counted } from '@/lib/analytics/aggregate';
 import type { Person } from '@/lib/analytics/people';
 import { haystack } from '@/lib/analytics/people';
@@ -271,20 +271,37 @@ export function PeopleBoard({
       </KpiRow>
 
       <Card className="overflow-hidden">
-        <CardTitle title="Quick facts" description="The things worth knowing without scrolling." />
-        <div className="grid gap-4 px-5 py-4 sm:grid-cols-3 lg:grid-cols-5">
-          {facts.map((fact) => (
-            <div key={fact.label}>
-              <p className="a-label">{fact.label}</p>
-              <p className={cn(NUM, 'mt-1 text-[1.05rem] font-semibold')}>{fact.value}</p>
+        <CardTitle
+          icon={<Lightbulb className="size-4" />}
+          title="Quick facts"
+          description="The things worth knowing without scrolling."
+        />
+        <div className="grid grid-cols-2 gap-2.5 p-5 sm:grid-cols-3 sm:p-6 lg:grid-cols-5">
+          {facts.map((fact, index) => (
+            <div
+              key={fact.label}
+              className={cn(
+                'surface-sunken min-w-0 rounded-2xl border px-4 py-3.5',
+                // Five on a phone leaves the last alone; it takes the row.
+                index === facts.length - 1 && facts.length % 2 === 1 && 'col-span-2 sm:col-span-1',
+              )}
+            >
+              <p className="a-label truncate">{fact.label}</p>
+              <p
+                className="mt-1.5 truncate text-[1.15rem] font-semibold tracking-tight tabular-nums"
+                title={fact.value}
+              >
+                {fact.value}
+              </p>
             </div>
           ))}
         </div>
       </Card>
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid gap-6 lg:grid-cols-3">
         <Card className="overflow-hidden">
           <CardTitle
+            icon={<Building2 className="size-4" />}
             title={who === 'us' ? 'Domains' : 'Workspaces'}
             description={
               who === 'us'
@@ -295,23 +312,28 @@ export function PeopleBoard({
           <BarList items={companies} tone="var(--h-violet)" />
         </Card>
         <Card className="overflow-hidden">
-          <CardTitle title="Devices" description="Share of page views." />
+          <CardTitle
+            icon={<MonitorSmartphone className="size-4" />}
+            title="Devices"
+            description="Share of page views."
+          />
           <BarList items={devices} tone="var(--h-indigo)" />
         </Card>
         <Card className="overflow-hidden">
-          <CardTitle title="Operating systems" description="Share of page views." />
+          <CardTitle icon={<Cpu className="size-4" />} title="Operating systems" description="Share of page views." />
           <BarList items={operating} tone="var(--h-cyan)" />
         </Card>
       </section>
 
       <Card className="overflow-hidden">
         <CardTitle
+          icon={<Users className="size-4" />}
           title="Everyone"
           description={`${number(people.length)} people. Click any row for the full profile.`}
         />
 
-        <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
-          <span className="relative min-w-[13rem] flex-1">
+        <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3 sm:px-6">
+          <span className="relative min-w-0 flex-1 basis-[13rem]">
             <Search
               className="text-subtle pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2"
               aria-hidden

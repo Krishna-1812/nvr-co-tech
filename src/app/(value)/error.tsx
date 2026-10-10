@@ -36,12 +36,15 @@ export default function ValuationError({
             aria-hidden
             className="absolute inset-0 -z-10 m-auto size-24 rounded-full bg-[radial-gradient(circle,var(--status-rejected),transparent_70%)] opacity-20 blur-2xl"
           />
-          <span className="surface-lit grid size-16 place-items-center rounded-2xl text-red-600 dark:text-red-400">
+          <span
+            style={{ ['--tone' as string]: 'var(--status-rejected)' }}
+            className="tinted a-ring grid size-16 place-items-center rounded-2xl border"
+          >
             <AlertTriangle className="size-7" aria-hidden />
           </span>
         </div>
 
-        <h1 className="mt-6 text-2xl font-bold tracking-tight">Something went wrong</h1>
+        <h1 className="m-display mt-6 text-[2rem] leading-tight">Something went wrong</h1>
         <p className="text-muted mt-2 text-sm leading-relaxed">
           This screen was reading the company registry, not writing to it, so there is nothing to
           undo and nothing was saved. Trying again is safe, and the same link rebuilds the same

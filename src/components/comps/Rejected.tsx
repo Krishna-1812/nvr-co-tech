@@ -30,21 +30,34 @@ export function Rejected({ rejected }: { rejected: Rejection[] }) {
   const ordered = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
 
   return (
-    <div className="px-5 py-5">
+    <div className="px-5 py-5 sm:px-6">
       <p className="text-muted mb-4 text-sm">
-        The screen looked at these and ruled them out. The reason is what a reviewer will ask for.
+        The screen looked at {rejected.length} {rejected.length === 1 ? 'company' : 'companies'} and
+        ruled them out. The reason is what a reviewer will ask for.
       </p>
-      <dl className="space-y-4">
+      <dl className="grid gap-3 md:grid-cols-2">
         {ordered.map(([reason, names]) => (
-          <div key={reason} className="border-b pb-4 last:border-0 last:pb-0">
-            <dt className="flex items-baseline gap-2 text-sm font-medium">
-              <span className="surface-sunken text-subtle rounded-full border px-1.5 py-0.5 text-[11px] font-semibold tabular-nums">
+          <div key={reason} className="surface-sunken a-inner min-w-0 rounded-2xl border p-4">
+            <dt className="flex items-start gap-2.5 text-sm font-semibold tracking-tight">
+              <span
+                style={{ ['--tone' as string]: 'var(--status-draft)' }}
+                className="tinted grid h-6 min-w-6 shrink-0 place-items-center rounded-full border px-1.5 text-[11px] font-semibold tabular-nums"
+              >
                 {names.length}
               </span>
-              {reason}
+              <span className="min-w-0 pt-0.5 text-pretty">{reason}</span>
             </dt>
-            <dd className="text-muted mt-1.5 text-sm leading-relaxed">
-              {names.sort((a, b) => a.localeCompare(b)).join(' · ')}
+            <dd className="mt-3 flex flex-wrap gap-1.5">
+              {names
+                .sort((a, b) => a.localeCompare(b))
+                .map((name, i) => (
+                  <span
+                    key={`${name}-${i}`}
+                    className="bg-[var(--surface-raised)] text-muted max-w-full truncate rounded-full border px-2.5 py-1 text-[12px]"
+                  >
+                    {name}
+                  </span>
+                ))}
             </dd>
           </div>
         ))}

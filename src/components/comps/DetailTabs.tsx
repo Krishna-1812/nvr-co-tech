@@ -25,11 +25,11 @@ export function DetailTabs({
   const current = tabs.find((t) => t.id === active) ?? tabs[0];
 
   return (
-    <div className="surface-lit a-ring overflow-hidden rounded-2xl">
+    <div className="surface-lit a-ring animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_0.16s_backwards] overflow-hidden rounded-3xl">
       <div
         role="tablist"
         aria-label="Peer set detail"
-        className="scroll-x-hint flex gap-1 overflow-x-auto border-b p-2"
+        className="scroll-x-hint flex gap-1 overflow-x-auto border-b border-[color-mix(in_oklab,var(--border-c)_70%,transparent)] px-3 py-3 sm:px-4"
       >
         {tabs.map((tab) => {
           const on = tab.id === current?.id;
@@ -41,18 +41,20 @@ export function DetailTabs({
               aria-selected={on}
               onClick={() => setActive(tab.id)}
               className={cn(
-                'flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition',
+                'flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition',
                 on
-                  ? 'bg-[var(--surface-sunken)] text-[var(--text-c)] shadow-[var(--elev-1)]'
+                  ? 'bg-[var(--action)] text-[var(--on-action)] shadow-[var(--elev-2)]'
                   : 'text-muted hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]',
               )}
             >
-              {on && (
-                <span aria-hidden className="gradient-brand h-4 w-[3px] rounded-full" />
-              )}
               {tab.label}
               {typeof tab.badge === 'number' && tab.badge > 0 && (
-                <span className="surface-raised text-subtle rounded-full border px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">
+                <span
+                  className={cn(
+                    'rounded-full px-1.5 py-0.5 text-[10.5px] font-semibold tabular-nums',
+                    on ? 'bg-[color-mix(in_oklab,var(--on-action)_18%,transparent)]' : 'surface-sunken text-subtle border',
+                  )}
+                >
                   {tab.badge}
                 </span>
               )}

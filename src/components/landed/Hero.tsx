@@ -4,6 +4,7 @@ import { useState, type CSSProperties } from 'react';
 import { Banknote, CalendarClock, Hourglass, Ruler } from 'lucide-react';
 import type { LandedCost } from '@/lib/landed/calc';
 import { formatINR } from '@/lib/recon/amount';
+import { ArchScene, SealFigure } from '@/components/ui/Scene';
 import { TONE, compactINR, longDate, pct, todayIso, untilOc } from './shared';
 
 /**
@@ -209,53 +210,16 @@ function Chip({ icon: Icon, children }: { icon: typeof Ruler; children: React.Re
 }
 
 /**
- * The public site's arch, with a building going up inside it and the sun
- * rising behind. The uplift is the one figure set on it, as a seal at the foot;
- * it is also in the sentence beside the hero, so the picture adds nothing a
- * screen reader misses.
+ * The arch from the shared set, with a tower going up in it. The uplift is the
+ * one figure set on it; it is also in the sentence beside the hero, so the
+ * picture adds nothing a screen reader misses.
  */
 function ArchWindow({ uplift }: { uplift: number }) {
   return (
-    <div aria-hidden className="relative hidden min-h-[19rem] lg:block">
-      <div className="m-arch m-arch-open absolute inset-x-0 bottom-0 top-0 overflow-hidden bg-[var(--surface-sunken)]">
-        <span
-          className="m-sun absolute top-[18%] left-1/2 size-36 -translate-x-1/2 xl:size-44"
-          style={{ background: 'var(--color-gold-400)', ['--sun-from' as string]: '90px' }}
-        />
-        {/* A tower under construction: storeys, a crane, a dune at the foot. */}
-        <svg viewBox="0 0 200 220" className="absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="xMidYMax meet">
-          <path d="M0 196 C 50 178, 120 186, 200 172 L200 220 L0 220 Z" fill="var(--border-strong)" opacity="0.55" />
-          <g className="animate-[rise_1.2s_cubic-bezier(0.22,1,0.36,1)_0.5s_backwards]">
-            <rect x="66" y="78" width="62" height="122" rx="2" fill="var(--text-c)" opacity="0.9" />
-            {Array.from({ length: 7 }, (_, row) =>
-              Array.from({ length: 3 }, (_, col) => (
-                <rect
-                  key={`${row}-${col}`}
-                  x={74 + col * 17}
-                  y={88 + row * 15}
-                  width="10"
-                  height="8"
-                  rx="1"
-                  fill="var(--color-gold-400)"
-                  opacity={row < 2 ? 0.25 : 0.85}
-                />
-              )),
-            )}
-            <rect x="128" y="120" width="30" height="80" rx="2" fill="var(--text-c)" opacity="0.7" />
-            <rect x="40" y="134" width="26" height="66" rx="2" fill="var(--text-c)" opacity="0.6" />
-            {/* The crane: it is still going up. */}
-            <path d="M120 78 V 34 M 92 38 H 168 M120 38 L 160 38 L 120 52" stroke="var(--text-c)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-            <path d="M160 38 V 60" stroke="var(--text-c)" strokeWidth="1.5" />
-            <rect x="155" y="60" width="10" height="7" fill="var(--lc-carry)" />
-          </g>
-        </svg>
-      </div>
-      <div className="surface-lit elev-3 absolute bottom-5 left-1/2 -translate-x-1/2 rounded-2xl border px-4 py-2.5 text-center whitespace-nowrap">
-        <p className="text-[1.35rem] leading-none font-semibold tracking-tight tabular-nums" style={{ color: 'var(--accent)' }}>
-          +{pct(Math.round(uplift * 100) / 100)}
-        </p>
-        <p className="text-subtle mt-1 text-[11px]">over the amount paid</p>
-      </div>
-    </div>
+    <ArchScene
+      motif="tower"
+      className="hidden min-h-[19rem] lg:block"
+      seal={<SealFigure value={`+${pct(Math.round(uplift * 100) / 100)}`} note="over the amount paid" />}
+    />
   );
 }

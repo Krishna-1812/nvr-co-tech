@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -147,11 +148,11 @@ export function KpiCard({
       aria-label={onClick ? `${label}: ${shown}. Open breakdown` : undefined}
       style={{ ['--tone' as string]: accent }}
       className={cn(
-        'group relative isolate overflow-hidden rounded-2xl border bg-[var(--surface-raised)] p-4',
+        'surface-lit a-ring group relative isolate h-full overflow-hidden rounded-2xl p-4 sm:p-5',
         // hover-lift carries the house transition, the lift and the elevation, and
         // is already reduced-motion aware. Reusing it rather than hand-rolling the
         // spec's -3px keeps every card in the product lifting by the same amount.
-        clickable && 'hover-lift a-ring cursor-pointer',
+        clickable && 'a-lift cursor-pointer',
         clickable && 'hover:border-[color-mix(in_oklab,var(--tone)_38%,var(--border-c))]',
         className,
       )}
@@ -202,7 +203,19 @@ export function KpiCard({
       )}
 
       <div className="flex items-start justify-between gap-3">
-        <p className="a-label">{label}</p>
+        <p className="a-label inline-flex min-w-0 items-center gap-1.5">
+          {/* The dot is the card's colour said once more beside its name, so the
+              accent bar is never the only thing telling two cards apart. */}
+          <span aria-hidden className="size-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone)' }} />
+          {label}
+        </p>
+        {/* A card that goes somewhere says so before it is hovered. */}
+        {clickable && !rich && (
+          <ArrowUpRight
+            aria-hidden
+            className="text-subtle size-3.5 shrink-0 opacity-50 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--tone)] group-hover:opacity-100"
+          />
+        )}
         {rich && icon && (
           <span
             className="grid size-8 shrink-0 place-items-center rounded-2xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg] motion-reduce:transform-none"
@@ -217,7 +230,7 @@ export function KpiCard({
       </div>
 
       <p
-        className={cn('a-figure mt-3 text-[2.2rem]', rich && 'w-fit')}
+        className={cn('mt-3 text-[2.1rem] leading-none font-semibold tracking-[-0.035em] tabular-nums', rich && 'w-fit')}
         // The spec's gradient-clipped number runs white-into-accent, which only
         // works on a dark ground. Running it from the theme's own text colour
         // keeps the effect in light mode instead of fading the figure to
@@ -247,7 +260,7 @@ export function KpiCard({
   // the link keeps real link behaviour: middle-click, open in a new tab, and a
   // status bar that shows where it goes.
   return href ? (
-    <Link href={href} className="a-ring block rounded-2xl" aria-label={`${label}: ${shown}`}>
+    <Link href={href} className="block h-full rounded-2xl" aria-label={`${label}: ${shown}`}>
       {card}
     </Link>
   ) : (

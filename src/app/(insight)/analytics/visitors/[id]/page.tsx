@@ -15,6 +15,7 @@ import { readGraph, resolveFromGraph } from '@/lib/analytics/graph';
 import { resolveVisitor } from '@/lib/analytics/resolve';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardTitle } from '@/components/ui/primitives';
+import { SummaryStrip } from '@/components/analytics/Strip';
 import { Identity, Reasons } from '@/components/analytics/Company';
 import { Enrich } from '@/components/analytics/Enrich';
 import { IntentBreakdown } from '@/components/analytics/Intent';
@@ -72,10 +73,34 @@ export default async function VisitorPage({ params }: { params: Promise<{ id: st
         description={`First seen ${ago(summary.firstSeen)}, last seen ${ago(summary.lastSeen)}. ${number(summary.sessions)} ${summary.sessions === 1 ? 'visit' : 'visits'} and ${number(summary.views)} pages.`}
       />
 
-      <section className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+      <SummaryStrip
+        cells={[
+          {
+            label: 'Intent',
+            value: (
+              <>
+                {record.intent.score}
+                <span className="ml-1 text-[0.5em] font-normal opacity-70">/ 100</span>
+              </>
+            ),
+            note: 'How close they look, broken down below',
+            strong: true,
+          },
+          { label: 'Visits', value: number(summary.sessions), note: `First ${ago(summary.firstSeen)}`, tone: 'var(--h-rose)' },
+          { label: 'Pages', value: number(summary.views), note: `Last ${ago(summary.lastSeen)}`, tone: 'var(--h-cyan)' },
+          {
+            label: 'Attention',
+            value: duration(summary.engagedSeconds),
+            note: 'Only while the tab was in front',
+            tone: 'var(--h-magenta)',
+          },
+        ]}
+      />
+
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
         <Card className="overflow-hidden">
           <CardTitle icon={<Fingerprint className="size-4" />} title="Who this is" />
-          <div className="space-y-4 px-5 py-4">
+          <div className="space-y-4 px-5 py-5 sm:px-6">
             <Identity resolution={record.resolution} company={record.company} person={person} />
 
             {person.resolved ? (
@@ -122,7 +147,7 @@ export default async function VisitorPage({ params }: { params: Promise<{ id: st
           </div>
         </Card>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <Card className="overflow-hidden">
             <CardTitle icon={<MousePointerClick className="size-4" />} title="How close they look" />
             <div className="px-5 py-4">

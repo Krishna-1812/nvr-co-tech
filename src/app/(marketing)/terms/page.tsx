@@ -89,6 +89,7 @@ export default function TermsPage() {
       trail={TRAIL}
       related={{ href: '/privacy', label: 'how we handle information' }}
       accent="var(--m-violet)"
+      motif="scales"
     >
       <div className="m-card p-6 sm:p-7">
         <h2 className="m-eyebrow">If something here is unclear</h2>

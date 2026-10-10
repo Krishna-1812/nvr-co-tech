@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { ScrollTop } from '@/components/analytics/ScrollTop';
+import { SummaryStrip } from '@/components/analytics/Strip';
 import type { AccessRequestRow, FeatureRequestRow } from '@/lib/supabase/types';
 import { AccessRequestsTable, FeatureRequestsTable } from './RequestTables';
 
@@ -49,8 +50,10 @@ export default async function RequestsPage() {
     asks.map((r) => (r.company ?? '').trim().toLowerCase()).filter(Boolean),
   );
 
+  const custom = asks.filter((r) => r.interest === CUSTOM).length;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <ScrollTop />
 
       <header>
@@ -71,38 +74,37 @@ export default async function RequestsPage() {
         </p>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        <Stat label="Requests" value={asks.length} />
-        <Stat
-          label="Wanting something custom"
-          value={asks.filter((r) => r.interest === CUSTOM).length}
-        />
-        <Stat label="Organisations" value={companies.size} />
-      </section>
+      <SummaryStrip
+        cells={[
+          {
+            label: 'Requests',
+            value: asks.length.toLocaleString('en-IN'),
+            note: 'Sent from the form on the public site',
+            strong: asks.length > 0,
+          },
+          {
+            label: 'Wanting something custom',
+            value: custom.toLocaleString('en-IN'),
+            note: asks.length ? `${Math.round((custom / asks.length) * 100)}% of the requests` : 'None yet',
+            tone: 'var(--h-magenta)',
+          },
+          {
+            label: 'Organisations',
+            value: companies.size.toLocaleString('en-IN'),
+            note: 'Distinct names, as typed',
+            tone: 'var(--h-indigo)',
+          },
+          {
+            label: 'Tools asked for',
+            value: wants.length.toLocaleString('en-IN'),
+            note: 'From people already signed in',
+            tone: 'var(--h-violet)',
+          },
+        ]}
+      />
 
       <AccessRequestsTable rows={asks} />
       <FeatureRequestsTable rows={wants} />
     </div>
   );
 }
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-2xl border bg-[var(--surface-raised)] p-4">
-      <p
-        className="a-figure text-[1.9rem]"
-        style={{
-          background:
-            'linear-gradient(135deg, var(--text-c) 15%, color-mix(in oklab, var(--h-indigo) 85%, var(--text-c)) 95%)',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          color: 'transparent',
-        }}
-      >
-        {value.toLocaleString('en-IN')}
-      </p>
-      <p className="a-label mt-1.5">{label}</p>
-    </div>
-  );
-}
-

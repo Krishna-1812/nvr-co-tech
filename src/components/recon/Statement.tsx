@@ -1,12 +1,13 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { Scale } from 'lucide-react';
+import { Check, Scale, TriangleAlert } from 'lucide-react';
 import { Card, CardBody, CardTitle } from '@/components/ui/primitives';
 import { formatINR } from '@/lib/recon/amount';
 import { formatLedgerDate } from '@/lib/recon/dates';
 import type { Statement as StatementData, StatementLine } from '@/lib/recon/types';
 import { cn } from '@/lib/utils';
+import { RECON_TONE } from './ReconBadge';
 import { LEDGER_TONE } from './tone';
 
 /**
@@ -74,15 +75,35 @@ export function Statement({ statement }: { statement: StatementData }) {
             */}
             {!settled && (
               <tr className="border-t border-dashed">
-                <td className="text-muted px-5 py-2.5 text-[13px]">
+                <td className="text-muted px-5 py-2.5 text-[13px] sm:px-6">
                   {statement.otherLedgerName}, as that file states it
                 </td>
-                <td className="text-muted numeric px-5 py-2.5 text-right text-[13px]">
+                <td className="text-muted px-5 py-2.5 text-right text-[13px] whitespace-nowrap tabular-nums sm:px-6">
                   {formatINR(statement.targetClosing)}
                   <span className="text-subtle ml-1">{statement.targetClosingType}</span>
                 </td>
               </tr>
             )}
+
+            {/* The line the whole statement exists to arrive at. */}
+            <tr
+              style={{ '--tone': RECON_TONE[statement.status] } as CSSProperties}
+              className="tinted border-t"
+            >
+              <td className="px-5 py-3.5 sm:px-6">
+                <span className="flex items-center gap-2 text-[13px] font-semibold">
+                  {settled ? (
+                    <Check className="size-4 shrink-0" strokeWidth={2.5} aria-hidden />
+                  ) : (
+                    <TriangleAlert className="size-4 shrink-0" aria-hidden />
+                  )}
+                  {settled ? 'Ties out: nothing left unexplained' : 'Left unexplained'}
+                </span>
+              </td>
+              <td className="px-5 py-3.5 text-right font-semibold whitespace-nowrap tabular-nums sm:px-6">
+                {settled ? 'Nil' : formatINR(Math.abs(statement.variance))}
+              </td>
+            </tr>
           </tbody>
         </table>
       </CardBody>
@@ -108,7 +129,7 @@ function BalanceRow({
       className={cn('border-b', emphasis && 'border-t-2 border-b-0')}
       style={{ '--tone': tone } as CSSProperties}
     >
-      <td className={cn('px-5', emphasis ? 'py-4' : 'py-3.5')}>
+      <td className={cn('px-5 sm:px-6', emphasis ? 'py-4' : 'py-3.5')}>
         <span className="flex items-center gap-2.5">
           <span aria-hidden className="h-4 w-[3px] shrink-0 rounded-full bg-[var(--tone)]" />
           <span className="font-semibold text-pretty">{label}</span>
@@ -116,7 +137,7 @@ function BalanceRow({
       </td>
       <td
         className={cn(
-          'amount px-5 text-right font-semibold whitespace-nowrap',
+          'amount px-5 text-right font-semibold whitespace-nowrap sm:px-6',
           emphasis ? 'py-4 text-lg' : 'py-3.5',
         )}
       >
@@ -137,33 +158,45 @@ function Block({
   empty: string;
 }) {
   const isAdd = label === 'Add';
+  const total = Math.round(lines.reduce((sum, l) => sum + l.amount, 0) * 100) / 100;
 
   return (
     <>
       <tr>
-        <td colSpan={2} className="a-label px-5 pt-4 pb-1.5">
-          {label}
+        <td className="a-label px-5 pt-5 pb-1.5 sm:px-6">{label}</td>
+        {/* The block's total, so the two blocks can be weighed against each
+            other without adding them up by eye. */}
+        <td className="text-subtle px-5 pt-5 pb-1.5 text-right text-[11.5px] whitespace-nowrap tabular-nums sm:px-6">
+          {lines.length > 0 && (
+            <>
+              {lines.length} {lines.length === 1 ? 'item' : 'items'} ·{' '}
+              <span className="font-semibold text-[var(--text-c)]">
+                {isAdd ? '+' : '−'}
+                {formatINR(total)}
+              </span>
+            </>
+          )}
         </td>
       </tr>
 
       {lines.length === 0 ? (
         <tr>
-          <td colSpan={2} className="text-subtle px-5 py-1.5 pl-9 text-[13px] italic">
+          <td colSpan={2} className="text-subtle py-1.5 pr-5 pl-9 text-[13px] italic sm:pl-10">
             {empty}
           </td>
         </tr>
       ) : (
         lines.map((line, i) => (
           <tr key={i} className="border-b border-dashed last:border-0">
-            <td className="text-muted py-2.5 pr-4 pl-9 text-[13px] leading-relaxed text-pretty">
+            <td className="text-muted py-2.5 pr-4 pl-9 text-[13px] leading-relaxed text-pretty sm:pl-10">
               {line.description}
             </td>
             <td
               className={cn(
-                'numeric px-5 py-2.5 text-right text-[13px] font-medium whitespace-nowrap',
+                'px-5 py-2.5 text-right text-[13px] font-medium whitespace-nowrap tabular-nums sm:px-6',
                 isAdd
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-rose-600 dark:text-rose-400',
+                  ? 'text-[color-mix(in_oklab,var(--status-approved)_82%,var(--text-c))]'
+                  : 'text-[color-mix(in_oklab,var(--status-rejected)_82%,var(--text-c))]',
               )}
             >
               {isAdd ? '+' : '−'}

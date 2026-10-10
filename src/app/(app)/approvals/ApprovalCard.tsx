@@ -94,7 +94,7 @@ export function ApprovalCard({
     <Card
       style={{ '--tone': ageTone } as CSSProperties}
       className={cn(
-        'group relative overflow-hidden rounded-2xl transition',
+        'group relative overflow-hidden rounded-3xl transition',
         blockedReason ? 'opacity-75' : 'hover:border-[var(--border-strong)]',
       )}
     >
@@ -132,7 +132,7 @@ export function ApprovalCard({
         the one thing on the card you have to be able to read. As a grid the amount
         simply drops below the payee at narrow widths and both get the full width.
       */}
-      <div className="grid gap-x-6 gap-y-3 p-4 pl-5 sm:grid-cols-[1fr_auto] sm:items-start">
+      <div className="grid gap-x-6 gap-y-3 p-5 pl-6 sm:p-6 sm:pl-7 sm:grid-cols-[1fr_auto] sm:items-start">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Link
@@ -151,7 +151,7 @@ export function ApprovalCard({
             )}
           </div>
 
-          <p className="mt-2.5 truncate text-[17px] font-semibold tracking-tight">
+          <p className="m-display mt-3 truncate text-[1.4rem] leading-tight">
             {voucher.paid_to ?? <span className="text-subtle font-normal">No payee</span>}
           </p>
           <p className="text-muted mt-1 truncate text-xs">
@@ -168,7 +168,7 @@ export function ApprovalCard({
 
         <div className="min-w-0 sm:text-right">
           <p className="a-label">Grand total</p>
-          <div className="a-figure mt-1 text-2xl sm:text-[1.7rem]">
+          <div className="a-figure mt-1.5 text-[1.75rem] sm:text-[2rem]">
             {fmtRupees(voucher.grand_total)}
           </div>
           <div className="mt-2 flex sm:justify-end">
@@ -177,7 +177,7 @@ export function ApprovalCard({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t bg-[var(--surface-sunken)] px-4 py-2.5 pl-5">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t bg-[var(--surface-sunken)] px-5 py-3 pl-6 sm:px-6 sm:pl-7">
         <div className="text-subtle flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           {/* Who is asking, with their face. An approver working down a queue is
               deciding partly on who raised it, and a name is slower to place than
@@ -246,7 +246,7 @@ export function ApprovalCard({
           the wrong way to say "this returns the voucher to whoever raised it"
           when everything beside it is spelled out.
         */}
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:items-center">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:shrink-0 sm:items-center">
           <Link
             href={`/vouchers/${voucher.id}`}
             className={buttonClass({
@@ -289,7 +289,7 @@ export function ApprovalCard({
 
       {/* Why this one can't be actioned — explain rather than silently grey out. */}
       {blockedReason && (
-        <p className="text-muted flex items-center gap-2 border-t bg-[var(--surface-sunken)] px-4 py-2.5 pl-5 text-xs">
+        <p className="text-muted flex items-center gap-2 border-t bg-[var(--surface-sunken)] px-5 py-3 pl-6 sm:px-6 sm:pl-7 text-xs">
           <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
           {blockedReason}
         </p>
@@ -297,7 +297,7 @@ export function ApprovalCard({
 
       {/* Rejection needs a reason — that is the whole point of sending it back. */}
       {rejecting && (
-        <div className="animate-[rise_0.3s_cubic-bezier(0.22,1,0.36,1)] space-y-3 border-t bg-[var(--surface-sunken)] p-4 pl-5">
+        <div className="animate-[rise_0.3s_cubic-bezier(0.22,1,0.36,1)] space-y-3 border-t bg-[var(--surface-sunken)] p-5 pl-6 sm:px-6 sm:pl-7">
           <label htmlFor={`reason-${voucher.id}`} className="block text-sm font-medium">
             What needs fixing?
           </label>

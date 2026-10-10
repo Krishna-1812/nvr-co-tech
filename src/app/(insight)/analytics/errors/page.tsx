@@ -1,8 +1,9 @@
-import { AlertTriangle, Bug, Globe, Server } from 'lucide-react';
+import { AlertTriangle, Bug, Globe, Server, ShieldCheck } from 'lucide-react';
 import { readErrors } from '@/lib/errors/store';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardTitle, EmptyState } from '@/components/ui/primitives';
 import { NUM, Pill, ago } from '@/components/analytics/Figures';
+import { SummaryStrip } from '@/components/analytics/Strip';
 import { cn } from '@/lib/utils';
 
 export const metadata = { title: 'Errors' };
@@ -29,31 +30,53 @@ export default async function ErrorsPage() {
         description="Every error caught by a page boundary or swallowed by a route handler, most recent first."
       />
 
-      <div className="surface-lit flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl px-5 py-4">
-        <Stat label="Total" value={errors.length} tone="var(--status-rejected)" />
-        <Stat label="Server-side" value={serverCount} tone="var(--h-indigo)" />
-        <Stat label="Client-side" value={clientCount} tone="var(--h-cyan)" />
-      </div>
+      <SummaryStrip
+        cells={[
+          {
+            label: 'Caught',
+            value: errors.length.toLocaleString('en-IN'),
+            note: errors.length === 0 ? 'Nothing on record' : `Latest ${ago(errors[0].occurred_at)}`,
+            strong: errors.length > 0,
+          },
+          {
+            label: 'Server-side',
+            value: serverCount.toLocaleString('en-IN'),
+            note: 'Route handlers and server components',
+            tone: 'var(--h-indigo)',
+          },
+          {
+            label: 'Client-side',
+            value: clientCount.toLocaleString('en-IN'),
+            note: 'Caught by a page boundary in a browser',
+            tone: 'var(--h-cyan)',
+          },
+        ]}
+      />
 
       {errors.length === 0 ? (
         <Card className="overflow-hidden">
           <EmptyState
-            icon={<AlertTriangle className="size-6" />}
+            icon={<ShieldCheck className="size-6" />}
             title="Nothing caught yet"
             description="Either nothing has broken, or migration 0011 has not been applied to this database yet."
           />
         </Card>
       ) : (
         <Card className="overflow-hidden">
-          <ul className="divide-y">
+          <CardTitle
+            icon={<AlertTriangle className="size-4" />}
+            title="Most recent first"
+            description="Open a stack to read where it came from. The colour and the label both say which side it broke on."
+          />
+          <ul className="stagger divide-y">
             {errors.map((error) => (
-              <li key={error.id} className="flex flex-wrap items-start gap-3 px-5 py-4">
+              <li
+                key={error.id}
+                className="flex items-start gap-3.5 px-5 py-4 transition-colors hover:bg-[var(--surface-sunken)] sm:px-6"
+              >
                 <span
-                  className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg border"
-                  style={{
-                    color: error.scope === 'server' ? 'var(--h-indigo)' : 'var(--h-cyan)',
-                    borderColor: 'var(--border-c)',
-                  }}
+                  style={{ ['--tone' as string]: error.scope === 'server' ? 'var(--h-indigo)' : 'var(--h-cyan)' }}
+                  className="tinted mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl border"
                 >
                   {error.scope === 'server' ? (
                     <Server className="size-3.5" aria-hidden />
@@ -64,7 +87,7 @@ export default async function ErrorsPage() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[13.5px] font-semibold text-pretty">{error.message}</p>
+                    <p className="min-w-0 text-[13.5px] font-semibold break-words text-pretty">{error.message}</p>
                     <Pill tone={error.scope === 'server' ? 'var(--h-indigo)' : 'var(--h-cyan)'}>
                       {error.scope}
                     </Pill>
@@ -80,7 +103,7 @@ export default async function ErrorsPage() {
                       <summary className="text-subtle cursor-pointer text-[11px] select-none hover:text-[var(--text-c)]">
                         Stack
                       </summary>
-                      <pre className="text-subtle mt-2 max-h-64 overflow-auto rounded-lg bg-[var(--surface-sunken)] p-3 text-[11px] leading-relaxed whitespace-pre-wrap">
+                      <pre className="surface-sunken text-subtle mt-2 max-h-64 overflow-auto rounded-xl border p-3 text-[11px] leading-relaxed whitespace-pre-wrap">
                         {error.stack}
                       </pre>
                     </details>
@@ -98,7 +121,7 @@ export default async function ErrorsPage() {
           description="Worth reading once, so an empty screen elsewhere doesn't read as an outage."
           icon={<Bug className="size-4" />}
         />
-        <p className="text-muted px-5 py-4 text-[12.5px] leading-relaxed text-pretty">
+        <p className="text-muted px-5 py-5 text-[13px] sm:px-6 leading-relaxed text-pretty">
           The visitor beacon and the signed-in page-view endpoint both answer{' '}
           <span className="font-mono">{'{ ok: true }'}</span> no matter what happened inside them, on
           purpose — a tracking call is never worth a visible failure. This screen is where those
@@ -106,19 +129,5 @@ export default async function ErrorsPage() {
         </p>
       </Card>
     </div>
-  );
-}
-
-function Stat({ label, value, tone }: { label: string; value: number; tone: string }) {
-  return (
-    <span className="flex items-center gap-2.5">
-      <span aria-hidden className="h-8 w-[3px] rounded-full" style={{ background: tone }} />
-      <span>
-        <span className={cn(NUM, 'block text-[20px] leading-none font-semibold')}>
-          {value.toLocaleString('en-IN')}
-        </span>
-        <span className="text-subtle mt-1 block text-[11px]">{label}</span>
-      </span>
-    </span>
   );
 }

@@ -3,10 +3,10 @@ import { ChevronLeft, ChevronRight, FileText, Plus, Download } from 'lucide-reac
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { isAdmin, VOUCHER_STATUSES, STATUS_META } from '@/lib/domain/workflow';
 import { parseFilters, applyVoucherFilters, hasFilters } from '@/lib/domain/voucherQuery';
-import { fmtRupees } from '@/lib/domain/voucher';
 import { PageHeader } from '@/components/PageHeader';
 import { buttonClass, Card, EmptyState } from '@/components/ui/primitives';
 import { VoucherTable } from '@/components/voucher/VoucherTable';
+import { RegisterSummary } from '@/components/voucher/RegisterSummary';
 import { VoucherFilters } from './VoucherFilters';
 import type { VoucherListRow } from '@/lib/domain/rows';
 
@@ -51,7 +51,6 @@ export default async function VouchersPage({
   const rows = (data ?? []) as unknown as VoucherListRow[];
   const total = count ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const pageValue = rows.reduce((sum, v) => sum + Number(v.grand_total ?? 0), 0);
 
   const hasActiveFilters = hasFilters(filters);
   const exportQuery = new URLSearchParams(
@@ -80,15 +79,6 @@ export default async function VouchersPage({
             {total === 1 ? '' : 's'}
             {isAdmin(user.role) ? ' across all users' : ''}
             {hasActiveFilters ? ' matching the current filters' : ''}
-            {rows.length > 0 && (
-              <>
-                {' · '}
-                <span className="numeric font-semibold text-[var(--text-c)]">
-                  {fmtRupees(pageValue)}
-                </span>{' '}
-                on this page
-              </>
-            )}
             .
           </>
         }
@@ -116,6 +106,9 @@ export default async function VouchersPage({
           </>
         }
       />
+
+      {/* Only with rows to describe: an empty page has no shape. */}
+      {rows.length > 0 && <RegisterSummary rows={rows} activeStatus={filters.status ?? undefined} />}
 
       <VoucherFilters
         chapters={(chapters ?? []) as { id: string; name: string }[]}

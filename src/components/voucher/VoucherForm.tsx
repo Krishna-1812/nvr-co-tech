@@ -10,7 +10,21 @@ import {
   type CSSProperties,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, Cloud, CloudOff, Loader2, Send, Sparkles, Trash2 } from 'lucide-react';
+import {
+  Banknote,
+  Calculator,
+  CalendarDays,
+  Check,
+  Cloud,
+  CloudOff,
+  Hash,
+  Loader2,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  type LucideIcon,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import {
   PAYMENT_RULES,
@@ -20,6 +34,7 @@ import {
   calcTax,
   calcNetTotal,
   calcGrandTotal,
+  toNum,
   fmtRupees,
   gstMode,
   alphaNumeric,
@@ -39,6 +54,7 @@ import { submitVoucher } from '@/app/actions/workflow';
 import {
   Button,
   Card,
+  CardTitle,
   ChoicePill,
   ComputedField,
   Field,
@@ -392,8 +408,13 @@ export function VoucherForm({
       <div className="space-y-6">
         {/* ── 1. Voucher info ── */}
         <Card id="info">
-          <SectionHead step={1} title="Voucher info" />
-          <div className="grid gap-5 p-5 sm:grid-cols-2">
+          <SectionHead
+            step={1}
+            icon={Hash}
+            title="Voucher info"
+            description="The date, the chapter it is raised against, and its number."
+          />
+          <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
             <Field label="Voucher date" htmlFor="f-date" required error={errorFor('date')}>
               <Input
                 id="f-date"
@@ -493,8 +514,13 @@ export function VoucherForm({
 
         {/* ── 2. Event & supporting ── */}
         <Card id="event">
-          <SectionHead step={2} title="Event & supporting document" />
-          <div className="space-y-5 p-5">
+          <SectionHead
+            step={2}
+            icon={CalendarDays}
+            title="Event & supporting document"
+            description="What the payment is for, and the document behind it."
+          />
+          <div className="space-y-5 p-5 sm:p-6">
             <div className="grid gap-5 sm:grid-cols-2">
               <EventPicker
                 events={eventList}
@@ -643,8 +669,13 @@ export function VoucherForm({
 
         {/* ── 3. Amounts ── */}
         <Card id="amounts">
-          <SectionHead step={3} title="Amount breakdown" />
-          <div className="space-y-5 p-5">
+          <SectionHead
+            step={3}
+            icon={Calculator}
+            title="Amount breakdown"
+            description="The invoice's figures. The totals on the right update as you type."
+          />
+          <div className="space-y-5 p-5 sm:p-6">
             <div className="grid gap-5 sm:grid-cols-2">
               <Field
                 label="Basic value (A)"
@@ -681,7 +712,7 @@ export function VoucherForm({
               Disabling the opposite side makes the rule obvious before the user
               can break it, rather than erroring after the fact.
             */}
-            <div className="surface-sunken rounded-lg p-4">
+            <div className="surface-sunken a-inner rounded-2xl border p-4 sm:p-5">
               <p className="text-muted text-xs">
                 Use <strong>CGST + SGST</strong> for the same state, or <strong>IGST</strong> for
                 another state. Never both. Clear one side to switch.
@@ -757,8 +788,13 @@ export function VoucherForm({
 
         {/* ── 4. Payment details ── */}
         <Card id="payment">
-          <SectionHead step={4} title="Payment details" />
-          <div className="grid gap-5 p-5 sm:grid-cols-2">
+          <SectionHead
+            step={4}
+            icon={Banknote}
+            title="Payment details"
+            description="Who is paid, from which chapter, and the bank reference."
+          />
+          <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
             <Field label="Paid to" htmlFor="f-paid_to" required error={errorFor('paid_to')}>
               <Input
                 id="f-paid_to"
@@ -845,19 +881,27 @@ export function VoucherForm({
           actually needs to know is who signs it next, and that it will not be
           them.
         */}
-        <Card className="border-dashed p-5">
-          <p className="text-sm font-medium">Approvals</p>
-          <p className="text-muted mt-1 text-sm">
-            {requiresApproval
-              ? 'Nothing to fill in. Submitting puts this voucher in the approval queue, and it records whoever signs it. That can never be you.'
-              : 'This organisation does not require approval. When you submit, this voucher is paid immediately.'}
-          </p>
-        </Card>
+        <div className="surface-sunken flex items-start gap-3 rounded-3xl border border-dashed p-5 sm:p-6">
+          <span
+            aria-hidden
+            className="text-muted grid size-9 shrink-0 place-items-center rounded-xl border bg-[var(--surface-raised)]"
+          >
+            <ShieldCheck className="size-4" />
+          </span>
+          <div className="min-w-0 pt-px">
+            <p className="font-semibold tracking-tight">Approvals</p>
+            <p className="text-muted mt-0.5 text-[13px] text-pretty">
+              {requiresApproval
+                ? 'Nothing to fill in. Submitting puts this voucher in the approval queue, and it records whoever signs it. That can never be you.'
+                : 'This organisation does not require approval. When you submit, this voucher is paid immediately.'}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ── Sticky summary rail ── */}
       <aside className="lg:sticky lg:top-20">
-        <Card className="overflow-hidden rounded-2xl">
+        <Card className="overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b p-4">
             <SaveIndicator state={saveState} message={saveError} />
             {/*
@@ -869,26 +913,49 @@ export function VoucherForm({
             <ReadyRing blockers={blockers} />
           </div>
 
-          <div className="space-y-3 p-4">
-            <ComputedField label="Net total" value={fmtRupees(totals.net)} />
-            <p className="text-subtle text-xs">
-              Grand total is Net − TDS − Advance + Tips − Discount
-            </p>
-          </div>
-
           {/*
-            The figure that will be authorised, on the brand, with the app's one
-            travelling highlight over it. It is the same treatment the finished
-            voucher gets on its own page, so what you are building and what an
-            approver will see are visibly the same object.
+            The working, live, the way True Property Cost writes out its sum
+            under the answer: every term that has a value, the net total drawn
+            as a line under the first group, then what comes off it. Only the
+            terms somebody has filled in are listed, so a simple invoice reads
+            as a two-line sum rather than a nine-line form of zeroes. The
+            figures are the inputs as typed and the totals `calcNetTotal` and
+            `calcGrandTotal` already produced; nothing here is worked out twice.
           */}
-          <div className="gradient-brand relative overflow-hidden">
-            <span aria-hidden className="a-shine absolute inset-0" />
-            <div className="relative flex items-baseline justify-between gap-3 px-4 py-3.5">
-              <span className="text-[10px] font-semibold tracking-[0.14em] uppercase opacity-85">
+          <div className="p-4 sm:p-5">
+            <p className="a-label mb-2">The working</p>
+            <WorkingLine label="Basic value" value={toNum(form.basic_value)} />
+            {toNum(form.cgst) > 0 && <WorkingLine sign="+" label="CGST" value={toNum(form.cgst)} />}
+            {toNum(form.sgst) > 0 && <WorkingLine sign="+" label="SGST" value={toNum(form.sgst)} />}
+            {toNum(form.igst) > 0 && <WorkingLine sign="+" label="IGST" value={toNum(form.igst)} />}
+            {toNum(form.vat) > 0 && (
+              <WorkingLine sign="+" label="VAT / other" value={toNum(form.vat)} />
+            )}
+            <WorkingLine sign="=" label="Net total" value={totals.net} strong />
+            {toNum(form.tds) > 0 && <WorkingLine sign="−" label="TDS" value={toNum(form.tds)} />}
+            {toNum(form.advance) > 0 && (
+              <WorkingLine sign="−" label="Advance" value={toNum(form.advance)} />
+            )}
+            {toNum(form.tips) > 0 && <WorkingLine sign="+" label="Tips" value={toNum(form.tips)} />}
+            {toNum(form.discount) > 0 && (
+              <WorkingLine sign="−" label="Discount" value={toNum(form.discount)} />
+            )}
+
+            {/*
+              The figure that will be authorised, as the answer tile: the one
+              surface in the action fill, exactly as the voucher's own page and
+              True Property Cost set the figure the whole sum arrives at.
+            */}
+            <div className="mt-4 rounded-2xl bg-[var(--action)] px-4 py-3.5 text-[var(--on-action)] shadow-[var(--elev-brand)]">
+              <p className="text-[10px] font-semibold tracking-[0.12em] uppercase opacity-75">
                 Grand total
-              </span>
-              <span className="a-figure text-xl">{fmtRupees(totals.grand)}</span>
+              </p>
+              <p className="mt-1.5 truncate text-[1.6rem] leading-none font-semibold tracking-tight tabular-nums">
+                {fmtRupees(totals.grand)}
+              </p>
+              <p className="mt-1.5 text-[12px] leading-snug opacity-75">
+                Net − TDS − Advance + Tips − Discount
+              </p>
             </div>
           </div>
 
@@ -1036,13 +1103,63 @@ function ReadyRing({ blockers }: { blockers: { path: string }[] }) {
   );
 }
 
-function SectionHead({ step, title }: { step: number; title: string }) {
+/**
+ * A section's heading, as True Property Cost heads its panels: an icon in a
+ * tile, the title, one line saying what the section is for. The step number
+ * moves to the right-hand corner as a quiet "1 / 4"; it is how far through the
+ * form you are, which matters less than what this part of it asks for.
+ */
+function SectionHead({
+  step,
+  title,
+  description,
+  icon: Icon,
+}: {
+  step: number;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}) {
   return (
-    <div className="flex items-center gap-3 border-b px-5 py-3.5">
-      <span className="gradient-brand elev-brand grid size-6 shrink-0 place-items-center rounded-lg text-[11px] font-bold">
-        {step}
+    <CardTitle
+      icon={<Icon className="size-4" />}
+      title={title}
+      description={description}
+      action={
+        <span className="a-label numeric" aria-label={`Step ${step} of ${SECTIONS.length}`}>
+          {step} / {SECTIONS.length}
+        </span>
+      }
+    />
+  );
+}
+
+/** One line of the rail's working: a sign, a label, a figure. */
+function WorkingLine({
+  sign,
+  label,
+  value,
+  strong = false,
+}: {
+  sign?: string;
+  label: string;
+  value: number;
+  strong?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        'flex items-baseline justify-between gap-3 py-1 text-[13px]',
+        strong && 'mt-1 border-t pt-2 font-semibold',
+      )}
+    >
+      <span className="flex min-w-0 items-baseline gap-1.5">
+        <span aria-hidden className="text-subtle numeric w-2.5 shrink-0 text-center text-xs font-semibold">
+          {sign}
+        </span>
+        <span className={cn('truncate', !strong && 'text-muted')}>{label}</span>
       </span>
-      <h2 className="font-semibold tracking-tight">{title}</h2>
+      <span className="numeric shrink-0 tabular-nums">{fmtRupees(value)}</span>
     </div>
   );
 }

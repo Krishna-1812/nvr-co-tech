@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { ArrowUpRight, Building2 } from 'lucide-react';
 import { Card, EmptyState } from '@/components/ui/primitives';
 import { PageHeader } from '@/components/PageHeader';
-import { duration, number, NUM } from '@/components/analytics/Figures';
+import { duration, number } from '@/components/analytics/Figures';
+import { SummaryStrip } from '@/components/analytics/Strip';
 import { WindowTabs, windowFrom } from '@/components/analytics/Window';
 import { buildPeople } from '@/lib/analytics/people';
 import { summariseTenants } from '@/lib/analytics/tenants';
@@ -12,7 +13,6 @@ import {
   readSignedInViews,
   readTenants,
 } from '@/lib/analytics/store';
-import { cn } from '@/lib/utils';
 
 export const metadata = { title: 'Organisations' };
 export const dynamic = 'force-dynamic';
@@ -85,6 +85,11 @@ export default async function OrganisationsPage({
     return !row || row.vouchers_drafted + row.reconciliations_saved === 0;
   }).length;
 
+  // Totals for the strip, summed from the same per-tenant counts the cards show,
+  // so the strip and the cards cannot disagree.
+  const submittedAll = summaries.reduce((n, t) => n + (tenants.counts.get(t.id)?.vouchers_submitted ?? 0), 0);
+  const paidAll = summaries.reduce((n, t) => n + (tenants.counts.get(t.id)?.vouchers_paid ?? 0), 0);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -104,24 +109,41 @@ export default async function OrganisationsPage({
         </Card>
       ) : (
         <>
-          <p className="text-subtle text-[12px]">
-            {number(summaries.length)} {summaries.length === 1 ? 'organisation' : 'organisations'}
-            {quiet > 0 && (
-              <>
-                {' · '}
-                <span className="text-[var(--h-amber)]">
-                  {number(quiet)} {quiet === 1 ? 'has' : 'have'} never drafted anything
-                </span>
-              </>
-            )}
-          </p>
+          <SummaryStrip
+            cells={[
+              {
+                label: 'Organisations',
+                value: number(summaries.length),
+                note: 'Every tenant, active or not',
+                strong: true,
+              },
+              {
+                label: 'Vouchers submitted',
+                value: number(submittedAll),
+                note: 'Across every organisation, ever',
+                tone: 'var(--h-indigo)',
+              },
+              {
+                label: 'Vouchers paid',
+                value: number(paidAll),
+                note: 'The end of the workflow',
+                tone: 'var(--status-approved)',
+              },
+              {
+                label: 'Never drafted',
+                value: number(quiet),
+                note: quiet === 0 ? 'Every one has started' : 'Signed up and stopped. Worth a call',
+                tone: quiet > 0 ? 'var(--status-warn)' : 'var(--status-approved)',
+              },
+            ]}
+          />
 
-          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {summaries.map((tenant) => (
-              <li key={tenant.id}>
+              <li key={tenant.id} className="min-w-0">
                 <Link
                   href={`/analytics/orgs/${tenant.id}?days=${days}`}
-                  className="hover-lift a-ring group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-[var(--surface-raised)]"
+                  className="surface-lit a-ring a-lift group relative flex h-full flex-col overflow-hidden rounded-3xl"
                   style={{ ['--tone' as string]: tenant.accent }}
                 >
                   <span
@@ -132,19 +154,19 @@ export default async function OrganisationsPage({
                     }}
                   />
 
-                  <div className="flex flex-1 flex-col p-5">
+                  <div className="flex flex-1 flex-col p-5 sm:p-6">
                     <div className="flex items-start gap-3">
+                      {/* Tinted by the tenant's own colour rather than filled with
+                          it: a filled mark needs a label colour chosen per hue
+                          and per theme, and the tint carries the colour without. */}
                       <span
                         aria-hidden
-                        className="grid size-10 shrink-0 place-items-center rounded-xl text-[13px] font-bold text-white"
-                        style={{
-                          background: `linear-gradient(135deg, ${tenant.accent}, color-mix(in oklab, ${tenant.accent} 55%, black))`,
-                        }}
+                        className="tinted a-inner grid size-11 shrink-0 place-items-center rounded-2xl border text-[13px] font-bold tracking-tight"
                       >
                         {initials(tenant.name)}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[14px] font-semibold">{tenant.name}</span>
+                        <span className="block truncate text-[15px] font-semibold tracking-tight">{tenant.name}</span>
                         <span className="text-subtle block text-[11px]">
                           Joined{' '}
                           {new Date(tenant.createdAt).toLocaleDateString('en-IN', {
@@ -156,7 +178,7 @@ export default async function OrganisationsPage({
                       </span>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-3 gap-2">
+                    <div className="mt-5 mb-5 grid grid-cols-3 gap-2">
                       <Box
                         label="People"
                         value={number(tenants.counts.get(tenant.id)?.members ?? tenant.people)}
@@ -171,7 +193,7 @@ export default async function OrganisationsPage({
                       />
                     </div>
 
-                    <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+                    <div className="mt-auto flex items-center justify-between gap-3 border-t border-dashed pt-4">
                       <span className="text-subtle text-[11px]">
                         {lastActive(tenant.lastSeen, tenants.counts.get(tenant.id)?.last_event)}
                         {tenant.seconds > 0 && ` · ${duration(tenant.seconds)}`}
@@ -197,9 +219,9 @@ export default async function OrganisationsPage({
 
 function Box({ label, value }: { label: string; value: string }) {
   return (
-    <span className="surface-sunken block rounded-lg border px-2 py-1.5 text-center">
-      <span className={cn(NUM, 'block text-[15px] font-semibold')}>{value}</span>
-      <span className="a-label mt-0.5 block text-[9px]">{label}</span>
+    <span className="surface-sunken block min-w-0 rounded-xl border px-2 py-2.5 text-center">
+      <span className="block text-[1.2rem] leading-none font-semibold tracking-tight tabular-nums">{value}</span>
+      <span className="a-label mt-1.5 block truncate">{label}</span>
     </span>
   );
 }

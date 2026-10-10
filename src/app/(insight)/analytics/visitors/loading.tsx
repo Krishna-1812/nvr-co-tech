@@ -1,4 +1,4 @@
-import { HeaderSkeleton, TableSkeleton } from '@/components/ui/Skeletons';
+import { HeaderSkeleton, StatsSkeleton, TableSkeleton } from '@/components/ui/Skeletons';
 
 /**
  * The visitor list resolves every distinct address it finds, so a cold cache
@@ -9,6 +9,7 @@ export default function VisitorsLoading() {
   return (
     <div className="space-y-6">
       <HeaderSkeleton />
+      <StatsSkeleton count={4} />
       <TableSkeleton rows={10} columns={8} />
     </div>
   );

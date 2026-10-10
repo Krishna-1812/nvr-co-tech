@@ -56,14 +56,14 @@ export function StatCard({
     <Glow
       color={tone}
       className={cn(
-        'a-lift surface-lit h-full overflow-hidden rounded-2xl',
+        'a-lift surface-lit a-ring h-full overflow-hidden rounded-3xl',
         urgent && 'border-[color-mix(in_oklab,var(--tone)_36%,var(--border-c))]',
       )}
       // The tone is read by the class strings below as well as by Glow, so it is
       // set once here as a variable rather than threaded into six places.
       style={{ '--tone': tone } as CSSProperties}
     >
-      <Link href={href} className="group relative z-1 flex h-full flex-col p-4 sm:p-5">
+      <Link href={href} className="group relative z-1 flex h-full flex-col p-5 sm:p-6">
         {urgent && (
           <>
             <span
@@ -83,7 +83,7 @@ export function StatCard({
           <span className="a-label pt-1.5 leading-relaxed">{label}</span>
           <span
             className={cn(
-              'grid size-8 shrink-0 place-items-center rounded-xl border transition',
+              'grid size-9 shrink-0 place-items-center rounded-xl border transition',
               urgent
                 ? 'on-tone border-transparent'
                 : 'surface-sunken text-subtle group-hover:text-[var(--text-c)]',

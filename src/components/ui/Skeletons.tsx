@@ -59,33 +59,62 @@ export function HeaderSkeleton({ withAction = true }: { withAction?: boolean }) 
 }
 
 /**
- * Briefing: the dashboard's opening panel. Tall, so a plain block here would be
- * the largest grey rectangle in the app while it loads.
+ * ToolHero (components/ui/ToolHero.tsx): the opening panel every tool now has.
+ * Tall, so a plain block here would be the largest grey rectangle in the app
+ * while it loads. The arch is drawn as an arch, faintly, so the one shape the
+ * eye expects is already standing where it will stand.
+ *
+ * `working` is the panel under the title — the dashboard's in-flight meter,
+ * a row of figure tiles — which is most of the hero's height on most tools.
  */
-export function BriefingSkeleton() {
+export function HeroSkeleton({
+  scene = true,
+  working = true,
+  buttons = true,
+}: {
+  scene?: boolean;
+  working?: boolean;
+  buttons?: boolean;
+}) {
   return (
-    <Card className="rounded-3xl p-6 sm:p-8" aria-busy="true" aria-label="Loading">
-      <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
+    <Card className="rounded-[2rem] p-6 sm:p-9" aria-busy="true" aria-label="Loading">
+      <div
+        className={cn(
+          'grid gap-8',
+          scene && 'lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_19rem]',
+        )}
+      >
         <div className="min-w-0 space-y-4">
           <Bar className="h-2.5 w-40" />
-          <Bar className="h-9 w-72 max-w-full" />
+          <Bar className="h-11 w-80 max-w-full" />
           <Bar className="h-4 w-full max-w-lg" />
-          <div className="flex gap-2.5 pt-2">
-            <Bar className="h-10 w-40" />
-            <Bar className="h-10 w-32" />
-          </div>
+          {buttons && (
+            <div className="flex gap-2.5 pt-3">
+              <Bar className="h-10 w-40 rounded-full" />
+              <Bar className="h-10 w-32 rounded-full" />
+            </div>
+          )}
+          {working && (
+            <div className="surface-sunken mt-4 max-w-xl space-y-3 rounded-2xl border p-5">
+              <Bar className="h-2.5 w-16" />
+              <Bar className="h-8 w-44" />
+              <Bar className="h-2.5 w-full rounded-full" />
+            </div>
+          )}
         </div>
-        <div className="lg:w-64">
-          <div className="surface-sunken space-y-3 rounded-2xl border p-4">
-            <Bar className="h-2.5 w-16" />
-            <Bar className="h-7 w-36" />
-            <Bar className="h-1 w-full rounded-full" />
-            <Bar className="h-3 w-32" />
+        {scene && (
+          <div aria-hidden className="relative hidden min-h-[18rem] lg:block">
+            <span className="m-arch absolute inset-x-0 top-0 bottom-8 animate-[shimmer_1.8s_ease-in-out_infinite] bg-[var(--surface-sunken)]" />
           </div>
-        </div>
+        )}
       </div>
     </Card>
   );
+}
+
+/** The dashboard's hero, which is a ToolHero with the in-flight meter. */
+export function BriefingSkeleton() {
+  return <HeroSkeleton />;
 }
 
 /** StatCard: label and icon tile, the figure, the share meter, the hint. */

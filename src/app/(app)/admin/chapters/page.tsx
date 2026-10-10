@@ -1,5 +1,6 @@
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/primitives';
+import { HeroStat } from '@/components/ui/ToolHero';
 import { ChaptersManager, type AdminChapter } from './ChaptersManager';
 
 export const metadata = { title: 'Chapters' };
@@ -31,9 +32,49 @@ export default async function AdminChaptersPage() {
     voucherCount: usage.get(c.id) ?? 0,
   }));
 
+  /*
+   * The strip above the list. Counted from the rows already read; the busiest
+   * chapter is named because "where does the money go" is the question an
+   * admin opening this screen is most often half-asking.
+   */
+  const active = rows.filter((c) => c.is_active).length;
+  const raised = rows.reduce((s, c) => s + c.voucherCount, 0);
+  const busiest = rows.reduce<(typeof rows)[number] | null>(
+    (top, c) => (c.voucherCount > (top?.voucherCount ?? 0) ? c : top),
+    null,
+  );
+  // A tie is reported as a tie: naming the first of four equal chapters
+  // "busiest" would be a claim the numbers do not make.
+  const tied = busiest ? rows.filter((c) => c.voucherCount === busiest.voucherCount).length : 0;
+
   return (
-    <Card className="overflow-hidden">
-      <ChaptersManager chapters={rows} />
-    </Card>
+    <div className="space-y-6">
+      <Card className="p-4 sm:p-5">
+        <dl className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          <HeroStat label="Chapters" value={rows.length} note={`${active} open for new vouchers`} />
+          <HeroStat
+            label="Retired"
+            value={rows.length - active}
+            note={rows.length - active === 0 ? 'None retired' : 'Kept for their history'}
+          />
+          <HeroStat label="Vouchers raised" value={raised} note="Across every chapter" />
+          <HeroStat
+            label="Busiest"
+            value={!busiest ? '—' : tied > 1 ? `${tied} tied` : busiest.code}
+            note={
+              busiest && tied > 1
+                ? `${busiest.voucherCount} ${busiest.voucherCount === 1 ? 'voucher' : 'vouchers'} each`
+                : busiest
+                  ? `${busiest.name}, ${busiest.voucherCount} ${busiest.voucherCount === 1 ? 'voucher' : 'vouchers'}`
+                  : 'No vouchers yet'
+            }
+          />
+        </dl>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <ChaptersManager chapters={rows} />
+      </Card>
+    </div>
   );
 }

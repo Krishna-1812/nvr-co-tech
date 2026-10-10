@@ -1,6 +1,7 @@
 import type { Vitals as VitalsShape } from '@/lib/analytics/aggregate';
 import { cn } from '@/lib/utils';
 import { NUM, number } from './Figures';
+import { ChartEmpty } from './Charts';
 
 /**
  * Core Web Vitals, with the thresholds drawn rather than described.
@@ -41,10 +42,10 @@ export function Vitals({ vitals }: { vitals: VitalsShape }) {
 
   if (entries.length === 0) {
     return (
-      <p className="text-subtle px-5 py-8 text-center text-sm">
+      <ChartEmpty>
         No page has reported a timing yet. These arrive with the first real visit from a browser
         that supports them.
-      </p>
+      </ChartEmpty>
     );
   }
 

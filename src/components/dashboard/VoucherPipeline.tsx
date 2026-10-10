@@ -142,7 +142,7 @@ export function VoucherPipeline({ rows }: { rows: PipelineRow[] }) {
         <Link
           href={returned.href}
           style={{ '--tone': returned.color } as CSSProperties}
-          className="tinted group flex items-center gap-3 rounded-xl border px-3.5 py-2.5 transition hover:brightness-105"
+          className="tinted group flex items-center gap-3 rounded-2xl border px-4 py-3 transition hover:brightness-105"
         >
           <Undo2 className="size-4 shrink-0" aria-hidden />
           <span className="min-w-0 flex-1 text-sm font-medium">
@@ -181,14 +181,14 @@ function StageTile({
       style={{ '--tone': stage.color } as CSSProperties}
       className={
         empty
-          ? 'a-hatch pointer-events-none min-w-0 flex-1 rounded-xl border border-dashed px-3 py-2.5 opacity-60'
-          : 'surface-sunken hover-lift group min-w-0 flex-1 rounded-xl border px-3 py-2.5 hover:border-[color-mix(in_oklab,var(--tone)_45%,var(--border-c))] hover:bg-[var(--surface-raised)]'
+          ? 'a-hatch pointer-events-none min-w-0 flex-1 rounded-2xl border border-dashed px-3.5 py-3 opacity-60'
+          : 'surface-sunken a-inner hover-lift group min-w-0 flex-1 rounded-2xl border px-3.5 py-3 hover:border-[color-mix(in_oklab,var(--tone)_45%,var(--border-c))] hover:bg-[var(--surface-raised)]'
       }
     >
       <span className="flex items-center gap-2">
         <span
           aria-hidden
-          className="size-1.5 shrink-0 rounded-full"
+          className="size-2 shrink-0 rounded-full"
           style={{ background: empty ? 'var(--border-strong)' : stage.color }}
         />
         <span className="a-label truncate">{stage.label}</span>

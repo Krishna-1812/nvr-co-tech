@@ -167,9 +167,7 @@ export function BarList({
   format?: (n: number) => string;
   href?: (label: string) => string | null;
 }) {
-  if (items.length === 0) {
-    return <p className="text-subtle px-5 py-8 text-center text-sm">{empty}</p>;
-  }
+  if (items.length === 0) return <ChartEmpty>{empty}</ChartEmpty>;
 
   const peak = Math.max(...items.map((i) => i.count));
 
@@ -181,7 +179,7 @@ export function BarList({
           <>
             <span
               aria-hidden
-              className="absolute inset-y-[3px] left-0 rounded-[6px] transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              className="a-fill absolute inset-y-[3px] left-0 rounded-[6px] transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={{
                 width: `${Math.max((item.count / peak) * 100, 2)}%`,
                 background: `color-mix(in oklab, ${tone} 14%, transparent)`,
@@ -201,12 +199,12 @@ export function BarList({
             {link ? (
               <a
                 href={link}
-                className="relative flex items-center px-4 py-2 transition-colors hover:bg-[var(--surface-sunken)]"
+                className="relative flex items-center px-5 py-2.5 transition-colors hover:bg-[var(--surface-sunken)] sm:px-6"
               >
                 {inner}
               </a>
             ) : (
-              <div className="relative flex items-center px-4 py-2">{inner}</div>
+              <div className="relative flex items-center px-5 py-2.5 sm:px-6">{inner}</div>
             )}
           </li>
         );
@@ -235,9 +233,7 @@ const PALETTE = [
  * decoration.
  */
 export function Split({ items, empty = 'Nothing yet.' }: { items: Counted[]; empty?: string }) {
-  if (items.length === 0) {
-    return <p className="text-subtle px-5 py-8 text-center text-sm">{empty}</p>;
-  }
+  if (items.length === 0) return <ChartEmpty>{empty}</ChartEmpty>;
 
   const total = items.reduce((sum, i) => sum + i.count, 0) || 1;
   const head = items.slice(0, 5);
@@ -245,31 +241,34 @@ export function Split({ items, empty = 'Nothing yet.' }: { items: Counted[]; emp
   const slices = tail > 0 ? [...head, { label: 'Other', count: tail }] : head;
 
   return (
-    <div className="px-5 py-4">
-      <div className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full">
+    <div className="px-5 py-5 sm:px-6">
+      {/* One bar, the parts 2px apart, each growing in after the one before. */}
+      <div className="flex h-3 w-full gap-[2px] overflow-hidden rounded-full">
         {slices.map((slice, index) => (
           <span
             key={slice.label}
             title={`${slice.label} — ${Math.round((slice.count / total) * 100)}%`}
             style={{
-              width: `${(slice.count / total) * 100}%`,
+              flexGrow: slice.count,
+              flexBasis: 0,
               background: PALETTE[index % PALETTE.length],
+              animationDelay: `${index * 90}ms`,
             }}
-            className="first:rounded-l-full last:rounded-r-full"
+            className="a-fill h-full min-w-[3px]"
           />
         ))}
       </div>
 
-      <ul className="mt-4 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+      <ul className="mt-4 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
         {slices.map((slice, index) => (
-          <li key={slice.label} className="flex items-center gap-2 text-[12.5px]">
+          <li key={slice.label} className="flex min-w-0 items-center gap-2 text-[12.5px]">
             <span
               aria-hidden
-              className="size-1.5 shrink-0 rounded-full"
+              className="size-2.5 shrink-0 rounded-[3px]"
               style={{ background: PALETTE[index % PALETTE.length] }}
             />
-            <span className="min-w-0 flex-1 truncate">{slice.label}</span>
-            <span className={cn(NUM, 'text-subtle shrink-0')}>
+            <span className="text-muted min-w-0 flex-1 truncate">{slice.label}</span>
+            <span className="shrink-0 font-semibold tabular-nums">
               {Math.round((slice.count / total) * 100)}%
             </span>
           </li>
@@ -298,15 +297,11 @@ export function Funnel({ steps }: { steps: { stage: string; sessions: number }[]
   const top = steps[0]?.sessions ?? 0;
 
   if (top === 0) {
-    return (
-      <p className="text-subtle px-5 py-8 text-center text-sm">
-        Nobody has opened the lead form in this window.
-      </p>
-    );
+    return <ChartEmpty>Nobody has opened the lead form in this window.</ChartEmpty>;
   }
 
   return (
-    <ol className="stagger space-y-3 px-5 py-4">
+    <ol className="stagger space-y-4 px-5 py-5 sm:px-6">
       {steps.map((step, index) => {
         const share = step.sessions / top;
         const lost = index === 0 ? 0 : steps[index - 1].sessions - step.sessions;
@@ -323,7 +318,7 @@ export function Funnel({ steps }: { steps: { stage: string; sessions: number }[]
 
             <span className="mt-1.5 block h-2 w-full overflow-hidden rounded-full bg-[var(--a-track)]">
               <span
-                className="block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="a-fill block h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
                 style={{
                   width: `${Math.max(share * 100, 1.5)}%`,
                   background: 'linear-gradient(90deg, var(--h-indigo), var(--h-violet))',
@@ -340,5 +335,33 @@ export function Funnel({ steps }: { steps: { stage: string; sessions: number }[]
         );
       })}
     </ol>
+  );
+}
+
+// ─── Empty ───────────────────────────────────────────────────────────────────
+
+/**
+ * What a chart says when there is nothing to draw.
+ *
+ * A sentence centred in a gap read as a panel that had failed to load. This is
+ * the outline of the thing that will be there, faintly, with the sentence in
+ * it, so an empty panel looks like a considered state and says what fills it.
+ */
+export function ChartEmpty({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="px-5 py-5 sm:px-6">
+      <div className="surface-sunken relative overflow-hidden rounded-2xl border border-dashed px-4 py-7 text-center">
+        <span
+          aria-hidden
+          className="a-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(60%_80%_at_50%_50%,#000,transparent)]"
+        />
+        <span aria-hidden className="relative mx-auto mb-3 flex w-24 flex-col gap-1.5">
+          <span className="block h-1.5 w-full rounded-full bg-[var(--border-strong)] opacity-50" />
+          <span className="block h-1.5 w-2/3 rounded-full bg-[var(--border-strong)] opacity-35" />
+          <span className="block h-1.5 w-1/3 rounded-full bg-[var(--border-strong)] opacity-25" />
+        </span>
+        <p className="text-muted relative text-[13px] text-pretty">{children}</p>
+      </div>
+    </div>
   );
 }

@@ -48,9 +48,9 @@ export function DeskControls({
   };
 
   return (
-    <div className="surface-lit a-ring flex flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center sm:gap-4">
+    <div className="surface-lit a-ring relative z-10 flex flex-col gap-4 rounded-3xl p-4 sm:flex-row sm:items-end sm:gap-5 sm:p-5">
       <div className="min-w-0 flex-1">
-        <p className="a-label mb-1.5 px-1">Company to value</p>
+        <p className="a-label mb-2 px-1">Company to value</p>
         <SubjectCombobox
           choices={choices}
           subjectId={subjectId}
@@ -60,11 +60,11 @@ export function DeskControls({
       </div>
 
       <div className="shrink-0">
-        <p className="a-label mb-1.5 px-1">Peer statistic</p>
+        <p className="a-label mb-2 px-1">Peer statistic</p>
         <div
           role="radiogroup"
           aria-label="Statistic to apply across the peer set"
-          className="surface-sunken flex rounded-xl border p-1"
+          className="surface-sunken a-inner flex rounded-full border p-1"
         >
           {STATISTICS.map((s) => {
             const on = s.value === statistic;
@@ -77,9 +77,9 @@ export function DeskControls({
                 title={s.label}
                 onClick={() => go({ stat: s.value })}
                 className={cn(
-                  'relative rounded-lg px-3 py-1.5 text-sm font-medium transition',
+                  'relative flex-1 rounded-full px-3.5 py-2 text-sm font-medium transition sm:flex-none',
                   on
-                    ? 'gradient-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]'
+                    ? 'bg-[var(--action)] text-[var(--on-action)] shadow-[var(--elev-2)]'
                     : 'text-muted hover:text-[var(--text-c)]',
                 )}
               >
@@ -202,18 +202,21 @@ function SubjectCombobox({
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition',
+          'flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition',
           'bg-[var(--surface-raised)] shadow-[var(--elev-1)]',
           'hover:border-[var(--border-strong)]',
           open && 'border-brand-500 ring-4 ring-brand-500/15',
         )}
       >
-        <span className="gradient-brand grid size-8 shrink-0 place-items-center rounded-lg">
+        <span className="gradient-brand grid size-9 shrink-0 place-items-center rounded-xl">
           <Building2 className="size-4" aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-semibold tracking-tight">
             {subjectName}
+          </span>
+          <span className="text-subtle block truncate text-[12px]">
+            Change company · {choices.length.toLocaleString('en-IN')} listed to choose from
           </span>
         </span>
         <ChevronDown

@@ -24,7 +24,7 @@ import {
   type VoucherActor,
   type VoucherLike,
 } from '@/lib/domain/workflow';
-import { Button, Field, Input, Textarea } from '@/components/ui/primitives';
+import { Button, buttonClass, Field, Input, Textarea } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/Modal';
 
 type Props = {
@@ -80,7 +80,9 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
         {canEdit(voucher, me) && (
           <Link
             href={`/vouchers/${voucher.id}/edit`}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-raised)] px-4 text-sm font-semibold shadow-sm transition hover:bg-[var(--surface-sunken)]"
+            // The same pill as every other control in this row. It was the one
+            // square-cornered button among rounded ones.
+            className={buttonClass()}
           >
             <Pencil className="size-4" aria-hidden />
             Edit
@@ -152,7 +154,7 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
 
       {/* Explain, rather than silently offering nothing. */}
       {showApprovalUi && blocked && (
-        <p className="text-muted rounded-lg border border-dashed px-3 py-2 text-xs">{blocked}</p>
+        <p className="text-muted rounded-xl border border-dashed px-3 py-2 text-xs">{blocked}</p>
       )}
 
       <Modal

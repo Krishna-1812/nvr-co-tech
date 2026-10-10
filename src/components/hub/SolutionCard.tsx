@@ -35,7 +35,7 @@ export function SolutionCard({ solution, asked = false }: { solution: Solution; 
   return (
     <div
       style={{ '--tone': tone } as CSSProperties}
-      className="surface-lit a-ring group relative flex h-full flex-col overflow-hidden rounded-2xl transition-colors duration-300 hover:border-[var(--border-strong)]"
+      className="surface-lit a-ring group relative flex h-full flex-col overflow-hidden rounded-3xl transition-colors duration-300 hover:border-[var(--border-strong)]"
     >
       <span
         aria-hidden
@@ -43,16 +43,16 @@ export function SolutionCard({ solution, asked = false }: { solution: Solution; 
         style={{ background: `linear-gradient(90deg, transparent, ${tone}, transparent)` }}
       />
 
-      <div className="relative flex-1 p-5">
+      <div className="relative flex-1 p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <span
             aria-hidden
             className={cn(
-              'grid size-10 shrink-0 place-items-center rounded-xl border',
+              'a-inner grid size-11 shrink-0 place-items-center rounded-2xl border',
               marked ? 'tinted' : 'surface-sunken text-subtle',
             )}
           >
-            <Icon className="size-[1.15rem]" />
+            <Icon className="size-5" />
           </span>
 
           <span
@@ -63,7 +63,7 @@ export function SolutionCard({ solution, asked = false }: { solution: Solution; 
           </span>
         </div>
 
-        <h3 className="m-display mt-4 text-[1.1rem]">{solution.name}</h3>
+        <h3 className="m-display mt-4 text-[1.15rem] leading-tight">{solution.name}</h3>
         <p className="a-label mt-1.5" style={{ color: tone }}>
           {solution.category}
         </p>
@@ -79,16 +79,23 @@ export function SolutionCard({ solution, asked = false }: { solution: Solution; 
           "BANK STATEMENTS… → MATCHED LINES, …" tells you nothing that the card
           did not already say. Two lines cost nothing and can be read.
         */}
-        <div className="mt-4 space-y-1">
-          <p className="a-label">{solution.inputs}</p>
-          <p className="a-label flex items-start gap-1.5" style={{ color: tone }}>
-            <ArrowRight className="mt-px size-3 shrink-0" aria-hidden />
+        <dl className="surface-sunken mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-2xl border px-3.5 py-3 text-[12px] leading-snug">
+          {/* The same Takes / Gives specification the live cards carry, set
+              in a sunken well here because this card has no instrument
+              panel to give it a lower half. */}
+          <dt className="a-label pt-px">Takes</dt>
+          <dd className="text-muted min-w-0 text-pretty">{solution.inputs}</dd>
+          <dt className="a-label pt-px" style={{ color: tone }}>
+            Gives
+          </dt>
+          <dd className="flex min-w-0 items-start gap-1.5 text-pretty">
+            <ArrowRight className="mt-[2px] size-3 shrink-0" style={{ color: tone }} aria-hidden />
             {solution.outputs}
-          </p>
-        </div>
+          </dd>
+        </dl>
       </div>
 
-      <div className="surface-sunken relative flex items-center justify-between gap-3 border-t px-5 py-3">
+      <div className="surface-sunken relative flex items-center justify-between gap-3 border-t px-5 py-3 sm:px-6">
         <span className="a-label truncate">{STAGE_NOTE[stage]}</span>
         <span className="flex shrink-0 items-center gap-4">
           <WantThis slug={solution.slug} asked={asked} />

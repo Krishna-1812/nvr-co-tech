@@ -1,21 +1,28 @@
+import { Fragment } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
   AlertTriangle,
   ArrowLeft,
   Banknote,
+  CalendarDays,
   Calculator,
   Download,
   Eye,
+  FileWarning,
   FileText,
   History,
+  Landmark,
   Paperclip,
+  Receipt,
   ShieldCheck,
 } from 'lucide-react';
 import { requireUser, createClient } from '@/lib/supabase/server';
 import { fmtDate, fmtRupees } from '@/lib/domain/voucher';
 import { STATUS_META, canEdit, type VoucherLike } from '@/lib/domain/workflow';
-import { StatusBadge, STATUS_TONE } from '@/components/StatusBadge';
+import { STATUS_TONE } from '@/components/StatusBadge';
+import { ToolHero, HeroStat, HeroChip } from '@/components/ui/ToolHero';
+import { cn } from '@/lib/utils';
 import { buttonClass, Card, CardTitle } from '@/components/ui/primitives';
 import { AuditTimeline } from '@/components/voucher/AuditTimeline';
 import { Attachments } from '@/components/voucher/Attachments';
@@ -117,6 +124,61 @@ export default async function VoucherDetailPage({
       : []),
   ];
 
+  /*
+   * The hero's working: the same sum as the ladder in the sidebar, collapsed to
+   * the three moves a reader checks — what the work cost, what tax added, what
+   * came off — so the arithmetic is readable before any row of it is. Each term
+   * is a difference of two totals the database already stored, never
+   * recomputed from the components, so the tiles cannot disagree with the
+   * figure above them. A term that is zero is not shown.
+   */
+  const basic = Number(v.basic_value);
+  const net = Number(v.net_total);
+  const grand = Number(v.grand_total);
+  const taxAdded = net - basic;
+  const takenOff = net - grand;
+  const fileCount = attachments?.length ?? 0;
+  const working: {
+    label: string;
+    value: string;
+    note?: string;
+    tone?: string;
+    strong?: boolean;
+    /** The sign standing before this tile in the sum. */
+    op?: string;
+  }[] = [
+    { label: 'Basic value', value: fmtRupees(basic), note: 'Before tax' },
+    ...(taxAdded > 0
+      ? [
+          {
+            label: 'Tax & charges',
+            op: '+',
+            value: fmtRupees(taxAdded),
+            note: additions.slice(1).map((l) => l.label).join(' + '),
+            tone: 'var(--color-brand-500)',
+          },
+        ]
+      : []),
+    ...(takenOff !== 0
+      ? [
+          {
+            label: takenOff > 0 ? 'Taken off' : 'Added',
+            op: takenOff > 0 ? '−' : '+',
+            value: fmtRupees(Math.abs(takenOff)),
+            note: deductions.map((l) => l.label).join(', '),
+            tone: 'var(--status-warn)',
+          },
+        ]
+      : []),
+    {
+      label: 'Grand total',
+      op: '=',
+      value: fmtRupees(grand),
+      note: v.status === 'paid' ? 'Paid' : 'To be paid',
+      strong: true,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <Link
@@ -134,55 +196,103 @@ export default async function VoucherDetailPage({
         Identity, the sum being authorised, and the chain of custody are one object,
         so they share one panel. Nobody should have to look in two places to know
         which number they are about to approve or who has already signed for it.
+
+        The panel is the tool hero now, the way True Property Cost opens: the
+        grand total is the largest thing on the screen because it is the figure
+        being authorised, the status rides beside the label as the pill, and the
+        working under it is the sum that produced it. No arch here — that is the
+        dashboard's moment; a single voucher is a document, not a tool's front
+        page, and the space the arch would take is better spent on the chain.
       */}
-      <section className="surface-lit a-ring animate-[rise_0.55s_cubic-bezier(0.22,1,0.36,1)_backwards] relative overflow-hidden rounded-3xl">
-        {/* The status colour, as the light behind the whole header. */}
-        <span
-          aria-hidden
-          className="a-orb -top-40 -right-24 size-96 opacity-60"
-          style={{
-            background: `radial-gradient(circle, color-mix(in oklab, ${tone} 30%, transparent), transparent 70%)`,
-            animation: 'aurora 38s ease-in-out infinite',
-          }}
-        />
-        <span
-          aria-hidden
-          className="a-grid pointer-events-none absolute inset-0 opacity-35 [mask-image:radial-gradient(60%_70%_at_15%_0%,#000,transparent)]"
-        />
-
-        <div className="relative flex flex-wrap items-start justify-between gap-x-8 gap-y-5 p-6 sm:p-8">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="numeric text-lg font-semibold tracking-tight sm:text-xl">
-                {v.voucher_no ?? 'Draft voucher'}
-              </h1>
-              <StatusBadge status={v.status} />
-            </div>
-            <p className="text-muted mt-2 max-w-md text-sm text-pretty">
-              {STATUS_META[v.status].description}
-            </p>
-            {v.paid_to && (
-              <p className="mt-4">
-                <span className="a-label">Payable to</span>
-                <span className="m-display mt-1.5 block text-[clamp(1.35rem,3vw,1.9rem)]">
-                  {v.paid_to}
-                </span>
-              </p>
+      <ToolHero
+        id="voucher-total"
+        label={v.voucher_no ?? 'Draft voucher'}
+        pill={{
+          text: STATUS_META[v.status].label,
+          tone,
+          live: v.status === 'pending_first' || v.status === 'pending_second',
+        }}
+        title={fmtRupees(v.grand_total)}
+        variant="figure"
+        glow={tone}
+        sub={
+          <>
+            {v.paid_to ? (
+              <>
+                Payable to{' '}
+                <span className="font-semibold text-[var(--text-c)]">{v.paid_to}</span>
+              </>
+            ) : (
+              'No payee yet'
             )}
-          </div>
-
-          <div className="sm:text-right">
-            <p className="a-label">Grand total</p>
-            <p className="a-figure mt-2 text-[clamp(2rem,6vw,2.9rem)]">
-              {fmtRupees(v.grand_total)}
-            </p>
             {v.date && (
-              <p className="text-subtle numeric mt-2 text-xs">Voucher dated {fmtDate(v.date)}</p>
+              <>
+                {' · '}dated <span className="numeric">{fmtDate(v.date)}</span>
+              </>
             )}
+            <span className="text-subtle mt-1 block text-[13px]">
+              {STATUS_META[v.status].description}
+            </span>
+          </>
+        }
+      >
+        {/* The sum, written out: only the terms this voucher actually has. The
+            operators stand between the tiles once they share a row; on a phone
+            the tiles wrap two by two and the signs would point at nothing. */}
+        {working.length > 1 && (
+          <div
+            className={cn(
+              'mt-7 grid grid-cols-2 gap-2 sm:gap-3',
+              working.length === 4
+                ? 'lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]'
+                : working.length === 3
+                  ? 'sm:grid-cols-3 lg:grid-cols-[1fr_auto_1fr_auto_1fr]'
+                  : 'max-w-xl lg:grid-cols-[1fr_auto_1fr]',
+            )}
+          >
+            {working.map(({ op, ...t }, i) => (
+              <Fragment key={t.label}>
+                {i > 0 && (
+                  <span
+                    aria-hidden
+                    className="text-subtle hidden place-items-center text-xl font-light lg:grid"
+                  >
+                    {op}
+                  </span>
+                )}
+                <HeroStat
+                  {...t}
+                  // Three tiles on a two-column phone grid: the answer takes the
+                  // whole second row rather than sitting beside a hole.
+                  className={t.strong && working.length === 3 ? 'col-span-2 sm:col-span-1' : undefined}
+                />
+              </Fragment>
+            ))}
           </div>
+        )}
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          {v.chapter?.name && <HeroChip icon={Landmark}>{v.chapter.name}</HeroChip>}
+          {v.event_name && (
+            <HeroChip icon={CalendarDays}>
+              {v.event_name}
+              {v.event_date && <span className="text-subtle numeric">· {fmtDate(v.event_date)}</span>}
+            </HeroChip>
+          )}
+          {v.invoice_no && (
+            <HeroChip icon={Receipt}>
+              Invoice <span className="numeric">{v.invoice_no}</span>
+            </HeroChip>
+          )}
+          <HeroChip icon={fileCount > 0 ? Paperclip : FileWarning}>
+            {fileCount > 0
+              ? `${fileCount} supporting file${fileCount === 1 ? '' : 's'}`
+              : 'No invoice attached'}
+          </HeroChip>
         </div>
 
-        <div className="relative border-t px-6 py-6 sm:px-8">
+        {/* Who has signed for it, and whose act is next. */}
+        <div className="surface-sunken a-inner mt-8 rounded-2xl border p-5 sm:p-6">
           <p className="a-label mb-5 flex items-center gap-2">
             <ShieldCheck className="size-3.5" aria-hidden />
             Chain of custody
@@ -204,7 +314,7 @@ export default async function VoucherDetailPage({
           />
         </div>
 
-        <div className="relative flex flex-wrap items-start justify-between gap-3 border-t bg-[var(--surface-sunken)] p-4 sm:px-6">
+        <div className="mt-6 flex flex-wrap items-start justify-between gap-3">
           <VoucherActions
             voucher={voucher as unknown as VoucherLike & { id: string; voucher_no: string | null }}
             me={{ id: user.id, role: user.role }}
@@ -216,13 +326,18 @@ export default async function VoucherDetailPage({
               <Eye className="size-4" aria-hidden />
               View PDF
             </a>
-            <a href={`/vouchers/${id}/pdf`} download className={buttonClass()}>
+            <a
+              href={`/vouchers/${id}/pdf`}
+              download
+              className={buttonClass()}
+              aria-label="Download PDF"
+            >
               <Download className="size-4" aria-hidden />
               <span className="hidden sm:inline">Download</span>
             </a>
           </div>
         </div>
-      </section>
+      </ToolHero>
 
       {v.status === 'rejected' && v.rejection_reason && (
         <div
@@ -244,7 +359,7 @@ export default async function VoucherDetailPage({
         <div className="space-y-6">
           <Card className="overflow-hidden">
             <CardTitle icon={<FileText className="size-4" />} title="Voucher details" />
-            <dl className="grid gap-x-6 gap-y-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
+            <dl className="grid gap-x-6 gap-y-5 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
               <Detail label="Date" value={fmtDate(v.date)} />
               <Detail label="Chapter" value={v.chapter?.name} />
               <Detail label="Sponsorship" value={v.sponsored} />
@@ -261,7 +376,7 @@ export default async function VoucherDetailPage({
 
           <Card className="overflow-hidden">
             <CardTitle icon={<Banknote className="size-4" />} title="Payment" />
-            <dl className="grid gap-x-6 gap-y-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
+            <dl className="grid gap-x-6 gap-y-5 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
               <Detail label="Paid to" value={v.paid_to} />
               <Detail label="Paid by chapter" value={v.paid_by?.name} />
               <Detail label="Payment date" value={fmtDate(v.payment_date)} />

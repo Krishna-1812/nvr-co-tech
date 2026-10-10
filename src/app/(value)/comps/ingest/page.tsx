@@ -1,9 +1,9 @@
-import { ShieldAlert } from 'lucide-react';
+import { ArrowRight, Layers, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { requireUser } from '@/lib/supabase/server';
 import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { PageHeader } from '@/components/PageHeader';
-import { Card, EmptyState } from '@/components/ui/primitives';
+import { Card, EmptyState, buttonClass } from '@/components/ui/primitives';
 import { IngestForm } from './IngestForm';
 
 export const metadata = { title: 'Seed the registry' };
@@ -39,16 +39,22 @@ export default async function ValuationIngestPage() {
 
   if (!(await isAnalyticsAdmin())) {
     return (
-      <>
+      <div className="space-y-6">
         <PageHeader eyebrow="Valuation Desk" title="Seed the registry" />
         <Card>
           <EmptyState
             icon={<ShieldAlert className="size-6" aria-hidden />}
             title="Admins only"
             description="Seeding the shared company registry is restricted to platform admins, because it writes data every tenant on the platform will read."
+            action={
+              <Link href="/comps" className={buttonClass({ className: 'group' })}>
+                <Layers className="size-4" aria-hidden />
+                Go to Comparables
+              </Link>
+            }
           />
         </Card>
-      </>
+      </div>
     );
   }
 
@@ -60,13 +66,15 @@ export default async function ValuationIngestPage() {
         description="Pull real companies from a free source and write them in, so Comparables has peers to show."
       />
       <IngestForm />
-      <p className="text-subtle text-xs leading-relaxed">
-        Looking for the comparables screen itself?{' '}
-        <Link href="/comps" className="underline underline-offset-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-5">
+        <p className="text-subtle text-[13px]">
+          Comparables reads the registry fresh each time it opens, so what you write here is there next time.
+        </p>
+        <Link href="/comps" className={buttonClass({ variant: 'ghost', className: 'group' })}>
           Go to Comparables
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
         </Link>
-        .
-      </p>
+      </div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { KpiCard, KpiRow } from '@/components/analytics/Kpi';
 import { Chip, ChipRow, Journey } from '@/components/analytics/Journey';
 import { Avatar, PersonCell } from '@/components/analytics/People';
 import { cn } from '@/lib/utils';
+import { ChartEmpty } from '@/components/analytics/Charts';
 
 /**
  * One tenant, and whether the activity in it is theirs or ours.
@@ -135,6 +136,7 @@ export function TenantBoard({
 
       <Card className="overflow-hidden">
         <CardTitle
+          icon={<Activity className="size-4" />}
           title="Activity per day"
           description="Their people below, ours above, so genuine use is the part nearest the axis."
         />
@@ -294,11 +296,11 @@ function SegmentPanel({
       </div>
 
       {sorted.length === 0 ? (
-        <p className="text-subtle px-5 py-8 text-center text-[12.5px]">
+        <ChartEmpty>
           {segment === 'them'
             ? 'Nobody from this organisation has done anything in this window.'
             : 'None of our own people have been in this account.'}
-        </p>
+        </ChartEmpty>
       ) : (
         <ul className="max-h-80 flex-1 divide-y overflow-y-auto">
           {sorted.map((person) => (

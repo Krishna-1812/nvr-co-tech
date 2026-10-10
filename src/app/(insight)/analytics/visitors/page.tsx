@@ -22,12 +22,13 @@ import { readSignedInViews, readVisitorViews } from '@/lib/analytics/store';
 import { readGraph, resolveFromGraph } from '@/lib/analytics/graph';
 import { resolveVisitors } from '@/lib/analytics/resolve';
 import { PageHeader } from '@/components/PageHeader';
-import { Card, CardTitle, DataTable, EmptyState, Td, Th, Thead, Tr } from '@/components/ui/primitives';
+import { Card, CardTitle, DataTable, EmptyState, Td, Th, Thead, Tr, buttonClass } from '@/components/ui/primitives';
 import { BarList, Funnel, Split } from '@/components/analytics/Charts';
 import { Confidence, Identity } from '@/components/analytics/Company';
 import { IntentBadge } from '@/components/analytics/Intent';
 import { NUM, Pill, ago, duration, number } from '@/components/analytics/Figures';
 import { WindowTabs, windowFrom } from '@/components/analytics/Window';
+import { SummaryStrip } from '@/components/analytics/Strip';
 import { cn } from '@/lib/utils';
 
 export const metadata = { title: 'Public site' };
@@ -108,15 +109,54 @@ export default async function VisitorsPage({
             icon={<Radar className="size-6" />}
             title="No visitors in this window"
             description="Widen the window, or wait for the first beacon. Nothing is recorded for anybody who has Do Not Track or Global Privacy Control switched on."
+            action={
+              days !== 90 ? (
+                <Link href="/analytics/visitors?days=90" className={buttonClass({ size: 'sm' })}>
+                  Look back 90 days
+                </Link>
+              ) : undefined
+            }
           />
         </Card>
       </div>
     );
   }
 
+  // The strip's totals, summed from the rows the table below shows, so the two
+  // can never disagree. The table is capped at 200, and so is this.
+  const visits = records.reduce((n, r) => n + r.summary.sessions, 0);
+  const pages = records.reduce((n, r) => n + r.summary.views, 0);
+  const attention = records.reduce((n, r) => n + r.summary.engagedSeconds, 0);
+  const laterSignedIn = records.filter((r) => signedInAs.has(r.summary.visitorId)).length;
+
   return (
     <div className="space-y-6">
       <Header days={days} />
+
+      <SummaryStrip
+        cells={[
+          {
+            label: 'People',
+            value: number(records.length),
+            note: records.length === 200 ? 'The 200 most recent' : `In the last ${days} days`,
+            strong: true,
+          },
+          { label: 'Visits', value: number(visits), note: 'Separate sessions', tone: 'var(--h-rose)' },
+          { label: 'Pages read', value: number(pages), note: 'Bots left out', tone: 'var(--h-cyan)' },
+          {
+            label: 'Attention',
+            value: duration(attention),
+            note: 'Only while the tab was in front',
+            tone: 'var(--h-magenta)',
+          },
+          {
+            label: 'Later signed in',
+            value: number(laterSignedIn),
+            note: 'The same browser, seen with a session',
+            tone: 'var(--status-approved)',
+          },
+        ]}
+      />
 
       <Card className="overflow-hidden">
         <CardTitle
@@ -210,7 +250,7 @@ export default async function VisitorsPage({
         </DataTable>
       </Card>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-2">
         <Card className="overflow-hidden">
           <CardTitle
             icon={<Send className="size-4" />}
@@ -230,7 +270,7 @@ export default async function VisitorsPage({
         </Card>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-2">
         <Card className="overflow-hidden">
           <CardTitle
             icon={<ArrowDownWideNarrow className="size-4" />}

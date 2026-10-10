@@ -46,7 +46,7 @@ export function AskBar({
 
   return (
     <div className="space-y-2">
-      <div className="surface-sunken a-ring flex items-start gap-2 rounded-xl p-2">
+      <div className="surface-sunken a-ring flex items-start gap-2 rounded-2xl p-2.5">
         <Wand2 className="text-subtle mt-1.5 ml-1 size-4 shrink-0" aria-hidden />
         <textarea
           value={text}
@@ -70,7 +70,7 @@ export function AskBar({
           disabled={busy || !text.trim()}
           title="Reads your sentence into the filters below. Costs nothing and searches nothing."
           className={cn(
-            'mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium transition',
+            'mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition',
             busy || !text.trim()
               ? 'text-subtle border'
               : 'gradient-brand shadow-[inset_0_1px_0_oklch(1_0_0_/_0.22)]',
@@ -92,7 +92,7 @@ export function AskBar({
 
       {outcome && (
         <div
-          className="a-ring rounded-xl border px-2.5 py-2 text-xs leading-relaxed"
+          className="a-ring rounded-2xl border px-3.5 py-2.5 text-xs leading-relaxed"
           style={{
             background: outcome.error
               ? 'color-mix(in oklab, var(--h-rose) 8%, var(--surface-raised))'

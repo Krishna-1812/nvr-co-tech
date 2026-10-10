@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/primitives';
-import { Bar, HeaderSkeleton, StatsSkeleton } from '@/components/ui/Skeletons';
+import { Bar, HeroSkeleton, StatsSkeleton } from '@/components/ui/Skeletons';
 
 /**
  * Worth having here more than on most screens.
@@ -13,7 +13,7 @@ import { Bar, HeaderSkeleton, StatsSkeleton } from '@/components/ui/Skeletons';
 export default function AnalyticsLoading() {
   return (
     <div className="space-y-6">
-      <HeaderSkeleton />
+      <HeroSkeleton />
       <StatsSkeleton />
 
       <Card className="overflow-hidden">

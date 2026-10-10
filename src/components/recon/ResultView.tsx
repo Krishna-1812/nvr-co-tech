@@ -1,7 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Check, Cloud, CloudOff, Download, Loader2, RotateCcw } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  ArrowLeft,
+  Cloud,
+  CloudOff,
+  Download,
+  FileSpreadsheet,
+  Loader2,
+  RotateCcw,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/primitives';
 import { saveReconciliation } from '@/app/actions/reconciliation';
@@ -14,7 +22,9 @@ import { Statement } from './Statement';
 /**
  * The answer, in the order somebody reads it.
  *
- * Outcome first, because that is the question. Then each book on its own, so the
+ * Outcome first, because that is the question, and with it the exports and
+ * the save state: they act on the answer, so they sit beside it rather than in
+ * a toolbar between it and the working. Then each book on its own, so the
  * two balances being reconciled can be checked before anything is concluded from
  * them. Then the statement, which is the working. Then every line, which is the
  * evidence. Anyone who stops after the first panel has the answer; anyone who
@@ -26,30 +36,41 @@ export function ResultView({
   onReset,
   /** Off when reopening something already in history: it is saved by definition. */
   autoSave = true,
+  label,
+  footer,
 }: {
   result: ReconResult;
   /** Absent when there is no live session to go back to. */
   onBack?: () => void;
   onReset?: () => void;
   autoSave?: boolean;
+  /** Above the answer. Defaults to the date it is as at. */
+  label?: ReactNode;
+  /** Inside the hero, under the answer: the step rail on a live run. */
+  footer?: ReactNode;
 }) {
   const saved = useSaveOnce(result, autoSave);
 
   return (
     <div className="space-y-6">
-      <Outcome result={result} />
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SavedState state={saved} />
-        <ExportButtons result={result} />
-      </div>
+      <Outcome
+        result={result}
+        label={label}
+        footer={footer}
+        actions={
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <ExportButtons result={result} />
+            <SavedState state={saved} />
+          </div>
+        }
+      />
 
       <LedgerCards a={result.summaryA} b={result.summaryB} />
       <Statement statement={result.statement} />
       <DifferenceTable result={result} />
 
       {(onBack || onReset) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <div className="surface-sunken flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-3">
           {onBack ? (
             <Button variant="secondary" onClick={onBack}>
               <ArrowLeft className="size-4" aria-hidden />
@@ -73,10 +94,7 @@ export function ResultView({
 // ─── Saving ──────────────────────────────────────────────────────────────────
 
 type SaveState =
-  | { kind: 'off' }
-  | { kind: 'saving' }
-  | { kind: 'saved' }
-  | { kind: 'failed'; error: string };
+  { kind: 'off' } | { kind: 'saving' } | { kind: 'saved' } | { kind: 'failed'; error: string };
 
 /**
  * Keep it, once.
@@ -137,7 +155,7 @@ function SavedState({ state }: { state: SaveState }) {
   }
 
   return (
-    <p className="flex items-start gap-2 text-xs font-medium text-amber-700 dark:text-amber-400">
+    <p className="flex items-start gap-2 text-xs font-medium text-[color-mix(in_oklab,var(--status-warn)_82%,var(--text-c))]">
       <CloudOff className="mt-px size-3.5 shrink-0" aria-hidden />
       {state.error}
     </p>
@@ -185,16 +203,12 @@ function ExportButtons({ result }: { result: ReconResult }) {
     <div className="flex flex-wrap items-center gap-2">
       <Button variant="primary" onClick={() => download('pdf')} loading={busy === 'pdf'}>
         {busy !== 'pdf' && <Download className="size-4" aria-hidden />}
-        PDF
+        Download PDF
       </Button>
       <Button onClick={() => download('xlsx')} loading={busy === 'xlsx'}>
-        {busy !== 'xlsx' && <Download className="size-4" aria-hidden />}
-        Excel
+        {busy !== 'xlsx' && <FileSpreadsheet className="size-4" aria-hidden />}
+        Excel workbook
       </Button>
-      <span className="text-subtle hidden items-center gap-1.5 text-xs sm:flex">
-        <Check className="size-3.5" aria-hidden />
-        Statement, both ledgers and every line
-      </span>
     </div>
   );
 }

@@ -124,9 +124,9 @@ export function LiveSolutionCard({
         <div className="flex items-start gap-3">
           <span
             aria-hidden
-            className="tinted grid size-10 shrink-0 place-items-center rounded-xl border"
+            className="tinted a-inner grid size-11 shrink-0 place-items-center rounded-2xl border"
           >
-            <Icon className="size-[18px]" />
+            <Icon className="size-5" />
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
@@ -147,13 +147,20 @@ export function LiveSolutionCard({
           What goes in and what comes out. The shortest honest description of any
           of these tools, and the one that survives on a card.
         */}
-        <div className="mt-4 space-y-1">
-          <p className="a-label leading-relaxed">{solution.inputs}</p>
-          <p className="a-label flex items-start gap-1.5 leading-relaxed" style={{ color: tone }}>
-            <ArrowRight className="mt-[3px] size-3 shrink-0" aria-hidden />
+        <dl className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[12px] leading-snug">
+          {/* Named, so the two lines read as a specification rather than as
+              two more lines of capitals. The arrow carries the direction for
+              anybody who reads the shape before the words. */}
+          <dt className="a-label pt-px">Takes</dt>
+          <dd className="text-muted min-w-0 text-pretty">{solution.inputs}</dd>
+          <dt className="a-label pt-px" style={{ color: tone }}>
+            Gives
+          </dt>
+          <dd className="flex min-w-0 items-start gap-1.5 font-medium text-pretty">
+            <ArrowRight className="mt-[2px] size-3 shrink-0" style={{ color: tone }} aria-hidden />
             {solution.outputs}
-          </p>
-        </div>
+          </dd>
+        </dl>
 
         {/*
           Everything below here is pushed to the foot of the card by `mt-auto`,
@@ -188,11 +195,17 @@ export function LiveSolutionCard({
 
           {/* ── What it says right now ── */}
           <div className="surface-sunken a-inner mt-5 rounded-2xl border p-4">
-            <p className="a-label">Your desk right now</p>
+            <p className="flex items-center justify-between gap-3">
+              <span className="a-label">Your desk right now</span>
+              <span
+                aria-hidden
+                className="a-blip size-1.5 rounded-full"
+                style={{ background: tone }}
+              />
+            </p>
             {panel ?? (
               <>
-
-            {/*
+                {/*
               Abreast rather than stacked. Two or three figures side by side read
               as one instrument with several needles; the same figures in a
               column read as a list you have to go down. The column count is
@@ -200,25 +213,25 @@ export function LiveSolutionCard({
               Finder have two readings, the other two have three — and Tailwind
               cannot generate a class from a runtime value.
             */}
-            <dl
-              className="mt-3.5 grid gap-3"
-              style={{ gridTemplateColumns: `repeat(${readings.length}, minmax(0, 1fr))` }}
-            >
-              {readings.map((r, i) => (
-                <div key={r.label} title={r.hint} className="min-w-0">
-                  <dd style={r.value > 0 && r.tone ? { color: r.tone } : undefined}>
-                    <Figure value={r.value} delay={i * 90} className="text-[1.6rem]" />
-                  </dd>
-                  {/* Not truncated. At this width "Yours in FY 26-27" needs two
+                <dl
+                  className="mt-3.5 grid gap-3"
+                  style={{ gridTemplateColumns: `repeat(${readings.length}, minmax(0, 1fr))` }}
+                >
+                  {readings.map((r, i) => (
+                    <div key={r.label} title={r.hint} className="min-w-0">
+                      <dd style={r.value > 0 && r.tone ? { color: r.tone } : undefined}>
+                        <Figure value={r.value} delay={i * 90} className="text-[1.6rem]" />
+                      </dd>
+                      {/* Not truncated. At this width "Yours in FY 26-27" needs two
                       lines, and two lines of 10px mono is better than an
                       ellipsis in the middle of the only thing naming the
                       figure above it. */}
-                  <dt className="text-muted mt-1.5 text-[10.5px] leading-snug">{r.label}</dt>
-                </div>
-              ))}
-            </dl>
+                      <dt className="text-muted mt-1.5 text-[10.5px] leading-snug">{r.label}</dt>
+                    </div>
+                  ))}
+                </dl>
 
-            {/*
+                {/*
               The sentence that decides why you are here. It sits under the figures
               rather than above them because the figures are the evidence for it.
 
@@ -232,12 +245,12 @@ export function LiveSolutionCard({
               broke the alignment the row is for. A floor of two lines absorbs
               it, and a longer note still grows past it.
             */}
-            <p
-              style={{ '--tone': noteTone ?? 'var(--status-draft)' } as CSSProperties}
-              className="tinted mt-4 flex min-h-[3.5rem] items-center rounded-xl border px-3 py-2 text-[12px] leading-relaxed font-medium text-pretty"
-            >
-              {note}
-            </p>
+                <p
+                  style={{ '--tone': noteTone ?? 'var(--status-draft)' } as CSSProperties}
+                  className="tinted mt-4 flex min-h-[3.5rem] items-center rounded-xl border px-3 py-2 text-[12px] leading-relaxed font-medium text-pretty"
+                >
+                  {note}
+                </p>
               </>
             )}
           </div>
@@ -274,7 +287,10 @@ export function LiveSolutionCard({
             {shortcut && (
               <Link
                 href={shortcut.href}
-                className={buttonClass({ variant: 'secondary', className: 'group/s relative z-[25]' })}
+                className={buttonClass({
+                  variant: 'secondary',
+                  className: 'group/s relative z-[25]',
+                })}
               >
                 <ShortcutIcon
                   className={
