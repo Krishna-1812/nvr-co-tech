@@ -155,8 +155,8 @@ export function socialCard({ eyebrow, headline, sub, chips }: Card) {
           <svg width="76" height="76" viewBox={`0 0 ${VIEW} ${VIEW}`}>
             <defs>
               <linearGradient id="og-owl" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor={INK.navyLit} />
-                <stop offset="100%" stopColor={INK.navy} />
+                <stop offset="0%" stopColor={INK.bodyLit} />
+                <stop offset="100%" stopColor={INK.body} />
               </linearGradient>
             </defs>
             <circle cx={HALO.cx} cy={HALO.cy} r={HALO.r} fill={HALO.fill} />
@@ -180,7 +180,7 @@ export function socialCard({ eyebrow, headline, sub, chips }: Card) {
                 />
               ))}
               {EYE.x.map((x) => (
-                <circle key={`p${x}`} cx={x} cy={EYE.y} r={EYE.pupil} fill={INK.navy} />
+                <circle key={`p${x}`} cx={x} cy={EYE.y} r={EYE.pupil} fill={INK.pupil} />
               ))}
               <polygon points={BEAK} fill={INK.gold} />
               <path fill={INK.gold} d={RUPEE} />

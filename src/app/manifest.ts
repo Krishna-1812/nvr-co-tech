@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { BRAND } from '@/lib/marketing/content';
-import { INK } from '@/lib/brand/mark';
+import { HALO } from '@/lib/brand/mark';
 
 /**
  * What Android and Chrome read when somebody adds this to a home screen.
@@ -23,8 +23,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: BRAND.blurb,
     start_url: '/',
     display: 'browser',
-    background_color: INK.navy,
-    theme_color: INK.navy,
+    background_color: HALO.fill,
+    theme_color: HALO.fill,
     icons: [
       { src: '/brand/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/brand/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

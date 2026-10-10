@@ -13,7 +13,7 @@ import { BEAK, EYE, HALO, HEAD, INK, RECENTRE, RUPEE, TUFTS, VIEW } from './mark
  * react-pdf resolves gradient coordinates per shape, so the head would not
  * match anything drawn beside it. At this size the gradient bought nothing.
  */
-export function PdfMark({ size, body = INK.navyLit }: { size: number; body?: string }) {
+export function PdfMark({ size, body = INK.bodyLit }: { size: number; body?: string }) {
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${VIEW} ${VIEW}`}>
       <Circle cx={HALO.cx} cy={HALO.cy} r={HALO.r} fill={HALO.fill} />
@@ -38,7 +38,7 @@ export function PdfMark({ size, body = INK.navyLit }: { size: number; body?: str
           />
         ))}
         {EYE.x.map((x) => (
-          <Circle key={`pupil-${x}`} cx={x} cy={EYE.y} r={EYE.pupil} fill={INK.navy} />
+          <Circle key={`pupil-${x}`} cx={x} cy={EYE.y} r={EYE.pupil} fill={INK.pupil} />
         ))}
 
         <Polygon points={BEAK} fill={INK.gold} />

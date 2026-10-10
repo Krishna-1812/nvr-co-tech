@@ -14,23 +14,29 @@
  * colour notations, and they had already drifted apart by a stroke width.
  *
  * The one thing added to the artwork is the halo: a light disc set behind the
- * owl, a little wider than its head, so a navy bird is still legible on a navy
- * tile and on the app's dark theme. On the public site's sand it shows as a
- * thin light ring and nothing else changes.
+ * owl, a little wider than its head, so the bird is still legible on the app's
+ * dark theme and on any dark tile a launcher puts it on. On bone and sand it
+ * shows as a thin light ring and nothing else changes.
  */
 
-/** The brand's own colours, from the supplied artwork. */
+/**
+ * The mark's colours: the desert's. The shapes are the supplied artwork; the
+ * inks are not. It was drawn in navy and gold, and it is now fired terracotta
+ * with the sun in its eyes, so the bird belongs to the same hillside as the
+ * site it sits on. The body runs from the site's accent (#9C4026) at the lit
+ * edge down to brick; the pupils are the site's ink.
+ */
 export const INK = {
-  navy: '#0B2942',
-  navyLit: '#123B57',
-  gold: '#E8C468',
+  body: '#862F1C',
+  bodyLit: '#A8492B',
+  gold: '#E9B44C',
+  pupil: '#2B211B',
 } as const;
 
 /**
  * The light disc behind the owl.
  *
- * A warm off white rather than a flat white: it sits beside the gold without
- * going cold, and on the application's white surfaces it stays quiet enough
+ * Bone, the site's own page colour: it sits beside the gold without going cold, and on the application's white surfaces it stays quiet enough
  * that the mark still reads as a bird on paper rather than a badge.
  *
  * The owl's head is a filled circle, so this can only ever show as a ring
@@ -38,7 +44,7 @@ export const INK = {
  * pixel in a tab, two in a header. Enough to separate the bird from the ground
  * behind it and not enough to read as a badge it has been dropped into.
  */
-export const HALO = { cx: 150, cy: 150, r: 128, fill: '#F5F0E6' } as const;
+export const HALO = { cx: 150, cy: 150, r: 128, fill: '#F6EFE4' } as const;
 
 export const VIEW = 300;
 
@@ -93,8 +99,8 @@ export function markSvg(): string {
   <title>The Finance Intelligence</title>
   <defs>
     <linearGradient id="${id}" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="${INK.navyLit}"/>
-      <stop offset="100%" stop-color="${INK.navy}"/>
+      <stop offset="0%" stop-color="${INK.bodyLit}"/>
+      <stop offset="100%" stop-color="${INK.body}"/>
     </linearGradient>
   </defs>
   <circle cx="${HALO.cx}" cy="${HALO.cy}" r="${HALO.r}" fill="${HALO.fill}"/>
@@ -103,7 +109,7 @@ export function markSvg(): string {
     <circle cx="${HEAD.cx}" cy="${HEAD.cy}" r="${HEAD.r}" fill="url(#${id})"/>
     ${eyes(EYE.white, '#FFFFFF')}
     ${eyes(EYE.ring, 'none', INK.gold)}
-    ${eyes(EYE.pupil, INK.navy)}
+    ${eyes(EYE.pupil, INK.pupil)}
     <polygon points="${BEAK}" fill="${INK.gold}"/>
     <path fill="${INK.gold}" d="${RUPEE}"/>
   </g>

@@ -30,12 +30,12 @@ export function LogoMark({ className, id = 'fi-mark' }: { className?: string; id
     <svg viewBox={`0 0 ${VIEW} ${VIEW}`} className={className} aria-hidden focusable="false">
       <defs>
         <linearGradient id={`${id}-g`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={INK.navyLit} />
-          <stop offset="100%" stopColor={INK.navy} />
+          <stop offset="0%" stopColor={INK.bodyLit} />
+          <stop offset="100%" stopColor={INK.body} />
         </linearGradient>
       </defs>
 
-      {/* The light disc, so a navy bird still reads on a dark ground. */}
+      {/* The light disc, so the bird still reads on a dark ground. */}
       <circle cx={HALO.cx} cy={HALO.cy} r={HALO.r} fill={HALO.fill} />
 
       <g transform={`translate(0,${RECENTRE})`}>
@@ -46,7 +46,7 @@ export function LogoMark({ className, id = 'fi-mark' }: { className?: string; id
 
         {eyes(EYE.white, '#FFFFFF')}
         {eyes(EYE.ring, 'none', INK.gold)}
-        {eyes(EYE.pupil, INK.navy)}
+        {eyes(EYE.pupil, INK.pupil)}
 
         <polygon points={BEAK} fill={INK.gold} />
         <path fill={INK.gold} d={RUPEE} />
