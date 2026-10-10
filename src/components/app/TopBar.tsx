@@ -78,7 +78,14 @@ export function TopBar({
           </span>
         </div>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-3">
+        {/*
+          Pushed to the right edge at every width. From md it sits 12px after the
+          date block, which carries the push itself; from lg that block is hidden
+          (the rail shows the date), so the push has to come back here, or the
+          Ask button and the account menu sit against the search box with the
+          rest of the bar empty.
+        */}
+        <div className="ml-auto flex items-center gap-2 md:ml-3 lg:ml-auto">
           {/*
             The assistant follows you into whichever tool you are in, and is told
             which one that is. Not offered on its own page, where the whole screen
