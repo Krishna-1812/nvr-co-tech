@@ -4,9 +4,9 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { AGENTS, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
   ACCENT,
-  Aurora,
-  CTA,
+  ArchScene,
   Container,
+  CTA,
   Eyebrow,
   Rise,
   Section,
@@ -55,16 +55,11 @@ export default function AgentsPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <Aurora color="var(--m-indigo)" opacity={0.16} className="-top-48 -left-28 size-[42rem]" />
-        <Aurora color="var(--m-gold)" opacity={0.05} className="-top-16 right-0 size-[28rem]" />
-        <div
-          aria-hidden
-          className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
-        />
+        <ArchScene />
 
         <Roost seed="agents-roost" band="top-right" />
 
-        <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-20">
+        <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-20 lg:pr-[25rem] xl:pr-[28rem]">
           <Rise>
             <Breadcrumbs trail={TRAIL} className="mb-7" />
           </Rise>
@@ -125,11 +120,6 @@ export default function AgentsPage() {
         <Container wide>
           <Reveal>
             <div className="m-card relative overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-20">
-              <Aurora
-                color="var(--m-indigo)"
-                opacity={0.14}
-                className="-top-24 left-1/2 size-[28rem] -translate-x-1/2"
-              />
 
               <div className="relative mx-auto max-w-2xl">
                 <Eyebrow>Where to start</Eyebrow>
@@ -166,32 +156,34 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
           above the background and below the link's content. */}
       <Spotlight color={accent} className="m-card m-card-lift h-full overflow-hidden rounded-2xl">
         <Link href={`/agents/${agent.slug}`} className="group relative flex h-full flex-col p-6">
-          {/* The agent's colour, stated once at the top edge, so six cards in a
-              grid are told apart before any of them is read. */}
-          <span
-            aria-hidden
-            className="absolute inset-x-0 top-0 h-px opacity-70 transition-opacity duration-300 group-hover:opacity-100"
-            style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
-          />
-          <span
-            aria-hidden
-            className="absolute -top-20 left-1/2 size-40 -translate-x-1/2 rounded-full opacity-0 blur-3xl transition-opacity duration-300 group-hover:opacity-30"
-            style={{ background: accent }}
-          />
-
           <div className="relative flex items-start justify-between gap-3">
-            <StageBadge stage={agent.stage} />
-            <ArrowUpRight
+            {/*
+              The agent's own doorway, in its colour, with the sun inside it.
+              It is how eight cards in a grid are told apart before any of them
+              is read, and the same shape the agent stands in on the roadmap
+              above, so a card and its arch on the rail are visibly the same
+              thing. The sun climbs a little on hover.
+            */}
+            <span
               aria-hidden
-              className="m-dim-2 size-4 shrink-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--m-ink)]"
-            />
+              className="m-arch relative h-14 w-11 shrink-0 overflow-hidden"
+              style={{ background: accent }}
+            >
+              <span className="absolute bottom-0 left-1/2 size-7 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
+            </span>
+            <span className="flex items-center gap-3">
+              <StageBadge stage={agent.stage} />
+              <ArrowUpRight
+                aria-hidden
+                className="m-dim-2 size-4 shrink-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--m-ink)]"
+              />
+            </span>
           </div>
 
           <h3 className="m-display relative mt-5 t-6">{agent.name}</h3>
-          <p
-            className="m-mono relative mt-2 t-1 t-caps uppercase"
-            style={{ color: accent }}
-          >
+          {/* Olive rather than the agent's colour: two of the eight earth hues
+              (sun and sage) are too light to set small type in. */}
+          <p className="m-mono relative mt-2 t-1 t-caps text-[var(--m-olive)] uppercase">
             {agent.category}
           </p>
 

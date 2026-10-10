@@ -86,7 +86,7 @@ function SignupForm() {
         >
           <div className="py-2 text-center">
             <span
-              className="mx-auto grid size-14 place-items-center rounded-full bg-[var(--m-gold)] text-[var(--m-on-grad)] shadow-[0_10px_30px_oklch(0.833_0.119_88_/_0.22)]"
+              className="mx-auto grid size-14 place-items-center rounded-full bg-[var(--m-gold)] text-[var(--m-on-grad)] shadow-[0_14px_30px_-12px_rgb(156_64_38_/_0.45)]"
             >
               <MailCheck className="size-7" aria-hidden />
             </span>

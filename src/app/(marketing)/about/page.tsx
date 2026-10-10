@@ -3,10 +3,10 @@ import type { Metadata } from 'next';
 import { ArrowRight } from 'lucide-react';
 import { AGENTS, BRAND, ROSTER, STAGE_LABEL } from '@/lib/marketing/content';
 import {
-  ACCENT,
-  Aurora,
-  CTA,
+  ACCENT_TEXT,
+  ArchScene,
   Container,
+  CTA,
   Eyebrow,
   Rise,
   Section,
@@ -66,16 +66,11 @@ export default function AboutPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <Aurora color="var(--m-indigo)" opacity={0.16} className="-top-48 -left-28 size-[42rem]" />
-        <Aurora color="var(--m-gold)" opacity={0.05} className="-top-16 right-0 size-[28rem]" />
-        <div
-          aria-hidden
-          className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
-        />
+        <ArchScene />
 
         <Roost seed="about-attic" band="top-right" />
 
-        <Container wide className="relative pt-16 pb-16 sm:pt-24 sm:pb-24">
+        <Container wide className="relative pt-16 pb-16 sm:pt-24 sm:pb-24 lg:pr-[25rem] xl:pr-[28rem]">
           <Rise>
             <Breadcrumbs trail={TRAIL} className="mb-7" />
           </Rise>
@@ -242,7 +237,7 @@ export default function AboutPage() {
                 >
                   <span
                     className="m-mono w-8 shrink-0 t-2 t-caps tabular-nums"
-                    style={{ color: ACCENT[agent.accent] }}
+                    style={{ color: ACCENT_TEXT[agent.accent] }}
                     aria-hidden
                   >
                     {String(i + 1).padStart(2, '0')}
@@ -319,11 +314,6 @@ export default function AboutPage() {
         <Container wide>
           <Reveal>
             <div className="m-card relative overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-20">
-              <Aurora
-                color="var(--m-indigo)"
-                opacity={0.14}
-                className="-top-24 left-1/2 size-[28rem] -translate-x-1/2"
-              />
 
               <div className="relative mx-auto max-w-2xl">
                 <Eyebrow>Talk to the people who built it</Eyebrow>

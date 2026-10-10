@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { BRAND, CONTACT } from '@/lib/marketing/content';
-import { Aurora, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
+import { ArchScene, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
 import { RequestForm } from '@/components/marketing/RequestForm';
@@ -42,16 +42,11 @@ export default function ContactPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <Aurora color="var(--m-indigo)" opacity={0.16} className="-top-48 -left-28 size-[42rem]" />
-        <Aurora color="var(--m-gold)" opacity={0.05} className="-top-16 right-0 size-[28rem]" />
-        <div
-          aria-hidden
-          className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
-        />
+        <ArchScene />
 
         <Roost seed="contact-sill" band="top-right" />
 
-        <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-16">
+        <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-16 lg:pr-[25rem] xl:pr-[28rem]">
           <Rise>
             <Breadcrumbs trail={TRAIL} className="mb-7" />
           </Rise>
@@ -114,13 +109,13 @@ export default function ContactPage() {
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link
                       href="/login"
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line-2)] px-5 t-3 font-semibold transition hover:border-[var(--m-ink)] hover:bg-white/5 sm:flex-1"
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line-2)] px-5 t-3 font-semibold transition hover:border-[var(--m-ink)] hover:bg-[var(--m-bg-2)] sm:flex-1"
                     >
                       Sign in
                     </Link>
                     <Link
                       href="/signup"
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line)] px-5 t-3 font-semibold transition hover:border-[var(--m-line-2)] hover:bg-white/5 sm:flex-1"
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line)] px-5 t-3 font-semibold transition hover:border-[var(--m-line-2)] hover:bg-[var(--m-bg-2)] sm:flex-1"
                     >
                       Create an account
                     </Link>

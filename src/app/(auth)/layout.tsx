@@ -1,10 +1,11 @@
+import type { Viewport } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Logo } from '@/components/marketing/Logo';
 import { AuthSignOut } from '@/components/auth/AuthSignOut';
-import { Aurora } from '@/components/marketing/bits';
 import { BRAND } from '@/lib/marketing/content';
 import { createClient } from '@/lib/supabase/server';
+import { DESERT_FONTS } from '@/lib/brand/fonts';
 
 /**
  * Shell for /login and /signup.
@@ -19,6 +20,11 @@ import { createClient } from '@/lib/supabase/server';
  * is where the reader has just come from. What is left is the mark, a greeting,
  * and the form, sitting in the middle of a single continuous field of light.
  */
+/** Bone browser chrome, as on the public pages these screens belong to. */
+export const viewport: Viewport = {
+  themeColor: '#F6EFE4',
+};
+
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   /*
    * The auth session, not getCurrentUser(). A session whose `profiles` row
@@ -33,15 +39,15 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
   return (
     <div
-      data-skin="night"
-      className="relative grid min-h-dvh place-items-center px-5 py-14 sm:px-6"
+      data-skin="desert"
+      className={`relative grid min-h-dvh place-items-center px-5 py-14 sm:px-6 ${DESERT_FONTS}`}
     >
       <Backdrop />
 
       <div className="relative w-full max-w-[26.5rem]">
         <Link
           href="/"
-          className="mx-auto mb-9 flex w-fit rounded-lg transition hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[var(--m-indigo)] focus-visible:outline-none"
+          className="mx-auto mb-9 flex w-fit rounded-lg transition hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[var(--m-gold)] focus-visible:outline-none"
         >
           <Logo id="auth-mark" />
         </Link>
@@ -65,73 +71,26 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 }
 
 /**
- * Everything behind the card.
+ * What the sign-in card stands in front of: one tall arch, centred behind it.
  *
- * `fixed` rather than absolute, and clipped here rather than on the content
- * wrapper: the blurred fields are far larger than the viewport, and clipping
- * them on an ancestor of the form would make that ancestor the scroll container
- * instead of the viewport. A decorative layer that scrolls nothing is the safe
- * place to put an overflow rule.
+ * The card is the doorway's occupant, the same way the voucher is on the home
+ * page, so arriving here from the public site is walking through the same
+ * door rather than into a different building. The arch is wider than the card
+ * by a little over its own margin, so its walls show either side of it and its
+ * crown shows above it.
+ *
+ * No sun in this one. Every other arch on the site has one, but here the crown
+ * is where the logo and the screen's title sit, and a disc behind a headline
+ * is a disc through it.
+ *
+ * It replaced a blurred light source, two colour fields at the far corners, a
+ * hairline grid and a vignette: five layers whose whole job was to stop a
+ * near-black page reading as flat. Sand does not need lighting.
  */
 function Backdrop() {
-  const hairline =
-    'linear-gradient(to bottom, transparent, var(--m-line) 22%, var(--m-line) 78%, transparent)';
-
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-      {/*
-        One primary source, sitting behind the top of the card. Everything else
-        is falloff. The first attempt used four large fields at once, which lit
-        the whole viewport to an even purple — the card then read as a hole in a
-        flat panel rather than an object with light behind it.
-      */}
-      <span
-        className="absolute top-[-14rem] left-1/2 h-[34rem] w-[46rem] -translate-x-1/2 rounded-[50%] blur-[100px]"
-        style={{ backgroundImage: 'var(--m-grad)', opacity: 0.38 }}
-      />
-
-      {/* Colour at the far edges only, so the corners are not simply black. */}
-      <Aurora
-        color="var(--m-indigo)"
-        opacity={0.15}
-        className="top-[-6rem] right-[-14rem] size-[30rem] animate-[drift_28s_ease-in-out_infinite_alternate-reverse] motion-reduce:animate-none"
-      />
-      <Aurora
-        color="var(--m-gold)"
-        opacity={0.05}
-        className="bottom-[-16rem] left-[-10rem] size-[30rem] animate-[drift_36s_ease-in-out_infinite_alternate] motion-reduce:animate-none"
-      />
-
-      <div className="m-grid absolute inset-0 opacity-70 [mask-image:radial-gradient(62%_55%_at_50%_42%,#000,transparent)]" />
-
-      {/*
-        Two hairlines on the card's own edges, running the full height. They are
-        what stops the card reading as a rectangle dropped onto a background —
-        the page and the card share the same two lines. Offset from the centre by
-        half the column width (26.5rem ÷ 2 = 212px), and hidden below sm, where
-        the gutters make the column narrower than that.
-      */}
-      <span
-        className="absolute inset-y-0 left-1/2 hidden w-px -translate-x-[212px] sm:block"
-        style={{ background: hairline }}
-      />
-      <span
-        className="absolute inset-y-0 left-1/2 hidden w-px translate-x-[212px] sm:block"
-        style={{ background: hairline }}
-      />
-
-      {/*
-        Vignette, last so it sits over every light source. This is what turns an
-        evenly lit rectangle into a pool of light: it starts closing in just
-        outside the card and reaches near-opaque at the edges of the viewport.
-      */}
-      <span
-        className="absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(86% 68% at 50% 34%, transparent 12%, oklch(0.128 0.026 247 / 0.62) 52%, oklch(0.100 0.020 247 / 0.94) 100%)',
-        }}
-      />
+      <div className="m-arch m-arch-open absolute top-[6vh] left-1/2 h-[120vh] w-[min(40rem,92vw)] -translate-x-1/2 bg-[var(--m-bg-2)]" />
     </div>
   );
 }

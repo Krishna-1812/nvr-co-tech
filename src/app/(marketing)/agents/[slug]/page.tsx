@@ -12,9 +12,9 @@ import {
 } from '@/lib/marketing/content';
 import {
   ACCENT,
-  Aurora,
-  CTA,
+  ACCENT_TEXT,
   Container,
+  CTA,
   Eyebrow,
   Section,
   StageBadge,
@@ -68,15 +68,6 @@ export default async function AgentPage({ params }: Params) {
       {agent.stage === 'live' && <JsonLd data={serviceLd(agent)} />}
 
       <section className="relative overflow-hidden">
-        {/* The agent's own colour lights its page. Six pages built from one
-            template have to feel like six places, not one with the name swapped. */}
-        <Aurora color={accent} opacity={0.18} className="-top-48 -left-28 size-[42rem]" />
-        <Aurora color="var(--m-gold)" opacity={0.05} className="-top-20 right-0 size-[28rem]" />
-        <div
-          aria-hidden
-          className="m-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(65%_55%_at_40%_0%,#000,transparent)]"
-        />
-
         <Roost seed="agent-alcove" band="top-right" />
 
         <Container wide className="relative pt-10 pb-16 sm:pt-14 sm:pb-24">
@@ -92,10 +83,7 @@ export default async function AgentPage({ params }: Params) {
               <Reveal delay={60}>
                 <div className="flex flex-wrap items-center gap-3">
                   <StageBadge stage={agent.stage} />
-                  <span
-                    className="m-mono t-1 t-caps uppercase"
-                    style={{ color: accent }}
-                  >
+                  <span className="m-mono t-1 t-caps text-[var(--m-olive)] uppercase">
                     {agent.category}
                   </span>
                 </div>
@@ -122,23 +110,43 @@ export default async function AgentPage({ params }: Params) {
               </Reveal>
             </div>
 
+            {/*
+              The case for it, standing in the agent's own doorway.
+
+              The same window as the home page's hero, walled in this agent's
+              colour, so eight pages built from one template open on eight
+              different arches rather than one page with the name swapped. The
+              sun comes up behind the card; the card is what the door opens on.
+            */}
             <Reveal delay={200}>
-              <figure className="m-card relative overflow-hidden p-7 sm:p-9">
+              <div
+                className="m-arch m-arch-open relative overflow-hidden px-4 pt-40 pb-5 sm:px-7 sm:pt-48 sm:pb-8"
+                style={{ background: accent }}
+              >
+                {/* Sun on a sun-coloured wall is one value against itself, so
+                    the one agent walled in sun gets a terracotta disc. */}
                 <span
                   aria-hidden
-                  className="absolute inset-x-0 top-0 h-px"
-                  style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
+                  className="m-sun absolute top-12 left-1/2 size-36 -translate-x-1/2 sm:size-44"
+                  style={agent.accent === 'amber' ? { background: 'var(--m-gold)' } : undefined}
                 />
-                <Eyebrow>The case for it</Eyebrow>
-                <blockquote className="mt-5">
-                  <p className="t-4 text-[var(--m-ink)] sm:t-5">
-                    {agent.pitch}
-                  </p>
-                </blockquote>
-                <figcaption className="m-dim-2 m-mono mt-7 border-t border-[var(--m-line)] pt-5 t-1 t-caps uppercase">
-                  {agent.name} · {agent.category}
-                </figcaption>
-              </figure>
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 h-32 bg-[var(--m-bg-3)]"
+                  style={{ borderRadius: '60% 40% 0 0 / 30% 25% 0 0' }}
+                />
+                <figure className="m-card relative p-7 shadow-[var(--m-shadow)] sm:p-9">
+                  <Eyebrow>The case for it</Eyebrow>
+                  <blockquote className="mt-5">
+                    <p className="t-4 text-[var(--m-ink)] sm:t-5">
+                      {agent.pitch}
+                    </p>
+                  </blockquote>
+                  <figcaption className="m-dim-2 m-mono mt-7 border-t border-[var(--m-line)] pt-5 t-1 t-caps uppercase">
+                    {agent.name} · {agent.category}
+                  </figcaption>
+                </figure>
+              </div>
             </Reveal>
           </div>
         </Container>
@@ -169,7 +177,7 @@ export default async function AgentPage({ params }: Params) {
                   <div className="flex gap-5 py-5">
                     <span
                       className="m-mono mt-0.5 shrink-0 t-2 t-caps tabular-nums"
-                      style={{ color: accent }}
+                      style={{ color: ACCENT_TEXT[agent.accent] }}
                       aria-hidden
                     >
                       {String(i + 1).padStart(2, '0')}
@@ -211,11 +219,6 @@ export default async function AgentPage({ params }: Params) {
         <Container wide>
           <Reveal>
             <div className="m-card relative overflow-hidden px-6 py-14 sm:px-12 sm:py-18">
-              <Aurora
-                color={accent}
-                opacity={0.13}
-                className="-top-28 left-1/3 size-[26rem] -translate-x-1/2"
-              />
 
               <div className="relative grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-end">
                 <div className="max-w-xl">

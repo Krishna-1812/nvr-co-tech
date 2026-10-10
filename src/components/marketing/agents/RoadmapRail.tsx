@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { AGENTS, STAGE_LABEL } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
-import { ACCENT, Container, Eyebrow } from '../bits';
+import { ACCENT, ACCENT_TEXT, ON_ACCENT, Container, Eyebrow } from '../bits';
 import { Reveal } from '../Reveal';
 
 /**
@@ -55,14 +55,14 @@ export function RoadmapRail() {
                 <li key={a.slug} className="relative flex min-w-0 gap-4 md:flex-1 md:flex-col md:gap-0">
                   {/*
                     The connecting line. Drawn per node as a segment behind the
-                    dot rather than as one line under the row, so it can change
+                    arch rather than as one line under the row, so it can change
                     style at the exact point the roadmap becomes speculative.
                   */}
                   <span
                     aria-hidden
                     className={cn(
-                      'absolute md:top-[13px] md:right-0 md:left-0 md:h-px',
-                      'top-[13px] bottom-0 left-[13px] w-px md:bottom-auto md:w-auto',
+                      'absolute md:top-[17px] md:right-0 md:left-0 md:h-px',
+                      'top-[17px] bottom-0 left-[13.5px] w-px md:bottom-auto md:w-auto',
                       i === 0 && 'md:left-1/2',
                       /*
                        * Stacked, the segment runs from this dot down to the next
@@ -87,7 +87,7 @@ export function RoadmapRail() {
                   >
                     <span
                       className={cn(
-                        'relative grid size-[27px] shrink-0 place-items-center rounded-full border-2 transition-all duration-300',
+                        'm-arch relative grid h-[34px] w-[28px] shrink-0 place-items-center border-2 pt-1 transition-all duration-300',
                         on ? 'scale-110' : 'group-hover:scale-105',
                       )}
                       style={{
@@ -103,11 +103,11 @@ export function RoadmapRail() {
                       {a.stage === 'live' && (
                         <span
                           aria-hidden
-                          className="absolute inset-0 animate-[halo_2.8s_ease-out_infinite] rounded-full border-2 motion-reduce:hidden"
+                          className="m-arch absolute inset-0 animate-[halo_2.8s_ease-out_infinite] border-2 motion-reduce:hidden"
                           style={{ borderColor: accent }}
                         />
                       )}
-                      <span className="m-mono t-1 font-bold" style={{ color: on ? 'var(--m-bg)' : accent }}>
+                      <span className="m-mono t-1 font-bold" style={{ color: on ? ON_ACCENT[a.accent] : 'var(--m-ink)' }}>
                         {i + 1}
                       </span>
                     </span>
@@ -142,7 +142,7 @@ export function RoadmapRail() {
               <div>
                 <p
                   className="m-mono t-1 t-caps uppercase"
-                  style={{ color: ACCENT[agent.accent] }}
+                  style={{ color: ACCENT_TEXT[agent.accent] }}
                 >
                   {agent.category}
                 </p>

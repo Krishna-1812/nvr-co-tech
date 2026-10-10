@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { JOBS, agentBySlug } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
-import { ACCENT, ArrowLink, Container, Eyebrow, StageBadge } from '../bits';
+import { ACCENT, ACCENT_TEXT, ON_ACCENT, ArrowLink, Container, Eyebrow, StageBadge } from '../bits';
 import { Reveal } from '../Reveal';
 import { Roost } from '@/components/brand/Owl';
 
@@ -41,9 +41,11 @@ export function WorkCalendar() {
   const job = JOBS[active];
   const agent = agentBySlug(job.agent);
   const accent = agent ? ACCENT[agent.accent] : 'var(--m-indigo)';
+  // The same colour where it is set as type; sun and sage are too light to read.
+  const accentText = agent ? ACCENT_TEXT[agent.accent] : 'var(--m-gold)';
 
   return (
-    <section id="work" className="relative border-t border-[var(--m-line)] py-20 sm:py-28">
+    <section id="work" className="relative border-t border-[var(--m-line)] bg-[var(--m-bg-2)] py-20 sm:py-28">
       <span
         aria-hidden
         className="m-dots pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(70%_60%_at_50%_30%,#000,transparent)]"
@@ -83,7 +85,7 @@ export function WorkCalendar() {
         </Reveal>
 
         <Reveal delay={110}>
-          <div className="m-card m-ring mt-10 grid overflow-hidden rounded-3xl lg:grid-cols-[0.92fr_1fr]">
+          <div className="m-card m-ring mt-10 grid overflow-hidden rounded-3xl lg:grid-cols-[0.92fr_1fr] shadow-[var(--m-shadow)]">
             {/* ── The jobs ── */}
             <ul className="divide-y divide-[var(--m-line)]">
               {JOBS.map((j, i) => {
@@ -97,7 +99,7 @@ export function WorkCalendar() {
                       onClick={() => setActive(i)}
                       className={cn(
                         'group flex w-full items-center gap-4 px-5 py-4 text-left transition sm:px-6',
-                        on ? 'bg-white/[0.05]' : 'hover:bg-white/[0.025]',
+                        on ? 'bg-[var(--m-bg)]' : 'hover:bg-[var(--m-bg)]/60',
                       )}
                     >
                       {/* Lit only on the active row, so the eye has one place to be. */}
@@ -138,10 +140,13 @@ export function WorkCalendar() {
             </ul>
 
             {/* ── What happens to it ── */}
-            <div className="relative overflow-hidden border-t border-[var(--m-line)] bg-white/[0.022] p-6 sm:p-8 lg:border-t-0 lg:border-l">
+            <div className="relative overflow-hidden border-t border-[var(--m-line)] bg-[var(--m-bg)] p-6 sm:p-8 lg:border-t-0 lg:border-l">
+              {/* The agent's own doorway, standing in the corner of the panel in
+                  its colour. It changes with the pick, so the colour the eye
+                  follows down the list is the colour it lands on here. */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute -top-24 -right-20 size-64 rounded-full opacity-[0.18] blur-3xl transition-colors duration-500"
+                className="m-arch pointer-events-none absolute -top-6 right-8 h-36 w-24 opacity-[0.22] transition-colors duration-500"
                 style={{ background: accent }}
               />
 
@@ -151,7 +156,7 @@ export function WorkCalendar() {
                   <span
                     className="m-mono rounded-full border px-2.5 py-1 t-1 t-caps uppercase"
                     style={{
-                      color: accent,
+                      color: accentText,
                       borderColor: `color-mix(in oklab, ${accent} 34%, transparent)`,
                       background: `color-mix(in oklab, ${accent} 10%, transparent)`,
                     }}
@@ -167,7 +172,7 @@ export function WorkCalendar() {
 
                 <div className="mt-6 space-y-5">
                   <Block label="How it goes now" body={job.now} />
-                  <Block label="What we take on" body={job.ours} accent={accent} />
+                  <Block label="What we take on" body={job.ours} accent={accentText} />
                 </div>
 
                 {agent && (
@@ -244,13 +249,14 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
                 aria-hidden
                 className={cn(
                   'mt-1.5 grid size-7 place-items-center rounded-full border t-1 font-semibold transition-all',
-                  on ? 'text-[var(--m-bg)]' : 'm-dim border-[var(--m-line-2)] bg-[var(--m-bg)]',
+                  on ? undefined : 'm-dim border-[var(--m-line-2)] bg-[var(--m-bg)]',
                 )}
                 style={
                   on
                     ? {
                         background: accent,
                         borderColor: accent,
+                        color: agent ? ON_ACCENT[agent.accent] : 'var(--m-on-grad)',
                         boxShadow: `0 0 0 6px color-mix(in oklab, ${accent} 14%, transparent)`,
                       }
                     : undefined

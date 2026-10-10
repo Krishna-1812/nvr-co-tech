@@ -1,9 +1,10 @@
 import Script from 'next/script';
 import { SiteHeader } from './SiteHeader';
 import { SiteFooter } from './SiteFooter';
+import { DESERT_FONTS } from '@/lib/brand/fonts';
 
 /**
- * The frame every public page hangs in: the night skin, the header, the footer,
+ * The frame every public page hangs in: the desert skin, the header, the footer,
  * and the one script this site runs.
  *
  * It lives here rather than inline in `(marketing)/layout.tsx` because the root
@@ -13,7 +14,7 @@ import { SiteFooter } from './SiteFooter';
  * public header and footer at all. Two copies of this markup would have drifted
  * within a release; one component cannot.
  *
- * `data-skin="night"` is what switches on the entire marketing token set (see
+ * `data-skin="desert"` is what switches on the entire marketing token set (see
  * the block at the bottom of globals.css). It is set here rather than on <body>
  * because <body> is shared with the application, which has its own light/dark
  * system that this must not disturb — and must not be disturbed by.
@@ -25,10 +26,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       vertical axis to `auto`, which quietly makes this div the scroll container
       instead of the viewport — and then window.scrollY stops moving, taking the
       header's scroll state and scroll-linked reveals with it. The sideways
-      clipping the auroras need is done on <body> in globals.css, where it
+      clipping the decorative circles need is done on <body> in globals.css, where it
       propagates to the viewport and leaves window scrolling alone.
     */
-    <div data-skin="night" className="relative min-h-dvh">
+    <div data-skin="desert" className={`relative min-h-dvh ${DESERT_FONTS}`}>
       {/*
         Scroll reveal starts elements at opacity 0 and JavaScript releases them;
         with no JavaScript that release never happens, and since Reveal wraps

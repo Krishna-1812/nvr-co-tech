@@ -29,18 +29,7 @@ const GRAND = NET - TDS;
 export function VoucherPanel() {
   return (
     <div className="relative">
-      {/* The card sits in light rather than glow: a faint cool bloom, and one
-          lit edge along the top. */}
-      <div
-        aria-hidden
-        className="absolute -inset-8 rounded-3xl opacity-50 blur-3xl"
-        style={{
-          background:
-            'radial-gradient(60% 60% at 30% 20%, var(--m-indigo), transparent 70%)',
-        }}
-      />
-
-      <div className="m-card relative overflow-hidden rounded-2xl">
+      <div className="m-card relative overflow-hidden rounded-2xl shadow-[var(--m-shadow)]">
         {/*
           The lit edge. Brightest at the middle and gone by both corners, so it
           reads as light landing on the card rather than as a stripe drawn on
@@ -60,12 +49,14 @@ export function VoucherPanel() {
         {/*
           ── Card head ──
 
-          Stacked below sm, a row above it. In one row at 375px the status pill
+          Stacked below xl, a row above it. In one row at 375px the status pill
           took enough of the width to truncate the voucher number to
           "FI/BLR/26-2…", which is the one string on the card that identifies
           what you are looking at. The pill can afford to drop to its own line.
+          It holds until xl because the hero now seats the card inside an arch
+          window, which takes about sixty pixels of the column for its walls.
         */}
-        <div className="flex flex-col gap-3 border-b border-[var(--m-line)] px-5 py-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 border-b border-[var(--m-line)] px-5 py-4 xl:flex-row xl:items-center">
           <div className="flex min-w-0 items-center gap-3">
             <span
               className="grid size-8 shrink-0 place-items-center rounded-lg"
@@ -78,7 +69,7 @@ export function VoucherPanel() {
               <p className="m-dim-2 mt-0.5 t-2">Bengaluru Chapter · Annual Summit</p>
             </div>
           </div>
-          <span className="m-mono self-start shrink-0 rounded-full border border-[color-mix(in_oklab,var(--m-amber)_32%,transparent)] bg-[color-mix(in_oklab,var(--m-amber)_10%,transparent)] px-2.5 py-1 t-1 t-caps uppercase text-[var(--m-amber)] sm:ml-auto sm:self-auto">
+          <span className="m-mono self-start shrink-0 rounded-full border border-[var(--m-wait-line)] bg-[var(--m-wait-wash)] px-2.5 py-1 t-1 font-semibold t-caps uppercase text-[var(--m-wait)] xl:ml-auto xl:self-auto">
             Awaiting approval
           </span>
         </div>
@@ -97,7 +88,7 @@ export function VoucherPanel() {
         </div>
 
         {/* ── Approval rail ── */}
-        <div className="border-t border-[var(--m-line)] bg-white/[0.02] px-5 py-5">
+        <div className="border-t border-[var(--m-line)] bg-[var(--m-bg)] px-5 py-5">
           <div className="flex items-center gap-2">
             <Node name="R. Menon" caption="Raised" state="done" />
             <Connector />

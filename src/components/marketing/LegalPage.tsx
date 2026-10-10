@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Aurora, Container, Eyebrow, Rise, Section } from './bits';
+import { ArchScene, Container, Eyebrow, Rise, Section } from './bits';
 import { Breadcrumbs } from './Breadcrumbs';
 import { Reveal } from './Reveal';
 import { Roost } from '@/components/brand/Owl';
@@ -79,15 +79,11 @@ export function LegalPage({
   return (
     <>
       <section className="relative overflow-hidden">
-        <Aurora color={accent} opacity={0.12} className="-top-48 -left-28 size-[40rem]" />
-        <div
-          aria-hidden
-          className="m-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(65%_55%_at_50%_0%,#000,transparent)]"
-        />
+        <ArchScene color={accent} />
 
         <Roost seed="legal-margin" band="top-right" />
 
-        <Container className="relative pt-16 pb-14 sm:pt-24 sm:pb-16">
+        <Container className="relative pt-16 pb-14 sm:pt-24 sm:pb-16 lg:pr-[25rem] xl:pr-[28rem]">
           <Rise>
             <Breadcrumbs trail={trail} className="mb-7" />
           </Rise>

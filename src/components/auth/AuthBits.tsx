@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
  * Shared between /login and /signup so the two screens cannot drift apart.
  *
  * Styled against the marketing tokens rather than the app's, because these
- * screens live in the night skin. The red here is a fixed pair rather than the
+ * screens live in the desert skin. The red here is a fixed pair rather than the
  * app's `dark:` variants: there is only ever one background behind it.
  */
 
@@ -23,7 +23,8 @@ export function AuthError({ message }: { message: string }) {
       style={{
         borderColor: 'color-mix(in oklab, var(--m-rose) 34%, transparent)',
         background: 'color-mix(in oklab, var(--m-rose) 12%, transparent)',
-        color: 'color-mix(in oklab, var(--m-rose) 72%, white)',
+        // Brick, not the rose itself: rose on its own wash is under 4.5:1.
+        color: 'var(--m-magenta)',
       }}
     >
       <AlertCircle className="mt-px size-4 shrink-0" aria-hidden />
@@ -56,7 +57,7 @@ export function AuthSubmit({
     <button
       type="submit"
       disabled={loading || disabled}
-      className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] focus-visible:ring-2 focus-visible:ring-[var(--m-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--m-bg)] focus-visible:outline-none active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
+      className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)] transition-colors duration-200 hover:bg-[var(--m-gold)] focus-visible:ring-2 focus-visible:ring-[var(--m-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--m-bg)] focus-visible:outline-none active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
     >
       {loading ? (
         <>
@@ -102,7 +103,7 @@ export function GoogleButton({
       type="button"
       onClick={go}
       disabled={busy}
-      className="inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-[var(--m-line-2)] bg-white/[0.03] text-[14px] font-semibold text-[var(--m-ink)] transition hover:border-[var(--m-ink)]/40 hover:bg-white/[0.07] focus-visible:ring-2 focus-visible:ring-[var(--m-indigo)] focus-visible:outline-none active:scale-[0.99] disabled:opacity-60"
+      className="inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full border border-[var(--m-line-2)] bg-[var(--m-card)] text-[14px] font-semibold text-[var(--m-ink)] transition hover:border-[var(--m-ink)]/40 hover:bg-[var(--m-bg-2)] focus-visible:ring-2 focus-visible:ring-[var(--m-indigo)] focus-visible:outline-none active:scale-[0.99] disabled:opacity-60"
     >
       {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <GoogleMark />}
       {label}

@@ -114,7 +114,7 @@ export function SiteHeader() {
               href="/contact"
               data-demo=""
               data-interest="Header"
-              className="hidden h-9 items-center rounded-lg bg-[var(--m-ink)] px-4 t-2 font-semibold whitespace-nowrap text-[var(--m-on-grad)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] sm:inline-flex"
+              className="hidden h-10 items-center rounded-full bg-[var(--m-ink)] px-5 t-2 font-semibold whitespace-nowrap text-[var(--m-on-grad)] transition-colors duration-200 hover:bg-[var(--m-gold)] active:scale-[0.985] sm:inline-flex"
             >
               Book a walkthrough
             </Link>
@@ -124,7 +124,7 @@ export function SiteHeader() {
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
               aria-label={open ? 'Close menu' : 'Open menu'}
-              className="grid size-9 place-items-center rounded-lg border border-[var(--m-line-2)] transition-colors hover:border-[var(--m-gold)] hover:text-[var(--m-gold)] md:hidden"
+              className="grid size-10 place-items-center rounded-full border border-[var(--m-line-2)] transition-colors hover:border-[var(--m-gold)] hover:text-[var(--m-gold)] md:hidden"
             >
               {open ? <X className="size-4" aria-hidden /> : <Menu className="size-4" aria-hidden />}
             </button>
@@ -140,7 +140,7 @@ export function SiteHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="m-dim rounded-lg px-2 py-3 t-4 font-medium transition hover:bg-white/5 hover:text-[var(--m-ink)]"
+                  className="m-dim rounded-lg px-2 py-3 t-4 font-medium transition hover:bg-[var(--m-bg-2)] hover:text-[var(--m-ink)]"
                 >
                   {item.label}
                 </Link>
@@ -149,7 +149,7 @@ export function SiteHeader() {
                 <Link
                   href="/login"
                   data-signin=""
-                  className="flex h-11 flex-1 items-center justify-center rounded-lg border border-[var(--m-line-2)] t-3 font-semibold"
+                  className="flex h-11 flex-1 items-center justify-center rounded-full border-[1.5px] border-[var(--m-ink)] t-3 font-semibold"
                 >
                   Sign in
                 </Link>
@@ -157,7 +157,7 @@ export function SiteHeader() {
                   href="/contact"
                   data-demo=""
                   data-interest="Phone menu"
-                  className="flex h-11 flex-1 items-center justify-center rounded-lg bg-[var(--m-ink)] t-3 font-semibold text-[var(--m-on-grad)]"
+                  className="flex h-11 flex-1 items-center justify-center rounded-full bg-[var(--m-ink)] t-3 font-semibold text-[var(--m-on-grad)]"
                 >
                   Book a walkthrough
                 </Link>

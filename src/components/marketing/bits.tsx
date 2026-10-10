@@ -22,6 +22,38 @@ export const ACCENT: Record<Agent['accent'], string> = {
 };
 
 /**
+ * An agent's colour when it is used *as* type on the page ground.
+ *
+ * The same eight, except where the hue is too light to read at text sizes:
+ * sun (1.8:1) and sage (2.5:1) give way to ochre and olive, the nearest of
+ * the darker earths. Every other hue is its own colour, at 4.5:1 or better on
+ * bone.
+ */
+export const ACCENT_TEXT: Record<Agent['accent'], string> = {
+  ...ACCENT,
+  amber: 'var(--m-violet)',
+  lime: 'var(--m-emerald)',
+};
+
+/**
+ * What to set type in when it sits on an agent's own colour.
+ *
+ * Six of the eight earth hues are dark enough for bone type; sun and sage are
+ * not (1.8:1 and 2.5:1) and take ink instead (8.3:1 and 5.9:1). Kept beside
+ * ACCENT so a hue cannot be added to one without being seen in the other.
+ */
+export const ON_ACCENT: Record<Agent['accent'], string> = {
+  indigo: 'var(--m-on-grad)',
+  violet: 'var(--m-on-grad)',
+  cyan: 'var(--m-on-grad)',
+  emerald: 'var(--m-on-grad)',
+  amber: 'var(--m-ink)',
+  rose: 'var(--m-on-grad)',
+  lime: 'var(--m-ink)',
+  magenta: 'var(--m-on-grad)',
+};
+
+/**
  * A headline line that rises into place from behind a clip.
  *
  * Pure CSS and therefore not waiting on hydration, which is the whole point
@@ -194,24 +226,48 @@ export function Section({
 }
 
 /**
- * A blurred colour field. Purely decorative light, positioned by the caller —
- * these are what stop a near-black page reading as flat.
+ * The arch every inner page stands in front of.
+ *
+ * A doorway in the page's colour at the right of a hero, with the sun coming
+ * up inside it and a dune at its foot. It is the same picture as the home
+ * page's window without the product in it, so every page opens on the site's
+ * one image while the words stay where they are.
+ *
+ * It replaced two blurred colour fields and a hairline grid on every hero,
+ * which were what stopped a near-black page reading as flat. On sand they
+ * read as stains. The arch is drawn up from the floor on arrival, and only
+ * from lg up: below that the hero's text takes the whole width, and a doorway
+ * squeezed in beside it would be a sliver.
+ *
+ * `color` is the wall of the arch. Legal pages pass their own earth hue.
+ *
+ * It is absolutely placed, so the hero it sits in has to leave it room: each
+ * one pads its text column by lg:pr-[25rem] xl:pr-[28rem], which is the arch's
+ * width plus its inset from the edge plus a gutter.
  */
-export function Aurora({
-  color,
+export function ArchScene({
+  color = 'var(--m-bg-2)',
   className,
-  opacity = 0.5,
 }: {
-  color: string;
+  color?: string;
   className?: string;
-  opacity?: number;
 }) {
   return (
-    <span
+    <div
       aria-hidden
-      className={cn('m-aurora', className)}
-      style={{ background: color, opacity }}
-    />
+      className={cn(
+        'm-arch m-arch-open pointer-events-none absolute right-[5%] bottom-0 hidden h-[min(30rem,calc(100%-4rem))] w-[20rem] overflow-hidden lg:block xl:right-[8%]',
+        className,
+      )}
+      style={{ background: color }}
+    >
+      <span className="m-sun absolute top-20 left-1/2 size-44 -translate-x-1/2" />
+      <span
+        className="absolute inset-x-0 bottom-0 h-28 bg-[var(--m-bg-3)]"
+        style={{ borderRadius: '60% 40% 0 0 / 34% 28% 0 0' }}
+      />
+      <span className="m-arch absolute bottom-0 left-1/2 h-24 w-20 -translate-x-1/2 bg-[var(--m-bg)]" />
+    </div>
   );
 }
 
@@ -220,7 +276,7 @@ export function StageBadge({ stage, className }: { stage: AgentStage; className?
     stage === 'live'
       ? 'text-[var(--m-emerald)] border-[color-mix(in_oklab,var(--m-emerald)_36%,transparent)] bg-[color-mix(in_oklab,var(--m-emerald)_12%,transparent)]'
       : stage === 'building'
-        ? 'text-[var(--m-amber)] border-[color-mix(in_oklab,var(--m-amber)_32%,transparent)] bg-[color-mix(in_oklab,var(--m-amber)_10%,transparent)]'
+        ? 'text-[var(--m-wait)] border-[var(--m-wait-line)] bg-[var(--m-wait-wash)]'
         : 'm-dim-2 border-[var(--m-line)]';
 
   return (
@@ -275,7 +331,7 @@ export function CTA({
    * more.
    */
   const base =
-    'group inline-flex h-12 items-center justify-center gap-2.5 rounded-lg px-6 t-3 font-semibold transition-[transform,background-color,border-color,color] duration-200 active:scale-[0.985]';
+    'group inline-flex h-12 items-center justify-center gap-2.5 rounded-full px-7 t-3 font-semibold transition-[transform,background-color,border-color,color] duration-200 active:scale-[0.985]';
 
   /*
    * Primary is the bone slab — the strongest thing available on this ground,
@@ -288,8 +344,8 @@ export function CTA({
    */
   const look =
     variant === 'primary'
-      ? 'bg-[var(--m-ink)] text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] hover:bg-[oklch(1_0_0)]'
-      : 'border border-[var(--m-line-2)] text-[var(--m-ink)] hover:border-[var(--m-gold)] hover:text-[var(--m-gold)]';
+      ? 'bg-[var(--m-ink)] text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)] hover:bg-[var(--m-gold)]'
+      : 'border-[1.5px] border-[var(--m-ink)] text-[var(--m-ink)] hover:border-[var(--m-gold)] hover:text-[var(--m-gold)]';
 
   return (
     <Link

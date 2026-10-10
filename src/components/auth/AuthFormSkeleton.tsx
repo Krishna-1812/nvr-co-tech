@@ -61,7 +61,7 @@ function Bar({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        'block animate-[shimmer_1.8s_ease-in-out_infinite] rounded-md bg-white/[0.06]',
+        'block animate-[shimmer_1.8s_ease-in-out_infinite] rounded-md bg-[var(--m-bg-2)]',
         className,
       )}
     />

@@ -59,12 +59,12 @@ export function AuthInput({ icon: Icon, className, ...props }: InputProps) {
       <input
         {...props}
         className={cn(
-          'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.035] text-base lg:text-[15px] text-[var(--m-ink)] transition',
+          'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] text-base lg:text-[15px] text-[var(--m-ink)] transition',
           'placeholder:text-[var(--m-dim-2)] placeholder:font-normal',
           'hover:border-[var(--m-line-2)]',
           // The ring replaces the border rather than sitting outside it, so the
           // control does not grow by 2px the moment it is focused.
-          'focus:border-transparent focus:bg-white/[0.06] focus:ring-2 focus:ring-[var(--m-indigo)] focus:outline-none',
+          'focus:border-transparent focus:bg-[var(--m-card)] focus:ring-2 focus:ring-[var(--m-gold)] focus:outline-none',
           Icon ? 'pr-4 pl-11' : 'px-4',
           className,
         )}
@@ -100,10 +100,10 @@ export function AuthPassword({
         {...props}
         type={visible ? 'text' : 'password'}
         className={cn(
-          'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.035] text-base lg:text-[15px] text-[var(--m-ink)] transition',
+          'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] text-base lg:text-[15px] text-[var(--m-ink)] transition',
           'placeholder:text-[var(--m-dim-2)]',
           'hover:border-[var(--m-line-2)]',
-          'focus:border-transparent focus:bg-white/[0.06] focus:ring-2 focus:ring-[var(--m-indigo)] focus:outline-none',
+          'focus:border-transparent focus:bg-[var(--m-card)] focus:ring-2 focus:ring-[var(--m-gold)] focus:outline-none',
           Icon ? 'pr-12 pl-11' : 'pr-12 pl-4',
           className,
         )}
@@ -121,7 +121,7 @@ export function AuthPassword({
         aria-label={visible ? 'Hide password' : 'Show password'}
         aria-pressed={visible}
         aria-describedby={describedBy}
-        className="absolute top-1/2 right-2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-[var(--m-dim-2)] transition hover:bg-white/[0.06] hover:text-[var(--m-ink)]"
+        className="absolute top-1/2 right-2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-[var(--m-dim-2)] transition hover:bg-[var(--m-bg-2)] hover:text-[var(--m-ink)]"
       >
         {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
       </button>

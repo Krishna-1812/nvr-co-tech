@@ -16,7 +16,7 @@ import { BEAK, EYE, HALO, HEAD, INK, RECENTRE, RUPEE, TUFTS, VIEW } from './mark
  * card, and the reader has no way to tell which is which without hovering.
  *
  * Each page now has its own, and they are all built here so they stay one
- * family. The mark, the ground, the two lights and the chip rail never vary;
+ * family. The mark, the bone ground, the arch and the chip rail never vary;
  * only the eyebrow, the headline and the chips do.
  *
  * ── What Satori will and will not do ────────────────────────────────────────
@@ -24,10 +24,12 @@ import { BEAK, EYE, HALO, HEAD, INK, RECENTRE, RUPEE, TUFTS, VIEW } from './mark
  * Rendered at build time by Satori, not by a browser, and it supports a
  * deliberately small slice of CSS. Flexbox only, no CSS variables, no oklch(),
  * no external fonts unless they are fetched and passed in. Hence the literal
- * hex values, which are the sRGB equivalents of the --m-* tokens. Every element
- * with more than one child needs an explicit `display: flex`, including ones
- * that plainly are not layouts, because Satori has no block formatting to fall
- * back to.
+ * hex values in SAND below, which match the --m-* tokens, and why the cards
+ * set their headline in Satori's built-in sans rather than Gloock: fetching a
+ * font at build time would make every deploy depend on Google Fonts being up.
+ * Every element with more than one child needs an explicit `display: flex`,
+ * including ones that plainly are not layouts, because Satori has no block
+ * formatting to fall back to.
  *
  * The mark is the exception to the literals. Its geometry and ink come from
  * lib/brand/mark, which is already plain sRGB hex for exactly this reason, so
@@ -37,6 +39,23 @@ import { BEAK, EYE, HALO, HEAD, INK, RECENTRE, RUPEE, TUFTS, VIEW } from './mark
 /** 1200x630, which is what every one of those three services crops to. */
 export const CARD_SIZE = { width: 1200, height: 630 };
 export const CARD_TYPE = 'image/png';
+
+/**
+ * The desert skin's palette as literal hex, because Satori reads no CSS
+ * variables. Same values as the --m-* tokens in globals.css; change one and
+ * change the other.
+ */
+const SAND = {
+  bone: '#F6EFE4',
+  sand: '#EBDDCB',
+  dune: '#D9C2A5',
+  sun: '#E9B44C',
+  ink: '#2B211B',
+  dim: '#4A3D33',
+  olive: '#5F6136',
+  line: '#E2D3BF',
+  lineStrong: '#BFA98E',
+} as const;
 
 export type Card = {
   /** The gold micro-label, matching .m-eyebrow on the site. */
@@ -63,36 +82,69 @@ export function socialCard({ eyebrow, headline, sub, chips }: Card) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          background: '#0b0d1c',
+          background: SAND.bone,
           padding: 72,
           position: 'relative',
         }}
       >
-        {/* Two light sources, matching the site's hero. */}
+        {/*
+          The site's one image, at the right of every card: an arch with the
+          sun coming up inside it and a dune at its foot. Drawn from boxes,
+          since Satori has no clip-path; a box with its two top corners rounded
+          to half its width is an arch.
+        */}
         <div
           style={{
             position: 'absolute',
-            top: -260,
-            left: -160,
-            width: 760,
-            height: 760,
-            borderRadius: 9999,
-            background: 'radial-gradient(circle, rgba(99,102,241,0.55), rgba(11,13,28,0) 70%)',
+            right: 72,
+            bottom: 0,
+            width: 300,
+            height: 470,
             display: 'flex',
+            justifyContent: 'center',
+            background: SAND.sand,
+            borderTopLeftRadius: 150,
+            borderTopRightRadius: 150,
+            overflow: 'hidden',
           }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: -160,
-            right: -200,
-            width: 640,
-            height: 640,
-            borderRadius: 9999,
-            background: 'radial-gradient(circle, rgba(139,92,246,0.42), rgba(11,13,28,0) 70%)',
-            display: 'flex',
-          }}
-        />
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 70,
+              width: 170,
+              height: 170,
+              borderRadius: 9999,
+              background: SAND.sun,
+              display: 'flex',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: 300,
+              height: 120,
+              background: SAND.dune,
+              borderTopLeftRadius: 180,
+              borderTopRightRadius: 120,
+              display: 'flex',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              width: 80,
+              height: 100,
+              background: SAND.bone,
+              borderTopLeftRadius: 40,
+              borderTopRightRadius: 40,
+              display: 'flex',
+            }}
+          />
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           {/*
@@ -135,17 +187,18 @@ export function socialCard({ eyebrow, headline, sub, chips }: Card) {
             </g>
           </svg>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: '#eef1fb', fontSize: 30, fontWeight: 700 }}>{BRAND.name}</span>
-            <span style={{ color: '#8b95bd', fontSize: 17, marginTop: 4 }}>{BRAND.tagline}</span>
+            <span style={{ color: SAND.ink, fontSize: 30, fontWeight: 700 }}>{BRAND.name}</span>
+            <span style={{ color: SAND.dim, fontSize: 17, marginTop: 4 }}>{BRAND.tagline}</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 700 }}>
           <span
             style={{
-              // Gold, matching .m-eyebrow on the site itself.
-              color: INK.gold,
+              // Olive, matching .m-eyebrow on the site itself.
+              color: SAND.olive,
               fontSize: 19,
+              fontWeight: 700,
               letterSpacing: 4,
               textTransform: 'uppercase',
             }}
@@ -154,21 +207,12 @@ export function socialCard({ eyebrow, headline, sub, chips }: Card) {
           </span>
           <span
             style={{
-              color: '#f3f5fd',
-              /*
-               * Two sizes, not a fitted one. Satori cannot measure text before
-               * it lays it out, so there is no way to shrink a headline until it
-               * fits. The long-headline pages are the ones with a sentence for a
-               * title and the short ones are a product name, which wants to be
-               * large; the threshold sits between the two clusters rather than
-               * at an arbitrary width.
-               */
-              fontSize: headline.length > 34 ? 76 : 92,
+              color: SAND.ink,
+              fontSize: headline.length > 34 ? 56 : 68,
               fontWeight: 700,
               lineHeight: 1.06,
-              letterSpacing: -2.2,
+              letterSpacing: -2,
               marginTop: 26,
-              maxWidth: 900,
             }}
           >
             {headline}
@@ -176,11 +220,10 @@ export function socialCard({ eyebrow, headline, sub, chips }: Card) {
           {sub && (
             <span
               style={{
-                color: '#a3adcf',
+                color: SAND.dim,
                 fontSize: 26,
                 lineHeight: 1.35,
                 marginTop: 20,
-                maxWidth: 840,
               }}
             >
               {sub}
@@ -192,17 +235,19 @@ export function socialCard({ eyebrow, headline, sub, chips }: Card) {
           style={{
             display: 'flex',
             gap: 12,
-            borderTop: '1px solid rgba(124,140,220,0.22)',
+            borderTop: `1px solid ${SAND.line}`,
             paddingTop: 26,
+            maxWidth: 700,
+            flexWrap: 'wrap',
           }}
         >
           {chips.map((t) => (
             <span
               key={t}
               style={{
-                color: '#a3adcf',
+                color: SAND.ink,
                 fontSize: 19,
-                border: '1px solid rgba(124,140,220,0.28)',
+                border: `1.5px solid ${SAND.lineStrong}`,
                 borderRadius: 9999,
                 padding: '9px 20px',
                 display: 'flex',

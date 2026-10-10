@@ -88,7 +88,7 @@ export default function ResetPasswordPage() {
         <AuthCard>
           <Link
             href="/forgot-password"
-            className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)]"
+            className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)] transition-colors duration-200 hover:bg-[var(--m-gold)]"
           >
             Send a new link
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
               router.push(AFTER_LOGIN);
               router.refresh();
             }}
-            className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)]"
+            className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)] transition-colors duration-200 hover:bg-[var(--m-gold)]"
           >
             <Check className="size-4" aria-hidden />
             Continue

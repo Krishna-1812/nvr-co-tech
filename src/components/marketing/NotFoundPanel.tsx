@@ -1,4 +1,4 @@
-import { Aurora, CTA, Container } from './bits';
+import { Container, CTA } from './bits';
 import { Roost } from '@/components/brand/Owl';
 
 /**
@@ -14,19 +14,29 @@ import { Roost } from '@/components/brand/Owl';
  */
 export function NotFoundPanel() {
   return (
-    <section className="relative overflow-hidden py-32 sm:py-44">
-      <Aurora color="var(--m-indigo)" opacity={0.15} className="-top-36 left-1/3 size-[38rem]" />
-      <div
-        aria-hidden
-        className="m-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(55%_60%_at_50%_30%,#000,transparent)]"
-      />
-
+    <section className="relative overflow-hidden pt-16 pb-32 sm:pt-20 sm:pb-40">
       {/* Two on the 404, where there is nothing else to look at and nothing to
           get in the way of. */}
       <Roost seed="lost-hollow" band="top-right" />
       <Roost seed="lost-bough" band="bottom-left" />
 
       <Container className="relative text-center">
+        {/*
+          An empty doorway with the sun going down into it. Every other page on
+          the site has something standing in its arch; this is the one where
+          the door opens on nothing, which is the whole of what a 404 has to
+          say before a word of it is read.
+        */}
+        <div
+          aria-hidden
+          className="m-arch m-arch-open relative mx-auto mb-10 h-64 w-52 overflow-hidden bg-[var(--m-bg-2)]"
+        >
+          <span
+            className="m-sun absolute bottom-6 left-1/2 size-28 -translate-x-1/2"
+            style={{ '--sun-from': '-120px' } as React.CSSProperties}
+          />
+          <span className="absolute inset-x-0 bottom-0 h-14 bg-[var(--m-bg-3)]" />
+        </div>
         <p className="m-eyebrow">Error 404</p>
         <h1 className="m-display mt-5 t-h1">
           Nothing filed <span className="m-serif m-grad-text">here.</span>

@@ -82,7 +82,7 @@ export function RulesPlayground() {
         </Reveal>
 
         <Reveal delay={90}>
-          <div className="m-card m-ring mt-12 grid overflow-hidden rounded-3xl lg:grid-cols-[1fr_0.85fr]">
+          <div className="m-card m-ring mt-12 grid overflow-hidden rounded-3xl shadow-[var(--m-shadow)] lg:grid-cols-[1fr_0.85fr]">
             {/* ── Controls ── */}
             <div className="space-y-7 p-6 sm:p-8">
               <Control
@@ -145,7 +145,7 @@ export function RulesPlayground() {
             </div>
 
             {/* ── The ladder ── */}
-            <div className="border-t border-[var(--m-line)] bg-white/[0.022] p-6 sm:p-8 lg:border-t-0 lg:border-l">
+            <div className="border-t border-[var(--m-line)] bg-[var(--m-bg)] p-6 sm:p-8 lg:border-t-0 lg:border-l">
               <p className="m-eyebrow">Amount breakdown</p>
 
               <dl className="mt-6 space-y-3">
@@ -237,7 +237,7 @@ function Segmented({
   return (
     <div
       role="radiogroup"
-      className="inline-flex rounded-xl border border-[var(--m-line)] bg-white/[0.03] p-1"
+      className="inline-flex rounded-full border border-[var(--m-line)] bg-[var(--m-bg)] p-1"
     >
       {options.map((o) => {
         const active = o.value === value;
@@ -249,7 +249,7 @@ function Segmented({
             aria-checked={active}
             onClick={() => onChange(o.value)}
             className={cn(
-              'rounded-lg px-3.5 py-1.5 t-2 font-medium transition',
+              'rounded-full px-3.5 py-1.5 t-2 font-medium transition',
               active ? 'text-[var(--m-on-grad)]' : 'm-dim hover:text-[var(--m-ink)]',
             )}
             style={active ? { backgroundImage: 'var(--m-grad)' } : undefined}
@@ -277,7 +277,7 @@ function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'm-mono rounded-lg border px-3 py-1.5 t-2 transition',
+        'm-mono rounded-full border px-3.5 py-1.5 t-2 transition',
         active
           ? 'border-[color-mix(in_oklab,var(--m-gold)_50%,transparent)] bg-[color-mix(in_oklab,var(--m-gold)_12%,transparent)] text-[var(--m-gold)]'
           : 'm-dim border-[var(--m-line)] hover:border-[var(--m-line-2)] hover:text-[var(--m-ink)]',

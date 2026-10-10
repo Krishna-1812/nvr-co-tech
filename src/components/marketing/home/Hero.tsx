@@ -1,5 +1,5 @@
 import { ArrowDown } from 'lucide-react';
-import { Aurora, CTA, Container, LineRise, Rise } from '../bits';
+import { CTA, Container, LineRise, Rise } from '../bits';
 import { Tilt } from '../motion';
 import { VoucherPanel } from './VoucherPanel';
 import { Roost } from '@/components/brand/Owl';
@@ -78,10 +78,31 @@ export function Hero() {
             </Rise>
           </div>
 
-          <Rise delay={300} className="lg:pl-4">
-            <Tilt>
+          {/*
+            The arch window. The product sits in a doorway with the sun coming
+            up behind it: the one image on the site that says what kind of
+            place this is before a word of it is read. The sun is a plain disc
+            rising on load, and the dune is a second, lower arch-shaped floor,
+            so the card stands on something rather than floating in a frame.
+
+            pt is what makes room for the sun above the card. Below lg the
+            window narrows to the column and the sun scales down with it.
+          */}
+          <Rise delay={200} className="lg:pl-4">
+            <div className="m-arch m-arch-open relative overflow-hidden bg-[var(--m-bg-2)] px-4 pt-44 pb-5 sm:px-7 sm:pt-56 sm:pb-8">
+              <span
+                aria-hidden
+                className="m-sun absolute top-12 left-1/2 size-40 -translate-x-1/2 sm:top-16 sm:size-56"
+              />
+              <span
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-40 bg-[var(--m-bg-3)]"
+                style={{ borderRadius: '60% 40% 0 0 / 30% 25% 0 0' }}
+              />
+            <Tilt className="relative">
               <VoucherPanel />
             </Tilt>
+            </div>
           </Rise>
         </div>
 
@@ -117,73 +138,26 @@ export function Hero() {
 }
 
 /**
- * The light behind the hero.
+ * What the hero stands on.
  *
  * ── What was here ─────────────────────────────────────────────────────────
  *
- * Three saturated blurred circles — indigo, violet and cyan — plus a
- * seventy-second rotating conic gradient behind the product panel. Four
- * overlapping coloured light sources is the backdrop of most of the internet
- * right now, and it was also doing real damage: the panel on the right had to
- * sit on whichever two colours happened to be overlapping behind it that
- * second, so its own edges never resolved.
+ * On the night skin: one blurred indigo field from the top left, a faint gold
+ * one opposite, and a hairline grid on a slow parallax, all there to give a
+ * near-black page something to recede into. On sand every one of them read as
+ * a stain or as graph paper, and the skin now hides both devices site-wide.
  *
  * ── What replaced it ──────────────────────────────────────────────────────
  *
- * Structure instead of light. A hairline grid on a slow parallax, so the page
- * has a measurable ground that moves against the content and gives the depth
- * the blobs were being asked for; one very soft cool wash from the top left,
- * which is where the notional light is everywhere else in this design system;
- * and a single gold rule along the foot of the section, drawn by the scroll.
- *
- * The grid is the piece doing the work. It is what makes a page look set on
- * something rather than floating, and unlike a gradient it survives being
- * looked at twice.
+ * The arch window beside the headline does the job the light was doing, so
+ * what is left here is the horizon: a single terracotta rule along the foot of
+ * the section, drawn by the scroll. The ground the arch stands on.
  */
 function HeroBackdrop() {
   return (
-    <>
-      {/*
-        One light, from the top left. `.m-aurora` blurs it to 90px, so at this
-        size and opacity it is a wash across the corner rather than a readable
-        circle — which is the difference between lighting a page and decorating
-        it.
-      */}
-      <Aurora
-        color="var(--m-indigo)"
-        opacity={0.16}
-        className="-top-56 -left-40 size-[46rem]"
-      />
-      <Aurora color="var(--m-gold)" opacity={0.05} className="top-40 -right-32 size-[34rem]" />
-
-      {/*
-        The grid, on a parallax. `--s-lag` is percent of the element's own
-        height, and this one is deliberately the largest lag on the site: it is
-        the furthest thing back, and everything else is measured against it.
-
-        Inset by more than the lag travel so the drifting edges never enter the
-        section.
-      */}
-      <div
-        aria-hidden
-        className="s-lag m-grid pointer-events-none absolute -inset-y-24 inset-x-0 opacity-60 [mask-image:radial-gradient(78%_66%_at_50%_0%,#000,transparent)]"
-        style={{ '--s-lag': 8 } as React.CSSProperties}
-      />
-
-      {/* The horizon. Drawn by the scroll rather than faded in — see the
-          .s-rule note in globals.css. */}
-      <span
-        aria-hidden
-        className="s-rule pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[var(--m-gold)] opacity-40"
-      />
-
-      {/* Seals the bottom edge so the hero's light does not bleed into the
-          section below, which has its own. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
-        style={{ background: 'linear-gradient(to bottom, transparent, var(--m-bg))' }}
-      />
-    </>
+    <span
+      aria-hidden
+      className="s-rule pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[var(--m-gold)] opacity-40"
+    />
   );
 }

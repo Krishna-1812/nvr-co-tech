@@ -1,4 +1,14 @@
+import type { Viewport } from 'next';
 import { PublicShell } from '@/components/marketing/PublicShell';
+
+/**
+ * The colour a phone paints its browser chrome on public pages: the bone the
+ * page is drawn on, so the address bar reads as part of the page rather than a
+ * navy band above it. The root layout's navy stays for the signed-in app.
+ */
+export const viewport: Viewport = {
+  themeColor: '#F6EFE4',
+};
 
 /**
  * Shell for every public page.

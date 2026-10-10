@@ -15,8 +15,8 @@
  *
  * The one thing added to the artwork is the halo: a light disc set behind the
  * owl, a little wider than its head, so a navy bird is still legible on a navy
- * tile and on the near-black marketing page. It shows as a thin light ring and
- * nothing else changes.
+ * tile and on the app's dark theme. On the public site's sand it shows as a
+ * thin light ring and nothing else changes.
  */
 
 /** The brand's own colours, from the supplied artwork. */

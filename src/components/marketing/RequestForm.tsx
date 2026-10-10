@@ -105,10 +105,11 @@ export function RequestForm() {
             id="req-interest"
             name="interest"
             defaultValue="Not sure yet"
-            // Without this the native dropdown renders as a white sheet over a
-            // near-black page in Chromium.
-            style={{ colorScheme: 'dark' }}
-            className="mt-2.5 w-full appearance-none rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition hover:border-[var(--m-line-2)]"
+            // The native dropdown follows color-scheme. The desert skin declares
+            // light, so the open list is a light sheet on a light page; this used
+            // to force dark, for the night skin it replaced.
+            style={{ colorScheme: 'light' }}
+            className="mt-2.5 w-full appearance-none rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition hover:border-[var(--m-line-2)]"
           >
             <option value="Not sure yet">Not sure yet</option>
             <option value="Build something custom">Something built for us</option>
@@ -129,7 +130,7 @@ export function RequestForm() {
             name="message"
             rows={5}
             placeholder="How many vouchers you do in a month, who approves them at the moment, and what tends to go wrong."
-            className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
+            className="mt-2.5 w-full resize-y rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
           />
         </div>
       </div>
@@ -144,7 +145,7 @@ export function RequestForm() {
         <button
           type="submit"
           disabled={busy}
-          className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-lg bg-[var(--m-ink)] px-6 t-3 font-semibold text-[var(--m-on-grad)] shadow-[0_1px_0_oklch(1_0_0_/_0.6)_inset,0_10px_28px_oklch(0_0_0_/_0.45)] transition-colors duration-200 hover:bg-[oklch(1_0_0)] active:scale-[0.985] disabled:opacity-60"
+          className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-[var(--m-ink)] px-6 t-3 font-semibold text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)] transition-colors duration-200 hover:bg-[var(--m-gold)] active:scale-[0.985] disabled:opacity-60"
         >
           {busy ? 'Sending' : 'Send it'}
           {!busy && (
@@ -182,7 +183,7 @@ function Field({
       </label>
       <input
         id={id}
-        className="mt-2.5 w-full rounded-xl border border-[var(--m-line)] bg-white/[0.03] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
+        className="mt-2.5 w-full rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-4 py-3 t-4 lg:t-4 text-[var(--m-ink)] transition placeholder:text-[var(--m-dim-2)] hover:border-[var(--m-line-2)]"
         {...input}
       />
     </div>
