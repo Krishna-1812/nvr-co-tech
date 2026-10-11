@@ -2,6 +2,7 @@ import Script from 'next/script';
 import { SiteHeader } from './SiteHeader';
 import { SiteFooter } from './SiteFooter';
 import { DESERT_FONTS } from '@/lib/brand/fonts';
+import { Play } from './play/Play';
 
 /**
  * The frame every public page hangs in: the desert skin, the header, the footer,
@@ -68,6 +69,11 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       <SiteHeader />
       <main id="main">{children}</main>
       <SiteFooter />
+
+      {/* The delegated motion every public page shares: buttons that flood
+          from the pointer, calls to action that throw confetti, labels that
+          decode. Renders nothing. See play/Play. */}
+      <Play />
 
       {/*
         Our own measurement, on our own origin, writing to our own database.

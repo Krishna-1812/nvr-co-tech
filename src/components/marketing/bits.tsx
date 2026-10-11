@@ -83,18 +83,28 @@ export function LineRise({
   return (
     <span
       className={cn(
-        '-mt-[0.08em] -mb-[0.3em] block overflow-hidden pt-[0.08em] pb-[0.3em]',
+        'm-line -mt-[0.08em] -mb-[0.3em] block overflow-hidden pt-[0.08em] pb-[0.3em]',
         className,
       )}
     >
       <span
         className="block animate-[lift_0.95s_cubic-bezier(0.16,1,0.3,1)_backwards] motion-reduce:animate-none"
-        style={delay ? { animationDelay: `${delay}ms` } : undefined}
+        style={{ animationDelay: introDelay(delay) }}
       >
         {children}
       </span>
     </span>
   );
+}
+
+/**
+ * An above-the-fold entrance delay, plus however long the opening sequence is
+ * still covering the page. `--intro-wait` is only set while the home page's
+ * curtain is up (see play/IntroCurtain), so everywhere else this is the delay
+ * as given.
+ */
+function introDelay(delay: number) {
+  return `calc(var(--intro-wait, 0ms) + ${delay}ms)`;
 }
 
 export function Container({
@@ -140,7 +150,7 @@ export function Rise({
   return (
     <Tag
       className={cn('animate-[rise_0.7s_cubic-bezier(0.22,1,0.36,1)_backwards]', className)}
-      style={delay ? { animationDelay: `${delay}ms` } : undefined}
+      style={{ animationDelay: introDelay(delay) }}
     >
       {children}
     </Tag>
@@ -356,7 +366,7 @@ export function CTA({
    * more.
    */
   const base =
-    'group inline-flex h-12 items-center justify-center gap-2.5 rounded-full px-7 t-3 font-semibold transition-[transform,background-color,border-color,color] duration-200 active:scale-[0.985]';
+    'm-flood group inline-flex h-12 items-center justify-center gap-2.5 rounded-full px-7 t-3 font-semibold transition-[transform,background-color,border-color,color] duration-300 active:scale-[0.985]';
 
   /*
    * Primary is the bone slab — the strongest thing available on this ground,
@@ -366,11 +376,16 @@ export function CTA({
    *
    * Secondary is a hairline box that fills with the ink on hover rather than
    * lightening, so the pair reads as one control in two states.
+   *
+   * Both fill by flooding (`.m-flood`): the hover colour spreads out from the
+   * point the pointer came in at — terracotta over the ink slab, ink into the
+   * hairline box — and drains back out the way it leaves. `--flood` is the
+   * colour, so a call site on another ground changes one variable.
    */
   const look =
     variant === 'primary'
-      ? 'bg-[var(--m-ink)] text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)] hover:bg-[var(--m-gold)]'
-      : 'border-[1.5px] border-[var(--m-ink)] text-[var(--m-ink)] hover:border-[var(--m-gold)] hover:text-[var(--m-gold)]';
+      ? 'bg-[var(--m-ink)] text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)]'
+      : 'border-[1.5px] border-[var(--m-ink)] text-[var(--m-ink)] [--flood:var(--m-ink)] hover:text-[var(--m-on-grad)]';
 
   return (
     <Link

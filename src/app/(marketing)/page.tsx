@@ -6,6 +6,8 @@ import { Hero } from '@/components/marketing/home/Hero';
 import { WorkCalendar } from '@/components/marketing/home/WorkCalendar';
 import { RulesPlayground } from '@/components/marketing/home/RulesPlayground';
 import { FinalCTA } from '@/components/marketing/home/FinalCTA';
+import { Ticker } from '@/components/marketing/play/Ticker';
+import { KineticBand } from '@/components/marketing/play/KineticBand';
 
 export const metadata: Metadata = {
   // `absolute` opts out of the root layout's "%s · The Finance Intelligence" template,
@@ -66,8 +68,13 @@ export default function HomePage() {
       <JsonLd data={siteLd()} />
 
       <Hero />
+      {/* The live tools running past like a station board, leaning into the
+          scroll, and lower down the same names in display type sliding past
+          each other: motion between the arguments, not in place of one. */}
+      <Ticker />
       <WorkCalendar />
       <RulesPlayground />
+      <KineticBand />
       <FinalCTA />
     </>
   );

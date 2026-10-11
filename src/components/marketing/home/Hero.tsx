@@ -1,7 +1,10 @@
 import { ArrowDown } from 'lucide-react';
 import { CTA, Container, LineRise, Rise } from '../bits';
-import { Tilt } from '../motion';
 import { VoucherPanel } from './VoucherPanel';
+import { HeroStage } from '../play/HeroStage';
+import { IntroCurtain } from '../play/IntroCurtain';
+import { Letters } from '../play/Letters';
+import { Springy } from '../play/Springy';
 import { Roost } from '@/components/brand/Owl';
 
 /**
@@ -16,6 +19,7 @@ import { Roost } from '@/components/brand/Owl';
 export function Hero() {
   return (
     <section className="relative overflow-hidden">
+      <IntroCurtain />
       <HeroBackdrop />
 
       {/* Two, and both in the vertical padding rather than the gutter, because
@@ -50,13 +54,29 @@ export function Hero() {
               is revealed by its own box, which is what makes the type look like
               it is being uncovered rather than fading in.
             */}
-            <h1 className="m-display mt-7 t-hero">
-              <LineRise delay={60}>We handle the</LineRise>
-              <LineRise delay={150}>
-                <span className="m-serif m-grad-text pr-1">repetitive</span> work.
+            {/*
+              Set letter by letter (Letters) so the line can answer the
+              pointer (Springy): letters near it lean up and turn terracotta,
+              and spring back when it moves on. The last line gets the sun
+              drawn behind it once it has risen — the claim the page is making,
+              marked the way a reader marks the line that matters.
+            */}
+            <Springy as="h1" className="m-display mt-7 t-hero" delay={1500}>
+              <LineRise delay={60}>
+                <Letters text="We handle the" />
               </LineRise>
-              <LineRise delay={240}>You make the calls.</LineRise>
-            </h1>
+              <LineRise delay={150}>
+                <span className="m-serif m-grad-text pr-1">
+                  <Letters text="repetitive" start={13} />
+                </span>{' '}
+                <Letters text="work." start={23} />
+              </LineRise>
+              <LineRise delay={240}>
+                <span className="m-mark">
+                  <Letters text="You make the calls." start={28} />
+                </span>
+              </LineRise>
+            </Springy>
 
             <Rise delay={380}>
               <p className="m-dim mt-7 max-w-lg t-4 sm:t-5">
@@ -89,20 +109,25 @@ export function Hero() {
             window narrows to the column and the sun scales down with it.
           */}
           <Rise delay={200} className="lg:pl-4">
-            <div className="m-arch m-arch-open relative overflow-hidden bg-[var(--m-bg-2)] px-4 pt-44 pb-5 sm:px-7 sm:pt-56 sm:pb-8">
-              <span
-                aria-hidden
-                className="m-sun absolute top-12 left-1/2 size-40 -translate-x-1/2 sm:top-16 sm:size-56"
-              />
+            {/*
+              HeroStage: the sun drifts with the pointer and the card against
+              it, and the card can be picked up and thrown back on a spring.
+            */}
+            <HeroStage className="m-arch m-arch-open relative overflow-hidden bg-[var(--m-bg-2)] px-4 pt-44 pb-5 sm:px-7 sm:pt-56 sm:pb-8">
+              <span aria-hidden className="m-drift-far absolute inset-0">
+                <span className="m-sun absolute top-12 left-1/2 size-40 -translate-x-1/2 sm:top-16 sm:size-56" />
+              </span>
               <span
                 aria-hidden
                 className="absolute inset-x-0 bottom-0 h-40 bg-[var(--m-bg-3)]"
                 style={{ borderRadius: '60% 40% 0 0 / 30% 25% 0 0' }}
               />
-            <Tilt className="relative">
-              <VoucherPanel />
-            </Tilt>
-            </div>
+              <div className="m-drift-near relative">
+                <div data-grab>
+                  <VoucherPanel />
+                </div>
+              </div>
+            </HeroStage>
           </Rise>
         </div>
 

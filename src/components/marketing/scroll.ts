@@ -144,3 +144,63 @@ export function mapRange(
   const t = clamp((value - inMin) / (inMax - inMin));
   return outMin + t * (outMax - outMin);
 }
+
+/*
+ * ── Scroll speed ───────────────────────────────────────────────────────────
+ *
+ * How fast the page is moving, in pixels per frame, smoothed and decaying back
+ * to zero once the reader stops. The ticker reads it to run faster and lean
+ * into the scroll, the kinetic band to tilt its type, so a fast flick down the
+ * page makes the type on it feel dragged along rather than painted on.
+ *
+ * One listener and one decay loop for every reader, on the same reasoning as
+ * `subscribe` above. The loop only runs while there is speed to report, so a
+ * page at rest spends nothing on it.
+ */
+
+type SpeedReader = (speed: number) => void;
+
+const speedReaders = new Set<SpeedReader>();
+let lastY = 0;
+let speed = 0;
+let coasting = false;
+
+function coast() {
+  speed *= 0.9;
+  if (Math.abs(speed) < 0.05) speed = 0;
+  for (const read of speedReaders) read(speed);
+  if (speed !== 0) requestAnimationFrame(coast);
+  else coasting = false;
+}
+
+function onScrollSpeed() {
+  const y = window.scrollY;
+  speed = speed * 0.6 + (y - lastY) * 0.4;
+  lastY = y;
+  if (!coasting) {
+    coasting = true;
+    requestAnimationFrame(coast);
+  }
+}
+
+export function subscribeSpeed(read: SpeedReader): () => void {
+  if (speedReaders.size === 0) {
+    lastY = window.scrollY;
+    window.addEventListener('scroll', onScrollSpeed, { passive: true });
+  }
+  speedReaders.add(read);
+  return () => {
+    speedReaders.delete(read);
+    if (speedReaders.size === 0) window.removeEventListener('scroll', onScrollSpeed);
+  };
+}
+
+/** Whether the pointer is a mouse or a pen: something that can hover. */
+export function hasFinePointer(): boolean {
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+
+/** Whether the visitor has asked for less motion, read once, outside React. */
+export function reducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}

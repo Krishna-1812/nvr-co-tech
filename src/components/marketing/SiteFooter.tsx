@@ -3,6 +3,7 @@ import { AGENTS, BRAND, CONTACT } from '@/lib/marketing/content';
 import { Container } from './bits';
 import { Logo } from './Logo';
 import { Parliament } from '@/components/brand/Owl';
+import { FootToys, FootWord } from './play/Footplay';
 
 /**
  * The bottom of every public page.
@@ -102,10 +103,22 @@ export function SiteFooter() {
           </FooterCol>
         </div>
 
-        <div className="mt-14 flex flex-col gap-4 border-t border-[var(--m-line)] pt-7 sm:flex-row sm:items-center sm:justify-between">
+        {/*
+          The name across the whole foot of the page, rising letter by letter
+          the first time it is reached and answering the pointer after that.
+          Hidden from assistive technology inside FootWord's Letters except for
+          one plain copy, so it is read once, as a name.
+        */}
+        <div className="mt-14">
+          <FootWord />
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 border-t border-[var(--m-line)] pt-7 sm:flex-row sm:items-center sm:justify-between">
           <p className="m-dim-2 t-2">
             © {YEAR} {BRAND.name}.
           </p>
+
+          <FootToys />
 
           {/*
             The roster count that used to open this row is gone, and the divider

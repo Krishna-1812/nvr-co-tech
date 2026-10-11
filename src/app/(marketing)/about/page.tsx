@@ -16,6 +16,7 @@ import {
 } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
+import { Odometer } from '@/components/marketing/play/Odometer';
 import { Roost } from '@/components/brand/Owl';
 
 export const metadata: Metadata = {
@@ -197,9 +198,9 @@ export default function AboutPage() {
               There was a fourth, for the region; see below.
             */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <Stat value="32" label="Voucher fields" hint="Every one from the form you already use" />
-              <Stat value="1" label="Signature to approve" hint="And never the person who raised it" />
-              <Stat value="0" label="Ways to edit the history" hint="Not for any role, at any level" />
+              <Stat value={<Odometer value="32" />} label="Voucher fields" hint="Every one from the form you already use" />
+              <Stat value={<Odometer value="1" />} label="Signature to approve" hint="And never the person who raised it" />
+              <Stat value={<Odometer value="0" />} label="Ways to edit the history" hint="Not for any role, at any level" />
               {/*
                 The fourth figure was "1 place your data sits", hinted "Mumbai,
                 ap-south-1". The figure was fine; the hint named the location,

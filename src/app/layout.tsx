@@ -89,10 +89,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           It has to be decided here rather than in CSS, because "no preference
           recorded" and "recorded as system" are different states and a media query
           cannot tell them apart. lib/theme.ts reads the same rule.
+
+          The second statement decides the home page's opening sequence, for
+          the same reason: it has to be known before the first frame, or the
+          hero is painted and then covered. Home page only, once a session,
+          never when arriving from another page of this site, never under
+          reduced motion. See components/marketing/play/IntroCurtain.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(!t)d.setAttribute('data-theme','light');else if(t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}`,
+            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(!t)d.setAttribute('data-theme','light');else if(t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}try{var d2=document.documentElement;if(location.pathname==='/'&&!sessionStorage.getItem('tfi-intro')&&document.referrer.indexOf(location.origin)!==0&&!matchMedia('(prefers-reduced-motion: reduce)').matches)d2.setAttribute('data-intro','on')}catch(e){}`,
           }}
         />
       </head>

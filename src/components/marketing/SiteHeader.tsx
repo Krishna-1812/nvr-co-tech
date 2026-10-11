@@ -114,7 +114,7 @@ export function SiteHeader() {
               href="/contact"
               data-demo=""
               data-interest="Header"
-              className="hidden h-10 items-center rounded-full bg-[var(--m-ink)] px-5 t-2 font-semibold whitespace-nowrap text-[var(--m-on-grad)] transition-colors duration-200 hover:bg-[var(--m-gold)] active:scale-[0.985] sm:inline-flex"
+              className="m-flood hidden h-10 items-center rounded-full bg-[var(--m-ink)] px-5 t-2 font-semibold whitespace-nowrap text-[var(--m-on-grad)] transition-transform duration-200 active:scale-[0.985] sm:inline-flex"
             >
               Book a walkthrough
             </Link>

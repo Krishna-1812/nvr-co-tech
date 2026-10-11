@@ -1,5 +1,6 @@
 import { Ban, Check, FileText } from 'lucide-react';
 import { fmtRupees } from '@/lib/domain/voucher';
+import { Odometer } from '../play/Odometer';
 
 /**
  * The hero's product panel: one voucher, mid-approval.
@@ -83,7 +84,9 @@ export function VoucherPanel() {
 
           <div className="mt-3 flex items-end justify-between border-t border-[var(--m-line)] pt-4">
             <span className="m-eyebrow">Grand total</span>
-            <span className="m-display numeric t-7">{fmtRupees(GRAND)}</span>
+            {/* Rolls into place as the card arrives; the figure is in the
+                markup as written, so it is right before and without the roll. */}
+            <Odometer value={fmtRupees(GRAND)} roll="load" delay={700} className="m-display numeric t-7" />
           </div>
         </div>
 

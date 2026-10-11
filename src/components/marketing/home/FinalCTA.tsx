@@ -19,7 +19,9 @@ export function FinalCTA() {
     <section className="relative px-3 pb-3 sm:px-5 sm:pb-5">
       <Roost seed="cta-spire" band="top-left" />
 
-      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.25rem] bg-[var(--m-gold)] py-24 text-[var(--m-on-grad)] sm:py-32">
+      {/* s-portal: the panel opens out of a rounded window in its own middle
+          as it comes up the screen, scrubbed by the scroll (globals.css). */}
+      <div className="s-portal relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.25rem] bg-[var(--m-gold)] py-24 text-[var(--m-on-grad)] sm:py-32">
         <span
           aria-hidden
           className="m-sun absolute bottom-[-14rem] left-1/2 size-[28rem] -translate-x-1/2 opacity-90"
@@ -51,7 +53,7 @@ export function FinalCTA() {
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <CTA
                 href="/contact"
-                className="bg-[var(--m-on-grad)] text-[var(--m-ink)] hover:bg-[var(--m-ink)] hover:text-[var(--m-on-grad)]"
+                className="bg-[var(--m-on-grad)] text-[var(--m-ink)] [--flood:var(--m-ink)] hover:text-[var(--m-on-grad)]"
                 data={{ 'data-demo': '', 'data-interest': 'Final call to action' }}
               >
                 Book a walkthrough
@@ -59,7 +61,7 @@ export function FinalCTA() {
               <CTA
                 href="/signup"
                 variant="ghost"
-                className="border-[var(--m-on-grad)] text-[var(--m-on-grad)] hover:border-[var(--m-on-grad)] hover:bg-[var(--m-on-grad)] hover:text-[var(--m-ink)]"
+                className="border-[var(--m-on-grad)] text-[var(--m-on-grad)] [--flood:var(--m-on-grad)] hover:border-[var(--m-on-grad)] hover:text-[var(--m-ink)]"
                 data={{ 'data-signup': '' }}
               >
                 Create an account

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Info, MapPin, Percent } from 'lucide-react';
 import { calcGrandTotal, calcNetTotal, fmtRupees } from '@/lib/domain/voucher';
+import { Odometer } from '../play/Odometer';
 import { GST_RATES, TDS_SECTIONS } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { Container, Eyebrow } from '../bits';
@@ -169,14 +170,12 @@ export function RulesPlayground() {
 
               <div className="mt-6 flex items-end justify-between gap-4 border-t border-[var(--m-line)] pt-5">
                 <span className="m-eyebrow">Grand total</span>
-                <span
-                  // Keyed on the value so the figure replays its settle
-                  // animation whenever any input changes it.
-                  key={grand}
-                  className="m-display m-tabular animate-[settle_0.45s_ease-out] t-h4"
-                >
-                  {fmtRupees(grand)}
-                </span>
+                {/*
+                  The digits roll from the old total to the new one whenever an
+                  input changes it, so the reader sees the figure turn rather
+                  than be replaced.
+                */}
+                <Odometer value={fmtRupees(grand)} roll="none" className="m-display m-tabular t-h4" />
               </div>
 
               <p className="m-dim-2 mt-6 flex items-start gap-2 t-2">

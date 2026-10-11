@@ -670,6 +670,21 @@ coloured from a tone, works in both themes) · `on-tone` (text on a full tone fi
 `@supports` with a fully-visible fallback (`src/components/marketing/Reveal.tsx`), scene keyframes
 `sc-tip`/`sc-seek`/`sc-shadow`/`sc-blink`; all transform-only and off under reduced motion.
 
+**Public-site play** (`src/components/marketing/play/`, CSS in the PLAY block at the end of
+`globals.css`; added 11 Oct after the owner asked for northaxis.outcomes.digital-style motion):
+a once-per-session home opening sequence (`IntroCurtain`; decided by the `<head>` script in
+`src/app/layout.tsx` via `html[data-intro]`, `--intro-wait` holds hero entrances behind it),
+a four-band page curtain between public pages (`(marketing)/template.tsx` → `PageCurtain`,
+client navigations only), letter-by-letter headlines that answer the pointer (`Letters` +
+`Springy`), the sun highlighter on the hero's last line (`.m-mark`), rolling digits
+(`Odometer`), a live-tools ticker and a kinetic type band (both read `LIVE_AGENTS`, lean with
+scroll speed), words read into ink (`ScrollWords`), the final panel opening like a window
+(`.s-portal`), buttons that flood from the pointer (`.m-flood` on `CTA`), confetti on
+`data-demo`/`data-signup` clicks, labels that decode, the footer wordmark and shape toys
+(`Footplay`), and a draggable hero voucher on a spring (`HeroStage`). All of it is off under
+reduced motion, never runs in the signed-in app, and writes into the DOM only after React has
+hydrated the node (`hydrated()` in `Play.tsx`).
+
 **Brand.** The owl mark's geometry and four inks live in `src/lib/brand/mark.ts` (body `#862F1C`,
 lit `#A8492B`, gold `#E9B44C`, pupil `#2B211B`, bone halo) — regenerate favicons/social cards/PDF
 mark from it with `npm run brand:icons`. **21 owl miniatures** (`src/lib/brand/owlkit.ts`,

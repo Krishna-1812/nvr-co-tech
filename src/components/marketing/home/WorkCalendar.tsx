@@ -7,6 +7,7 @@ import { JOBS, agentBySlug } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { ACCENT, ACCENT_TEXT, ON_ACCENT, ArrowLink, Container, Eyebrow, StageBadge } from '../bits';
 import { Reveal } from '../Reveal';
+import { ScrollWords } from '../play/ScrollWords';
 import { Roost } from '@/components/brand/Owl';
 
 /**
@@ -63,11 +64,11 @@ export function WorkCalendar() {
                 Every month, the same jobs.{' '}
                 <span className="m-serif m-grad-text">Here is who does what.</span>
               </h2>
-              <p className="m-dim mt-5 max-w-2xl t-4 sm:t-4">
-                None of this is new work. It is the list your team already gets through between the
-                1st and the 31st. What changes is how much of it somebody has to do by hand, and how
-                much of it is waiting for you when the date comes round.
-              </p>
+              {/* Read into ink as it scrolls past; see play/ScrollWords. */}
+              <ScrollWords
+                className="mt-5 max-w-2xl t-4 text-[var(--m-ink)] sm:t-5"
+                text="None of this is new work. It is the list your team already gets through between the 1st and the 31st. What changes is how much of it somebody has to do by hand, and how much of it is waiting for you when the date comes round."
+              />
             </div>
             {/*
               The only way from this page into the roster, now that the grid of
