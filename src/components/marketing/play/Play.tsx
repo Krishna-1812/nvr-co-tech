@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { hasFinePointer, reducedMotion, subscribe } from '../scroll';
 import { confetti } from './confetti';
+import { applySky } from '@/lib/sky';
 
 /**
  * The public site's delegated motion: one component, mounted once in the
@@ -42,6 +43,16 @@ export function Play({
   spotlight?: string;
 } = {}) {
   const path = usePathname();
+
+  /* ── The sky: kept to the hour while the page is open ──
+     The <head> script placed the sun before first paint; this moves it on
+     every few minutes (the CSS glides it), so a tab left open over sunset
+     sees the sun go down and the moon come up. */
+  useEffect(() => {
+    applySky();
+    const t = window.setInterval(() => applySky(), 5 * 60_000);
+    return () => window.clearInterval(t);
+  }, []);
 
   /* ── Floods and confetti: delegated once, for the life of the frame ── */
   useEffect(() => {

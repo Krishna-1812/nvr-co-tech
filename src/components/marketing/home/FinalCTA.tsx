@@ -25,7 +25,9 @@ export function FinalCTA() {
         <span
           aria-hidden
           className="m-sun absolute bottom-[-14rem] left-1/2 size-[28rem] -translate-x-1/2 opacity-90"
-          style={{ background: '#B9542F', '--sun-from': '-60px' } as React.CSSProperties}
+          // A sunset by design, whatever the hour: it opts out of the sky's
+          // height and its night-time crescent (lib/sky).
+          style={{ background: '#B9542F', '--sun-from': '-60px', transform: 'none', mask: 'none', WebkitMask: 'none' } as React.CSSProperties}
         />
         <span
           aria-hidden

@@ -319,12 +319,15 @@ export function ArchScene({
           from the foot of a deed. */}
       <div
         className={cn(
-          'm-arch m-arch-open absolute inset-x-0 top-0 overflow-hidden bg-[var(--surface-sunken)]',
+          'm-arch m-arch-open absolute inset-x-0 top-0 overflow-hidden bg-[var(--sky-wash,var(--surface-sunken))] transition-colors duration-[4s]',
           seal ? 'bottom-8' : 'bottom-0',
         )}
       >
         {/* The arch's own inner light, so it reads as a window and not a cut-out. */}
         <span className="absolute inset-0 bg-[radial-gradient(80%_55%_at_50%_30%,color-mix(in_oklab,var(--color-gold-400)_22%,transparent),transparent_70%)]" />
+        {/* The sky here follows the hour in India: see lib/sky and the SKY
+            block in globals.css. Stars only come out at night. */}
+        <span className="m-stars" />
         {/* m-drift-far / m-drift-near: inside a ToolHero (HeroStage) the sun
             drifts with the pointer and the scene against it, so the window
             reads as having a near and a far. Inert anywhere else. */}
@@ -332,7 +335,7 @@ export function ArchScene({
           <span className="m-drift-far absolute inset-0">
             <span
               className="m-sun absolute top-[17%] left-1/2 size-32 -translate-x-1/2 xl:size-40"
-              style={{ background: SUN, ['--sun-from' as string]: '90px' }}
+              style={{ background: `var(--sky-sun, ${SUN})`, ['--sun-from' as string]: '90px' }}
             />
           </span>
         )}

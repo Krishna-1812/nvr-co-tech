@@ -113,7 +113,11 @@ export function Hero() {
               HeroStage: the sun drifts with the pointer and the card against
               it, and the card can be picked up and thrown back on a spring.
             */}
-            <HeroStage className="m-arch m-arch-open relative overflow-hidden bg-[var(--m-bg-2)] px-4 pt-44 pb-5 sm:px-7 sm:pt-56 sm:pb-8">
+            <HeroStage className="m-arch m-arch-open relative overflow-hidden bg-[var(--sky-wash,var(--m-bg-2))] px-4 pt-44 pb-5 transition-colors duration-[4s] sm:px-7 sm:pt-56 sm:pb-8">
+              {/* The sky follows the hour in India (lib/sky): dawn and dusk
+                  warm it, night darkens it, lets the stars out and turns the
+                  sun into the moon. */}
+              <span aria-hidden className="m-stars" />
               <span aria-hidden className="m-drift-far absolute inset-0">
                 <span className="m-sun absolute top-12 left-1/2 size-40 -translate-x-1/2 sm:top-16 sm:size-56" />
               </span>

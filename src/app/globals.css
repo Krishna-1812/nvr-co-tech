@@ -1077,9 +1077,11 @@ body:has([data-skin='desert']) {
   from { clip-path: inset(100% 0 0 0 round 999px 999px 0 0); }
   to   { clip-path: inset(0 0 0 0 round 999px 999px 0 0); }
 }
+/* No transform in the `to` stop: the rise ends wherever the sun is standing
+   at this hour (--sun-dy, below), rather than at the top and then jumping. */
 @keyframes m-sun-rise {
   from { transform: translateY(var(--sun-from, 110px)); opacity: 0; }
-  to   { transform: none; opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @media not (prefers-reduced-motion: reduce) {
@@ -1125,11 +1127,14 @@ body:has([data-skin='desert']) {
   .sc-blink  { animation: sc-blink 6s ease-in-out infinite; }
 }
 
-/* The sun itself. Sized and placed by the call site. */
+/* The sun itself. Sized and placed by the call site; how high it stands and
+   what colour it is come from the hour (lib/sky.ts, the SKY block below). */
 .m-sun {
   border-radius: 9999px;
-  background: var(--m-sun);
+  background: var(--sky-sun, var(--m-sun, var(--scene-sun)));
   pointer-events: none;
+  transform: translateY(var(--sun-dy, 0%));
+  transition: transform 90s linear, background-color 4s ease;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -3046,4 +3051,125 @@ html[data-intro='out'] .m-intro { animation-delay: 1.2s; }
       var(--a-sheen),
       var(--surface-raised);
   }
+}
+
+/* ═══ Live demos on the public agent pages ═══════════════════════════════════
+ * Ledger Reconciliation (agents/ReconDemo) and True Property Cost
+ * (agents/PropertyDemo): the real engines, run in the visitor's browser on the
+ * tools' own sample data.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Reconciliation: rows, the scan, the lines between the books ── */
+.r-row { transition: background-color 0.45s ease, box-shadow 0.45s ease; }
+.r-row.is-matched {
+  background: color-mix(in oklab, var(--m-emerald) 11%, transparent);
+  box-shadow: inset 3px 0 0 var(--m-emerald);
+}
+.r-row.is-only {
+  background: color-mix(in oklab, var(--m-sun) 22%, transparent);
+  box-shadow: inset 3px 0 0 var(--m-gold);
+}
+/* In the components layer so the responsive utilities on each tag (lg:hidden,
+   hidden lg:inline-flex) still decide which one shows. */
+@layer components {
+.r-tag {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.15rem;
+  border-radius: 9999px;
+  padding: 0.1rem 0.55rem;
+  font-size: var(--t-1);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.is-matched .r-tag { color: var(--m-emerald); background: color-mix(in oklab, var(--m-emerald) 14%, transparent); }
+.is-only .r-tag { color: var(--m-gold); background: color-mix(in oklab, var(--m-gold) 12%, transparent); }
+}
+
+/* A band of light passing down each book while the engine reads it. */
+.r-scan {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5rem;
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--m-sun) 30%, transparent), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes r-scan { from { transform: translateY(-5rem); opacity: 1; } to { transform: translateY(26rem); opacity: 0.4; } }
+
+.r-link-path {
+  fill: none;
+  stroke: var(--m-emerald);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.r-link.is-on .r-link-path { stroke-dashoffset: 0; }
+.r-link-dot { fill: var(--m-emerald); }
+
+@keyframes r-rise { from { opacity: 0; transform: translateY(1.5rem); } }
+@keyframes r-flash { from { transform: scale(0.98); } }
+@media (prefers-reduced-motion: no-preference) {
+  .r-demo.is-running .r-scan { animation: r-scan 1.6s cubic-bezier(0.4, 0, 0.2, 1) 2; }
+  .r-row.is-matched, .r-row.is-only { animation: r-flash 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .r-outcome { animation: r-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .r-link-path { transition: none; }
+}
+
+
+/* ═══ SKY — the sun follows the time of day in India ═══════════════════════
+ *
+ * <html data-sky> and --sun-dy are written by lib/sky.ts: before first paint
+ * from the <head>, then every few minutes from the page. Day is the drawing as
+ * it always was. Dawn and dusk warm the sun and the sky inside the arches;
+ * night darkens the arch to a desert night, lets the stars out and turns the
+ * sun into a crescent moon. Nothing here moves on its own except the stars'
+ * twinkle, which stops under reduced motion.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+html[data-sky='dawn'] {
+  --sky-sun: light-dark(#EFA24A, #C8782F);
+  --sky-wash: light-dark(#F2D7B6, #3B2A20);
+}
+html[data-sky='dusk'] {
+  --sky-sun: light-dark(#D9703A, #B5582A);
+  --sky-wash: light-dark(#E8BF9C, #4A2C1F);
+}
+html[data-sky='night'] {
+  --sky-sun: light-dark(#F1E8D6, #E6DCC8);
+  --sky-wash: light-dark(#3A2E27, #0F0B09);
+}
+/* The moon: the sun's own disc with a bite taken out of it. */
+html[data-sky='night'] .m-sun {
+  -webkit-mask: radial-gradient(circle at 72% 30%, transparent 0 36%, #000 37.5%);
+  mask: radial-gradient(circle at 72% 30%, transparent 0 36%, #000 37.5%);
+}
+
+/* Stars: a scatter of points on a fixed pattern, shown only at night. */
+.m-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 3s ease;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(1px 1px at 27% 34%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 41% 12%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(1px 1px at 58% 26%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(2px 2px at 73% 15%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 38%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 19% 47%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(1px 1px at 64% 44%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 22%, #F6EFE4 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 34% 56%, #F6EFE4 50%, transparent 51%);
+}
+html[data-sky='night'] .m-stars { opacity: 0.85; }
+@keyframes m-twinkle { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-sky='night'] .m-stars { animation: m-twinkle 4.5s ease-in-out infinite; }
 }

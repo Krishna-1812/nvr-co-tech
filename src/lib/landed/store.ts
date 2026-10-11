@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { EXAMPLE_NAME, exampleSchedule } from './example';
 import type { Compounding, FundSource, Instalment, Rates, Rental, Schedule } from './calc';
 
 /**
@@ -229,31 +230,11 @@ export const landedStore = {
    */
   createExample(): SavedSchedule {
     const state = snapshot();
-    const pay = (label: string, date: string, amount: number, source: FundSource): Instalment => ({
-      id: newId(),
-      label,
-      date,
-      amount,
-      source,
-    });
+    // The property itself lives in ./example, shared with the public page's demo.
     const example: SavedSchedule = {
+      ...exampleSchedule(newId),
       id: newId(),
-      name: 'Example: Tower B, 2 BHK',
-      ocDate: '2028-03-31',
-      rates: { self: 7, borrowed: 8.5 },
-      compounding: 'simple',
-      areaSqft: 950,
-      instalments: [
-        pay('Booking amount', '2025-04-15', 750_000, 'self'),
-        pay('Stamp duty and registration', '2025-05-20', 420_000, 'self'),
-        pay('On completion of plinth', '2025-10-01', 1_500_000, 'borrowed'),
-        pay('On completion of 4th slab', '2026-04-01', 1_200_000, 'borrowed'),
-        pay('On completion of 8th slab', '2026-10-01', 1_200_000, 'borrowed'),
-        pay('GST on the slab demands', '2026-10-01', 247_500, 'self'),
-        pay('On finishing works', '2027-07-01', 900_000, 'self'),
-        pay('On possession', '2028-03-31', 500_000, 'self'),
-      ],
-      rental: { monthlyRent: 32_000, maintenanceMonthly: 3_500, annualCosts: 9_000, vacancyPct: 8.33, marketValue: 8_500_000 },
+      name: EXAMPLE_NAME,
       updatedAt: new Date().toISOString(),
     };
     write({ ...state, schedules: [example, ...state.schedules], activeId: example.id });

@@ -28,10 +28,22 @@ import { serviceLd } from '@/lib/marketing/seo';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { Reveal } from '@/components/marketing/Reveal';
+import { ReconDemo } from '@/components/marketing/agents/ReconDemo';
+import { PropertyDemo } from '@/components/marketing/agents/PropertyDemo';
 import { FlowDiagram } from '@/components/marketing/agents/FlowDiagram';
 import { Roost } from '@/components/brand/Owl';
 
 type Params = { params: Promise<{ slug: string }> };
+
+/**
+ * The live tools that can be tried on their own public page. Each runs the
+ * tool's real engine in the browser on the tool's own sample data; see the
+ * components for what exactly they run.
+ */
+const DEMOS: Record<string, { title: string; demo: React.ReactNode }> = {
+  'ledger-reconciliation': { title: 'Two books in. One statement out.', demo: <ReconDemo /> },
+  'true-property-cost': { title: 'Move the dates. Watch the cost move.', demo: <PropertyDemo /> },
+};
 
 export function generateStaticParams() {
   return AGENTS.map((agent) => ({ slug: agent.slug }));
@@ -162,6 +174,29 @@ export default async function AgentPage({ params }: Params) {
           </div>
         </Container>
       </section>
+
+      {/*
+        The tool itself, working, for the live tools that can run without an
+        account: the real engine on the tool's own sample data, in the
+        visitor's browser. Placed straight after the hero because a thing you
+        can try is the strongest argument this page has.
+      */}
+      {DEMOS[agent.slug] && (
+        <Section>
+          <Container wide>
+            <Reveal>
+              <div className="mb-8 max-w-3xl">
+                <div className="mb-4 flex items-center gap-3.5">
+                  <span aria-hidden className="s-rule h-px w-10 bg-[var(--m-gold)]" />
+                  <Eyebrow>Try it on this page</Eyebrow>
+                </div>
+                <h2 className="m-display s-settle t-h2">{DEMOS[agent.slug].title}</h2>
+              </div>
+            </Reveal>
+            <Reveal delay={80}>{DEMOS[agent.slug].demo}</Reveal>
+          </Container>
+        </Section>
+      )}
 
       {/*
         The case for it, given a section of its own.

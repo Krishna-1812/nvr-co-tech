@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { BRAND, SITE_URL } from '@/lib/marketing/content';
+import { SKY_SCRIPT } from '@/lib/sky';
 import { DESERT_FONTS } from '@/lib/brand/fonts';
 import './globals.css';
 
@@ -102,6 +103,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(!t)d.setAttribute('data-theme','light');else if(t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}try{var d2=document.documentElement,p=location.pathname,k=p==='/'?'tfi-intro':p==='/hub'?'tfi-welcome':'';if(k&&!sessionStorage.getItem(k)&&(p!=='/'||document.referrer.indexOf(location.origin)!==0)&&!matchMedia('(prefers-reduced-motion: reduce)').matches)d2.setAttribute('data-intro','on')}catch(e){}`,
           }}
         />
+        {/*
+          Where the sun is over India right now, before anything is painted, so
+          every sun on the site is drawn at its hour from the first frame. The
+          script is lib/sky's own function, inlined as its source text.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: SKY_SCRIPT }} />
       </head>
       {/*
         Nothing but the children. The toast host used to sit here, which shipped
