@@ -48,12 +48,17 @@ const CIO_LOGO_DATA_URI = `data:image/png;base64,${fs
 // no network fetch at render time — important in a serverless function.
 Font.registerHyphenationCallback((word) => [word]);
 
-const INK = '#3D52A0';
-const SOFT = '#8697C4';
-const TEXT = '#1F2937';
-const MUTED = '#6B7280';
-const LABEL_BG = '#F7F6FB';
-const BORDER = '#C7CEE8';
+/*
+ * The desert palette, the same as every other document the product prints.
+ * Colours only: the layout, the 32 fields and every label are v1's, exactly,
+ * and stay that way (docs/02-reference-constants.ts).
+ */
+const INK = '#9C4026';
+const SOFT = '#BFA98E';
+const TEXT = '#2B211B';
+const MUTED = '#5C4D41';
+const LABEL_BG = '#F6EFE4';
+const BORDER = '#E2D3BF';
 
 const s = StyleSheet.create({
   page: {
@@ -82,7 +87,7 @@ const s = StyleSheet.create({
   metaValue: { flex: 1, fontSize: 8, borderBottom: `0.5pt solid ${BORDER}` },
 
   sponsorLine: { marginTop: 8, fontSize: 9.5 },
-  struck: { textDecoration: 'line-through', color: '#9CA3AF' },
+  struck: { textDecoration: 'line-through', color: '#A89684' },
   chosen: { fontFamily: 'Helvetica-Bold', color: INK },
 
   // Table
@@ -116,7 +121,7 @@ const s = StyleSheet.create({
     left: '18%',
     fontSize: 62,
     fontFamily: 'Helvetica-Bold',
-    color: '#EF4444',
+    color: '#A3352A',
     opacity: 0.14,
     transform: 'rotate(-22deg)',
   },

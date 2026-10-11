@@ -228,8 +228,8 @@ Exports: PDF working paper + three-sheet workbook (server-rendered from a posted
 UI: `src/components/recon/*` (`WizardHero`, `Steps`, `Outcome`, `HistorySummary`).
 `npm run recon:sample` writes sample ledgers to `scratch/`.
 
-Optional, not done, ask first: the reconciliation **PDF** still uses the old navy palette
-(`#3D52A0` in `src/lib/recon/export/ReconDocument.tsx`) rather than the desert palette.
+The reconciliation **PDF** and the voucher PDF were moved to the desert palette on 11 Oct
+(colours only; the voucher's v1 layout, fields and labels are unchanged).
 
 ## 8. Valuation Desk (`/comps`)
 
@@ -697,6 +697,14 @@ decode. Confetti only on real success: approve, mark paid, submit, and a fresh r
 that ties outright (`celebrate()` in `play/confetti.ts`). Play tokens `--p-band-1..4`,
 `--p-mark`, `--p-glow` are `light-dark()` so all of it works in both themes.
 
+**Live demos and the sky** (11 Oct): `/agents/ledger-reconciliation` and
+`/agents/true-property-cost` each carry a "Try it on this page" panel running the real engine in
+the browser (`components/marketing/agents/ReconDemo.tsx` on `lib/recon/demo.ts`;
+`PropertyDemo.tsx` on `lib/landed/example.ts`, which the tool's "Load example" now shares).
+Every sun follows IST (`lib/sky.ts`: `skyAt` is inlined into the `<head>` as its own source and
+re-run every 5 min from `Play`; `html[data-sky]`, `--sun-dy`, `--sky-sun`, `--sky-wash`, stars
+and a crescent moon at night; the FinalCTA sunset opts out).
+
 **Brand.** The owl mark's geometry and four inks live in `src/lib/brand/mark.ts` (body `#862F1C`,
 lit `#A8492B`, gold `#E9B44C`, pupil `#2B211B`, bone halo) — regenerate favicons/social cards/PDF
 mark from it with `npm run brand:icons`. **21 owl miniatures** (`src/lib/brand/owlkit.ts`,
@@ -815,7 +823,7 @@ Needing the owner (dashboard / decisions):
    open to everyone" — opening it needs a decision on who pays for Apollo credits.
 
 Code, optional:
-9. Reconciliation PDF still in the old navy palette (`ReconDocument.tsx`).
+9. ~~Reconciliation PDF in the old navy palette~~ — done 11 Oct (voucher PDF too).
 10. Valuation Desk: EDGAR USD figures are labelled ₹ crore in places (`crore()` ignores currency);
     Yahoo price fetch may be refused from Vercel's IP (then multiples stay blank for US filers).
 11. Legal pages' reading measure is ~88 characters, not the intended 64.

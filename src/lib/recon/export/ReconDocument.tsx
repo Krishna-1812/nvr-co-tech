@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { BRAND } from '@/lib/marketing/content';
+import { PdfMark } from '@/lib/brand/PdfMark';
 import { formatINR } from '../amount';
 import { formatLedgerDate } from '../dates';
 import type { DifferenceItem, ReconResult } from '../types';
@@ -22,14 +23,20 @@ import type { DifferenceItem, ReconResult } from '../types';
  * the header. Rendering a ₹ in Helvetica produces a blank box.
  */
 
-const INK = '#3D52A0';
-const TEXT = '#1F2937';
-const MUTED = '#6B7280';
-const SOFT = '#9CA3AF';
-const BORDER = '#D7DCEE';
-const BAND = '#F5F6FB';
-const GOOD = '#047857';
-const BAD = '#B91C1C';
+/*
+ * The desert palette, as the True Property Cost report (lib/landed/report)
+ * and the app already wear it. This was the last document still in the old
+ * navy. Terracotta for the rules and the accent, warm ink for text, bone for
+ * bands, and the status pigments (olive, brick) for agree and disagree.
+ */
+const INK = '#9C4026';
+const TEXT = '#2B211B';
+const MUTED = '#5C4D41';
+const SOFT = '#8A7765';
+const BORDER = '#E2D3BF';
+const BAND = '#F6EFE4';
+const GOOD = '#4E6A2C';
+const BAD = '#A3352A';
 
 const s = StyleSheet.create({
   page: {
@@ -41,8 +48,9 @@ const s = StyleSheet.create({
   },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  wordmark: { fontSize: 20, fontFamily: 'Helvetica-Bold', color: INK, letterSpacing: -0.5 },
-  wordmarkSub: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: SOFT, marginTop: 3, letterSpacing: 0.8 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  wordmark: { fontSize: 18, fontFamily: 'Helvetica-Bold', color: TEXT, letterSpacing: -0.5 },
+  wordmarkSub: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: INK, marginTop: 3, letterSpacing: 0.8 },
   titleBlock: { alignItems: 'flex-end' },
   docTitle: { fontSize: 13, fontFamily: 'Helvetica-Bold' },
   docMeta: { fontSize: 8, color: MUTED, marginTop: 3 },
@@ -166,9 +174,12 @@ export function ReconDocument({ result, preparedBy }: { result: ReconResult; pre
     >
       <Page size="A4" style={s.page}>
         <View style={s.header}>
-          <View>
-            <Text style={s.wordmark}>{BRAND.name}</Text>
-            <Text style={s.wordmarkSub}>LEDGER RECONCILIATION</Text>
+          <View style={s.brand}>
+            <PdfMark size={26} />
+            <View>
+              <Text style={s.wordmark}>{BRAND.name}</Text>
+              <Text style={s.wordmarkSub}>LEDGER RECONCILIATION</Text>
+            </View>
           </View>
           <View style={s.titleBlock}>
             <Text style={s.docTitle}>Reconciliation Statement</Text>
