@@ -6,21 +6,21 @@ import { useEffect, useState } from 'react';
 /**
  * How one signed-in screen gives way to the next.
  *
- * Two weights of transition, chosen by how far the person has travelled:
+ * Every move to another screen, within a tool or into another one, plays the
+ * public site's curtain: the four bands are already down when the new screen's
+ * frame paints, hold a beat while it streams in, and lift band by band as the
+ * screen rises in behind them.
  *
- *   - Into another tool (Voucher Desk to Ledger Reconciliation, the workspace
- *     to anything): the four bands of the public site's curtain sweep up across
- *     the whole window and the new tool rises in behind them. Changing tools is
- *     changing rooms, and it is rare enough to be allowed a moment.
- *   - Within a tool (the register to a voucher, a voucher back to the
- *     register): the screen simply rises into place out of a soft clip, in
- *     under half a second. Somebody working through thirty vouchers is doing
- *     exactly this thirty times, and a curtain on every one of them would be
- *     the decoration getting in the way of the work.
+ * This used to be two weights — the curtain only when changing tool, and a
+ * quick rise within one, on the reasoning that somebody working through thirty
+ * vouchers would otherwise see thirty curtains. The owner asked for the curtain
+ * on every page change (11 Oct), so it now plays on all of them. If that ever
+ * needs walking back, the earlier version is in git: the room each screen
+ * belongs to was compared with the last one's.
  *
- * Neither plays on the first screen of a visit, which is painted as the server
- * sent it — see PageCurtain on the public site for why the first paint is never
- * held up — and neither plays under reduced motion.
+ * It does not play on the first screen of a visit, which is painted as the
+ * server sent it — see PageCurtain on the public site for why the first paint
+ * is never held up — and it does not play under reduced motion.
  *
  * Keyed by path rather than mounted per route group, so one component in the
  * shell covers every tool. A change of query string (a filter, a tab, the
@@ -28,33 +28,25 @@ import { useEffect, useState } from 'react';
  * does not replay it.
  */
 let mounted = false;
-let lastRoom = '';
 
-export function RouteStage({ room, children }: { room: string; children: React.ReactNode }) {
+export function RouteStage({ children }: { room?: string; children: React.ReactNode }) {
   const path = usePathname();
-  return (
-    <Stage key={path} room={room}>
-      {children}
-    </Stage>
-  );
+  return <Stage key={path}>{children}</Stage>;
 }
 
-function Stage({ room, children }: { room: string; children: React.ReactNode }) {
+function Stage({ children }: { children: React.ReactNode }) {
   // Decided at render from module state, so the hydrating render matches the
-  // server (both 'none') and every later mount renders with its answer from
-  // its first frame.
-  const [kind] = useState<'none' | 'rise' | 'curtain'>(() =>
-    !mounted ? 'none' : lastRoom && lastRoom !== room ? 'curtain' : 'rise',
-  );
+  // server (both false) and every later mount renders with the curtain down
+  // from its first frame.
+  const [curtain] = useState(() => mounted);
 
   useEffect(() => {
     mounted = true;
-    lastRoom = room;
-  }, [room]);
+  }, []);
 
   return (
     <>
-      {kind === 'curtain' && (
+      {curtain && (
         <div aria-hidden className="m-curtain p-lift">
           <i style={{ background: 'var(--p-band-1)' }} />
           <i style={{ background: 'var(--p-band-2)' }} />
@@ -63,12 +55,10 @@ function Stage({ room, children }: { room: string; children: React.ReactNode }) 
         </div>
       )}
       {/* The curtain here starts closed and lifts, rather than sweeping up
-          from below as the public site's does: a new tool's frame paints
-          before its screen has streamed in, and a curtain already down hides
+          from below as the public site's does: a new screen's frame paints
+          before its content has streamed in, and a curtain already down hides
           that half-built moment instead of revealing it. */}
-      <div className={kind === 'curtain' ? 'p-tool-in' : kind === 'rise' ? 'p-route-in' : undefined}>
-        {children}
-      </div>
+      <div className={curtain ? 'p-tool-in' : undefined}>{children}</div>
     </>
   );
 }

@@ -2965,14 +2965,6 @@ html[data-intro='out'] .m-intro { animation-delay: 1.2s; }
   );
 }
 
-/* ── A screen rising into place within a tool (RouteStage) ── */
-@keyframes p-route-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-    clip-path: inset(0 0 0 0 round 1.5rem);
-  }
-}
 
 /* ── The rail and the dock: where you are, arriving ──
    The bar grows from its middle, the wash sweeps in from the left, and the
@@ -2986,17 +2978,16 @@ html[data-intro='out'] .m-intro { animation-delay: 1.2s; }
 @keyframes p-draw { from { transform: scaleX(0); } }
 
 @media (prefers-reduced-motion: no-preference) {
-  .p-route-in { animation: p-route-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
   .p-nav-bar  { animation: p-nav-bar 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
   .p-nav-wash { transform-origin: left; animation: p-nav-wash 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
   .p-nav-tile { animation: p-nav-tile 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
   .p-draw     { transform-origin: left; animation: p-draw 0.9s cubic-bezier(0.65, 0, 0.35, 1) 0.15s backwards; }
 }
 
-/* ── Into another tool (RouteStage) ──
-   The curtain is already down when the new tool's frame paints, holds a
-   beat while its screen streams in, and lifts band by band; the screen rises
-   behind it. */
+/* ── Every page change in the app (RouteStage) ──
+   The curtain is already down when the new screen's frame paints, holds a
+   beat while it streams in, and lifts band by band; the screen rises behind
+   it. */
 @keyframes p-lift {
   0%, 30% { transform: translateY(0); animation-timing-function: cubic-bezier(0.7, 0, 0.3, 1); }
   100%    { transform: translateY(-100%); }

@@ -685,10 +685,9 @@ scroll speed), words read into ink (`ScrollWords`), the final panel opening like
 reduced motion and writes into the DOM only after React has hydrated the node (`hydrated()` in
 `Play.tsx`).
 
-**App play** (11 Oct, owner asked for the same in the signed-in app; tuned so repeated work is
-never slowed): a once-per-session welcome on `/hub` greeting the user by name (same
+**App play** (11 Oct, owner asked for the same in the signed-in app; tuned for repeated work): a once-per-session welcome on `/hub` greeting the user by name (same
 `IntroCurtain`, key `tfi-welcome`); `RouteStage` in `AppShell`/hub layout — the four-band
-curtain only when changing tool, a 0.4s rise within a tool; `ToolHero`/`PageHeader` string
+curtain on every page change (owner's choice; it was tool changes only at first); `ToolHero`/`PageHeader` string
 titles set letter by letter (`Letters` + `Springy`), `ToolHero mark=` for the sun highlighter,
 figure titles/`HeroStat`/`SealFigure`/`Figure`/grand totals roll as odometers (the voucher
 form's total rolls on every change); arch scenes drift with the pointer; seals swing; buttons
