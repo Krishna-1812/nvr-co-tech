@@ -2587,7 +2587,14 @@ body:has([data-skin='desert']) {
 }
 
 
-/* ═══ PLAY — the public site's pointer, scroll and page motion ══════════════
+/* ═══ PLAY — pointer, scroll and page motion, public site and app ═════════
+ *
+ * Written for the public site first, then carried into the signed-in app at
+ * the owner's request. Everything here is drawn in the app's own tokens
+ * (--accent, --surface, --text-c …), which the desert skin re-points at its
+ * --m-* palette, so one rule serves both worlds and both themes. The few
+ * pieces that only the public site has (ticker, kinetic band, footer) keep
+ * their --m-* colours.
  *
  * Everything the components in components/marketing/play draw, in one place.
  * The brief was the reference site the owner pointed at: type that answers the
@@ -2611,6 +2618,20 @@ body:has([data-skin='desert']) {
  * glides, and nearly all of this is touched.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── The play palette ──
+   The four bands of the curtains, in the order they sweep: terracotta, sun,
+   sand, ink by day; after sundown the sand and ink would vanish into the night
+   ground, so they become dusk and lamplight. --p-mark is the highlighter: sun
+   at 82% under ink by day (8:1), and a low glow under bone at night, where a
+   full sun behind light type would fall under 3:1. */
+:root {
+  --p-band-1: light-dark(#9C4026, #9C4026);
+  --p-band-2: light-dark(#E9B44C, #B9702F);
+  --p-band-3: light-dark(#EBDDCB, #574839);
+  --p-band-4: light-dark(#2B211B, #E5946B);
+  --p-mark: light-dark(rgb(233 180 76 / 0.82), rgb(233 180 76 / 0.3));
+}
+
 /* ── Letters (play/Letters.tsx) ── */
 .m-wd { display: inline-block; white-space: nowrap; }
 .m-ch { display: inline-block; }
@@ -2621,7 +2642,7 @@ body:has([data-skin='desert']) {
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .m-springy .m-ch {
     transform: translateY(calc(var(--lift, 0) * -0.14em));
-    color: color-mix(in oklab, var(--m-gold) calc(var(--lift, 0) * 100%), currentColor);
+    color: color-mix(in oklab, var(--accent) calc(var(--lift, 0) * 100%), currentColor);
     transition:
       transform 0.6s cubic-bezier(0.34, 1.9, 0.5, 1),
       color 0.45s ease;
@@ -2638,8 +2659,7 @@ body:has([data-skin='desert']) {
    its own band, so a phrase that breaks over two lines on a phone is marked on
    both. */
 .m-mark {
-  --m-mark-c: color-mix(in oklab, var(--m-sun) 82%, transparent);
-  background: linear-gradient(var(--m-mark-c), var(--m-mark-c)) no-repeat 0 62% / 100% 74%;
+  background: linear-gradient(var(--p-mark), var(--p-mark)) no-repeat 0 62% / 100% 74%;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   padding: 0 0.12em;
@@ -2663,6 +2683,9 @@ body:has([data-skin='desert']) {
 .m-odo-sep,
 .m-odo-col { display: inline-block; height: 1.2em; line-height: 1.2em; }
 .m-odo-col { position: relative; overflow: hidden; }
+/* A space between parts of a figure ("89 days") must keep its width in its
+   own box, where white space would otherwise collapse to nothing. */
+.m-odo-sep { white-space: pre; }
 .m-odo-size { display: block; visibility: hidden; }
 .m-odo-strip {
   position: absolute;
@@ -2718,10 +2741,10 @@ body:has([data-skin='desert']) {
 
 /* ── Reading into ink (play/ScrollWords.tsx) ── */
 .m-scroll-words.is-reading .m-sw {
-  color: color-mix(in oklab, var(--m-dim-2) 70%, var(--m-bg-2));
+  color: color-mix(in oklab, var(--text-subtle) 70%, var(--surface-sunken));
   transition: color 0.35s ease;
 }
-.m-scroll-words.is-reading .m-sw.is-lit { color: var(--m-ink); }
+.m-scroll-words.is-reading .m-sw.is-lit { color: var(--text-c); }
 
 /* ── Footer wordmark and toys (play/Footplay.tsx) ──
    Sized to the footer's own width (cqw), so the name runs edge to edge. The
@@ -2776,7 +2799,7 @@ body:has([data-skin='desert']) {
   height: 12px;
   margin: -6px 0 0 -6px;
   border-radius: 9999px;
-  background: var(--flood, var(--m-gold));
+  background: var(--flood, var(--action-hover));
   transform: scale(0);
   transition: transform 0.75s cubic-bezier(0.3, 0.7, 0.2, 1);
   pointer-events: none;
@@ -2854,7 +2877,7 @@ html[data-intro] .m-intro {
   inset: 0;
   display: grid;
   place-items: center;
-  background: var(--m-bg);
+  background: var(--surface);
   /* Hidden in the beat when all four bands cover the screen: the last band
      arrives at 1000 + 3 × 40 + 38% of 820ms, the first leaves at 62%. */
   animation: m-intro-gone 0s linear 1.46s forwards;
@@ -2866,7 +2889,7 @@ html[data-intro] .m-intro {
   gap: 1.1rem;
   padding: 0 1.25rem;
   text-align: center;
-  color: var(--m-ink);
+  color: var(--text-c);
 }
 .m-intro-word .m-display { font-size: clamp(2.1rem, 7vw, 5rem); line-height: 1; }
 .m-intro-bars { position: absolute; inset: 0; display: flex; }
@@ -2891,7 +2914,7 @@ html[data-intro] .m-intro .m-ch {
   animation-delay: calc(140ms + var(--i) * 22ms);
 }
 html[data-intro] .m-intro-mark { animation: m-pop 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) backwards; }
-html[data-intro] .m-intro-tag { animation: fade 0.6s ease 0.6s backwards; color: var(--m-gold); }
+html[data-intro] .m-intro-tag { animation: fade 0.6s ease 0.6s backwards; color: var(--accent); }
 /* Skipped: everything happens now. */
 html[data-intro='out'] .m-intro-bars i { animation-delay: calc(var(--n, 0) * 40ms); }
 html[data-intro='out'] .m-intro-face { animation-delay: 0.46s; }
@@ -2916,4 +2939,120 @@ html[data-intro='out'] .m-intro { animation-delay: 1.2s; }
 @media (prefers-reduced-motion: reduce) {
   .m-curtain, html[data-intro] .m-intro { display: none; }
   .m-page-in { animation: none; }
+}
+
+/* ═══ PLAY in the signed-in app ═════════════════════════════════════════════
+ *
+ * The same vocabulary as the public site, tuned for a place where people do
+ * hours of work: the big gestures (the welcome, the curtain) are kept for
+ * arrivals and changes of tool, and what repeats on every click is quick and
+ * small. Everything below is off under reduced motion.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* A disabled button does not answer the pointer, so it does not flood. */
+.m-flood:disabled::before,
+.m-flood[aria-disabled='true']::before { display: none; }
+
+/* The four bands as one flat strip, hard stops and no blending: the link
+   pending bar, and anywhere else the curtain's colours appear in miniature. */
+.p-bands {
+  background: linear-gradient(
+    90deg,
+    var(--p-band-1) 0 25%,
+    var(--p-band-2) 0 50%,
+    var(--p-band-3) 0 75%,
+    var(--p-band-4) 0
+  );
+}
+
+/* ── A screen rising into place within a tool (RouteStage) ── */
+@keyframes p-route-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    clip-path: inset(0 0 0 0 round 1.5rem);
+  }
+}
+
+/* ── The rail and the dock: where you are, arriving ──
+   The bar grows from its middle, the wash sweeps in from the left, and the
+   icon tile pops on a spring. Mounted only on the active item, so it plays
+   once, when you arrive. */
+@keyframes p-nav-bar  { from { transform: translateY(-50%) scaleY(0); } }
+@keyframes p-nav-wash { from { transform: scaleX(0); opacity: 0; } }
+@keyframes p-nav-tile { 0% { transform: scale(0.7) rotate(-12deg); } 60% { transform: scale(1.08) rotate(3deg); } }
+
+/* ── The page header's rule draws itself ── */
+@keyframes p-draw { from { transform: scaleX(0); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .p-route-in { animation: p-route-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .p-nav-bar  { animation: p-nav-bar 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+  .p-nav-wash { transform-origin: left; animation: p-nav-wash 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .p-nav-tile { animation: p-nav-tile 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+  .p-draw     { transform-origin: left; animation: p-draw 0.9s cubic-bezier(0.65, 0, 0.35, 1) 0.15s backwards; }
+}
+
+/* ── Into another tool (RouteStage) ──
+   The curtain is already down when the new tool's frame paints, holds a
+   beat while its screen streams in, and lifts band by band; the screen rises
+   behind it. */
+@keyframes p-lift {
+  0%, 30% { transform: translateY(0); animation-timing-function: cubic-bezier(0.7, 0, 0.3, 1); }
+  100%    { transform: translateY(-100%); }
+}
+@keyframes p-tool-in {
+  from { opacity: 0; transform: translateY(2.5rem); clip-path: inset(18% 4% 0 4% round 2rem); }
+}
+.m-curtain.p-lift i { transform: none; animation: p-lift 0.85s both; animation-delay: calc(var(--n, 0) * 55ms); }
+.m-curtain.p-lift { animation-delay: 1.2s; }
+@media (prefers-reduced-motion: no-preference) {
+  .p-tool-in { animation: p-tool-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.32s backwards; }
+}
+
+/* ── Headlines rising letter by letter (ToolHero, PageHeader) ──
+   Each letter comes up from a little below its line and settles, one after
+   another left to right. The stagger is capped, so a long sentence is in
+   place in about a second however many letters it has. Held behind the
+   workspace's welcome when that is playing. */
+@keyframes p-ch-rise {
+  from { opacity: 0; transform: translateY(0.45em) rotate(5deg); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .p-letters .m-ch {
+    animation: p-ch-rise 0.7s cubic-bezier(0.2, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--intro-wait, 0ms) + 120ms + min(var(--i), 44) * 18ms);
+  }
+  .p-letters-quick .m-ch {
+    animation-duration: 0.5s;
+    animation-delay: calc(60ms + min(var(--i), 30) * 12ms);
+  }
+}
+
+/* ── The seal swings on its cord ── */
+@keyframes p-swing {
+  0%   { rotate: 0deg; }
+  20%  { rotate: 7deg; }
+  45%  { rotate: -5deg; }
+  70%  { rotate: 2.5deg; }
+  100% { rotate: 0deg; }
+}
+.p-seal { transform-origin: 50% -40%; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .p-seal:hover { animation: p-swing 1.1s cubic-bezier(0.3, 0.6, 0.3, 1); }
+}
+
+/* ── Cards lit where the pointer is (Play, spotlight) ──
+   A soft pool of sunlight under the pointer, laid over the card's own sheen.
+   Set only while the pointer is over the card ([data-lit]). */
+:root { --p-glow: light-dark(rgb(233 180 76 / 0.16), rgb(229 148 107 / 0.10)); }
+/* In the components layer, beside .surface-lit itself, so a card that paints
+   its own background with a utility keeps it. */
+@layer components {
+  .surface-lit[data-lit] {
+    background:
+      radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), var(--p-glow), transparent 70%),
+      var(--a-sheen),
+      var(--surface-raised);
+  }
 }

@@ -1,6 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Letters } from '@/components/marketing/play/Letters';
+import { Odometer } from '@/components/marketing/play/Odometer';
+import { Springy } from '@/components/marketing/play/Springy';
+import { HeroStage } from '@/components/marketing/play/HeroStage';
 
 /**
  * How every tool opens.
@@ -26,6 +30,7 @@ export function ToolHero({
   children,
   scene,
   glow = 'var(--lc-carry)',
+  mark,
   id,
   className,
 }: {
@@ -39,6 +44,12 @@ export function ToolHero({
   scene?: ReactNode;
   /** The colour of the light behind the title. */
   glow?: string;
+  /**
+   * A word or phrase in a headline title to draw the sun behind once the line
+   * is in — the name in a greeting, the one word that is the answer. Must be
+   * a substring of `title`; ignored otherwise.
+   */
+  mark?: string;
   id?: string;
   className?: string;
 }) {
@@ -50,6 +61,9 @@ export function ToolHero({
         'surface-lit a-ring relative isolate animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_backwards] overflow-hidden rounded-[2rem]',
         className,
       )}
+      // Held behind the workspace's welcome while it plays (--intro-wait is
+      // only set then; see play/IntroCurtain).
+      style={{ animationDelay: 'var(--intro-wait, 0ms)' }}
     >
       <span
         aria-hidden
@@ -69,7 +83,9 @@ export function ToolHero({
       >
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="a-label">{label}</span>
+            <span className="a-label" data-decode>
+              {label}
+            </span>
             {pill && (
               <span
                 style={{ '--tone': pill.tone ?? 'var(--lc-carry)' } as CSSProperties}
@@ -82,16 +98,38 @@ export function ToolHero({
             )}
           </div>
 
-          <Heading
-            id={id}
-            className={
-              variant === 'figure'
-                ? 'mt-4 animate-[settle_0.9s_cubic-bezier(0.22,1,0.36,1)_backwards] text-[clamp(2.6rem,7vw,4.6rem)] leading-[0.95] font-semibold tracking-[-0.035em] text-balance tabular-nums'
-                : 'm-display mt-4 text-[clamp(2rem,4.8vw,3.25rem)] leading-[1.02] text-balance'
-            }
-          >
-            {title}
-          </Heading>
+          {/*
+            The play the public site's hero has, brought in here. A headline
+            given as plain text is set letter by letter: the letters rise into
+            place one after another, then lean up towards the pointer and warm
+            to terracotta as it passes (Springy). A figure given as plain text
+            rolls into place digit by digit like a counter (Odometer). Anything
+            richer than a string is rendered as it was, untouched.
+          */}
+          {variant === 'figure' ? (
+            <Heading
+              id={id}
+              className="mt-4 animate-[settle_0.9s_cubic-bezier(0.22,1,0.36,1)_backwards] text-[clamp(2.6rem,7vw,4.6rem)] leading-[0.95] font-semibold tracking-[-0.035em] text-balance tabular-nums"
+            >
+              {typeof title === 'string' || typeof title === 'number' ? (
+                <Odometer value={String(title)} roll="load" delay={250} />
+              ) : (
+                title
+              )}
+            </Heading>
+          ) : typeof title === 'string' ? (
+            <Springy
+              as={Heading}
+              id={id}
+              className="p-letters m-display mt-4 text-[clamp(2rem,4.8vw,3.25rem)] leading-[1.02] text-balance"
+            >
+              <HeadlineLetters title={title} mark={mark} />
+            </Springy>
+          ) : (
+            <Heading id={id} className="m-display mt-4 text-[clamp(2rem,4.8vw,3.25rem)] leading-[1.02] text-balance">
+              {title}
+            </Heading>
+          )}
           {sub && <div className="text-muted mt-3 max-w-2xl text-[15px] leading-relaxed text-pretty sm:text-base">{sub}</div>}
 
           {children}
@@ -100,11 +138,35 @@ export function ToolHero({
         {/* The arch grows with the hero but stops at 26rem and stays centred
             beside the text: in a tall hero, an arch stretched to full height
             left a long empty sky between the sun and the scene. */}
+        {/* HeroStage: the arch's sun drifts with the pointer across the hero
+            and its scene against it, so the window has depth. */}
         {scene && (
-          <div className="hidden lg:flex lg:flex-col lg:justify-center [&>*]:max-h-[26rem]">{scene}</div>
+          <HeroStage className="hidden lg:flex lg:flex-col lg:justify-center [&>*]:max-h-[26rem]">{scene}</HeroStage>
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * A headline set letter by letter, with the marked phrase (if any) wrapped in
+ * the sun highlighter. The letters are numbered straight through, so the
+ * entrance runs left to right across the mark rather than restarting in it.
+ */
+function HeadlineLetters({ title, mark }: { title: string; mark?: string }) {
+  const at = mark ? title.indexOf(mark) : -1;
+  if (!mark || at < 0) return <Letters text={title} />;
+  const before = title.slice(0, at);
+  const after = title.slice(at + mark.length);
+  const count = (s: string) => s.replace(/\s+/g, '').length;
+  return (
+    <>
+      {before && <Letters text={before} />}
+      <span className="m-mark [--mark-delay:900ms]">
+        <Letters text={mark} start={count(before)} />
+      </span>
+      {after && <Letters text={after} start={count(before) + count(mark)} />}
+    </>
   );
 }
 
@@ -148,7 +210,13 @@ export function HeroStat({
         {tone && <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ background: tone }} />}
         <span className="min-w-0 break-words">{label}</span>
       </p>
-      <div className="mt-1.5 truncate text-[1.15rem] font-semibold tracking-tight tabular-nums">{value}</div>
+      <div className="mt-1.5 truncate text-[1.15rem] font-semibold tracking-tight tabular-nums">
+        {typeof value === 'string' || typeof value === 'number' ? (
+          <Odometer value={String(value)} roll="view" />
+        ) : (
+          value
+        )}
+      </div>
       {note && (
         <p className={strong ? 'mt-0.5 text-[12px] leading-snug opacity-75' : 'text-subtle mt-0.5 text-[12px] leading-snug'}>{note}</p>
       )}

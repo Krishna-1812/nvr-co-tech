@@ -682,8 +682,21 @@ scroll speed), words read into ink (`ScrollWords`), the final panel opening like
 (`.s-portal`), buttons that flood from the pointer (`.m-flood` on `CTA`), confetti on
 `data-demo`/`data-signup` clicks, labels that decode, the footer wordmark and shape toys
 (`Footplay`), and a draggable hero voucher on a spring (`HeroStage`). All of it is off under
-reduced motion, never runs in the signed-in app, and writes into the DOM only after React has
-hydrated the node (`hydrated()` in `Play.tsx`).
+reduced motion and writes into the DOM only after React has hydrated the node (`hydrated()` in
+`Play.tsx`).
+
+**App play** (11 Oct, owner asked for the same in the signed-in app; tuned so repeated work is
+never slowed): a once-per-session welcome on `/hub` greeting the user by name (same
+`IntroCurtain`, key `tfi-welcome`); `RouteStage` in `AppShell`/hub layout — the four-band
+curtain only when changing tool, a 0.4s rise within a tool; `ToolHero`/`PageHeader` string
+titles set letter by letter (`Letters` + `Springy`), `ToolHero mark=` for the sun highlighter,
+figure titles/`HeroStat`/`SealFigure`/`Figure`/grand totals roll as odometers (the voucher
+form's total rolls on every change); arch scenes drift with the pointer; seals swing; buttons
+flood (`.m-flood` in `buttonClass`); `.surface-lit` cards carry a pointer light (skipped above
+~640k px² so tables are left alone); rail/dock active states animate; `[data-decode]` labels
+decode. Confetti only on real success: approve, mark paid, submit, and a fresh reconciliation
+that ties outright (`celebrate()` in `play/confetti.ts`). Play tokens `--p-band-1..4`,
+`--p-mark`, `--p-glow` are `light-dark()` so all of it works in both themes.
 
 **Brand.** The owl mark's geometry and four inks live in `src/lib/brand/mark.ts` (body `#862F1C`,
 lit `#A8492B`, gold `#E9B44C`, pupil `#2B211B`, bone halo) — regenerate favicons/social cards/PDF

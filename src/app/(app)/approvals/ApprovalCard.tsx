@@ -3,6 +3,7 @@
 import { useState, useTransition, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { Check, X, Clock, AlertTriangle, ExternalLink, Paperclip, FileWarning } from 'lucide-react';
+import { celebrate } from '@/components/marketing/play/confetti';
 import { toast } from 'sonner';
 import { approveVoucher, rejectVoucher } from '@/app/actions/workflow';
 import { fmtRupees, fmtDate } from '@/lib/domain/voucher';
@@ -61,8 +62,11 @@ export function ApprovalCard({
 
   const onApprove = () =>
     startTransition(async () => {
+      // The Approve button, read before the card leaves the queue.
+      const from = document.activeElement;
       const res = await approveVoucher({ id: voucher.id });
       if (res.ok) {
+        celebrate(from);
         /*
          * One message, because there is only one outcome. approve_voucher has
          * set the status to 'approved' from either pending status since 0015, so

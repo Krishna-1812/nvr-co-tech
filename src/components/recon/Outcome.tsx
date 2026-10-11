@@ -1,6 +1,7 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { celebrate } from '@/components/marketing/play/confetti';
 import { AlertTriangle, CalendarDays, Check, ListChecks, Timer, TriangleAlert } from 'lucide-react';
 import { HeroChip, HeroStat, ToolHero } from '@/components/ui/ToolHero';
 import { ArchScene, SealFigure } from '@/components/ui/Scene';
@@ -50,8 +51,14 @@ export function Outcome({
   label,
   actions,
   footer,
+  celebrate: cheer = false,
 }: {
   result: ReconResult;
+  /**
+   * Throw the confetti if the two books agree outright. For a run that has just
+   * been made, not for one reopened from history.
+   */
+  celebrate?: boolean;
   /** What sits above the answer: "Statement" for a live run, when it was run for a kept one. */
   label?: ReactNode;
   /** The exports and the save state, which belong with the answer they act on. */
@@ -83,6 +90,13 @@ export function Outcome({
   const contradicting = [result.summaryA, result.summaryB].filter(
     (s) => s.closingMatchesProvided === false,
   );
+
+  // Once, when the answer arrives and it is the best one there is: the two
+  // balances meet and neither file contradicts itself. Nothing else earns it.
+  const agreed = settled && statement.status === 'RECONCILED';
+  useEffect(() => {
+    if (cheer && agreed) celebrate(document.getElementById('recon-outcome'), 64);
+  }, [cheer, agreed]);
 
   const pair = (
     <>

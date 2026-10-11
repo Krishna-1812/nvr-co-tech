@@ -11,6 +11,8 @@ import { PreviewBanner } from './app/PreviewBanner';
 import { PageTiming } from './app/PageTiming';
 import { Toasts } from './app/Toasts';
 import { ThemeColor } from './app/ThemeColor';
+import { RouteStage } from './app/RouteStage';
+import { Play } from './marketing/play/Play';
 
 type Props = {
   user: {
@@ -97,7 +99,9 @@ export async function AppShell({ user, section, children }: Props) {
           id="main"
           className="mx-auto max-w-[92rem] px-4 pt-6 pb-28 sm:px-6 sm:pt-8 lg:pb-14"
         >
-          {children}
+          {/* The transition between screens: a curtain into another tool, a
+              rise within this one. See RouteStage. */}
+          <RouteStage room={section.home}>{children}</RouteStage>
         </main>
       </div>
 
@@ -116,6 +120,11 @@ export async function AppShell({ user, section, children }: Props) {
       {/* Same reasoning as PageTiming: one place for the whole signed-in side,
           and never on the public site. */}
       <Toasts />
+
+      {/* The public site's delegated motion, pointed at the app's own targets:
+          buttons that flood from the pointer, labels marked data-decode, and
+          confetti only where data-celebrate marks a real moment of success. */}
+      <Play decode="[data-decode]" throwOn="[data-celebrate]" spotlight=".surface-lit" />
     </div>
   );
 }

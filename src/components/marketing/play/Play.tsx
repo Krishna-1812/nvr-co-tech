@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { hasFinePointer, reducedMotion, subscribe } from '../scroll';
+import { confetti } from './confetti';
 
 /**
  * The public site's delegated motion: one component, mounted once in the
@@ -25,7 +26,21 @@ import { hasFinePointer, reducedMotion, subscribe } from '../scroll';
  * Every one of them is also switched off, not turned down, for anyone who has
  * asked for less motion.
  */
-export function Play() {
+export function Play({
+  decode: labels = '[data-skin="desert"] .m-eyebrow',
+  throwOn = '[data-demo], [data-signup]',
+  spotlight = '',
+}: {
+  /** Which labels type themselves out of scrambled glyphs. */
+  decode?: string;
+  /** Which presses throw confetti. Empty for none. */
+  throwOn?: string;
+  /**
+   * Surfaces that carry a soft light where the pointer is over them. The app
+   * passes its card material; the public site has its own Spotlight.
+   */
+  spotlight?: string;
+} = {}) {
   const path = usePathname();
 
   /* ── Floods and confetti: delegated once, for the life of the frame ── */
@@ -47,7 +62,8 @@ export function Play() {
     };
 
     const throwOnPress = (e: MouseEvent) => {
-      const b = (e.target as Element).closest?.<HTMLElement>('[data-demo], [data-signup]');
+      if (!throwOn) return;
+      const b = (e.target as Element).closest?.<HTMLElement>(throwOn);
       if (!b) return;
       const r = b.getBoundingClientRect();
       confetti(r.left + r.width / 2, r.top + r.height / 2, 44);
@@ -61,13 +77,63 @@ export function Play() {
       document.removeEventListener('pointerout', origin);
       document.removeEventListener('click', throwOnPress);
     };
-  }, []);
+  }, [throwOn]);
+
+  /* ── Cards lit where the pointer is ──
+     One delegated listener for every card on the screen. The light itself is
+     a background layer in CSS ([data-lit]); this only says where it is. Large
+     panels (a register, a long table) are left alone: repainting a background
+     that size on every pointer move is real work, and on a table the light
+     would be wandering about under the figures somebody is reading. */
+  useEffect(() => {
+    if (!spotlight || reducedMotion() || !hasFinePointer()) return;
+    let lit: HTMLElement | null = null;
+    let pend = 0;
+    let x = 0;
+    let y = 0;
+    const off = () => {
+      if (lit) delete lit.dataset.lit;
+      lit = null;
+    };
+    const move = (e: PointerEvent) => {
+      const card = (e.target as Element).closest?.<HTMLElement>(spotlight) ?? null;
+      if (card !== lit) {
+        off();
+        if (card && hydrated(card)) {
+          const r = card.getBoundingClientRect();
+          if (r.width * r.height < 640_000) {
+            lit = card;
+            lit.dataset.lit = '';
+          }
+        }
+      }
+      if (!lit) return;
+      x = e.clientX;
+      y = e.clientY;
+      if (!pend)
+        pend = requestAnimationFrame(() => {
+          pend = 0;
+          if (!lit) return;
+          const r = lit.getBoundingClientRect();
+          lit.style.setProperty('--mx', `${(x - r.left).toFixed(0)}px`);
+          lit.style.setProperty('--my', `${(y - r.top).toFixed(0)}px`);
+        });
+    };
+    document.addEventListener('pointermove', move, { passive: true });
+    document.addEventListener('pointerleave', off);
+    return () => {
+      cancelAnimationFrame(pend);
+      off();
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerleave', off);
+    };
+  }, [spotlight]);
 
   /* ── Labels decode: found afresh on every page ── */
   useEffect(() => {
     if (reducedMotion()) return;
     const waiting = new Set(
-      Array.from(document.querySelectorAll<HTMLElement>('[data-skin="desert"] .m-eyebrow')).filter(
+      Array.from(document.querySelectorAll<HTMLElement>(labels)).filter(
         // One text node and nothing else, so the text can be rewritten in
         // place without touching any node React owns the identity of.
         (el) =>
@@ -107,7 +173,7 @@ export function Play() {
       again.forEach((a) => window.clearTimeout(a));
       stop();
     };
-  }, [path]);
+  }, [path, labels]);
 
   return null;
 }
@@ -166,61 +232,4 @@ function decode(el: HTMLElement) {
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
-}
-
-/* ── Confetti ──────────────────────────────────────────────────────────── */
-
-/**
- * A handful of desert shapes thrown up from a point, pulled down by gravity,
- * and removed. Plain elements on a fixed layer, not a canvas, and the layer
- * ignores the pointer, so nothing it draws can be in the way of a click.
- *
- * The colours are read from the skin's own tokens at the moment of throwing,
- * so they are the page's colours by construction rather than a second copy of
- * them here.
- */
-function confetti(x: number, y: number, n: number) {
-  const skin = document.querySelector<HTMLElement>('[data-skin="desert"]');
-  if (!skin) return;
-  const css = getComputedStyle(skin);
-  const colours = ['--m-gold', '--m-sun', '--m-emerald', '--m-ink', '--m-violet']
-    .map((v) => css.getPropertyValue(v).trim())
-    .filter(Boolean);
-  const shapes = ['9999px', '9999px 9999px 0 0', '2px', '9999px 0'];
-
-  const layer = document.createElement('div');
-  layer.className = 'm-confetti';
-  layer.setAttribute('aria-hidden', 'true');
-
-  const bits = Array.from({ length: n }, (_, k) => {
-    const b = document.createElement('i');
-    const size = 6 + Math.random() * 7;
-    b.style.width = `${size}px`;
-    b.style.height = `${size * (k % 4 === 1 ? 1.3 : 1)}px`;
-    b.style.background = colours[k % colours.length];
-    b.style.borderRadius = shapes[k % shapes.length];
-    layer.appendChild(b);
-    const a = ((-90 + (Math.random() - 0.5) * 120) * Math.PI) / 180;
-    const v = 6 + Math.random() * 9;
-    return { el: b, x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * 360, vr: (Math.random() - 0.5) * 22 };
-  });
-  document.body.appendChild(layer);
-
-  const t0 = performance.now();
-  const step = (now: number) => {
-    const life = (now - t0) / 1500;
-    for (const p of bits) {
-      p.vy += 0.4;
-      p.vx *= 0.985;
-      p.vy *= 0.985;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.r += p.vr;
-      p.el.style.transform = `translate3d(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px, 0) rotate(${p.r.toFixed(0)}deg)`;
-      p.el.style.opacity = life > 0.7 ? (1 - (life - 0.7) / 0.3).toFixed(2) : '1';
-    }
-    if (life < 1) requestAnimationFrame(step);
-    else layer.remove();
-  };
-  requestAnimationFrame(step);
 }

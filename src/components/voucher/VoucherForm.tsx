@@ -25,6 +25,8 @@ import {
   Trash2,
   type LucideIcon,
 } from 'lucide-react';
+import { celebrate } from '@/components/marketing/play/confetti';
+import { Odometer } from '@/components/marketing/play/Odometer';
 import { toast } from 'sonner';
 import {
   PAYMENT_RULES,
@@ -349,6 +351,9 @@ export function VoucherForm({
 
       const res = await submitVoucher(voucher.id);
       if (res.ok) {
+        // Thrown before the push: the layer lives on <body>, so it keeps
+        // falling over the voucher's own page as that opens.
+        celebrate(document.activeElement);
         toast.success(
           requiresApproval
             ? `${res.data.voucherNo} submitted for approval.`
@@ -950,8 +955,11 @@ export function VoucherForm({
               <p className="text-[10px] font-semibold tracking-[0.12em] uppercase opacity-75">
                 Grand total
               </p>
+              {/* The digits turn from the old total to the new one as any
+                  amount above changes, so the effect of a keystroke is seen
+                  rather than inferred. Never an entrance: it is a live figure. */}
               <p className="mt-1.5 truncate text-[1.6rem] leading-none font-semibold tracking-tight tabular-nums">
-                {fmtRupees(totals.grand)}
+                <Odometer value={fmtRupees(totals.grand)} roll="none" />
               </p>
               <p className="mt-1.5 text-[12px] leading-snug opacity-75">
                 Net − TDS − Advance + Tips − Discount

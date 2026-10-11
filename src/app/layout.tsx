@@ -92,13 +92,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           The second statement decides the home page's opening sequence, for
           the same reason: it has to be known before the first frame, or the
-          hero is painted and then covered. Home page only, once a session,
-          never when arriving from another page of this site, never under
+          hero is painted and then covered. The home page once a session
+          (never when arriving from another page of this site), and the
+          workspace's welcome once a session after signing in; never under
           reduced motion. See components/marketing/play/IntroCurtain.
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(!t)d.setAttribute('data-theme','light');else if(t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}try{var d2=document.documentElement;if(location.pathname==='/'&&!sessionStorage.getItem('tfi-intro')&&document.referrer.indexOf(location.origin)!==0&&!matchMedia('(prefers-reduced-motion: reduce)').matches)d2.setAttribute('data-intro','on')}catch(e){}`,
+            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(!t)d.setAttribute('data-theme','light');else if(t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}try{var d2=document.documentElement,p=location.pathname,k=p==='/'?'tfi-intro':p==='/hub'?'tfi-welcome':'';if(k&&!sessionStorage.getItem(k)&&(p!=='/'||document.referrer.indexOf(location.origin)!==0)&&!matchMedia('(prefers-reduced-motion: reduce)').matches)d2.setAttribute('data-intro','on')}catch(e){}`,
           }}
         />
       </head>

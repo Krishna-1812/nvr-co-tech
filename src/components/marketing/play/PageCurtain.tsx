@@ -39,10 +39,10 @@ export function PageCurtain({ children }: { children: React.ReactNode }) {
           and a clip on an ancestor clips fixed descendants too. */}
       {entering && (
         <div aria-hidden className="m-curtain">
-          <i style={{ background: 'var(--m-gold)' }} />
-          <i style={{ background: 'var(--m-sun)' }} />
-          <i style={{ background: 'var(--m-bg-3)' }} />
-          <i style={{ background: 'var(--m-ink)' }} />
+          <i style={{ background: 'var(--p-band-1)' }} />
+          <i style={{ background: 'var(--p-band-2)' }} />
+          <i style={{ background: 'var(--p-band-3)' }} />
+          <i style={{ background: 'var(--p-band-4)' }} />
         </div>
       )}
       <div className={entering ? 'm-page-in' : undefined}>{children}</div>

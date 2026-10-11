@@ -17,14 +17,15 @@ const BUTTON_VARIANTS = {
   /*
    * The single most important control on a screen, which is what `primary`
    * means. Ink on bone, and terracotta under the pointer, exactly as the public
-   * site's buttons are. The hover has to drop the fill's background-image as
-   * well as set a colour, because .gradient-brand paints as an image and an
-   * image sits on top of any background colour.
+   * site's buttons are — including how the terracotta arrives: it floods out
+   * from the point the pointer came in at (`.m-flood`, drawn by a pseudo-element
+   * under the label, so the fill's background-image never has to be fought).
+   * Secondary floods with sand the same way.
    */
   primary:
-    'gradient-brand elev-brand shadow-[var(--elev-brand)] hover:bg-none hover:bg-[var(--action-hover)] active:brightness-95 disabled:opacity-50 disabled:shadow-none',
+    'm-flood gradient-brand elev-brand shadow-[var(--elev-brand)] active:brightness-95 disabled:opacity-50 disabled:shadow-none',
   secondary:
-    'surface text-[var(--text-c)] elev-1 hover:bg-[var(--surface-sunken)] hover:border-[var(--border-strong)] border-[var(--border-strong)]',
+    'm-flood surface text-[var(--text-c)] elev-1 [--flood:var(--surface-sunken)] hover:border-[var(--border-strong)] border-[var(--border-strong)]',
   ghost: 'text-muted hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]',
   // Brick and olive, the status pigments, rather than a stock red and green.
   danger:

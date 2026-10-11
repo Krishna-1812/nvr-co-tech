@@ -87,7 +87,7 @@ export function NavLink({
             className={cn(
               'grid size-9 place-items-center rounded-xl transition',
               active
-                ? 'gradient-brand elev-brand'
+                ? 'p-nav-tile gradient-brand elev-brand'
                 : 'text-subtle group-active:bg-[var(--surface-sunken)]',
             )}
           >
@@ -137,11 +137,11 @@ export function NavLink({
         <>
           <span
             aria-hidden
-            className="absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--color-brand-500)_16%,transparent),transparent_78%)]"
+            className="p-nav-wash absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_oklab,var(--color-brand-500)_16%,transparent),transparent_78%)]"
           />
           <span
             aria-hidden
-            className="gradient-brand absolute top-1/2 left-0 h-6 w-[3px] -translate-y-1/2 rounded-r-full"
+            className="p-nav-bar gradient-brand absolute top-1/2 left-0 h-6 w-[3px] -translate-y-1/2 rounded-r-full"
           />
         </>
       )}
@@ -155,8 +155,8 @@ export function NavLink({
         className={cn(
           'relative grid size-8 shrink-0 place-items-center rounded-lg transition',
           active
-            ? 'gradient-brand elev-brand'
-            : 'surface-sunken text-subtle group-hover:text-[var(--text-c)]',
+            ? 'p-nav-tile gradient-brand elev-brand'
+            : 'surface-sunken text-subtle group-hover:text-[var(--text-c)] group-hover:-rotate-6 group-hover:scale-105',
         )}
       >
         {icon}
@@ -207,7 +207,7 @@ function Pending({ className }: { className?: string }) {
     <span
       aria-hidden
       className={cn(
-        'gradient-brand absolute h-[2px] origin-left animate-[crawl_2s_cubic-bezier(0.22,1,0.36,1)_forwards]',
+        'p-bands absolute h-[2px] origin-left animate-[crawl_2s_cubic-bezier(0.22,1,0.36,1)_forwards]',
         className,
       )}
     />

@@ -38,6 +38,7 @@ export function Springy({
   delay = 1400,
   armed = true,
   as: Tag = 'div',
+  id,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -52,6 +53,7 @@ export function Springy({
    */
   armed?: boolean;
   as?: 'div' | 'span' | 'h1' | 'h2' | 'p';
+  id?: string;
 }) {
   const host = useRef<HTMLElement>(null);
 
@@ -129,7 +131,7 @@ export function Springy({
 
   return (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <Tag ref={host as any} className={cn('m-springy', className)}>
+    <Tag ref={host as any} id={id} className={cn('m-springy', className)}>
       {children}
     </Tag>
   );

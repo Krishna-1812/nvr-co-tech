@@ -6,6 +6,8 @@ import { Backdrop } from '@/components/app/Backdrop';
 import { PreviewBanner } from '@/components/app/PreviewBanner';
 import { HubBar } from '@/components/hub/HubBar';
 import { Toasts } from '@/components/app/Toasts';
+import { RouteStage } from '@/components/app/RouteStage';
+import { Play } from '@/components/marketing/play/Play';
 
 /**
  * The shell for the workspace itself, as opposed to the shell for a tool inside it.
@@ -47,12 +49,13 @@ export default async function HubLayout({ children }: { children: React.ReactNod
       />
 
       <main id="main" className="mx-auto max-w-[92rem] px-4 pt-6 pb-20 sm:px-6 sm:pt-8">
-        {children}
+        <RouteStage room="hub">{children}</RouteStage>
       </main>
 
       {/* The hub is the one signed-in group that does not sit inside AppShell,
           so it mounts the toast host itself. */}
       <Toasts />
+      <Play decode="[data-decode]" throwOn="[data-celebrate]" spotlight=".surface-lit" />
     </div>
   );
 }

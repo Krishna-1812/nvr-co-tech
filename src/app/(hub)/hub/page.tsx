@@ -26,6 +26,7 @@ import { Figure } from '@/components/app/Figure';
 import { buttonClass } from '@/components/ui/primitives';
 import { ArchScene, SealFigure } from '@/components/ui/Scene';
 import { HeroChip, HeroStat, ToolHero } from '@/components/ui/ToolHero';
+import { IntroCurtain } from '@/components/marketing/play/IntroCurtain';
 import { myFeatureRequests } from '@/app/actions/access';
 
 export const metadata: Metadata = { title: 'Workspace' };
@@ -448,6 +449,19 @@ export default async function HubPage() {
 
   return (
     <div className="space-y-8">
+      {/*
+        The welcome: once a session, the first time the workspace opens after
+        signing in, the greeting drops in over the four bands and they sweep
+        away to the hero underneath. Shown only when the <head> script decided
+        so before first paint; otherwise it is never displayed. The greeting is
+        the hero's own, by the person's own name.
+      */}
+      <IntroCurtain
+        text={`Good ${partOfDay}, ${firstName}.`}
+        tag={`${weekday} · FY ${fiscal.label}`}
+        storageKey="tfi-welcome"
+      />
+
       {/* ── Who you are, when it is, and how much of this exists ──
           The workspace's one signature moment, in the same frame every tool
           opens with: the greeting as the headline, the doorways — one per tool,
@@ -457,6 +471,7 @@ export default async function HubPage() {
         label={`${weekday} ${partOfDay} · FY ${fiscal.label} · India`}
         pill={{ text: `${liveTotal} live`, tone: 'var(--status-approved)', live: true }}
         title={`Good ${partOfDay}, ${firstName}.`}
+        mark={firstName}
         glow="var(--color-brand-500)"
         /*
           Two corrections, both about not saying more than is true.

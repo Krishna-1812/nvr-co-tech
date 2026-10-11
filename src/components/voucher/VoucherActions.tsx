@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Check, X, Pencil, RotateCcw, Wallet, Send, Undo2 } from 'lucide-react';
+import { celebrate } from '@/components/marketing/play/confetti';
 import { toast } from 'sonner';
 import {
   approveVoucher,
@@ -51,11 +52,20 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
   const [note, setNote] = useState('');
   const [utr, setUtr] = useState('');
 
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>, success: string) =>
+  /*
+   * `cheer` throws the confetti from the button that was pressed, for the
+   * three outcomes that are a voucher moving forward — approved, paid, and
+   * submitted. Sending back, withdrawing and reopening are not celebrations.
+   * The button is read before the await, because the modal it may sit in is
+   * gone by the time the answer comes back.
+   */
+  const run = (fn: () => Promise<{ ok: boolean; error?: string }>, success: string, cheer = false) =>
     startTransition(async () => {
+      const from = document.activeElement;
       const res = await fn();
       if (res.ok) {
         toast.success(success);
+        if (cheer) celebrate(from);
         setRejectOpen(false);
         setPaidOpen(false);
         setReopenOpen(false);
@@ -99,6 +109,7 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
                 requiresApproval
                   ? `${voucher.voucher_no ?? 'Voucher'} submitted for approval.`
                   : `${voucher.voucher_no ?? 'Voucher'} recorded as paid.`,
+                true,
               )
             }
           >
@@ -188,6 +199,7 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
                 run(
                   () => approveVoucher({ id: voucher.id, note: note.trim() || undefined }),
                   'Approval recorded.',
+                  true,
                 )
               }
             >
@@ -279,7 +291,7 @@ export function VoucherActions({ voucher, me, requiresApproval }: Props) {
               variant="primary"
               loading={busy}
               disabled={utr.trim().length < 3}
-              onClick={() => run(() => markVoucherPaid({ id: voucher.id, utr }), 'Marked as paid.')}
+              onClick={() => run(() => markVoucherPaid({ id: voucher.id, utr }), 'Marked as paid.', true)}
             >
               Mark paid
             </Button>

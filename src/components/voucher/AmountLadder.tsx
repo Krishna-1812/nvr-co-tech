@@ -1,4 +1,5 @@
 import { fmtRupees } from '@/lib/domain/voucher';
+import { Odometer } from '@/components/marketing/play/Odometer';
 import { cn } from '@/lib/utils';
 
 /**
@@ -75,7 +76,8 @@ export function AmountLadder({
           <span className="text-[11px] font-semibold tracking-[0.14em] uppercase opacity-85">
             Grand total
           </span>
-          <span className="a-figure text-xl sm:text-2xl">{fmtRupees(grandTotal)}</span>
+          {/* Rolls into place, digit by digit, as the ladder comes into view. */}
+          <Odometer value={fmtRupees(grandTotal)} roll="view" delay={200} className="a-figure text-xl sm:text-2xl" />
         </div>
       </div>
     </div>

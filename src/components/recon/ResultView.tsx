@@ -55,6 +55,8 @@ export function ResultView({
     <div className="space-y-6">
       <Outcome
         result={result}
+        // A live run that ties is a moment; reopening a kept one is not.
+        celebrate={autoSave}
         label={label}
         footer={footer}
         actions={

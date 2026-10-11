@@ -11,6 +11,10 @@ import { Letters } from './Letters';
  * the bands lift off the page like a blind going up, uncovering the hero as
  * its lines rise.
  *
+ * The signed-in workspace (/hub) has its own, once per session after signing
+ * in: the same bands, with a greeting by name in place of the brand. Each has
+ * its own storage key, so seeing one does not use up the other.
+ *
  * ── Who sees it, and when that is decided ────────────────────────────────
  *
  * The decision is made before first paint, by the inline script in the root
@@ -34,12 +38,22 @@ import { Letters } from './Letters';
  * - It plays once per session. Navigating back to the home page does not
  *   replay it.
  */
-export function IntroCurtain() {
+export function IntroCurtain({
+  text = BRAND.name,
+  tag = BRAND.tagline,
+  storageKey = 'tfi-intro',
+}: {
+  /** The line that drops in. The brand on the public site; a greeting in the app. */
+  text?: string;
+  tag?: string;
+  /** The sessionStorage key the <head> script checks. One per curtain. */
+  storageKey?: string;
+} = {}) {
   useEffect(() => {
     const root = document.documentElement;
     if (root.dataset.intro !== 'on') return;
     try {
-      sessionStorage.setItem('tfi-intro', '1');
+      sessionStorage.setItem(storageKey, '1');
     } catch {
       // Private browsing that refuses storage: the sequence plays, and will
       // play again next time, which is the right way round to fail.
@@ -69,7 +83,7 @@ export function IntroCurtain() {
       window.clearTimeout(natural);
       events.forEach((t) => window.removeEventListener(t, finish));
     };
-  }, []);
+  }, [storageKey]);
 
   return (
     <div aria-hidden className="m-intro">
@@ -77,16 +91,16 @@ export function IntroCurtain() {
         <div className="m-intro-word">
           <LogoMark id="intro-mark" className="m-intro-mark size-14 sm:size-20" />
           <span className="m-display">
-            <Letters text={BRAND.name} />
+            <Letters text={text} />
           </span>
-          <span className="m-intro-tag m-mono t-1 t-caps uppercase">{BRAND.tagline}</span>
+          <span className="m-intro-tag m-mono t-1 t-caps uppercase">{tag}</span>
         </div>
       </div>
       <div className="m-intro-bars">
-        <i style={{ background: 'var(--m-gold)' }} />
-        <i style={{ background: 'var(--m-sun)' }} />
-        <i style={{ background: 'var(--m-bg-3)' }} />
-        <i style={{ background: 'var(--m-ink)' }} />
+        <i style={{ background: 'var(--p-band-1)' }} />
+        <i style={{ background: 'var(--p-band-2)' }} />
+        <i style={{ background: 'var(--p-band-3)' }} />
+        <i style={{ background: 'var(--p-band-4)' }} />
       </div>
     </div>
   );

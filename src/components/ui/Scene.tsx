@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { Odometer } from '@/components/marketing/play/Odometer';
 
 /**
  * The arch every tool's hero stands beside.
@@ -324,19 +325,27 @@ export function ArchScene({
       >
         {/* The arch's own inner light, so it reads as a window and not a cut-out. */}
         <span className="absolute inset-0 bg-[radial-gradient(80%_55%_at_50%_30%,color-mix(in_oklab,var(--color-gold-400)_22%,transparent),transparent_70%)]" />
+        {/* m-drift-far / m-drift-near: inside a ToolHero (HeroStage) the sun
+            drifts with the pointer and the scene against it, so the window
+            reads as having a near and a far. Inert anywhere else. */}
         {sun && (
-          <span
-            className="m-sun absolute top-[17%] left-1/2 size-32 -translate-x-1/2 xl:size-40"
-            style={{ background: SUN, ['--sun-from' as string]: '90px' }}
-          />
+          <span className="m-drift-far absolute inset-0">
+            <span
+              className="m-sun absolute top-[17%] left-1/2 size-32 -translate-x-1/2 xl:size-40"
+              style={{ background: SUN, ['--sun-from' as string]: '90px' }}
+            />
+          </span>
         )}
-        <svg viewBox="0 0 200 220" className="absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="xMidYMax meet">
+        <svg viewBox="0 0 200 220" className="m-drift-near absolute inset-x-0 bottom-0 w-full" preserveAspectRatio="xMidYMax meet">
           <Dune />
           <Motif />
         </svg>
       </div>
       {seal && (
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+        // p-seal: it swings on its cord when the pointer touches it. On this
+        // wrapper rather than the card, so the swing never fights the card's
+        // own entrance animation.
+        <div className="p-seal absolute bottom-0 left-1/2 -translate-x-1/2">
           <div className="surface-lit elev-3 animate-[pop_0.5s_cubic-bezier(0.22,1,0.36,1)_1s_backwards] rounded-2xl border px-4 py-2.5 text-center whitespace-nowrap">
             {seal}
           </div>
@@ -351,7 +360,12 @@ export function SealFigure({ value, note }: { value: ReactNode; note: ReactNode 
   return (
     <>
       <p className="text-[1.35rem] leading-none font-semibold tracking-tight tabular-nums" style={{ color: 'var(--accent)' }}>
-        {value}
+        {/* A plain figure rolls in as the seal lands. */}
+        {typeof value === 'string' || typeof value === 'number' ? (
+          <Odometer value={String(value)} roll="load" delay={1050} />
+        ) : (
+          value
+        )}
       </p>
       <p className="text-subtle mt-1 text-[11px]">{note}</p>
     </>

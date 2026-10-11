@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { Letters } from '@/components/marketing/play/Letters';
+import { Springy } from '@/components/marketing/play/Springy';
 
 /**
  * The title block every screen opens with.
@@ -52,10 +54,20 @@ export function PageHeader({
               >
                 <span className="absolute top-[3px] left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-[var(--scene-sun)]" />
               </span>
-              <span className="a-label">{eyebrow}</span>
+              <span className="a-label" data-decode>
+                {eyebrow}
+              </span>
             </p>
           )}
-          <h1 className="m-display text-[clamp(1.6rem,3.2vw,2.15rem)] text-balance">{title}</h1>
+          {/* A plain-text title is set letter by letter: it rises in, and then
+              answers the pointer, the way every hero on the site does. */}
+          {typeof title === 'string' ? (
+            <Springy as="h1" className="p-letters p-letters-quick m-display text-[clamp(1.6rem,3.2vw,2.15rem)] text-balance">
+              <Letters text={title} />
+            </Springy>
+          ) : (
+            <h1 className="m-display text-[clamp(1.6rem,3.2vw,2.15rem)] text-balance">{title}</h1>
+          )}
           {description && (
             <p className="text-muted mt-2 max-w-2xl text-sm text-pretty">{description}</p>
           )}
@@ -66,7 +78,9 @@ export function PageHeader({
       {rule && (
         <span
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,var(--border-strong),transparent_65%)]"
+          // Drawn from the left as the header arrives, the way the public
+          // site draws every section rule.
+          className="p-draw absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,var(--border-strong),transparent_65%)]"
         />
       )}
     </header>
