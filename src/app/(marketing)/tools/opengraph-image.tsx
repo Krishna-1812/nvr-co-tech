@@ -8,13 +8,9 @@ import { CARD_SIZE, CARD_TYPE, cardAlt, socialCard } from '@/lib/brand/socialCar
  * and the site does not state the count anywhere any more.
  */
 const CARD = {
-  eyebrow: 'The roster',
-  headline: 'Tools for the work that follows rules.',
-  chips: [
-    'Payments, GST, TDS, bank',
-    'Approvals and audit trail',
-    'Rules in the database',
-  ],
+  eyebrow: 'All tools',
+  headline: 'Every tool, in one place.',
+  chips: ['Live and on the roadmap', 'One login', 'The decision stays with you'],
 };
 
 export const size = CARD_SIZE;

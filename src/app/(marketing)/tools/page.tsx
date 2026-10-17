@@ -22,8 +22,7 @@ import { Roost } from '@/components/brand/Owl';
 export const metadata: Metadata = {
   title: 'Tools',
   description:
-    'Tools for finance teams: payments and approvals, closing the books, GST, TDS, reading '
-    + 'invoices and answering audit questions. Every one says whether you can use it today.',
+    'Every tool in one place: what each one does, and whether you can use it today.',
   alternates: { canonical: '/tools' },
 };
 
@@ -66,21 +65,26 @@ export default function AgentsPage() {
           </Rise>
 
           <Rise>
-            <Eyebrow>The roster</Eyebrow>
+            <Eyebrow>All tools</Eyebrow>
           </Rise>
 
           <Rise delay={60}>
             <h1 className="m-display mt-5 max-w-4xl t-h1">
-              Tools for the work that{' '}
-              <span className="m-serif m-grad-text pr-1">follows rules.</span>
+              Every tool,{' '}
+              <span className="m-serif m-grad-text pr-1">in one place.</span>
             </h1>
           </Rise>
 
+          {/*
+            Generic on purpose (17 Oct, at the owner's request): it used to list
+            the jobs one by one, which dated the page every time a tool was
+            added and read as a feature list before the reader had seen a tool.
+            The cards below say what each one does.
+          */}
           <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
-              Payments and approvals, closing the books, GST, TDS, reading invoices, and answering
-              questions about the record. Each one takes a job your team already does by hand, does
-              the mechanical part of it, and then puts the decision in front of a person.
+              Each one takes a routine part of the work off your desk, does the repetitive part, and
+              leaves the decision with you. Pick one to see what it does.
             </p>
           </Rise>
         </Container>

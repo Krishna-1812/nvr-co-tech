@@ -46,9 +46,9 @@ export default async function Image({ params }: Params) {
    * site card is the right thing to serve rather than an error image.
    */
   const c = card((await params).slug) ?? {
-    eyebrow: 'The roster',
-    headline: 'Tools for the work that follows rules.',
-    chips: ['Payments, GST, TDS, bank'],
+    eyebrow: 'All tools',
+    headline: 'Every tool, in one place.',
+    chips: ['Live and on the roadmap'],
   };
 
   return socialCard(c);
