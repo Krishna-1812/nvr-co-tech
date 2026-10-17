@@ -4,7 +4,6 @@ import { siteLd } from '@/lib/marketing/seo';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { Hero } from '@/components/marketing/home/Hero';
 import { WorkCalendar } from '@/components/marketing/home/WorkCalendar';
-import { HowItMoves } from '@/components/marketing/home/HowItMoves';
 import { FinalCTA } from '@/components/marketing/home/FinalCTA';
 import { Ticker } from '@/components/marketing/play/Ticker';
 import { KineticBand } from '@/components/marketing/play/KineticBand';
@@ -27,12 +26,11 @@ export const metadata: Metadata = {
 
 /*
  * The order is an argument, in this sequence: here is the claim, here is the
- * whole month of work and who takes each job, here is how any one piece of it
- * moves from the pile to your desk, and here is the way in.
+ * whole month of work and who takes each job, and here is the way in.
  *
  * ── What used to sit here ──────────────────────────────────────────────────
  *
- * Five sections, removed over time, and worth listing because the same three
+ * Six sections, removed over time, and worth listing because the same three
  * ideas keep proposing themselves back:
  *
  * Journey followed one voucher through four steps with a panel per state. It
@@ -46,11 +44,16 @@ export const metadata: Metadata = {
  * sums under a slider. It was Voucher Desk again, on a page the owner wants to
  * name no single tool, and it came off on 17 Oct at their request.
  *
+ * HowItMoves was a pinned scroll story: a drawn sheet travelling through four
+ * doorways (comes in, worked out, checked, your call). Added and taken off on
+ * 17 Oct at the owner's request; it said the hero card's four beats a second
+ * time.
+ *
  * ProductShowcase was a representative view of the application with four cards
  * under it, and Platform was four cards about the shared foundation. Both are
  * gone.
  *
- * The thread through all five: this page kept wanting to say the same things a
+ * The thread through all six: this page kept wanting to say the same things a
  * second time in a different shape. The calendar owns the roster and carries
  * the link to the rest of it, and each thing is said once.
  */
@@ -71,7 +74,6 @@ export default function HomePage() {
           each other: motion between the arguments, not in place of one. */}
       <Ticker />
       <WorkCalendar />
-      <HowItMoves />
       <KineticBand />
       <FinalCTA />
     </>

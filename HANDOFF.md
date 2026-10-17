@@ -719,12 +719,9 @@ scroll speed), words read into ink (`ScrollWords`), the final panel opening like
 (`Footplay`), and a draggable hero card on a spring (`HeroStage`; the card is `home/WorkPanel.tsx`, a generic
 "this month's work: done, the decision left to you" panel that replaced the expense voucher on
 17 Oct at the owner's request, so the home page names no single tool; the "Have a go" GST/TDS
-slider section, `RulesPlayground`, came off the home page the same day for the same reason). In its
-place, also 17 Oct ("make the site more beautiful and super cool"): `home/HowItMoves.tsx`, a
-scroll story where one drawn sheet travels through four doorways (comes in → worked out → checked →
-your call) while a sun rises behind them. Pinned from lg up (the section is 400vh, the stage is
-`sticky`, positions are CSS vars written by one `scroll.ts` reader); a plain list of four cards
-below lg **and under reduced motion at every width**. No figures, names or tools on it. The `/tools`
+slider section, `RulesPlayground`, came off the home page the same day for the same reason). A pinned
+scroll story (`HowItMoves`, a sheet through four doorways) was added in its place the same
+day and then removed at the owner's request; don't re-add it. The `/tools`
 cards also lean a few degrees towards a mouse (`Tilt` in `marketing/motion.tsx`, now mouse-only). Then, same
 day: `/about`'s roster reads down a spine that fills with scroll and lights each number in its
 tool's colour (`marketing/about/RoadmapList.tsx`, `.m-road*` in globals.css; rows only dim once JS
