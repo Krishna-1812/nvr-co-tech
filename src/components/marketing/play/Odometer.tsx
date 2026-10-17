@@ -14,7 +14,7 @@ import { useInView } from '../scroll';
  * digits travel longest, so the figure settles from the left the way a counter
  * rolling over does.
  *
- * When the value changes afterwards (the playground's grand total, as the
+ * When the value changes afterwards (a demo's total, as the
  * reader moves a slider) the same strips slide between their old and new
  * digits by transition, so a total going from ₹2,13,440 to ₹2,31,840 is seen to
  * turn rather than to be replaced.

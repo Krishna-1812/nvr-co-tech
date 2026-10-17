@@ -869,8 +869,8 @@
    * Fills. Each is one colour, because a flat fill on sand reads as plaster,
    * which is the material this design is drawn in. They are still written as
    * (single-stop) gradients because their readers set them as background-image:
-   * .gradient-brand on the sign-in buttons, and an inline backgroundImage in
-   * the playground. A bare colour there is an invalid image and paints nothing,
+   * .gradient-brand on the sign-in buttons, and any inline backgroundImage.
+   * A bare colour there is an invalid image and paints nothing,
    * which on a bone-on-ink button means the label vanishes.
    *
    * --m-grad is the primary action's surface: ink, with bone type on it.
@@ -1037,7 +1037,7 @@ body:has([data-skin='desert']) {
   background: var(--m-line);
 }
 
-/* The slider in the playground: one colour, the accent, rather than a ramp. */
+/* The sliders on the public pages: one colour, the accent, rather than a ramp. */
 [data-skin='desert'] .m-range::-webkit-slider-runnable-track {
   background: linear-gradient(var(--m-gold), var(--m-gold)) no-repeat left / var(--fill, 50%) 100%, var(--m-line-2);
 }

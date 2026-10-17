@@ -440,19 +440,12 @@ export const JOBS: readonly Job[] = [
 ];
 
 /**
- * The tax rules the interactive panel on the home page lets you drive.
+ * The TDS sections the site's assistant will quote a rate for, and no others.
  *
- * Rates only. The arithmetic is done by the application's own calcNetTotal and
- * calcGrandTotal, so the figures on the marketing page and the figures on a real
- * voucher come from the same two functions.
- */
-export const GST_RATES = [5, 12, 18, 28] as const;
-
-/*
- * `note` is what the panel prints under the control for whichever section is
- * selected, and it is optional: 194C has none, so selecting it shows the chips
- * and nothing else. The control already guards on the note being there, so an
- * absent one leaves no empty line behind.
+ * `note` is what a section is for, and it is optional: 194C has none. The home
+ * page used to have an interactive panel driving these with GST rates beside
+ * them; that panel was taken off on 17 Oct at the owner's request, and the GST
+ * rates went with it, because nothing else read them.
  */
 export const TDS_SECTIONS: readonly { code: string; rate: number; note?: string }[] = [
   { code: 'None', rate: 0, note: 'Nothing deducted' },
