@@ -16,7 +16,7 @@ import {
 import { ArchScene as SceneArch } from '@/components/ui/Scene';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
-import { Spotlight } from '@/components/marketing/motion';
+import { Spotlight, Tilt } from '@/components/marketing/motion';
 import { Roost } from '@/components/brand/Owl';
 
 export const metadata: Metadata = {
@@ -157,81 +157,85 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
 
   return (
     <Reveal as="li" delay={delay} className="h-full">
-      {/* Spotlight owns the card surface so the pointer-tracked light can sit
+      {/* Tilt leans the whole card a few degrees towards the pointer, so the
+          grid reads as objects on a table rather than boxes on a page.
+          Spotlight owns the card surface so the pointer-tracked light can sit
           above the background and below the link's content. */}
-      <Spotlight color={accent} className="m-card m-card-lift h-full overflow-hidden rounded-2xl">
-        <Link href={`/tools/${agent.slug}`} className="group relative flex h-full flex-col p-6">
-          {/*
-            A live tool gets a window onto the scene its own screen opens on,
-            so the roster shows each working tool as the thing you will meet
-            after signing in rather than as a line of copy. Roadmap tools keep
-            the plain doorway: there is no screen yet for a picture to promise.
-          */}
-          {agent.stage === 'live' && (
-            <div
-              aria-hidden
-              className="relative -mx-2 -mt-2 mb-6 flex h-48 items-end justify-center overflow-hidden rounded-2xl"
-              style={{ background: `color-mix(in oklab, ${accent} 14%, var(--m-bg))` }}
-            >
-              <div
-                className="m-arch relative p-2 transition-transform duration-500 group-hover:-translate-y-1"
-                style={{ background: accent }}
-              >
-                <SceneArch motif={motifFor(agent.slug)} sun={false} className="h-[9.5rem] min-h-0 w-[8rem]" />
-              </div>
-            </div>
-          )}
-
-          <div className="relative flex items-start justify-between gap-3">
+      <Tilt className="h-full" max={4}>
+        <Spotlight color={accent} className="m-card m-card-lift h-full overflow-hidden rounded-2xl">
+          <Link href={`/tools/${agent.slug}`} className="group relative flex h-full flex-col p-6">
             {/*
-              The agent's own doorway, in its colour, with the sun inside it.
-              It is how eight cards in a grid are told apart before any of them
-              is read, and the same doorway the tool's own page opens with.
-              The sun climbs a little on hover.
+              A live tool gets a window onto the scene its own screen opens on,
+              so the roster shows each working tool as the thing you will meet
+              after signing in rather than as a line of copy. Roadmap tools keep
+              the plain doorway: there is no screen yet for a picture to promise.
             */}
-            {agent.stage === 'live' ? (
-              // The window above already carries the doorway; the name leads.
-              <h3 className="m-display t-6">{agent.name}</h3>
-            ) : (
-              <span
+            {agent.stage === 'live' && (
+              <div
                 aria-hidden
-                className="m-arch relative h-14 w-11 shrink-0 overflow-hidden"
-                style={{ background: accent }}
+                className="relative -mx-2 -mt-2 mb-6 flex h-48 items-end justify-center overflow-hidden rounded-2xl"
+                style={{ background: `color-mix(in oklab, ${accent} 14%, var(--m-bg))` }}
               >
-                <span className="absolute bottom-0 left-1/2 size-7 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
-              </span>
+                <div
+                  className="m-arch relative p-2 transition-transform duration-500 group-hover:-translate-y-1"
+                  style={{ background: accent }}
+                >
+                  <SceneArch motif={motifFor(agent.slug)} sun={false} className="h-[9.5rem] min-h-0 w-[8rem]" />
+                </div>
+              </div>
             )}
-            <span className="flex items-center gap-3">
-              <StageBadge stage={agent.stage} />
-              <ArrowUpRight
-                aria-hidden
-                className="m-dim-2 size-4 shrink-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--m-ink)]"
-              />
-            </span>
-          </div>
 
-          {agent.stage !== 'live' && (
-            <h3 className="m-display relative mt-5 t-6">{agent.name}</h3>
-          )}
-          {/* Olive rather than the agent's colour: two of the eight earth hues
-              (sun and sage) are too light to set small type in. */}
-          <p className="m-mono relative mt-2 t-1 t-caps text-[var(--m-olive)] uppercase">
-            {agent.category}
-          </p>
+            <div className="relative flex items-start justify-between gap-3">
+              {/*
+                The agent's own doorway, in its colour, with the sun inside it.
+                It is how eight cards in a grid are told apart before any of them
+                is read, and the same doorway the tool's own page opens with.
+                The sun climbs a little on hover.
+              */}
+              {agent.stage === 'live' ? (
+                // The window above already carries the doorway; the name leads.
+                <h3 className="m-display t-6">{agent.name}</h3>
+              ) : (
+                <span
+                  aria-hidden
+                  className="m-arch relative h-14 w-11 shrink-0 overflow-hidden"
+                  style={{ background: accent }}
+                >
+                  <span className="absolute bottom-0 left-1/2 size-7 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
+                </span>
+              )}
+              <span className="flex items-center gap-3">
+                <StageBadge stage={agent.stage} />
+                <ArrowUpRight
+                  aria-hidden
+                  className="m-dim-2 size-4 shrink-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--m-ink)]"
+                />
+              </span>
+            </div>
 
-          <p className="m-dim relative mt-4 mb-6 t-3">{agent.summary}</p>
+            {agent.stage !== 'live' && (
+              <h3 className="m-display relative mt-5 t-6">{agent.name}</h3>
+            )}
+            {/* Olive rather than the agent's colour: two of the eight earth hues
+                (sun and sage) are too light to set small type in. */}
+            <p className="m-mono relative mt-2 t-1 t-caps text-[var(--m-olive)] uppercase">
+              {agent.category}
+            </p>
 
-          {/* What goes in, then what comes out. These were truncated to one line
-              each, which on a phone left a third of a sentence ("INSTALMENT
-              DATES AND…"); they wrap now, stacked on a phone and side by side
-              from sm up. */}
-          <div className="relative mt-auto flex flex-col gap-1.5 border-t border-[var(--m-line)] pt-4 t-1 t-caps leading-snug uppercase sm:flex-row sm:items-start sm:gap-2">
-            <span className="m-mono m-dim-2 min-w-0 flex-1">{agent.inputs}</span>
-            <ArrowRight className="m-dim-2 mt-0.5 size-3 shrink-0 max-sm:rotate-90" aria-hidden />
-            <span className="m-mono m-dim min-w-0 flex-1 sm:text-right">{agent.outputs}</span>
-          </div>
-        </Link>
-      </Spotlight>
+            <p className="m-dim relative mt-4 mb-6 t-3">{agent.summary}</p>
+
+            {/* What goes in, then what comes out. These were truncated to one line
+                each, which on a phone left a third of a sentence ("INSTALMENT
+                DATES AND…"); they wrap now, stacked on a phone and side by side
+                from sm up. */}
+            <div className="relative mt-auto flex flex-col gap-1.5 border-t border-[var(--m-line)] pt-4 t-1 t-caps leading-snug uppercase sm:flex-row sm:items-start sm:gap-2">
+              <span className="m-mono m-dim-2 min-w-0 flex-1">{agent.inputs}</span>
+              <ArrowRight className="m-dim-2 mt-0.5 size-3 shrink-0 max-sm:rotate-90" aria-hidden />
+              <span className="m-mono m-dim min-w-0 flex-1 sm:text-right">{agent.outputs}</span>
+            </div>
+          </Link>
+        </Spotlight>
+      </Tilt>
     </Reveal>
   );
 }

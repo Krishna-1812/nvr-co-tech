@@ -4,6 +4,7 @@ import { siteLd } from '@/lib/marketing/seo';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { Hero } from '@/components/marketing/home/Hero';
 import { WorkCalendar } from '@/components/marketing/home/WorkCalendar';
+import { HowItMoves } from '@/components/marketing/home/HowItMoves';
 import { FinalCTA } from '@/components/marketing/home/FinalCTA';
 import { Ticker } from '@/components/marketing/play/Ticker';
 import { KineticBand } from '@/components/marketing/play/KineticBand';
@@ -26,7 +27,8 @@ export const metadata: Metadata = {
 
 /*
  * The order is an argument, in this sequence: here is the claim, here is the
- * whole month of work and who takes each job, and here is the way in.
+ * whole month of work and who takes each job, here is how any one piece of it
+ * moves from the pile to your desk, and here is the way in.
  *
  * ── What used to sit here ──────────────────────────────────────────────────
  *
@@ -69,6 +71,7 @@ export default function HomePage() {
           each other: motion between the arguments, not in place of one. */}
       <Ticker />
       <WorkCalendar />
+      <HowItMoves />
       <KineticBand />
       <FinalCTA />
     </>

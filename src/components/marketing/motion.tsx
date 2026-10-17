@@ -153,7 +153,9 @@ export function Tilt({
 
   const track = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = host.current;
-    if (!el || reduced) return;
+    // A mouse only: a finger dragging the page would otherwise tip the card
+    // it happened to start on, and leave it tipped when the scroll ends.
+    if (!el || reduced || e.pointerType !== 'mouse') return;
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;

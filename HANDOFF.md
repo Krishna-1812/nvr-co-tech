@@ -719,7 +719,13 @@ scroll speed), words read into ink (`ScrollWords`), the final panel opening like
 (`Footplay`), and a draggable hero card on a spring (`HeroStage`; the card is `home/WorkPanel.tsx`, a generic
 "this month's work: done, the decision left to you" panel that replaced the expense voucher on
 17 Oct at the owner's request, so the home page names no single tool; the "Have a go" GST/TDS
-slider section, `RulesPlayground`, came off the home page the same day for the same reason). All of it is off under
+slider section, `RulesPlayground`, came off the home page the same day for the same reason). In its
+place, also 17 Oct ("make the site more beautiful and super cool"): `home/HowItMoves.tsx`, a
+scroll story where one drawn sheet travels through four doorways (comes in → worked out → checked →
+your call) while a sun rises behind them. Pinned from lg up (the section is 400vh, the stage is
+`sticky`, positions are CSS vars written by one `scroll.ts` reader); a plain list of four cards
+below lg **and under reduced motion at every width**. No figures, names or tools on it. The `/tools`
+cards also lean a few degrees towards a mouse (`Tilt` in `marketing/motion.tsx`, now mouse-only). All of it is off under
 reduced motion and writes into the DOM only after React has hydrated the node (`hydrated()` in
 `Play.tsx`).
 
