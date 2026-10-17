@@ -8,7 +8,7 @@ import { rentalYield, type LandedCost, type Rental, type Schedule } from '@/lib/
 import { METHOD, rentVerdict } from '@/lib/landed/words';
 import { NumberInput } from './Controls';
 import { Panel } from './Panels';
-import { TONE, compactINR, pct } from './shared';
+import { TONE, pct } from './shared';
 
 /**
  * Rental yield, measured against what the property really cost.
@@ -121,23 +121,13 @@ function YieldResult({ y }: { y: NonNullable<ReturnType<typeof rentalYield>> }) 
         </p>
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Stat
-          label="Break-even rent"
-          value={Number.isFinite(y.breakEvenRent) ? `${compactINR(y.breakEvenRent)}/mo` : 'None'}
-          note={Number.isFinite(y.breakEvenRent) ? 'For the yield to cover the money' : 'Empty all year'}
-        />
-        <Stat
-          label="Payback"
-          value={y.paybackYears === null ? 'Never' : `${(Math.round(y.paybackYears * 10) / 10).toLocaleString('en-IN')} yrs`}
-          note="Net rent, no growth"
-        />
+      {/* Two tiles, or three with a market value: the columns follow, so two never leave a gap. */}
+      <dl className={`mt-3 grid grid-cols-2 gap-3 ${y.netOnMarket !== undefined ? 'sm:grid-cols-3' : ''}`}>
         <Stat label="Gross on price" value={pct(Math.round(y.grossOnPaid * 100) / 100)} note="The yield usually quoted" />
         <Stat label="Gross on true cost" value={pct(Math.round(y.grossOnTrue * 100) / 100)} note="Before vacancy and costs" />
         {y.netOnMarket !== undefined && (
           <Stat label="Net on market value" value={pct(Math.round(y.netOnMarket * 100) / 100)} note="On the value entered" />
         )}
-        <Stat label="Cost of the money" value={pct(Math.round(y.blendedRate * 100) / 100)} note="Own and loan, weighted" />
       </dl>
 
       <p className="text-subtle mt-3 flex items-start gap-1.5 text-[12px] text-pretty">

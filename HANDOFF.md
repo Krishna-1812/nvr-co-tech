@@ -434,7 +434,9 @@ internal module names and the localStorage key still say "landed" — leave them
   property chips, delete modal), `Hero.tsx` (its own hero: true cost, countdown, paid + carrying =
   true cost, source bar, tower `ArchScene` with an uplift seal), `MoneyChart.tsx` (stacked own /
   borrowed / carrying over time, OC rule, keyboard-followable crosshair), `Payments.tsx`,
-  `Panels.tsx` (property, funds with rate sliders, delay), `Rental.tsx`, `Controls.tsx`, `shared.ts`
+  `Panels.tsx` (property, funds with rate sliders, delay), `Rental.tsx` (the owner had the
+  break-even rent, payback and cost-of-the-money **tiles** taken off the screen on 17 Oct; the cost of
+  the money is still in the bars, and the PDF and Excel still carry all three), `Controls.tsx`, `shared.ts`
   (`TONE` = `--lc-*`), `LandedPanel.tsx` (hub card).
 - **Tests:** `calc.test.ts` (dates, leap years, compounding, ordering, after-OC, yield, …),
   `report.test.tsx` (reads the PDF's text back through **pdf.js** — so a glyph that did not draw
