@@ -1,9 +1,6 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
-import { ArrowRight } from 'lucide-react';
 import { AGENTS, BRAND, ROSTER, STAGE_LABEL } from '@/lib/marketing/content';
 import {
-  ACCENT_TEXT,
   ArchScene,
   Container,
   CTA,
@@ -11,13 +8,14 @@ import {
   Rise,
   Section,
   SectionHeading,
-  StageBadge,
   Stat,
 } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Odometer } from '@/components/marketing/play/Odometer';
 import { Roost } from '@/components/brand/Owl';
+import { RoadmapList } from '@/components/marketing/about/RoadmapList';
+import { HabitDeck } from '@/components/marketing/about/HabitDeck';
 
 export const metadata: Metadata = {
   title: 'About',
@@ -224,48 +222,8 @@ export default function AboutPage() {
             />
           </Reveal>
 
-          <ol className="mt-12 border-t border-[var(--m-line)]">
-            {AGENTS.map((agent, i) => (
-              <Reveal
-                as="li"
-                key={agent.slug}
-                delay={i * 45}
-                className="border-b border-[var(--m-line)]"
-              >
-                <Link
-                  href={`/tools/${agent.slug}`}
-                  className="group flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:gap-6"
-                >
-                  <span
-                    className="m-mono w-8 shrink-0 t-2 t-caps tabular-nums"
-                    style={{ color: ACCENT_TEXT[agent.accent] }}
-                    aria-hidden
-                  >
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-
-                  <span className="min-w-0 flex-1">
-                    <span className="m-display block t-5 transition-colors group-hover:text-[var(--m-cyan)]">
-                      {agent.name}
-                    </span>
-                    <span className="m-dim-2 mt-1 block t-3">{agent.category}</span>
-                  </span>
-
-                  <span className="m-dim hidden max-w-md flex-1 t-3 lg:block">
-                    {agent.summary}
-                  </span>
-
-                  <span className="flex shrink-0 items-center gap-4">
-                    <StageBadge stage={agent.stage} />
-                    <ArrowRight
-                      aria-hidden
-                      className="m-dim-2 size-4 transition-transform group-hover:translate-x-1"
-                    />
-                  </span>
-                </Link>
-              </Reveal>
-            ))}
-          </ol>
+          {/* Read down a spine that fills as you scroll; see about/RoadmapList. */}
+          <RoadmapList agents={AGENTS} />
 
           <Reveal delay={80}>
             <p className="m-dim-2 mt-8 max-w-2xl t-3">
@@ -298,22 +256,8 @@ export default function AboutPage() {
             />
           </Reveal>
 
-          <ul className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {HOW_WE_BUILD.map((item, i) => (
-              <Reveal as="li" key={item.title} delay={i * 70} className="h-full">
-                <div className="m-card flex h-full flex-col rounded-3xl p-6 sm:p-8">
-                  <span
-                    aria-hidden
-                    className="m-arch m-mono mb-5 grid h-10 w-8 place-items-center bg-[var(--m-gold)] pt-1 t-2 font-bold text-[var(--m-on-grad)] tabular-nums"
-                  >
-                    {i + 1}
-                  </span>
-                  <h3 className="m-display t-5">{item.title}</h3>
-                  <p className="m-dim mt-3 t-3">{item.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </ul>
+          {/* Dealt as a deck that stacks as you scroll; see about/HabitDeck. */}
+          <HabitDeck habits={HOW_WE_BUILD} />
         </Container>
       </Section>
 

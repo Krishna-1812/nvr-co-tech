@@ -725,7 +725,17 @@ scroll story where one drawn sheet travels through four doorways (comes in → w
 your call) while a sun rises behind them. Pinned from lg up (the section is 400vh, the stage is
 `sticky`, positions are CSS vars written by one `scroll.ts` reader); a plain list of four cards
 below lg **and under reduced motion at every width**. No figures, names or tools on it. The `/tools`
-cards also lean a few degrees towards a mouse (`Tilt` in `marketing/motion.tsx`, now mouse-only). All of it is off under
+cards also lean a few degrees towards a mouse (`Tilt` in `marketing/motion.tsx`, now mouse-only). Then, same
+day: `/about`'s roster reads down a spine that fills with scroll and lights each number in its
+tool's colour (`marketing/about/RoadmapList.tsx`, `.m-road*` in globals.css; rows only dim once JS
+arms the list), and the four habits are a sticky deck that stacks as you scroll
+(`about/HabitDeck.tsx`; the old 2×2 grid under reduced motion). The footer wordmark waves and leans
+with scroll speed (`FootWord`, via `subscribeSpeed`, written to `translate`/`rotate` so it composes
+with the rise and the pointer swell). Arriving at a tool page plays a **door** in that tool's
+colour with its name (`.m-door*`, PageCurtain) instead of the bands. Note
+`(marketing)/tools/template.tsx`: the site template never remounted between `/tools` and a tool or
+between two tools, so no transition used to play there at all; the tools template now owns every
+arrival under `/tools` and the site one stands aside there (`scope` prop). All of it is off under
 reduced motion and writes into the DOM only after React has hydrated the node (`hydrated()` in
 `Play.tsx`).
 

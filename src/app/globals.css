@@ -2756,6 +2756,9 @@ body:has([data-skin='desert']) {
    letters wait below the baseline, behind the box's clip, until the footer
    arrives; then they rise one after another, and once all are up (data-risen)
    the per-letter delay is dropped so they answer the pointer at once. */
+/* Letters lean from their feet, not their middles, when the scroll tips them
+   (FootWord): type that rotates about its centre reads as spinning. */
+.m-footword .m-ch { transform-origin: 50% 85%; }
 .m-footword {
   display: block;
   font-size: 9.05cqw;
@@ -2788,6 +2791,29 @@ body:has([data-skin='desert']) {
     background-color 0.4s ease;
 }
 @media (prefers-reduced-motion: reduce) { .m-toy { transition: none; } }
+
+/* ── The roadmap spine on /about (about/RoadmapList.tsx) ──
+   Each number sits on the spine in bone until the fill reaches it, then takes
+   its tool's colour. Rows wait a little dimmed and to the right, but only once
+   the script has armed the list, so without it nothing is ever left faded. */
+.m-road-num {
+  border-color: var(--m-line-2);
+  background: var(--m-bg);
+  color: var(--m-dim-2);
+  transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease, scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.m-road-row[data-on] .m-road-num {
+  border-color: var(--row-accent);
+  background: var(--row-accent);
+  color: var(--row-on);
+  scale: 1.1;
+}
+.m-road[data-armed] .m-road-row > a {
+  opacity: 0.55;
+  translate: 0.5rem 0;
+  transition: opacity 0.5s ease, translate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.m-road[data-armed] .m-road-row[data-on] > a { opacity: 1; translate: 0 0; }
 
 /* ── Buttons flood from the pointer (.m-flood; Play.tsx records --fx/--fy) ──
    A small disc at the point of entry, scaled up behind the label. Leaving
@@ -2941,8 +2967,75 @@ html[data-intro='out'] .m-intro { animation-delay: 1.2s; }
 }
 .m-page-in { animation: m-page-rise 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) 0.36s backwards; }
 
+/* ── Arriving at a tool (PageCurtain, /tools/[slug]) ──
+   One doorway in the tool's colour, wider than the screen, with its dome above
+   the top edge while it holds, so the screen is a wall of that colour with the
+   name on it. It comes up from below, holds, and carries on up and away; the
+   page rises in behind it a beat later than behind the bands, because the door
+   holds longer. --door and --door-on come from the tool's accent. */
+.m-door {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: hidden;
+  pointer-events: none;
+  animation: m-intro-gone 0s linear 1.3s forwards;
+}
+.m-door-arch {
+  position: absolute;
+  top: 0;
+  left: -10vw;
+  width: 120vw;
+  height: calc(100vh + 60vw);
+  border-radius: 60vw 60vw 0 0;
+  background: var(--door);
+  transform: translateY(100vh);
+  animation: m-door-sweep 1.2s both;
+}
+.m-door-sun {
+  position: absolute;
+  left: 50%;
+  /* Above the name rather than behind it, like a sun over a horizon: bone
+     type crossing a sun-coloured disc loses half its contrast. */
+  top: calc(60vw + 50vh - 15rem);
+  width: 9rem;
+  height: 9rem;
+  margin-left: -4.5rem;
+  border-radius: 9999px;
+  background: var(--m-sun);
+  opacity: 0.9;
+  animation: m-door-sun 1.2s both;
+}
+.m-door-name {
+  position: absolute;
+  left: 5vw;
+  right: 5vw;
+  top: calc(60vw + 50vh);
+  translate: 0 -50%;
+  text-align: center;
+  font-size: clamp(2.6rem, 8vw, 7.5rem);
+  line-height: 1;
+  color: var(--door-on);
+  animation: m-door-name 1.2s both;
+}
+@keyframes m-door-sweep {
+  0%       { transform: translateY(100vh); animation-timing-function: cubic-bezier(0.6, 0, 0.3, 1); }
+  38%, 64% { transform: translateY(-60vw); animation-timing-function: cubic-bezier(0.7, 0, 0.3, 1); }
+  100%     { transform: translateY(calc(-100vh - 60vw)); }
+}
+@keyframes m-door-sun {
+  0%, 26% { transform: translateY(5rem) scale(0.7); opacity: 0; }
+  50%     { transform: none; opacity: 0.9; }
+}
+@keyframes m-door-name {
+  0%, 26%   { transform: translateY(0.4em); opacity: 0; }
+  44%, 64%  { transform: none; opacity: 1; }
+  80%, 100% { transform: translateY(-0.3em); opacity: 0; }
+}
+.m-door ~ .m-page-in { animation-delay: 0.68s; }
+
 @media (prefers-reduced-motion: reduce) {
-  .m-curtain, html[data-intro] .m-intro { display: none; }
+  .m-curtain, .m-door, html[data-intro] .m-intro { display: none; }
   .m-page-in { animation: none; }
 }
 

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { BRAND } from '@/lib/marketing/content';
 import { Letters } from './Letters';
 import { Springy } from './Springy';
-import { reducedMotion, subscribe, useInView } from '../scroll';
+import { reducedMotion, subscribe, subscribeSpeed, useInView } from '../scroll';
 
 /**
  * The brand's name, set across the whole foot of every public page.
@@ -17,10 +17,50 @@ import { reducedMotion, subscribe, useInView } from '../scroll';
  *
  * Sized in container units, so the name fills the footer's width exactly at
  * every screen size without a breakpoint per phone.
+ *
+ * It also answers the scroll (added 17 Oct). Once the letters have landed, a
+ * flick of the page sends a wave along the name and leans every letter into
+ * the direction of travel, harder the faster the page moves, and it all
+ * settles as the page comes to rest. Written to the letters' `translate` and
+ * `rotate`, which compose with the `transform` the rise and the pointer swell
+ * already use, so the three never fight over one property.
  */
 export function FootWord() {
   const host = useRef<HTMLDivElement>(null);
   const shown = useInView(host, { margin: 0.95 });
+
+  useEffect(() => {
+    const el = host.current;
+    if (!el || !shown || reducedMotion()) return;
+    const word = el.querySelector<HTMLElement>('.m-footword');
+    const letters = Array.from(el.querySelectorAll<HTMLElement>('.m-ch'));
+    if (!word) return;
+
+    const settle = () =>
+      letters.forEach((c) => {
+        c.style.removeProperty('translate');
+        c.style.removeProperty('rotate');
+      });
+
+    const stop = subscribeSpeed((speed) => {
+      // Not until the rise is over: the wave would otherwise ride on letters
+      // still coming up out of the baseline.
+      if (!('risen' in word.dataset)) return;
+      if (speed === 0) return settle();
+      const push = Math.max(-1, Math.min(1, speed / 28));
+      const phase = performance.now() / 90;
+      for (let k = 0; k < letters.length; k++) {
+        const wave = Math.sin(phase + k * 0.55) * Math.abs(push) * 0.12;
+        letters[k].style.translate = `0 ${wave.toFixed(3)}em`;
+        letters[k].style.rotate = `${(push * 7).toFixed(2)}deg`;
+      }
+    });
+
+    return () => {
+      stop();
+      settle();
+    };
+  }, [shown]);
 
   return (
     <div ref={host} className="m-footword-box @container">
