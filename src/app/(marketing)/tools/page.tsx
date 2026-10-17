@@ -17,7 +17,6 @@ import { ArchScene as SceneArch } from '@/components/ui/Scene';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Spotlight } from '@/components/marketing/motion';
-import { RoadmapRail } from '@/components/marketing/agents/RoadmapRail';
 import { Roost } from '@/components/brand/Owl';
 
 export const metadata: Metadata = {
@@ -87,9 +86,9 @@ export default function AgentsPage() {
         </Container>
       </section>
 
-      {/* The order they are being built in — which is the question five unbuilt
-          tiles actually raise, and one the grouped grid below cannot answer. */}
-      <RoadmapRail />
+      {/* A "shipping order" rail of all nine, in build order, sat here until
+          17 Oct; the owner asked for it to go. The grouped grid below already
+          says which are live and which are on the roadmap. */}
 
       {GROUPS.map(({ stage, lead }) => {
         const agents = AGENTS.filter((a) => a.stage === stage);
@@ -183,9 +182,8 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
             {/*
               The agent's own doorway, in its colour, with the sun inside it.
               It is how eight cards in a grid are told apart before any of them
-              is read, and the same shape the agent stands in on the roadmap
-              above, so a card and its arch on the rail are visibly the same
-              thing. The sun climbs a little on hover.
+              is read, and the same doorway the tool's own page opens with.
+              The sun climbs a little on hover.
             */}
             {agent.stage === 'live' ? (
               // The window above already carries the doorway; the name leads.
