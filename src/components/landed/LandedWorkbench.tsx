@@ -220,10 +220,17 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
   );
 }
 
-/** Every saved property as a chip with its true cost, for switching between them. */
+/**
+ * Every saved property as a chip with its true cost, for switching between them.
+ *
+ * No `scroll-x-hint` here. That hint fades a scrolling edge by painting a block
+ * of the card colour over it, which only disappears on a card; this strip sits
+ * straight on the page's sand, so the block showed as a white bar at the right
+ * end, scrolling or not. A chip cut off at the edge already says there is more.
+ */
 function PropertyStrip({ all, activeId }: { all: SavedSchedule[]; activeId: string }) {
   return (
-    <nav aria-label="Saved properties" className="scroll-x-hint -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+    <nav aria-label="Saved properties" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
       {all.map((s) => {
         const on = s.id === activeId;
         const r = landedCost(s);
