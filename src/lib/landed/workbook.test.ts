@@ -161,6 +161,11 @@ describe('buildLandedWorkbook, everything else the screen shows', () => {
     expect(find(book, 'Carrying cost, share of true cost (%)')).toBe(12.83);
   });
 
+  it('leaves out the break-even rent, payback and cost of the money, as the screen does', () => {
+    const labels = rows(buildLandedWorkbook(XLSX, { ...exampleSchedule(), name: EXAMPLE_NAME })).map((r) => String(r[0]));
+    expect(labels.filter((l) => /break-even|payback|cost of the money, blended/i.test(l))).toEqual([]);
+  });
+
   it('says why there is no yield when rent details were typed but the rent was not', () => {
     const book = buildLandedWorkbook(XLSX, { ...schedule, rental: { maintenanceMonthly: 3000 } });
     expect(find(book, 'Rental yield')).toBe('Not worked out: the expected rent a month is not entered');

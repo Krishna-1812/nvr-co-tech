@@ -122,7 +122,6 @@ export function buildLandedWorkbook(
     'Other owner costs a year',
     'Market value',
     'Net rent a year',
-    'Break-even rent a month',
   ]);
 
   if (result.perSqft && schedule.areaSqft) {
@@ -151,14 +150,8 @@ export function buildLandedWorkbook(
       ['Gross yield on price paid (%)', round2(y.grossOnPaid)],
       ['Gross yield on true cost (%)', round2(y.grossOnTrue)],
       ['Net yield on true cost (%)', round2(y.netOnTrue)],
-      ['Cost of the money, blended (% a year)', round2(y.blendedRate)],
       ['Net yield less cost of the money (%)', round2(y.spread)],
       ['Verdict', rentVerdict(y).text],
-      [
-        'Break-even rent a month',
-        Number.isFinite(y.breakEvenRent) ? round2(y.breakEvenRent) : 'No rent covers it at this vacancy',
-      ],
-      ['Payback on true cost (years)', y.paybackYears === null ? 'Never, at this net rent' : round2(y.paybackYears)],
     );
     if (y.netOnMarket !== undefined && rental.marketValue) {
       summary.push(['Market value', rental.marketValue], ['Net yield on market value (%)', round2(y.netOnMarket)]);

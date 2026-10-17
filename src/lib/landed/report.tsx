@@ -286,22 +286,11 @@ export function TruePropertyCostDocument({
             </View>
             <Facts
               facts={[
-                [
-                  'BREAK-EVEN RENT',
-                  Number.isFinite(y.breakEvenRent) ? `${money(y.breakEvenRent)} / month` : 'None',
-                  Number.isFinite(y.breakEvenRent) ? 'For the yield to cover the money' : 'Empty all year',
-                ],
-                [
-                  'PAYBACK ON TRUE COST',
-                  y.paybackYears === null ? 'Never' : `${(Math.round(y.paybackYears * 10) / 10).toLocaleString('en-IN')} years`,
-                  'Net rent, no growth',
-                ],
                 ['GROSS YIELD ON PRICE PAID', pct(y.grossOnPaid), 'The yield usually quoted'],
                 ['GROSS YIELD ON TRUE COST', pct(y.grossOnTrue), 'Before vacancy and costs'],
                 ...(y.netOnMarket !== undefined
                   ? ([['NET YIELD ON MARKET VALUE', pct(y.netOnMarket), 'On the value entered']] as Fact[])
                   : []),
-                ['COST OF THE MONEY', pct(y.blendedRate), 'Own and loan, weighted'],
               ]}
             />
             <Text style={[s.note, { marginTop: 6 }]}>{METHOD.yieldBasis}</Text>

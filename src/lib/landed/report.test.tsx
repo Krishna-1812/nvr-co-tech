@@ -100,7 +100,10 @@ describe('TruePropertyCostDocument', { timeout: 30_000 }, () => {
     expect(text).toContain(
       'The rent falls 3.96% a year short of what the money costs. It pays only if the property gains in value.',
     );
-    expect(text).toContain('₹59,772.65 / month');
+    // Taken off the screen and the files at the owner's request (17 Oct).
+    for (const gone of ['BREAK-EVEN RENT', 'PAYBACK', 'Own and loan, weighted']) expect(text).not.toContain(gone);
+    // The cost of the money stays where the screen keeps it: in the bars beside the net yield.
+    expect(text).toContain('Cost of the money 7.87%');
   });
 
   it('prints what a late possession would cost', async () => {
