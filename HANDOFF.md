@@ -711,7 +711,9 @@ client navigations only), letter-by-letter headlines that answer the pointer (`L
 scroll speed), words read into ink (`ScrollWords`), the final panel opening like a window
 (`.s-portal`), buttons that flood from the pointer (`.m-flood` on `CTA`), confetti on
 `data-demo`/`data-signup` clicks, labels that decode, the footer wordmark and shape toys
-(`Footplay`), and a draggable hero voucher on a spring (`HeroStage`). All of it is off under
+(`Footplay`), and a draggable hero card on a spring (`HeroStage`; the card is `home/WorkPanel.tsx`, a generic
+"this month's work: done, the decision left to you" panel that replaced the expense voucher on
+17 Oct at the owner's request, so the home page names no single tool). All of it is off under
 reduced motion and writes into the DOM only after React has hydrated the node (`hydrated()` in
 `Play.tsx`).
 
