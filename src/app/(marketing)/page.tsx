@@ -36,7 +36,7 @@ export const metadata: Metadata = {
  * Journey followed one voucher through four steps with a panel per state. It
  * was the longest thing on the page and a third telling of Voucher Desk.
  *
- * AgentGrid dealt the roster out as product cards — /agents rebuilt in place
+ * AgentGrid dealt the roster out as product cards — /tools rebuilt in place
  * two screens down, arguing product first and work second against a section
  * that had just argued the better way round.
  *

@@ -11,11 +11,11 @@ import { AGENTS, NAV, SITE_URL } from '@/lib/marketing/content';
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = ['/', ...NAV.map((n) => n.href), '/login', '/signup', '/privacy', '/terms'];
-  const agentPages = AGENTS.map((a) => `/agents/${a.slug}`);
+  const agentPages = AGENTS.map((a) => `/tools/${a.slug}`);
 
   return [...staticPages, ...agentPages].map((path) => ({
     url: new URL(path, SITE_URL).toString(),
     changeFrequency: 'monthly',
-    priority: path === '/' ? 1 : path.startsWith('/agents') ? 0.8 : 0.5,
+    priority: path === '/' ? 1 : path.startsWith('/tools') ? 0.8 : 0.5,
   }));
 }

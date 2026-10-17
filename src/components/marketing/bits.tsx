@@ -240,7 +240,7 @@ export function Section({
  * Which of the tools' scenes stands in an agent's doorway.
  *
  * The live tools use the motif their own screen opens on (components/ui/Scene),
- * so the arch on /agents/true-property-cost is the same tower a visitor meets
+ * so the arch on /tools/true-property-cost is the same tower a visitor meets
  * after signing in, and the public page and the product read as one thing.
  * The roadmap ones borrow the nearest picture of the job: a ledger for matching
  * GST, a sundial for the TDS calendar, the gate for documents coming in, and
@@ -265,7 +265,7 @@ export const motifFor = (slug: string): SceneMotif => AGENT_MOTIF[slug] ?? 'door
  * The arch every inner page stands in front of.
  *
  * A doorway at the right of a hero, framed in the page's colour, with one of
- * the tools' scenes standing inside it: the row of doorways on /agents, the owl
+ * the tools' scenes standing inside it: the row of doorways on /tools, the owl
  * on /about, the sundial on /contact, a ledger and a balance on the two legal
  * pages. It used to be the same empty window with the sun in it on every page,
  * the site's one image said six times over; the frame keeps that image and the

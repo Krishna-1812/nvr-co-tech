@@ -64,7 +64,7 @@ function Row({ copy = false }: { copy?: boolean }) {
       {[...LIVE_AGENTS, ...LIVE_AGENTS].map((a, k) => (
         <li key={`${a.slug}-${k}`} className="flex items-center" aria-hidden={k >= LIVE_AGENTS.length || undefined}>
           <Link
-            href={`/agents/${a.slug}`}
+            href={`/tools/${a.slug}`}
             tabIndex={k >= LIVE_AGENTS.length ? -1 : undefined}
             className="group flex items-baseline gap-3 px-6 whitespace-nowrap sm:px-9"
           >

@@ -150,7 +150,7 @@ export function RoadmapRail() {
                 <p className="m-dim mt-4 t-3">{agent.summary}</p>
 
                 <Link
-                  href={`/agents/${agent.slug}`}
+                  href={`/tools/${agent.slug}`}
                   className="m-mono mt-7 inline-flex items-center gap-2 t-1 t-caps uppercase transition-colors hover:text-[var(--m-cyan)]"
                 >
                   Read more about it

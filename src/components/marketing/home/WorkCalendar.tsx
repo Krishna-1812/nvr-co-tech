@@ -75,8 +75,8 @@ export function WorkCalendar() {
               six product cards two screens below it is gone. It belongs here
               because this is the section that introduces them.
             */}
-            <ArrowLink href="/agents" className="mb-2">
-              All agents
+            <ArrowLink href="/tools" className="mb-2">
+              All tools
             </ArrowLink>
           </div>
         </Reveal>
@@ -178,7 +178,7 @@ export function WorkCalendar() {
 
                 {agent && (
                   <Link
-                    href={`/agents/${agent.slug}`}
+                    href={`/tools/${agent.slug}`}
                     className="group mt-7 inline-flex items-center gap-2 border-t border-[var(--m-line)] pt-5 t-3 font-semibold text-[var(--m-ink)] transition hover:text-[var(--m-gold)]"
                   >
                     <span className="m-mono m-dim-2 t-1 t-caps uppercase">

@@ -7,7 +7,7 @@ import { Roost } from '@/components/brand/Owl';
 /**
  * The body of the public 404, on its own so that two routes can render it.
  *
- * `(marketing)/not-found.tsx` catches the notFound() that /agents/[slug] throws
+ * `(marketing)/not-found.tsx` catches the notFound() that /tools/[slug] throws
  * for an unknown slug. The root not-found catches everything else — every URL
  * on this origin that matches no route at all, which is where a stale link or a
  * typed address actually lands. Those are two different files in two different
@@ -60,7 +60,7 @@ export function NotFoundPanel() {
         */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <CTA href="/">Back to the home page</CTA>
-          <CTA href="/agents" variant="ghost">
+          <CTA href="/tools" variant="ghost">
             See what we build
           </CTA>
           <CTA href="/contact" variant="ghost">
@@ -84,7 +84,7 @@ export function NotFoundPanel() {
             {LIVE_AGENTS.map((agent) => (
               <li key={agent.slug}>
                 <Link
-                  href={`/agents/${agent.slug}`}
+                  href={`/tools/${agent.slug}`}
                   className="group m-card m-card-lift flex items-center gap-4 rounded-2xl p-4 transition-[transform,box-shadow] duration-300"
                 >
                   <span

@@ -69,11 +69,11 @@ export function SiteFooter() {
             </a>
           </div>
 
-          <FooterCol title="Agents">
+          <FooterCol title="Tools">
             {/* All of them. A dot marks the ones you can open today, which is
                 the only thing anybody scanning this column wants to know. */}
             {AGENTS.map((a) => (
-              <FooterLink key={a.slug} href={`/agents/${a.slug}`}>
+              <FooterLink key={a.slug} href={`/tools/${a.slug}`}>
                 {a.name}
                 {a.stage === 'live' && (
                   <span

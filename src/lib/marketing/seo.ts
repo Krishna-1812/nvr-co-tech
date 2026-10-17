@@ -148,11 +148,11 @@ export function serviceLd(agent: Agent) {
   return graph([
     {
       '@type': 'Service',
-      '@id': absolute(`/agents/${agent.slug}#service`),
+      '@id': absolute(`/tools/${agent.slug}#service`),
       name: agent.name,
       serviceType: agent.category,
       description: agent.summary,
-      url: absolute(`/agents/${agent.slug}`),
+      url: absolute(`/tools/${agent.slug}`),
       provider: { '@id': ORG_ID },
       areaServed: { '@type': 'Country', name: 'India' },
       audience: { '@type': 'BusinessAudience', name: 'Finance and accounts teams' },

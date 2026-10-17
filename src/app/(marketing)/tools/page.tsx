@@ -21,11 +21,11 @@ import { RoadmapRail } from '@/components/marketing/agents/RoadmapRail';
 import { Roost } from '@/components/brand/Owl';
 
 export const metadata: Metadata = {
-  title: 'Agents',
+  title: 'Tools',
   description:
     'Tools for finance teams: payments and approvals, closing the books, GST, TDS, reading '
     + 'invoices and answering audit questions. Every one says whether you can use it today.',
-  alternates: { canonical: '/agents' },
+  alternates: { canonical: '/tools' },
 };
 
 /**
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
  */
 const TRAIL = [
   { label: 'Home', href: '/' },
-  { label: 'Agents', href: '/agents' },
+  { label: 'Tools', href: '/tools' },
 ] as const;
 
 const GROUPS: { stage: AgentStage; lead: string }[] = [
@@ -133,7 +133,7 @@ export default function AgentsPage() {
                   it is not built yet, we will say so, and tell you when it should be.
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
-                  <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'Agent index' }}>
+                  <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'Tool index' }}>
                     Book a walkthrough
                   </CTA>
                   <CTA href="/about" variant="ghost">
@@ -157,7 +157,7 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
       {/* Spotlight owns the card surface so the pointer-tracked light can sit
           above the background and below the link's content. */}
       <Spotlight color={accent} className="m-card m-card-lift h-full overflow-hidden rounded-2xl">
-        <Link href={`/agents/${agent.slug}`} className="group relative flex h-full flex-col p-6">
+        <Link href={`/tools/${agent.slug}`} className="group relative flex h-full flex-col p-6">
           {/*
             A live tool gets a window onto the scene its own screen opens on,
             so the roster shows each working tool as the thing you will meet

@@ -106,5 +106,5 @@ export const SOLUTIONS: Solution[] = AGENTS.map((agent) => ({
   // `agent.href` is the deep link the public site uses for the live tool. Reused
   // rather than repeated, so there is still one answer to "where does this open".
   open: agent.stage === 'live' ? agent.href : undefined,
-  plan: `/agents/${agent.slug}`,
+  plan: `/tools/${agent.slug}`,
 }));

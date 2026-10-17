@@ -25,7 +25,7 @@ describe('/llms.txt', () => {
     const { body } = await read();
     for (const agent of AGENTS) {
       expect(body, `${agent.name} is missing`).toContain(agent.name);
-      expect(body, `${agent.slug} has no link`).toContain(`${SITE_URL}/agents/${agent.slug}`);
+      expect(body, `${agent.slug} has no link`).toContain(`${SITE_URL}/tools/${agent.slug}`);
     }
   });
 

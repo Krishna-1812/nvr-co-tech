@@ -69,7 +69,7 @@ function rosterDocs(): Doc[] {
     title: agent.name,
     agent: agent.slug,
     kind: 'product' as const,
-    href: `/agents/${agent.slug}`,
+    href: `/tools/${agent.slug}`,
     keywords: [agent.category, agent.stage, STAGE_LABEL[agent.stage]],
     body: [
       `${agent.name} is one of the tools on this platform. Its area is ${agent.category.toLowerCase()}.`,
@@ -238,7 +238,7 @@ const WRITTEN: Doc[] = [
     agent: null,
     kind: 'platform',
     keywords: ['product', 'company', 'platform', 'what is this', 'overview', 'tools', 'agents'],
-    href: '/agents',
+    href: '/tools',
     body: [
       'The Finance Intelligence is a platform of tools for finance work, built by',
       'chartered accountants. Each tool takes one job a finance team already',

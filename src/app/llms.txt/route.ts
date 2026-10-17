@@ -30,7 +30,7 @@ export function GET(): Response {
   const coming = AGENTS.filter((a) => a.stage !== 'live');
 
   const line = (a: (typeof AGENTS)[number]) =>
-    `- [${a.name}](${absolute(`/agents/${a.slug}`)}): ${STAGE_LABEL[a.stage]}. ${a.summary}`;
+    `- [${a.name}](${absolute(`/tools/${a.slug}`)}): ${STAGE_LABEL[a.stage]}. ${a.summary}`;
 
   const body = [
     `# ${BRAND.name}`,
@@ -56,7 +56,7 @@ export function GET(): Response {
     '## The site',
     '',
     `- [Home](${absolute('/')}): what the platform is and who it is for.`,
-    `- [Agents](${absolute('/agents')}): the whole roster, grouped by what is built and what is not.`,
+    `- [Tools](${absolute('/tools')}): the whole roster, grouped by what is built and what is not.`,
     `- [About](${absolute('/about')}): who is building this, and the four rules it is built to.`,
     `- [Book a walkthrough](${absolute('/contact')}): half an hour with the people who built it.`,
     '',

@@ -233,7 +233,7 @@ export default function AboutPage() {
                 className="border-b border-[var(--m-line)]"
               >
                 <Link
-                  href={`/agents/${agent.slug}`}
+                  href={`/tools/${agent.slug}`}
                   className="group flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:gap-6"
                 >
                   <span
@@ -335,7 +335,7 @@ export default function AboutPage() {
                   <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'About' }}>
                     Book a walkthrough
                   </CTA>
-                  <CTA href="/agents" variant="ghost">
+                  <CTA href="/tools" variant="ghost">
                     See what we build
                   </CTA>
                 </div>

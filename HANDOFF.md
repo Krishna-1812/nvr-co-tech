@@ -109,7 +109,10 @@ statement PDFs in the browser) · SheetJS `xlsx` · `date-fns` 4 · `tailwind-me
 `googleapis` (for an unbuilt Sheets sync) · `pgsql-parser` (dev; parse-checks migrations).
 
 `next.config.ts`: `productionBrowserSourceMaps: false` (deliberate), permanent redirects
-`/landed-cost → /true-property-cost` and `/agents/landed-cost → /agents/true-property-cost`, one
+`/landed-cost → /true-property-cost`, `/agents/landed-cost → /tools/true-property-cost`, and
+`/agents → /tools`, `/agents/:slug → /tools/:slug` (the public tool pages were called agents until
+17 Oct; the owner asked for "tools", address included — old page paths fold into the new ones in
+analytics through the prefix rule in `lib/analytics/aliases.ts`), one
 `remotePatterns` entry (`logo.clearbit.com`, admin analytics only), `staleTimes` 30s dynamic / 180s
 static (safe because every mutation calls `revalidatePath` + `router.refresh()`).
 
@@ -123,7 +126,7 @@ roster entry, not a new shell.
 
 ```
 src/app/
-  (marketing)  /  /agents  /agents/[slug]  /about  /contact  /privacy  /terms   → public, light desert skin
+  (marketing)  /  /tools  /tools/[slug]  /about  /contact  /privacy  /terms   → public, light desert skin
   (auth)       /login  /signup  /forgot-password  /reset-password  /onboarding
   (hub)        /hub                         → the workspace; where sign-in lands (AFTER_LOGIN)
   (app)        Voucher Desk: /dashboard  /vouchers  /vouchers/[id]  /vouchers/[id]/edit
@@ -730,8 +733,8 @@ decode. Confetti only on real success: approve, mark paid, submit, and a fresh r
 that ties outright (`celebrate()` in `play/confetti.ts`). Play tokens `--p-band-1..4`,
 `--p-mark`, `--p-glow` are `light-dark()` so all of it works in both themes.
 
-**Live demos and the sky** (11 Oct): `/agents/ledger-reconciliation` and
-`/agents/true-property-cost` each carry a "Try it on this page" panel running the real engine in
+**Live demos and the sky** (11 Oct): `/tools/ledger-reconciliation` and
+`/tools/true-property-cost` each carry a "Try it on this page" panel running the real engine in
 the browser (`components/marketing/agents/ReconDemo.tsx` on `lib/recon/demo.ts`;
 `PropertyDemo.tsx` on `lib/landed/example.ts`, which the tool's "Load example" now shares).
 Every sun follows IST (`lib/sky.ts`: `skyAt` is inlined into the `<head>` as its own source and

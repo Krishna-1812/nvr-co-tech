@@ -11,7 +11,7 @@ import { Roost } from '@/components/brand/Owl';
 export const metadata: Metadata = {
   title: 'Book a walkthrough',
   description:
-    'Thirty minutes with the people who built it. Tell us which agent interests you and what your month currently looks like.',
+    'Thirty minutes with the people who built it. Tell us which tool interests you and what your month currently looks like.',
   alternates: { canonical: '/contact' },
 };
 

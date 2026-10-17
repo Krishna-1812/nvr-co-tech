@@ -91,7 +91,7 @@ export function Hero() {
                 <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'Hero' }}>
                   Book a walkthrough
                 </CTA>
-                <CTA href="/agents" variant="ghost">
+                <CTA href="/tools" variant="ghost">
                   See what we build
                 </CTA>
               </div>

@@ -19,7 +19,7 @@ export function FlowDiagram({ agent }: { agent: Agent }) {
 
   const stages = [
     { icon: Inbox, label: 'Takes in', body: agent.inputs, tone: undefined },
-    { icon: Bot, label: 'The agent', body: agent.name, tone: accent },
+    { icon: Bot, label: 'The tool', body: agent.name, tone: accent },
     { icon: FileCheck2, label: 'Gives back', body: agent.outputs, tone: undefined },
     {
       icon: ScrollText,

@@ -51,12 +51,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const agent = agentBySlug((await params).slug);
-  if (!agent) return { title: 'Agent not found' };
+  if (!agent) return { title: 'Tool not found' };
 
   return {
     title: agent.name,
     description: agent.summary,
-    alternates: { canonical: `/agents/${agent.slug}` },
+    alternates: { canonical: `/tools/${agent.slug}` },
   };
 }
 
@@ -70,8 +70,8 @@ export default async function AgentPage({ params }: Params) {
 
   const trail = [
     { label: 'Home', href: '/' },
-    { label: 'Agents', href: '/agents' },
-    { label: agent.name, href: `/agents/${agent.slug}` },
+    { label: 'Tools', href: '/tools' },
+    { label: agent.name, href: `/tools/${agent.slug}` },
   ];
 
   return (
@@ -357,7 +357,7 @@ export default async function AgentPage({ params }: Params) {
         <Container wide>
           <Reveal>
             <Link
-              href={`/agents/${next.slug}`}
+              href={`/tools/${next.slug}`}
               className="group m-card m-card-lift flex items-center gap-5 rounded-[1.75rem] p-5 transition-[transform,box-shadow] duration-300 sm:gap-7 sm:p-6"
             >
               <span
@@ -368,7 +368,7 @@ export default async function AgentPage({ params }: Params) {
                 <span className="absolute bottom-0 left-1/2 size-10 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="m-eyebrow block">Next agent</span>
+                <span className="m-eyebrow block">Next tool</span>
                 <span className="m-display mt-2 block t-h4 transition-colors group-hover:text-[var(--m-gold)]">
                   {next.name}
                 </span>
@@ -425,7 +425,7 @@ function StageActions({ agent }: { agent: Agent }) {
    * recommendation made by a `[0]`.
    */
   const [first] = LIVE_AGENTS;
-  const elsewhere = LIVE_AGENTS.length === 1 ? `/agents/${first.slug}` : '/agents';
+  const elsewhere = LIVE_AGENTS.length === 1 ? `/tools/${first.slug}` : '/tools';
 
   return (
     <>

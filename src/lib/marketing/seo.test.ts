@@ -28,7 +28,7 @@ const byType = (graph: Graph, type: string): Node =>
 
 describe('absolute', () => {
   it('resolves a path against the production origin', () => {
-    expect(absolute('/agents')).toBe(`${SITE_URL}/agents`);
+    expect(absolute('/tools')).toBe(`${SITE_URL}/tools`);
   });
 
   it('leaves the origin itself with its root path', () => {
@@ -124,7 +124,7 @@ describe('serviceLd', () => {
 
   it('points the service at its own page and at the organisation', () => {
     const service = byType(serviceLd(live), 'Service') as Record<string, unknown>;
-    expect(service.url).toBe(absolute(`/agents/${live.slug}`));
+    expect(service.url).toBe(absolute(`/tools/${live.slug}`));
     expect(service.provider).toEqual({ '@id': `${SITE_URL}/#organization` });
   });
 
@@ -139,8 +139,8 @@ describe('serviceLd', () => {
 describe('breadcrumbLd', () => {
   const trail = [
     { label: 'Home', href: '/' },
-    { label: 'Agents', href: '/agents' },
-    { label: 'Voucher Desk', href: '/agents/voucher-desk' },
+    { label: 'Tools', href: '/tools' },
+    { label: 'Voucher Desk', href: '/tools/voucher-desk' },
   ];
 
   it('numbers the trail from one, in order', () => {
@@ -150,7 +150,7 @@ describe('breadcrumbLd', () => {
     expect(list.itemListElement.map((i) => i.position)).toEqual([1, 2, 3]);
     expect(list.itemListElement.map((i) => i.name)).toEqual([
       'Home',
-      'Agents',
+      'Tools',
       'Voucher Desk',
     ]);
   });
@@ -161,8 +161,8 @@ describe('breadcrumbLd', () => {
     };
     expect(list.itemListElement.map((i) => i.item)).toEqual([
       `${SITE_URL}/`,
-      `${SITE_URL}/agents`,
-      `${SITE_URL}/agents/voucher-desk`,
+      `${SITE_URL}/tools`,
+      `${SITE_URL}/tools/voucher-desk`,
     ]);
   });
 

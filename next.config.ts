@@ -24,7 +24,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/landed-cost', destination: '/true-property-cost', permanent: true },
-      { source: '/agents/landed-cost', destination: '/agents/true-property-cost', permanent: true },
+      { source: '/agents/landed-cost', destination: '/tools/true-property-cost', permanent: true },
+      /*
+       * The public tool pages were called agents, and lived under /agents,
+       * until 17 Oct, when the owner asked for them to be called tools. The old
+       * addresses are in search indexes, in llms.txt copies, and in links people
+       * have already sent, so each forwards for good to the same page under
+       * /tools. The landed-cost line above comes first so that address takes
+       * one hop rather than two.
+       */
+      { source: '/agents', destination: '/tools', permanent: true },
+      { source: '/agents/:slug', destination: '/tools/:slug', permanent: true },
     ];
   },
 

@@ -42,10 +42,10 @@ const between = (min: number, max: number) => Math.floor(min + rand() * (max - m
 
 const PAGES: readonly (readonly [string, string])[] = [
   ['/', 'The Finance Intelligence'],
-  ['/agents', 'Every agent'],
-  ['/agents/voucher-desk', 'Voucher Desk'],
-  ['/agents/ledger-reconciliation', 'Ledger Reconciliation'],
-  ['/agents/gst-reconciliation', 'GST Reconciliation'],
+  ['/tools', 'Every tool'],
+  ['/tools/voucher-desk', 'Voucher Desk'],
+  ['/tools/ledger-reconciliation', 'Ledger Reconciliation'],
+  ['/tools/gst-reconciliation', 'GST Reconciliation'],
   ['/about', 'About'],
   ['/contact', 'Book a walkthrough'],
 ];
