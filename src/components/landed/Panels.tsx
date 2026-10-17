@@ -7,9 +7,7 @@ import { cn } from '@/lib/utils';
 import { formatINR } from '@/lib/recon/amount';
 import {
   COMPOUNDING_LABEL,
-  addMonths,
-  landedCost,
-  withDelay,
+  delayCase,
   type Compounding,
   type FundSource,
   type Schedule,
@@ -180,10 +178,8 @@ export function FundsPanel({
  */
 export function DelayPanel({ schedule }: { schedule: Schedule }) {
   const [months, setMonths] = useState(6);
-  const base = useMemo(() => landedCost(schedule), [schedule]);
-  const late = useMemo(() => landedCost(withDelay(schedule, months)), [schedule, months]);
-  const extra = Math.round((late.interest - base.interest) * 100) / 100;
-  const perMonth = months > 0 ? extra / months : 0;
+  const late = useMemo(() => delayCase(schedule, months), [schedule, months]);
+  const { extra, perMonth } = late;
 
   return (
     <Panel
@@ -200,7 +196,7 @@ export function DelayPanel({ schedule }: { schedule: Schedule }) {
             </p>
           </div>
           <p className="text-muted text-right text-[13px]">
-            to <span className="font-semibold text-[var(--text-c)]">{longDate(addMonths(schedule.ocDate, months))}</span>
+            to <span className="font-semibold text-[var(--text-c)]">{longDate(late.ocDate)}</span>
           </p>
         </div>
         <div className="mt-4">

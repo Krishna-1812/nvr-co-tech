@@ -5,6 +5,7 @@ import { CheckCircle2, Home, Info, TriangleAlert } from 'lucide-react';
 import { Field } from '@/components/ui/primitives';
 import { formatINR } from '@/lib/recon/amount';
 import { rentalYield, type LandedCost, type Rental, type Schedule } from '@/lib/landed/calc';
+import { METHOD, rentVerdict } from '@/lib/landed/words';
 import { NumberInput } from './Controls';
 import { Panel } from './Panels';
 import { TONE, compactINR, pct } from './shared';
@@ -86,7 +87,8 @@ function YieldEmpty() {
 }
 
 function YieldResult({ y }: { y: NonNullable<ReturnType<typeof rentalYield>> }) {
-  const covers = y.spread >= 0;
+  const verdict = rentVerdict(y);
+  const covers = verdict.covers;
   // One scale for both bars, so their lengths can be compared directly.
   const scale = Math.max(y.netOnTrue, y.blendedRate, 0.01) * 1.15;
   const bar = (v: number) => `${Math.max(0, Math.min(100, (v / scale) * 100))}%`;
@@ -115,11 +117,7 @@ function YieldResult({ y }: { y: NonNullable<ReturnType<typeof rentalYield>> }) 
           className="tinted mt-5 flex items-start gap-2 rounded-2xl border px-3.5 py-2.5 text-[13px] font-medium text-pretty"
         >
           <Verdict className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>
-            {covers
-              ? `The rent covers the money, with ${pct(Math.round(y.spread * 100) / 100)} a year to spare.`
-              : `The rent falls ${pct(Math.round(-y.spread * 100) / 100)} a year short of what the money costs. It pays only if the property gains in value.`}
-          </span>
+          <span>{verdict.text}</span>
         </p>
       </div>
 
@@ -144,7 +142,7 @@ function YieldResult({ y }: { y: NonNullable<ReturnType<typeof rentalYield>> }) 
 
       <p className="text-subtle mt-3 flex items-start gap-1.5 text-[12px] text-pretty">
         <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-        Pre-tax. No appreciation, no rent escalation, and no tax benefit on the loan interest.
+        {METHOD.yieldBasis}
       </p>
     </div>
   );

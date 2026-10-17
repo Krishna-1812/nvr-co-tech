@@ -3,6 +3,7 @@ import {
   addMonths,
   carryingCost,
   dayNumber,
+  delayCase,
   daysBetween,
   isoFromDay,
   landedCost,
@@ -10,6 +11,7 @@ import {
   problems,
   rentalYield,
   timeline,
+  uncounted,
   withDelay,
   type Instalment,
   type Schedule,
@@ -390,3 +392,45 @@ describe('rentalYield', () => {
     ).toBeCloseTo(4, 6);
   });
 });
+
+describe('uncounted', () => {
+  it('lists exactly the payments landedCost leaves out, with the reasons problems gives', () => {
+    const s = schedule({
+      instalments: [
+        row({ id: 'a', label: 'Booking', date: '2024-01-01', amount: 100_000 }),
+        row({ id: 'b', label: 'Parking', date: '', amount: 300_000 }),
+        row({ id: 'c', label: '', date: '2024-13-40', amount: 0 }),
+      ],
+    });
+    const out = uncounted(s);
+    expect(out.map((u) => u.id)).toEqual(['b', 'c']);
+    expect(out[0]).toMatchObject({ name: 'Parking', position: 2, reasons: ['Parking has no date.'] });
+    expect(out[1].name).toBe('Payment 3');
+    expect(out[1].reasons).toEqual(['Payment 3 has a date that does not exist.', 'Payment 3 needs an amount above zero.']);
+    // Between them, counted and uncounted are every payment, once.
+    expect(landedCost(s).rows.length + out.length).toBe(s.instalments.length);
+  });
+
+  it('is empty when every payment counts', () => {
+    expect(uncounted(schedule({ instalments: [row({ amount: 1 })] }))).toEqual([]);
+  });
+});
+
+describe('delayCase', () => {
+  it('is the same payments carried to a later OC, against the on-time cost', () => {
+    const s = schedule({ instalments: [row({ date: '2025-01-01', amount: 1_000_000 })] });
+    const base = landedCost(s);
+    const late = landedCost(withDelay(s, 12));
+    const d = delayCase(s, 12);
+    expect(d.ocDate).toBe('2027-01-01');
+    expect(d.extra).toBeCloseTo(late.interest - base.interest, 2);
+    expect(d.perMonth).toBeCloseTo(d.extra / 12, 6);
+    expect(d.landed).toBe(late.landed);
+  });
+
+  it('adds nothing for no delay', () => {
+    const s = schedule({ instalments: [row({ date: '2025-01-01', amount: 1_000_000 })] });
+    expect(delayCase(s, 0)).toMatchObject({ extra: 0, perMonth: 0, ocDate: s.ocDate });
+  });
+});
+

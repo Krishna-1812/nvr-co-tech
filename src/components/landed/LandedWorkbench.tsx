@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { formatINR } from '@/lib/recon/amount';
 import { COMPOUNDING_LABEL, SOURCE_LABEL, landedCost, problems, timeline, type LandedCost } from '@/lib/landed/calc';
 import { landedStore, useLandedStore, type SavedSchedule } from '@/lib/landed/store';
+import { METHOD, afterOcNote } from '@/lib/landed/words';
 import { Hero } from './Hero';
 import { MoneyChart } from './MoneyChart';
 import { DelayPanel, FundsPanel, Panel, PropertyPanel } from './Panels';
@@ -28,9 +29,14 @@ import { SOURCE_TONE, compactINR, longDate, pct } from './shared';
  * Every edit is saved to this browser as it is made. See lib/landed/store for
  * why nothing leaves it.
  */
-/** A property name made safe to use as the start of a file name. */
+/**
+ * A property name made safe to use as the start of a file name: letters and
+ * digits in any script, spaces and hyphens. \w alone meant ASCII, so a name
+ * typed in Hindi was emptied and every such property downloaded under the same
+ * generic name.
+ */
 function fileBase(name: string): string {
-  return name.replace(/[^\w\- ]+/g, '').trim() || 'True property cost';
+  return name.replace(/[^\p{L}\p{M}\p{N}\- ]+/gu, '').replace(/ +/g, ' ').trim() || 'True property cost';
 }
 
 export function LandedWorkbench() {
@@ -289,27 +295,24 @@ function Method() {
       <div className="grid gap-6 p-5 text-[13.5px] sm:p-6 md:grid-cols-2">
         <div className="space-y-3">
           <p className="a-label">The cost of each payment</p>
-          <p className="surface-sunken rounded-2xl border px-4 py-3 font-semibold tabular-nums">
-            Amount × rate a year × days to possession ÷ 365
-          </p>
+          <p className="surface-sunken rounded-2xl border px-4 py-3 font-semibold tabular-nums">{METHOD.formula}</p>
           <ul className="text-muted list-disc space-y-1.5 pl-5 text-pretty">
-            <li>Days run from the day after a payment up to and including the OC date. A payment made on the OC date, or after it, carries nothing.</li>
-            <li>Own funds are charged at the return they gave up. Borrowed funds at the loan rate. One rate per source, for every payment from it.</li>
-            <li>Compounding, when chosen, applies the same days and rate yearly, quarterly or monthly.</li>
+            {METHOD.rules.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
           </ul>
         </div>
         <div className="space-y-3">
           <p className="a-label">What the figures mean</p>
           <ul className="text-muted list-disc space-y-1.5 pl-5 text-pretty">
-            <li><span className="font-semibold text-[var(--text-c)]">True cost</span>: everything paid, plus the loan interest, plus the return own funds gave up.</li>
-            <li><span className="font-semibold text-[var(--text-c)]">Cash cost</span>: everything paid, plus the loan interest. What actually left the account.</li>
-            <li><span className="font-semibold text-[var(--text-c)]">Net yield</span>: rent after vacancy, maintenance and other costs, on the true cost.</li>
+            {METHOD.meanings.map(([term, meaning]) => (
+              <li key={term}>
+                <span className="font-semibold text-[var(--text-c)]">{term}</span>: {meaning}
+              </li>
+            ))}
           </ul>
           <p className="a-label pt-1">Not modelled</p>
-          <p className="text-muted text-pretty">
-            EMI repayments during construction, since the borrowed principal is treated as outstanding until possession.
-            Changes in rates. Tax on rent, and tax benefits on home-loan interest. Appreciation and rent escalation.
-          </p>
+          <p className="text-muted text-pretty">{METHOD.notModelled}</p>
         </div>
       </div>
     </Panel>
@@ -383,10 +386,7 @@ function Working({ schedule, result }: { schedule: SavedSchedule; result: Landed
           </tfoot>
         </DataTable>
         {afterOc > 0 && (
-          <p className="text-subtle border-t px-5 py-3 text-xs">
-            {afterOc === 1 ? 'One payment falls' : `${afterOc} payments fall`} on or after the OC date, so{' '}
-            {afterOc === 1 ? 'it carries' : 'they carry'} no cost of funds. Check the date if that is not what happened.
-          </p>
+          <p className="text-subtle border-t px-5 py-3 text-xs">{afterOcNote(afterOc)}</p>
         )}
       </div>
     </Panel>

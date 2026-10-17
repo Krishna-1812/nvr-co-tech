@@ -198,11 +198,16 @@ function paise(x: number): number {
  * them. Rows come back in date order, which is the order a reader checks a
  * demand schedule in, whatever order they were typed in.
  */
+/** Whether a payment can be worked out at all: a real date and an amount above zero. */
+function counts(i: Instalment): boolean {
+  return isIsoDate(i.date) && Number.isFinite(i.amount) && i.amount > 0;
+}
+
 export function landedCost(schedule: Schedule): LandedCost {
   const oc = dayNumber(schedule.ocDate);
   const usable = schedule.instalments
     .map((i, n) => ({ i, position: n + 1 }))
-    .filter(({ i }) => isIsoDate(i.date) && Number.isFinite(i.amount) && i.amount > 0);
+    .filter(({ i }) => counts(i));
 
   const rows: InstalmentResult[] = usable
     .map(({ i, position }) => {
@@ -306,6 +311,37 @@ export function problems(schedule: Schedule): Problem[] {
   return out;
 }
 
+export type Uncounted = Pick<Instalment, 'id' | 'date' | 'amount' | 'source'> & {
+  position: number;
+  name: string;
+  /** What stops it being counted, in the words the screen warns with. */
+  reasons: string[];
+};
+
+/**
+ * The payments landedCost() leaves out, and why.
+ *
+ * The screen warns about these beside the payment itself, but a printed or
+ * exported schedule has no screen around it: a payment that is quietly missing
+ * from a PDF reads as a payment that was never made. So the documents list them
+ * by name, with the reason, using the same test landedCost() uses to drop them.
+ */
+export function uncounted(schedule: Schedule): Uncounted[] {
+  const issues = problems(schedule);
+  return schedule.instalments
+    .map((i, n) => ({ i, position: n + 1 }))
+    .filter(({ i }) => !counts(i))
+    .map(({ i, position }) => ({
+      id: i.id,
+      date: i.date,
+      amount: i.amount,
+      source: i.source,
+      position,
+      name: paymentName(i, position),
+      reasons: issues.filter((p) => p.id === i.id).map((p) => p.message),
+    }));
+}
+
 // ── Over time ────────────────────────────────────────────────────────────────
 
 /** The ISO date `months` calendar months after `iso`, clamped to the month's end. */
@@ -396,6 +432,41 @@ export function timeline(schedule: Schedule, samples = 96): TimelinePoint[] {
 export function withDelay(schedule: Schedule, months: number): Schedule {
   return months === 0 ? schedule : { ...schedule, ocDate: addMonths(schedule.ocDate, months) };
 }
+
+export type DelayCase = {
+  months: number;
+  /** The OC date it would then be. */
+  ocDate: string;
+  /** Carrying cost added by the wait. */
+  extra: number;
+  /** extra spread over the months, for "about this much a month". */
+  perMonth: number;
+  /** The true cost at the later date. */
+  landed: number;
+  upliftPct: number;
+};
+
+/**
+ * What a later OC costs: the same payments carried `months` longer. The screen's
+ * "If possession slips" panel and the printed documents both read this, so the
+ * slider and the table in the PDF cannot disagree.
+ */
+export function delayCase(schedule: Schedule, months: number, base: LandedCost = landedCost(schedule)): DelayCase {
+  const later = withDelay(schedule, months);
+  const late = landedCost(later);
+  const extra = paise(late.interest - base.interest);
+  return {
+    months,
+    ocDate: later.ocDate,
+    extra,
+    perMonth: months > 0 ? extra / months : 0,
+    landed: late.landed,
+    upliftPct: late.upliftPct,
+  };
+}
+
+/** The delays the documents print, from a quarter to the three years the slider reaches. */
+export const DELAY_STEPS = [3, 6, 12, 24, 36] as const;
 
 // ── Rental yield ─────────────────────────────────────────────────────────────
 

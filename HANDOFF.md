@@ -395,13 +395,38 @@ internal module names and the localStorage key still say "landed" — leave them
     payback years.
   - `problems()` (plain-language validation), `parseAmount()` (accepts "12,50,000", ₹, Rs., INR),
     `timeline()` (last point equals the total exactly), `withDelay()` ("if possession slips"
-    slider, up to 3 years).
+    slider, up to 3 years), `delayCase()` (what a given delay adds; the slider and both exports
+    read it), `uncounted()` (the payments `landedCost()` drops — no real date or no amount above
+    zero — each with the `problems()` messages for it, by the same test).
   - **Stamp duty, GST, registration etc. are not computed** — they're entered as dated payments via
     one-click chips (`CHARGES` in `Payments.tsx`), so they carry cost of funds like any instalment.
   - The on-screen Method panel says what is **not** modelled: EMIs, rate changes, tax,
     appreciation, rent escalation.
-- **Exports:** Excel (`workbook.ts`, lazy `xlsx`) and a PDF report (`report.tsx`,
-  `@react-pdf/renderer`, Helvetica — no ₹ glyph, so currency is stated once) drawn in the browser.
+- **Exports carry everything the screen shows** (fixed 17 Oct after the owner found they did not).
+  Both are drawn in the browser; nothing is posted anywhere.
+  - **PDF** (`report.tsx`, `@react-pdf/renderer`): the answer with the own / borrowed / carrying
+    split, the figures, a named list of any payment **not counted** and why, the "Money tied up"
+    chart (react-pdf SVG from `timeline()`), everything entered (rates, area, every rent input),
+    the rental yield with its bars and the screen's **verdict sentence**, an "If possession slips"
+    table (3, 6, 12, 24, 36 months), the working with the after-OC caution, and the full method.
+  - **Excel** (`workbook.ts`, lazy `xlsx`): Summary (adds the funds split, the verdict, what is not
+    counted), Schedule (dates are **real Excel dates** now, `dd/mm/yyyy`), **Not counted** (only
+    when there is any), **If possession slips** (every month 0–36), **Over time** (the chart's own
+    figures, ending on the true cost), **Method**.
+  - **One wording source:** `src/lib/landed/words.ts` holds the verdict (`rentVerdict`), the
+    after-OC note and `METHOD`; the screen's Method/Rental panels, the PDF and the workbook all read
+    it. Change a sentence there, not in a component.
+  - **Fonts** (`src/lib/pdf/fonts.ts`, files + OFL licence in `public/fonts/pdf/`): Figtree (has ₹)
+    with a face per Indian script behind it — Noto Sans Devanagari, Bengali, Gujarati, Tamil,
+    Telugu, Kannada; **Anek** Gurmukhi, Odia, Malayalam, because fontkit throws on the current Noto
+    Gurmukhi/Malayalam and mis-shapes Noto Oriya. Helvetica printed ₹ and Hindi as garbage.
+    `fontStack()` names only the scripts a document's text uses (every family named is fetched,
+    and the script faces are 2.6 MB); `textFont()` leads typed Indic text with its own face;
+    `fitWords()` breaks a spaceless word too wide for its column (a demand-letter reference ran
+    across the next columns). Typed labels are given `hyphenationPenalty: 10000`, because react-pdf
+    otherwise breaks and hyphenates at every script change ("(-" / "बुकिंग)"). Not covered: Urdu
+    and other RTL, CJK, emoji.
+  - Download file names keep any script's letters (`fileBase`); `\w` used to empty Hindi names.
 - **Worked example:** `landedStore.createExample()` — "Example: Tower B, 2 BHK", OC 2028-03-31,
   eight payments (booking, stamp duty, slabs on loan, GST, finishing, possession), 950 sq ft, rent
   ₹32,000/month.
@@ -412,7 +437,9 @@ internal module names and the localStorage key still say "landed" — leave them
   `Panels.tsx` (property, funds with rate sliders, delay), `Rental.tsx`, `Controls.tsx`, `shared.ts`
   (`TONE` = `--lc-*`), `LandedPanel.tsx` (hub card).
 - **Tests:** `calc.test.ts` (dates, leap years, compounding, ordering, after-OC, yield, …),
-  `report.test.tsx` (renders a real PDF), `workbook.test.ts`.
+  `report.test.tsx` (reads the PDF's text back through **pdf.js** — so a glyph that did not draw
+  fails — and checks every section, the verdict, the delay table, uncounted payments, ₹ and
+  Devanagari), `workbook.test.ts` (every sheet, real dates), `src/lib/pdf/fonts.test.ts`.
 - The owner compared it with a reference calculator
   (`property-landed-cost.vivek-gaggar-1909.chatgpt.site`) and asked for rental yield and anything
   missing — that's what `a7e2e01` added.
