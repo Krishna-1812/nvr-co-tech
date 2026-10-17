@@ -112,7 +112,9 @@ statement PDFs in the browser) · SheetJS `xlsx` · `date-fns` 4 · `tailwind-me
 `/landed-cost → /true-property-cost`, `/agents/landed-cost → /tools/true-property-cost`, and
 `/agents → /tools`, `/agents/:slug → /tools/:slug` (the public tool pages were called agents until
 17 Oct; the owner asked for "tools", address included — old page paths fold into the new ones in
-analytics through the prefix rule in `lib/analytics/aliases.ts`), one
+analytics through the prefix rule in `lib/analytics/aliases.ts`; the signed-in app already showed
+no "agent" anywhere, checked by crawling every page, and the assistant's prompt now tells it to
+say "tools" too — `AGENTS`, `agent` fields and the `agent` DB column are internal names and stay), one
 `remotePatterns` entry (`logo.clearbit.com`, admin analytics only), `staleTimes` 30s dynamic / 180s
 static (safe because every mutation calls `revalidatePath` + `router.refresh()`).
 

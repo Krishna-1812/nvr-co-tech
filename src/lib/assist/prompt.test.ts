@@ -73,6 +73,10 @@ describe('the standing instructions', () => {
     expect(text).toMatch(/₹1,00,000 rather than ₹100,000/);
   });
 
+  it('calls the products tools, the word the whole site uses since 17 Oct', () => {
+    expect(text).toMatch(/Call the products on this platform tools, never agents/);
+  });
+
   it('only promises the markdown the renderer actually supports', () => {
     expect(text).toMatch(/## and ### headings/);
     expect(text).toMatch(/pipe tables/);
