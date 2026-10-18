@@ -13,7 +13,7 @@ const TRAIL = [
   { label: 'Privacy', href: '/privacy' },
 ] as const;
 
-const LAST_UPDATED = '10 October 2026';
+const LAST_UPDATED = '18 October 2026';
 
 /**
  * Written for somebody who checks.
@@ -25,39 +25,38 @@ const LAST_UPDATED = '10 October 2026';
  * breaking the no-em-dash house rule four times in the process.
  *
  * What went in instead is only what can be checked from the outside or from the
- * source: one script on our own origin, no third-party request from a public
- * page at all, Do Not Track honoured by refusing to record rather than by
- * recording less, one first-party cookie, and reconciliation ledgers that are
- * opened and matched inside the page. A policy on a site whose entire pitch is
- * specificity cannot be the one part of it written in the passive voice.
- *
- * Nothing here overstates. The company lookup clause says what may be sent when
- * that lookup is switched on, rather than claiming no third party is ever
- * involved, because the honest version has to survive somebody setting the key.
+ * source: our own measurement on our own origin (components/Tracker since 18
+ * Oct 2026, which records more than the old tracker did, and the clauses say
+ * exactly what), no third-party request from a public page at all, Do Not
+ * Track honoured by refusing to record, one first-party cookie, and
+ * reconciliation ledgers that are opened and matched inside the page. A policy
+ * on a site whose entire pitch is specificity cannot be the one part of it
+ * written in the passive voice.
  */
 const CLAUSES: Clause[] = [
   {
     title: 'What we collect',
     body: [
       'What you give us, which is your name and email when you create an account, anything you write to us, and the records your organisation creates while using the platform.',
-      'What your browser reports when you read a public page, which is the page itself, roughly how long you spent on it, how far down it you got, the page that sent you, the width of your screen, and coarse device and browser names read from the request. None of it is combined with anything bought from anywhere.',
-      'The network address the request arrived from. It is what we use to work out roughly where in the world a visit came from, and sometimes which company it belongs to.',
+      'What your browser reports on every page of the site and the workspace: the page, how long it was open in front of you, the page that sent you and any campaign tags on the link, your screen size, language and time zone, and the browser, system and kind of device named in the request. None of it is combined with anything bought from anywhere.',
+      'The network address the request arrived from, and the country, region and city our host works out from it.',
+      'A random visitor ID, kept in a cookie, so that coming back is recognised as the same visitor. If you sign in, your earlier visits from that browser are joined to your account, so we can see one person rather than several. Your account records when you joined and last signed in, and how.',
     ],
   },
   {
     title: 'The measurement is our own',
     body: [
       'There is no Google Analytics on this site. No advertising or social pixel, no session recorder, no heatmap tool, no consent vendor, no tag manager. One script, served from this domain, writing to a database we run in Mumbai.',
-      'The typefaces are served from here too, so reading a public page on this site makes no request to any other company at all. The whole of the client side is one file you can read for yourself at /a.js.',
+      'The typefaces are served from here too, so reading a public page on this site makes no request to any other company at all.',
     ],
   },
   {
     title: 'Do Not Track and Global Privacy Control',
-    body: 'If your browser sends either signal, nothing is recorded. Not a reduced set with the identifier removed. Nothing, no cookie and no request. In the regions that expect to be asked, we ask before recording anything, and declining is remembered so you are not asked again.',
+    body: 'If your browser sends either signal, none of the measurement above runs: no visitor cookie and no request.',
   },
   {
     title: 'Cookies',
-    body: 'On the public site there is one, first-party, holding a random identifier so that repeat visits from the same browser are counted as one visitor rather than several. Signing in sets the cookies the session itself needs. That is the whole list. There is nothing here belonging to anybody else.',
+    body: 'One of ours, first-party, holding a random visitor identifier for a year from your last visit, so that repeat visits from the same browser are counted as one visitor rather than several. Signing in sets the cookies the session itself needs. That is the whole list. There is nothing here belonging to anybody else.',
   },
   {
     title: 'Files you reconcile never leave your browser',
@@ -81,7 +80,7 @@ const CLAUSES: Clause[] = [
     title: 'Who else sees it',
     body: [
       'The companies that host the application and its database, which process it on our instructions and for nothing else. We do not sell personal information, to anybody, for any reason.',
-      'Where a company lookup is switched on, the thing sent to the lookup service is the network address or the email domain. Nothing you have typed into a voucher, a reconciliation or a message ever forms part of one.',
+      'Inside the firm, only the platform\'s administrators can see the visit records, and they see them on one screen.',
     ],
   },
   {

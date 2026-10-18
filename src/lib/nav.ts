@@ -1,20 +1,16 @@
 import {
   Activity,
-  AlertTriangle,
   Building,
-  Building2,
   FileText,
   History,
   Inbox,
   Layers,
   LayoutDashboard,
   Plus,
-  Radar,
   Scale,
   Search,
   Settings,
   Sparkles,
-  TrendingUp,
   UploadCloud,
   Users,
   Wallet,
@@ -206,8 +202,9 @@ export function sectionFor(
 /**
  * Not on the roster either, and for a sharper reason than the assistant.
  *
- * Visitor intelligence is not something we sell; it is something we run about
- * the people who look at what we sell. It is also the only part of this platform
+ * The Admin screen is not something we sell; it is something we run about the
+ * people who use what we sell. Since 18 Oct 2026 it is one screen (the owner
+ * asked for the many analytics screens to become one simple one). It is also the only part of this platform
  * gated on a list that has nothing to do with anybody's role in the voucher
  * workflow — an owner who can approve a payment sees none of it unless their
  * address is in `analytics_admins`. Giving it a slug outside AGENTS keeps that
@@ -218,70 +215,15 @@ export const ANALYTICS_SLUG = 'analytics';
 export function analyticsSection(): Section {
   return {
     slug: ANALYTICS_SLUG,
-    name: 'Visitor Intelligence',
+    name: 'Admin',
     home: '/analytics',
     items: [
       {
         href: '/analytics',
-        label: 'Overview',
+        label: 'Admin',
         icon: Activity,
-        hint: 'Traffic, where it came from and how the site is holding up',
+        hint: 'Who visited, who signed in, the time each spent, and every request',
         exact: true,
-      },
-      /*
-       * Second, and deliberately ahead of everything about the public site. This
-       * is the only screen in the section that answers whether the product
-       * works; the rest answer who looked at the marketing for it. When the two
-       * competed for the top of the rail the traffic screens won for two years,
-       * and the activation data sat in a table nothing read.
-       */
-      {
-        href: '/analytics/activation',
-        label: 'Activation',
-        icon: TrendingUp,
-        hint: 'Signups, workspaces, first vouchers, and where the workflow stalls',
-      },
-      {
-        href: '/analytics/external',
-        label: 'Usage',
-        icon: Users,
-        hint: 'Everyone signed in, customers or our own team',
-      },
-      {
-        href: '/analytics/orgs',
-        label: 'Organisations',
-        short: 'Orgs',
-        icon: Building2,
-        hint: 'Per tenant: people, vouchers, and whether they have ever finished one',
-      },
-      {
-        href: '/analytics/requests',
-        label: 'Access requests',
-        short: 'Access',
-        icon: Inbox,
-        hint: 'Who has asked to be let in, and what for',
-      },
-      /*
-       * The public site, last of the substantive four and deliberately so.
-       *
-       * It was two screens and near the top. It is one screen and near the
-       * bottom, because most of what made it feel important was a company column
-       * that was inventing its answers — and because at this traffic the question
-       * it answers is the least commercially urgent one in the section.
-       */
-      {
-        href: '/analytics/visitors',
-        label: 'Public site',
-        icon: Radar,
-        hint: 'Anonymous sessions, the lead funnel, and how the marketing pages are read',
-        secondary: true,
-      },
-      {
-        href: '/analytics/errors',
-        label: 'Errors',
-        icon: AlertTriangle,
-        hint: 'Every failure a page boundary or a route handler caught',
-        secondary: true,
       },
       {
         href: '/settings',

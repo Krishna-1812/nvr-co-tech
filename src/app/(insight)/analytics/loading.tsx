@@ -2,13 +2,9 @@ import { Card } from '@/components/ui/primitives';
 import { Bar, HeroSkeleton, StatsSkeleton } from '@/components/ui/Skeletons';
 
 /**
- * Worth having here more than on most screens.
- *
- * The overview reads a month of rows and the two below it additionally resolve
- * every distinct address they find — up to three network calls each for
- * anything not already cached. That is a real wait on a cold cache, and an
- * empty frame for a second and a half reads as a page that failed rather than a
- * page that is working.
+ * The Admin screen reads a period of page views and visitors before it can
+ * draw anything, which is a real wait on a long period; an empty frame for
+ * that long reads as a page that failed rather than a page that is working.
  */
 export default function AnalyticsLoading() {
   return (

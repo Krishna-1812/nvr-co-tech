@@ -1,365 +1,232 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  Activity,
-  AlertTriangle,
-  ArrowUpRight,
-  Building2,
-  Compass,
-  Gauge,
-  Inbox,
-  MonitorSmartphone,
-  Radar,
-  TrendingUp,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
-import {
-  byDevice,
-  conversionRate,
-  daily,
-  overview,
-  topPages,
-  topReferrers,
-  webVitals,
-} from '@/lib/analytics/aggregate';
-import {
-  readProductEvents,
-  readStuckVouchers,
-  readVisitorViews,
-} from '@/lib/analytics/store';
-import { activation } from '@/lib/analytics/funnel';
-import { Card, CardTitle, buttonClass } from '@/components/ui/primitives';
-import { BarList, Split, Trend } from '@/components/analytics/Charts';
-import { duration, number } from '@/components/analytics/Figures';
-import { KpiCard, KpiRow } from '@/components/analytics/Kpi';
-import { Vitals } from '@/components/analytics/Vitals';
-import { windowFrom } from '@/components/analytics/Window';
-import { OverviewHero } from '@/components/analytics/OverviewHero';
+import type { CSSProperties, ReactNode } from 'react';
+import { Activity, Clock3, Globe2, KeyRound, LayoutList, MonitorSmartphone, Radio, Route, UserCheck, Users } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
+import { istToday } from '@/lib/fiscal';
+import { SITE_URL } from '@/lib/marketing/content';
+import { RANGES, buildReport, duration, type Range } from '@/lib/analytics/report';
+import type { SiteViewRow, SiteVisitorRow } from '@/lib/supabase/types';
+import { cn } from '@/lib/utils';
+import { Figure } from '@/components/app/Figure';
+import { Card, CardTitle } from '@/components/ui/primitives';
+import { ArchScene, SealFigure } from '@/components/ui/Scene';
+import { HeroStat, ToolHero } from '@/components/ui/ToolHero';
+import { BarList, DayChart } from '@/components/admin/Charts';
+import { People } from '@/components/admin/People';
+import { Requests } from '@/components/admin/Requests';
+import { Accounts } from '@/components/admin/Accounts';
 
-export const metadata = { title: 'Overview' };
-export const dynamic = 'force-dynamic';
+export const metadata: Metadata = { title: 'Admin' };
 
 /**
- * The front door, for a section that now has eight screens behind it.
+ * The Admin screen: the whole of the analytics, on one page.
  *
- * It used to be the visitor overview and nothing else, which was right when
- * visitors were all this section covered. There are now two halves — people who
- * are not signed in, and people who are — and an entry point that showed only one
- * of them left the other findable by luck.
+ * It replaced a dozen screens of visitor intelligence, company identification,
+ * funnels and operator reports (18 Oct 2026) because the owner asked for
+ * something simple: how many people came, who they were if they signed in, a
+ * lasting ID if they did not, the time each spent, every request, and the
+ * accounts with their sign-ins. The tracker is components/Tracker, the tables
+ * are migration 0033, and the arithmetic is lib/analytics/report (tested).
  *
- * ── Why the cards link out instead of opening drawers ───────────────────────
- *
- * The design this follows opens a panel from each card with a breakdown inside
- * it. Here, most of those breakdowns already exist as whole screens, built for
- * exactly the question the card raises. Sending somebody to the real thing beats
- * rebuilding a smaller version of it in a drawer, and — the part that matters
- * more — it keeps one implementation of each number instead of two that drift
- * apart. Cards whose answer is not a screen are not clickable at all.
- *
- * ── What is deliberately not computed here ──────────────────────────────────
- *
- * Company resolution. Turning an address into a company means reverse DNS, a
- * registry lookup and a paid API, and doing it for every visitor on the section's
- * front page would make the cheapest screen the most expensive one. The card
- * counts companies we know by name from an explicit identity capture — which is
- * free, deterministic, and never a guess — and points at Companies for the
- * resolved view.
+ * Reads the rows for the chosen range and works everything out here. Supabase
+ * hands back at most a thousand rows a request, so the two big tables are read
+ * in pages, up to a ceiling that is far beyond this site's traffic and is said
+ * on screen if it is ever reached.
  */
-export default async function AnalyticsOverviewPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ days?: string }>;
-}) {
-  const days = windowFrom((await searchParams).days);
 
-  const [rows, events, stuck] = await Promise.all([
-    readVisitorViews(days),
-    readProductEvents(),
-    readStuckVouchers(14),
+const PAGE = 1000;
+const CEILING = 50_000;
+
+async function readAll<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null }>): Promise<{ rows: T[]; capped: boolean }> {
+  const rows: T[] = [];
+  for (let from = 0; from < CEILING; from += PAGE) {
+    const { data } = await page(from, from + PAGE - 1);
+    const got = data ?? [];
+    rows.push(...got);
+    if (got.length < PAGE) return { rows, capped: false };
+  }
+  return { rows, capped: true };
+}
+
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
+  const { range: asked } = await searchParams;
+  const range: Range = RANGES.some((r) => r.id === asked) ? (asked as Range) : '30d';
+  const days = RANGES.find((r) => r.id === range)!.days;
+  const today = istToday();
+  // The range starts at midnight in India, so "7 days" is today and the six before it.
+  const since = days === null ? null : new Date(Date.parse(`${today}T00:00:00+05:30`) - (days - 1) * 86_400_000).toISOString();
+
+  const supabase = await createClient();
+  const [views, visitors, accounts, access, roadmap] = await Promise.all([
+    readAll<SiteViewRow>((from, to) => {
+      const q = supabase.from('site_views').select('*').order('started_at', { ascending: false });
+      return (since ? q.gte('started_at', since) : q).range(from, to);
+    }),
+    readAll<SiteVisitorRow>((from, to) => supabase.from('site_visitors').select('*').order('last_seen', { ascending: false }).range(from, to)),
+    supabase.rpc('admin_accounts'),
+    supabase.from('access_requests').select('*').order('created_at', { ascending: false }).limit(1000),
+    supabase.from('feature_requests').select('*').order('created_at', { ascending: false }).limit(1000),
   ]);
 
-  const totals = overview(rows);
+  const report = buildReport({
+    visitors: visitors.rows,
+    views: views.rows,
+    accounts: accounts.data ?? [],
+    access: access.data ?? [],
+    roadmap: roadmap.data ?? [],
+    since,
+    today,
+    ownHost: new URL(SITE_URL).hostname,
+  });
 
-  /*
-   * The product half, computed before anything that depends on traffic, because
-   * it is the half of this page that does not. A brand new deployment with
-   * tenants and no marketing visitors used to render an empty state on this
-   * screen and say nothing about the tenants.
-   */
-  const funnel = activation(events);
-  const waiting = stuck.reduce((n, row) => n + row.waiting, 0);
-  const hasTraffic = totals.pageViews > 0;
-  const conversion = conversionRate(rows);
+  const now = readClock();
+  const liveNow = report.people.filter((p) => now - Date.parse(p.lastSeen) < 5 * 60_000).length;
+  const t = report.totals;
+  const perPerson = t.people ? Math.round(t.seconds / t.people) : 0;
+  const rangeLabel = RANGES.find((r) => r.id === range)!.label;
+  const missing = accounts.error && /admin_accounts|function/i.test(accounts.error.message);
 
   return (
     <div className="space-y-6">
-      <OverviewHero
-        days={days}
-        funnel={funnel.map((stage) => ({ reached: stage.reached, fromPrevious: stage.fromPrevious }))}
-        waiting={waiting}
-        traffic={
-          hasTraffic
-            ? {
-                pageViews: totals.pageViews,
-                visitors: totals.visitors,
-                newVisitors: totals.newVisitors,
-                returningVisitors: totals.returningVisitors,
-                botViews: totals.botViews,
-                converted: conversion.converted,
-                rate: conversion.rate,
-              }
-            : null
+      <ToolHero
+        id="admin-hero"
+        label={`Admin · ${range === 'all' ? 'all time' : `last ${rangeLabel}`}`}
+        pill={{ text: liveNow === 1 ? '1 here now' : `${liveNow} here now`, tone: liveNow ? 'var(--status-approved)' : 'var(--status-draft)', live: liveNow > 0 }}
+        variant="figure"
+        title={t.people.toLocaleString('en-IN')}
+        sub={
+          <>
+            {t.people === 1 ? 'person' : 'people'} came to the site:{' '}
+            <strong className="text-[var(--text-c)]">{t.signedIn} signed in</strong> and {t.anonymous} without an account, over{' '}
+            {t.visits.toLocaleString('en-IN')} {t.visits === 1 ? 'visit' : 'visits'}. Everybody is counted once, however many times they came back.
+          </>
         }
-      />
-
-      {!hasTraffic ? (
-        /*
-          The public site with nothing in it. A banner rather than the tall
-          empty card, because the hero above has already said "nothing
-          recorded" and the product half of the page is not empty at all: this
-          only has to explain why, and offer the one thing worth trying.
-        */
-        <Card className="relative overflow-hidden">
-          <span
-            aria-hidden
-            className="a-grid pointer-events-none absolute inset-0 opacity-25 [mask-image:radial-gradient(50%_120%_at_0%_50%,#000,transparent)]"
+        glow="var(--color-brand-500)"
+        scene={
+          <ArchScene
+            motif="owl"
+            className="h-full min-h-[18rem]"
+            seal={<SealFigure value={duration(t.seconds)} note="time spent in all" />}
           />
-          <div className="relative flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
-            <span
-              aria-hidden
-              className="surface-sunken text-muted a-inner grid size-12 shrink-0 place-items-center rounded-2xl border"
+        }
+      >
+        <nav aria-label="Period" className="surface-sunken mt-6 inline-flex flex-wrap gap-1 rounded-full border p-1">
+          {RANGES.map((r) => (
+            <Link
+              key={r.id}
+              href={r.id === '30d' ? '/analytics' : `/analytics?range=${r.id}`}
+              aria-current={r.id === range ? 'page' : undefined}
+              className={cn(
+                'rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition',
+                r.id === range ? 'bg-[var(--action)] text-[var(--on-action)] shadow-[var(--elev-brand)]' : 'text-muted hover:text-[var(--text-c)]',
+              )}
             >
-              <Activity className="size-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <h2 className="font-semibold tracking-tight">
-                No public-site visits in the last {days} days
-              </h2>
-              <p className="text-muted mt-1 max-w-3xl text-[13px] leading-relaxed text-pretty">
-                The tracker runs on every public page and sends one beacon when a visitor leaves it,
-                so the first rows appear a minute or two after the first real visit. Visitors with
-                Do Not Track or Global Privacy Control set are never recorded at all, which is
-                deliberate and will always leave a gap here.
-              </p>
-            </div>
-            {days !== 90 && (
-              <Link
-                href="/analytics?days=90"
-                className={buttonClass({ size: 'sm', className: 'self-start sm:self-center' })}
-              >
-                Look back 90 days
-              </Link>
-            )}
-          </div>
-        </Card>
-      ) : (
-        <>
-          {/*
-            * Traffic, second and smaller.
-            *
-            * It used to be first and ten cards long, five of which could not move:
-            * two counted things that do not exist on the site, and three counted
-            * de-anonymisation that has since been switched off for being wrong. What
-            * is left is the four figures that describe the public site honestly, plus
-            * the one conversion it exists to produce.
-            */}
-          <section aria-labelledby="ov-traffic" className="space-y-3">
-            <SectionLabel id="ov-traffic" icon={Radar}>
-              The public site · last {days} days
-            </SectionLabel>
-            <KpiRow flow="flex">
-              <KpiCard
-                label="Page views"
-                value={totals.pageViews}
-                caption={`${number(totals.botViews)} bot ${totals.botViews === 1 ? 'visit' : 'visits'} excluded from every figure here`}
-                accent="var(--h-cyan)"
-              />
-              <KpiCard
-                label="People"
-                value={totals.visitors}
-                caption={`${number(totals.newVisitors)} new · ${number(totals.returningVisitors)} came back`}
-                accent="var(--h-amber)"
-                href={`/analytics/visitors?days=${days}`}
-              />
-              <KpiCard
-                label="Visits"
-                value={totals.sessions}
-                caption={`${totals.bounceRate}% read one page and left`}
-                accent="var(--h-rose)"
-                href={`/analytics/visitors?days=${days}`}
-              />
-              <KpiCard
-                label="Attention per visit"
-                value={duration(totals.averageEngaged)}
-                caption="Counted only while the tab was in front and something was being touched"
-                accent="var(--h-magenta)"
-              />
-              <KpiCard
-                label="Asked to be contacted"
-                value={conversion.converted}
-                caption={`${conversion.rate}% of ${number(conversion.visitors)} people`}
-                accent="var(--h-lime)"
-                href="/analytics/requests"
-              />
-            </KpiRow>
-          </section>
+              {r.label}
+            </Link>
+          ))}
+        </nav>
 
-          <Card>
-            <CardTitle
-              icon={<Activity className="size-4" />}
-              title="Traffic"
-              description={`Page views by day for the last ${days} days. Hover to read one.`}
-            />
-            <div className="px-5 py-5 sm:px-6">
-              <Trend points={daily(rows, days)} />
-            </div>
-          </Card>
+        <div className="mt-6 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+          <HeroStat strong label="Signed in" value={<Figure value={t.signedIn} delay={120} />} note={`${t.accounts} accounts in all, ${t.newAccounts} new`} />
+          <HeroStat label="Came back" tone="var(--color-brand-500)" value={<Figure value={t.returning} delay={180} />} note="More than one visit" />
+          <HeroStat label="Time per person" tone="var(--h-cyan)" value={duration(perPerson)} note={`${t.views.toLocaleString('en-IN')} pages opened`} />
+          <HeroStat label="Requests" tone="var(--status-warn)" value={<Figure value={t.requests} delay={240} />} note="Access and roadmap asks" />
+        </div>
+      </ToolHero>
 
-          <section className="grid gap-6 lg:grid-cols-2">
-            <Card className="overflow-hidden">
-              <CardTitle
-                icon={<ArrowUpRight className="size-4" />}
-                title="Most read"
-                description="Every page view, not one per visit."
-              />
-              <BarList items={topPages(rows, 8)} tone="var(--h-indigo)" />
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardTitle
-                icon={<Compass className="size-4" />}
-                title="Where they came from"
-                description="Referring site, with www stripped so one source is one line."
-              />
-              <BarList items={topReferrers(rows, 8)} tone="var(--h-violet)" />
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardTitle
-                icon={<MonitorSmartphone className="size-4" />}
-                title="What they were on"
-                description="Share of page views by device."
-              />
-              <Split items={byDevice(rows)} />
-            </Card>
-
-            <Card className="overflow-hidden">
-              <CardTitle
-                icon={<Gauge className="size-4" />}
-                title="How the site is holding up"
-                description="Measured in real visitors' browsers, not in a lab."
-              />
-              <Vitals vitals={webVitals(rows)} />
-            </Card>
-          </section>
-        </>
+      {(views.capped || visitors.capped) && (
+        <p className="tinted rounded-2xl border px-4 py-3 text-sm [--tone:var(--status-warn)]">
+          This period has more than {CEILING.toLocaleString('en-IN')} rows, and only the most recent are counted. Pick a shorter period for exact figures.
+        </p>
+      )}
+      {missing && (
+        <p className="tinted rounded-2xl border px-4 py-3 text-sm [--tone:var(--status-warn)]">
+          The account list needs migration 0033. Everything else here works without it once its tables exist.
+        </p>
       )}
 
-      <Directory />
+      <Card className="overflow-hidden">
+        <CardTitle icon={<Activity className="size-4" />} title="People per day" description="Each person counted once a day, in Indian time." />
+        <div className="px-5 pt-8 pb-5 sm:px-6">
+          <DayChart days={report.days} />
+        </div>
+      </Card>
+
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <Panel icon={<LayoutList className="size-4" />} title="Most read" note="Opens and time">
+          <BarList items={report.pages} unit="view" showTime empty="No pages yet." />
+        </Panel>
+        <Panel icon={<Route className="size-4" />} title="Where they came from" note="First visit">
+          <BarList items={report.sources} unit="person" empty="Nobody yet." />
+        </Panel>
+        <Panel icon={<Globe2 className="size-4" />} title="Countries" note="From their address">
+          <BarList items={report.places} unit="person" empty="Nobody yet." />
+        </Panel>
+        <Panel icon={<MonitorSmartphone className="size-4" />} title="Devices" note="Latest browser">
+          <BarList items={report.devices} unit="person" empty="Nobody yet." />
+        </Panel>
+      </div>
+
+      <Card className="overflow-hidden">
+        <CardTitle
+          icon={<Users className="size-4" />}
+          title="People"
+          description="Signed-in people with every browser they used, and visitors known by an ID. Open one to see their pages."
+          action={<Live count={liveNow} />}
+        />
+        <People people={report.people} now={now} />
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardTitle icon={<KeyRound className="size-4" />} title="Requests" description={`${t.requests} in this period. Reply straight from here.`} />
+        <Requests requests={report.requests} />
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardTitle
+          icon={<UserCheck className="size-4" />}
+          title="Accounts and sign-ins"
+          description={`All ${t.accounts} accounts, with when each was made and last signed in. Visits and time are for this period.`}
+        />
+        <Accounts accounts={accounts.data ?? []} people={report.people} now={now} />
+      </Card>
+
+      <p className="text-subtle flex items-center justify-center gap-1.5 pb-4 text-center text-[12px]">
+        <Clock3 className="size-3.5" aria-hidden />
+        Time counts only while a page is open in front of someone and they have been active in the last two minutes.
+      </p>
     </div>
   );
 }
 
-/** A mono label heading a run of panels, with the icon tile the panels use. */
-function SectionLabel({
-  id,
-  icon: Icon,
-  children,
-}: {
-  id?: string;
-  icon: LucideIcon;
-  children: React.ReactNode;
-}) {
+/**
+ * The moment this page was drawn, for "here now" and "3m ago". A server
+ * component renders once per request, so reading the clock here is the point;
+ * it is behind a function only because the purity rule cannot tell a request
+ * render from a re-render.
+ */
+function readClock(): number {
+  return Date.now();
+}
+
+function Panel({ icon, title, note, children }: { icon: ReactNode; title: string; note: string; children: ReactNode }) {
   return (
-    <h2 id={id} className="flex items-center gap-2.5">
-      <span
-        aria-hidden
-        className="surface-sunken text-subtle grid size-6 place-items-center rounded-lg border"
-      >
-        <Icon className="size-3.5" />
-      </span>
-      <span className="a-label">{children}</span>
-    </h2>
+    <Card className="overflow-hidden">
+      <CardTitle icon={icon} title={title} description={note} />
+      <div className="p-3">{children}</div>
+    </Card>
   );
 }
 
-/**
- * The other seven screens, said out loud.
- *
- * A rail of nav items is fine once you know what is on it, and useless the first
- * time. This is the same list with a sentence each, so the section is legible to
- * somebody who has not used it before — and it is grouped by the one distinction
- * that actually organises this material: whether we know who the person is.
- */
-const AREAS = [
-  {
-    group: 'Whether the product works',
-    items: [
-      { href: '/analytics/activation', label: 'Activation', icon: TrendingUp, note: 'Signups to workspaces to first submitted voucher, how long each step of the workflow takes, and what has stopped moving because nobody was told.' },
-      { href: '/analytics/external', label: 'Usage', icon: Users, note: 'Everyone signed in, with a toggle between customers and our own team. The two are never summed, because the combined figure is the misleading one.' },
-      { href: '/analytics/orgs', label: 'Organisations', icon: Building2, note: 'Per tenant, ranked by work done rather than pages read. Counts only — no voucher amount, vendor or number reaches these screens.' },
-    ],
-  },
-  {
-    group: 'Who is asking, and what is breaking',
-    items: [
-      { href: '/analytics/requests', label: 'Access requests', icon: Inbox, note: 'Real inbound from people who typed their own details. The highest signal-to-noise screen here.' },
-      { href: '/analytics/errors', label: 'Errors', icon: AlertTriangle, note: 'Every failure a page boundary or a route handler caught, newest first.' },
-    ],
-  },
-  {
-    group: 'The public site',
-    items: [
-      { href: '/analytics/visitors', label: 'Public site', icon: Radar, note: 'Anonymous sessions, the lead funnel, what got clicked and how far down people read. A company name appears only when the address itself named one.' },
-    ],
-  },
-] as const;
-
-function Directory() {
+function Live({ count }: { count: number }) {
   return (
-    <section aria-labelledby="ov-directory" className="space-y-6 pt-2">
-      <div>
-        <h2 id="ov-directory" className="m-display text-[1.45rem] leading-tight">
-          Everything else in this section
-        </h2>
-        <p className="text-muted mt-1 text-[13px]">
-          Grouped by the one distinction that organises it: whether we know who the person is.
-        </p>
-      </div>
-      {AREAS.map((area) => (
-        <div key={area.group}>
-          <h3 className="a-label mb-3">{area.group}</h3>
-          <ul className="stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {area.items.map((item) => (
-              <li key={item.href} className="min-w-0">
-                <Link
-                  href={item.href}
-                  className="surface-lit a-ring a-lift group flex h-full gap-3.5 rounded-2xl border p-4 sm:p-5"
-                >
-                  <span
-                    aria-hidden
-                    className="surface-sunken text-muted a-inner grid size-9 shrink-0 place-items-center rounded-xl border transition-colors group-hover:text-[var(--accent)]"
-                  >
-                    <item.icon className="size-4" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-1 text-[14px] font-semibold tracking-tight">
-                      {item.label}
-                      <ArrowUpRight
-                        className="size-3.5 opacity-40 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
-                        aria-hidden
-                      />
-                    </span>
-                    <span className="text-subtle mt-1 block text-[12px] leading-snug text-pretty">
-                      {item.note}
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </section>
+    <span
+      style={{ '--tone': count ? 'var(--status-approved)' : 'var(--status-draft)' } as CSSProperties}
+      className="tinted inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] font-semibold"
+    >
+      {count ? <span className="a-blip size-1.5 rounded-full bg-current" aria-hidden /> : <Radio className="size-3" aria-hidden />}
+      {count} here now
+    </span>
   );
 }

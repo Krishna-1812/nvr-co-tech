@@ -3,6 +3,7 @@ import { BRAND, SITE_URL } from '@/lib/marketing/content';
 import { SKY_SCRIPT } from '@/lib/sky';
 import { DESERT_FONTS } from '@/lib/brand/fonts';
 import './globals.css';
+import { Tracker } from '@/components/Tracker';
 
 /*
  * Two faces for the whole product, public site and app alike: Figtree for
@@ -116,7 +117,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         the signed-in side; it lives in the signed-in frame now. See
         components/app/Toasts.
       */}
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        {/* Our own measurement, for every page; see components/Tracker. */}
+        <Tracker />
+      </body>
     </html>
   );
 }

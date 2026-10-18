@@ -769,6 +769,54 @@ export type FinderCreditRow = {
   created_at: string;
 };
 
+/** 0033 — one row per browser (the `fi_vid` cookie). */
+export type SiteVisitorRow = {
+  id: string;
+  first_seen: string;
+  last_seen: string;
+  user_id: string | null;
+  email: string | null;
+  first_path: string | null;
+  first_referrer: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  browser: string | null;
+  os: string | null;
+  device: string | null;
+  screen: string | null;
+  language: string | null;
+  timezone: string | null;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  ip: string | null;
+  user_agent: string | null;
+};
+
+/** 0033 — one row per page opened, with the time spent on it. */
+export type SiteViewRow = {
+  id: string;
+  visitor_id: string;
+  session_id: string | null;
+  user_id: string | null;
+  path: string;
+  title: string | null;
+  referrer: string | null;
+  started_at: string;
+  seconds: number;
+};
+
+/** 0033 — `admin_accounts()`. */
+export type AdminAccountRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  created_at: string;
+  last_sign_in_at: string | null;
+  provider: string | null;
+};
+
 /** 0032 — what a browser-side tool keeps, saved for its signed-in owner. */
 export type ToolSaveRow = {
   user_id: string;
@@ -802,6 +850,8 @@ export type Database = {
       assist_conversations: Table<AssistConversationRow>;
       assist_turns: Table<AssistTurnRow>;
       tool_saves: Table<ToolSaveRow>;
+      site_visitors: Table<SiteVisitorRow>;
+      site_views: Table<SiteViewRow>;
 
       // 0010 — the analytics store.
       analytics_admins: Table<AnalyticsAdminRow>;
@@ -901,6 +951,8 @@ export type Database = {
        * convenience, it is the door.
        */
       is_analytics_admin: { Args: Record<string, never>; Returns: boolean };
+      track_hit: { Args: { p: Record<string, unknown> }; Returns: void };
+      admin_accounts: { Args: Record<string, never>; Returns: AdminAccountRow[] };
       record_visitor_view: { Args: { p: Record<string, unknown> }; Returns: void };
       record_page_view: { Args: { p: Record<string, unknown> }; Returns: void };
       record_identity: { Args: { p: Record<string, unknown> }; Returns: void };

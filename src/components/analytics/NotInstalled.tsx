@@ -15,12 +15,11 @@ export function NotInstalled() {
     <Card className="overflow-hidden">
       <EmptyState
         icon={<Database className="size-6" />}
-        title="The analytics tables are not in this database yet"
+        title="The Admin tables are not in this database yet"
         description={
-          `Migration 0010 creates them, together with the allowlist that decides who may read them. `
-          + `Run supabase/migrations/0010_analytics.sql against this project, and ${FIRST_ADMIN} `
-          + `will be able to open these screens. Nothing is being collected until it is applied, `
-          + `and nothing else in the platform is affected.`
+          `Migration 0010 creates the admin list, and 0033 the visitor and page tables this `
+          + `screen reads. Run them against this project, and ${FIRST_ADMIN} and the other `
+          + `admins will be able to open it. Nothing else in the platform is affected.`
         }
       />
     </Card>

@@ -8,7 +8,6 @@ import { SideRail } from './app/SideRail';
 import { TopBar } from './app/TopBar';
 import { MobileDock } from './app/MobileDock';
 import { PreviewBanner } from './app/PreviewBanner';
-import { PageTiming } from './app/PageTiming';
 import { Toasts } from './app/Toasts';
 import { ThemeColor } from './app/ThemeColor';
 import { RouteStage } from './app/RouteStage';
@@ -52,7 +51,7 @@ export async function AppShell({ user, admin = false, section: given, children }
   const fiscal = fiscalYear(istToday());
 
   /*
-   * Whether to offer the way in to visitor intelligence.
+   * Whether to offer the way in to the Admin screen.
    *
    * Asked here, once, rather than in each tool's layout, because the account
    * menu is the only chrome every shell shares and this is the flag that
@@ -113,18 +112,9 @@ export async function AppShell({ user, admin = false, section: given, children }
 
       <MobileDock nav={section.items} />
 
-      {/*
-        Reading time, per screen, for the signed-in side.
-
-        Here rather than in each tool's layout so a new tool cannot arrive
-        without it — and here rather than in the root layout so it never runs on
-        the public site, which has its own tracker and its own consent rules.
-      */}
-      {user && <PageTiming />}
       <ThemeColor />
 
-      {/* Same reasoning as PageTiming: one place for the whole signed-in side,
-          and never on the public site. */}
+      {/* One place for the whole signed-in side, and never on the public site. */}
       <Toasts />
 
       {/* The public site's delegated motion, pointed at the app's own targets:

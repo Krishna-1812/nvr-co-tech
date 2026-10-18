@@ -6,20 +6,18 @@ import { AppShell } from '@/components/AppShell';
 import { NotInstalled } from '@/components/analytics/NotInstalled';
 
 /**
- * Visitor Intelligence, and the gate in front of it.
+ * The Admin screen, and the gate in front of it.
  *
- * The check is here rather than on each page so that a screen added later
- * cannot forget it, which is the same reasoning as /admin — but the list being
- * checked is a different one, and that is the point of this whole route group
- * being separate. Voucher Desk's admin can approve payments and manage people.
- * That is no reason at all to show them which companies read the pricing page.
+ * Checked here rather than on the page so that a screen added later cannot
+ * forget it. The list is `analytics_admins` (the owner's admins, 0010 and
+ * 0032), asked of Postgres through `is_analytics_admin()`.
  *
- * `notFound()` rather than a redirect for somebody who is signed in but not on
- * the list: a redirect from /analytics tells them there is an /analytics.
+ * `notFound()` rather than a redirect for somebody signed in but not on the
+ * list: nothing should tell them the screen exists.
  *
- * The real enforcement is not here anyway. Every table these screens read has a
- * select policy calling the same `is_analytics_admin()` this does, so a person
- * who got past this layout would still be handed nothing.
+ * The real enforcement is not here anyway. Every table the screen reads has a
+ * select policy calling the same function (0033), so a person who got past
+ * this layout would still be handed nothing.
  */
 export default async function InsightLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();

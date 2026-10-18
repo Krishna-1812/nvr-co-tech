@@ -1,6 +1,4 @@
 import * as fixtures from './fixtures';
-import * as analytics from './analytics';
-import * as operator from './operator';
 import * as comps from './comps';
 import { PREVIEW_USER_ID } from './fixtures';
 import { financialYear } from '@/lib/domain/voucher';
@@ -72,23 +70,14 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   assist_conversations: [],
   assist_turns: [],
   /*
-   * 0022, derived from the vouchers rather than written out. Three analytics
-   * screens read nothing but this, and with no stand-in they all rendered their
-   * empty states while the register beside them listed fourteen vouchers. See
-   * ./operator.ts for why it is computed rather than seeded.
+   * The Admin panel's tables (0033). Empty on purpose and filled by using
+   * preview: every page opened here is recorded by the real tracker through the
+   * `track_hit` case below, so the panel shows this browser's own visits rather
+   * than a sample of anybody else's.
    */
-  product_events: operator.product_events as unknown as Row[],
-  // Analytics (0010). Seeded, unlike the two above, because these screens are
-  // the one part of the platform whose content cannot be produced by using it:
-  // a preview visitor cannot generate a fortnight of somebody else's traffic.
-  visitor_analytics: analytics.visitor_analytics,
-  page_views: [],
-  visitor_identities: analytics.visitor_identities,
-  identity_nodes: analytics.identity_nodes,
-  identity_edges: analytics.identity_edges,
-  ip_resolutions: [],
-  company_enrichment: [],
-  enrichment_spend: [],
+  site_visitors: [],
+  site_views: [],
+  access_requests: [],
   /*
    * Valuation Desk (0028). Seeded, like the analytics tables and unlike the
    * reconciliation and assistant histories: a peer set is assembled FROM a
@@ -604,46 +593,99 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
       return ok(v);
     }
 
-    /*
-     * Analytics (0010). The three writers are no-ops here rather than pushing
-     * rows: the sample traffic is a fortnight of other people's browsing, and a
-     * preview user wandering the marketing site adding their own page views to
-     * it would make every figure on those screens drift away from the sample it
-     * was built to show.
-     */
     case 'is_analytics_admin':
       return ok(true);
 
-    /*
-     * 0026. The operator's cross-tenant view, which exists because RLS scopes
-     * organizations and profiles to the caller's own tenant, so reading those
-     * tables directly hands an operator exactly one row however many have signed
-     * up. Mirrored in ./operator.ts, close enough for the screens to render and
-     * no closer: Postgres is the authority on all five.
-     */
-    case 'operator_tenants':
-      return ok(operator.operatorTenants());
-    case 'operator_members':
-      return ok(operator.operatorMembers());
-    case 'operator_onboarding':
-      return ok(operator.operatorOnboarding());
-    case 'operator_workflow_stages':
-      return ok(operator.operatorWorkflowStages());
-    case 'operator_stuck_vouchers':
-      return ok(operator.operatorStuckVouchers(Number(args.p_days ?? 7)));
-    // The open workspace's "Request access" (actions/access.ts). Accepted and
-    // dropped: there is no table to keep it in, and the screen only needs the
-    // answer to be yes.
-    case 'submit_access_request':
+    // The open workspace's "Request access" (actions/access.ts), kept so the
+    // Admin panel lists what was asked in this preview.
+    case 'submit_access_request': {
+      TABLES.access_requests.unshift({
+        id: `ar-${Math.random().toString(36).slice(2, 9)}`,
+        created_at: nowIso(),
+        name: args.p_name,
+        email: args.p_email,
+        company: args.p_company ?? null,
+        interest: args.p_interest ?? null,
+        message: args.p_message ?? null,
+        visitor_id: args.p_visitor_id ?? null,
+        source: args.p_source ?? null,
+      });
       return ok();
-    case 'record_visitor_view':
-    case 'record_page_view':
-    case 'record_identity':
-      return ok();
+    }
 
+    // 0033: the tracker's one writer, mirrored closely enough to see a journey
+    // join up when preview switches from a visitor to a signed-in person.
+    case 'track_hit':
+      // Answered in createPreviewClient, which knows who preview is pretending to be.
+      return ok();
+    case 'admin_accounts':
+      return ok(
+        TABLES.profiles.map((p) => ({
+          id: p.id,
+          email: p.email,
+          full_name: p.full_name,
+          created_at: p.created_at,
+          last_sign_in_at: p.id === PREVIEW_USER_ID ? nowIso() : null,
+          provider: 'email',
+        })),
+      );
     default:
       return fail(`${fn} is not available in preview mode.`);
   }
+}
+
+/**
+ * `track_hit` (0033) in memory: the same three steps as the Postgres function —
+ * remember the visitor, record or time the page view, and, when somebody is
+ * signed in, put this visitor and every earlier view of theirs under that
+ * person.
+ */
+function previewTrack(p: Row, who: { id: string; email: string } | null) {
+  const vid = String(p.vid ?? '');
+  if (!vid) return null;
+  const now = nowIso();
+  let v = TABLES.site_visitors.find((r) => r.id === vid);
+  if (!v) {
+    v = {
+      id: vid,
+      first_seen: now,
+      first_path: p.path ?? null,
+      first_referrer: p.referrer ?? null,
+      utm_source: p.utm_source ?? null,
+      utm_medium: p.utm_medium ?? null,
+      utm_campaign: p.utm_campaign ?? null,
+      user_id: null,
+      email: null,
+    };
+    TABLES.site_visitors.push(v);
+  }
+  for (const k of ['browser', 'os', 'device', 'screen', 'language', 'timezone', 'country', 'region', 'city', 'ip', 'user_agent']) {
+    if (p[k]) v[k] = p[k];
+  }
+  v.last_seen = now;
+  if (who) {
+    v.user_id = who.id;
+    v.email = who.email;
+    for (const view of TABLES.site_views) if (view.visitor_id === vid && !view.user_id) view.user_id = who.id;
+  }
+  if (p.type === 'view' && p.view_id && !TABLES.site_views.some((r) => r.id === p.view_id)) {
+    TABLES.site_views.push({
+      id: p.view_id,
+      visitor_id: vid,
+      session_id: p.sid ?? null,
+      user_id: who?.id ?? null,
+      path: p.path,
+      title: p.title ?? null,
+      referrer: p.referrer ?? null,
+      started_at: now,
+      seconds: 0,
+    });
+  }
+  if (p.type === 'time') {
+    const view = TABLES.site_views.find((r) => r.id === p.view_id && r.visitor_id === vid);
+    if (view) view.seconds = Math.max(Number(view.seconds) || 0, Math.min(Number(p.seconds) || 0, 21600));
+  }
+  return null;
 }
 
 // ─── The client ──────────────────────────────────────────────────────────────
@@ -659,7 +701,11 @@ export function createPreviewClient(as: 'admin' | 'member' | 'guest' = 'admin') 
   return {
     from: table,
     rpc: (fn: string, args?: Record<string, unknown>) =>
-      fn === 'is_analytics_admin' && as !== 'admin' ? Promise.resolve(ok(false)) : rpc(fn, args),
+      fn === 'is_analytics_admin' && as !== 'admin'
+        ? Promise.resolve(ok(false))
+        : fn === 'track_hit'
+          ? Promise.resolve(ok(previewTrack((args?.p ?? {}) as Row, as === 'guest' ? null : { id: PREVIEW_USER_ID, email: String(email) })))
+          : rpc(fn, args),
     auth: {
       getUser: async () => ({
         data: { user: as === 'guest' ? null : { id: PREVIEW_USER_ID, email } },

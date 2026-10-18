@@ -144,11 +144,9 @@ src/app/
   (landed)     True Property Cost: /true-property-cost
   (wealth)     Wealth Tracker: /wealth-tracker
   (assist)     Ask: /ask  /ask/history
-  (insight)    Visitor intelligence + operator analytics (platform allowlist only; 404s otherwise):
-               /analytics  /analytics/activation  /analytics/external  /analytics/orgs
-               /analytics/orgs/[id]  /analytics/requests  /analytics/visitors
-               /analytics/visitors/[id]  /analytics/errors
-  api/         assist  track  atrack  identify  whoami  comps/brief
+  (insight)    The Admin screen, one page (platform admins only; 404s otherwise): /analytics
+  (account)    /settings
+  api/         assist  track (the tracker's endpoint)  comps/brief
                finder/{chat,count,credits,enrich,enrich-bulk,export,history,history/[id],list,parse-query,search,vocab}
   auth/callback (OAuth)   llms.txt   robots.ts   sitemap.ts   manifest.ts
   layout.tsx  error.tsx  global-error.tsx  not-found.tsx  icon.svg  globals.css
@@ -593,25 +591,45 @@ Valuation Desk company brief, `src/lib/comps/brief.ts`): two calls — (1) free 
 and `tool_choice` forced to it, fed the notes from (1). Don't force a tool alongside a server tool
 in one call.
 
-## 12. Visitor intelligence & operator analytics (`(insight)`)
+## 12. Analytics: the Admin screen (`/analytics`)
 
-First-party analytics (own script `public/a.js`, own cookie, own endpoints — no Google Analytics,
-no third-party pixels) plus an engine that identifies the **company** behind anonymous visits, and
-operator dashboards (activation funnel, usage, organisations, access requests, errors). Platform
-allowlist only. This area has the most hard-won invariants in the codebase — **read
-`Context file.md` §10 before changing anything here.** The short version:
+**Replaced wholesale on 18 Oct 2026** at the owner's request ("very complex — remove everything,
+keep one Admin tab, track simply"). The old system (`public/a.js`, `/api/atrack|identify|whoami`,
+company identification, identity graph, funnels, operator reports, errors screen, AI digests, 8
+pages, ~25 lib modules) is deleted from the code. **Its tables (0010 onwards: `page_views`,
+`visitor_analytics`, `visitor_identities`, `identity_*`, `ip_resolutions`, `company_enrichment`,
+`product_events`, `ai_summaries`…) are left in the database, unread and unwritten**; dropping them is
+a separate decision for the owner. `error_log` still receives errors (`lib/errors`), there is just no
+screen for it. Kept from `lib/analytics`: `admin.ts` (the admin gate), `cookie.ts` (`fi_vid` reader,
+used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
 
-- **Do not relax `qualifies()`** in the identification gate. Only `business`/`education`/
-  `government` IPs may surface a name, and only with an *observed* method (reverse DNS or an
-  IP-intel company hit). `IPINFO_TOKEN` is unset in production; setting it (free tier) is the
-  correct way to identify more visitors. If rows ever all read "60% / 1 signal", that is the old
-  fabrication bug returning.
-- **Never fabricate a person.** Only deterministic evidence (sign-in, form, token webhook) merges
-  identities.
-- Cross-tenant operator reads go only through `operator_*` SECURITY DEFINER functions (0026),
-  which must never be widened to expose payment details. `is_analytics_admin()` is not granted on
-  `organizations`/`profiles`/`vouchers`.
-- DNT and GPC honoured unconditionally.
+- **Tracker** `src/components/Tracker.tsx`, mounted once in the root layout (public site *and*
+  workspace; skips `/analytics` itself; nothing under DNT/GPC). Cookie **`fi_vid`** (random UUID, 1
+  year rolling, same name as before so old visitors keep their ID), tab session in sessionStorage
+  `fi_sid`. Per page: a `view` (path only — query strings carry invite tokens/auth codes — title,
+  referrer, UTM on the first page, screen, language, time zone), then `time` with the running count
+  every 15s and on hide/leave. Time counts only while visible and active within 2 minutes.
+- **Endpoint** `src/app/api/track/route.ts` → `lib/analytics/hit.ts` (`buildHit`, tested: validates
+  IDs, drops bots, caps time at 6h, adds IP, Vercel geo headers, browser/OS/device) → RPC
+  `track_hit` using the visitor's own session, so **the account comes from `auth.uid()`, never the
+  body**.
+- **Schema** migration **0033**: `site_visitors` (one row per browser: first/last seen, first page,
+  referrer, UTM, device, place, IP, `user_id`/`email` once signed in), `site_views` (one row per
+  page, `seconds`). `track_hit()` SECURITY DEFINER, anon-callable; on a signed-in hit it stamps the
+  visitor and moves **all its earlier views** under the account (the "map previous visits" rule).
+  `admin_accounts()` lists `auth.users` (joined, last sign-in, provider) for admins. Reads are
+  `is_analytics_admin()` only.
+- **Screen** `(insight)/analytics/page.tsx` + `components/admin/*`, arithmetic in
+  `lib/analytics/report.ts` (`buildReport`, tested). A *person* = an account (all its browsers added
+  up) or an anonymous browser ("Visitor 3F2A1C"). Shows: people count, here-now, range (7/30/90
+  days/all, IST midnights), signed in / came back / time per person / requests, people-per-day chart,
+  most-read pages, sources, countries, devices, the People list (search, filter, expand for facts and
+  page timeline), Requests (access requests + "I want this", linked to the person), Accounts and
+  sign-ins. Reads in pages of 1,000 up to 50,000 rows and says so if capped.
+- **Preview**: tracking works in memory (`previewTrack` in `lib/preview/client.ts`), so the screen
+  shows your own preview browsing; access requests are kept too. Use a normal user agent in
+  Playwright (HeadlessChrome is dropped as a bot).
+- Nav: one item, "Admin" (`analyticsSection`); account menu says "Admin".
 
 ---
 
@@ -628,6 +646,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0030 | `company_briefs_structured.sql` | Replaces the brief's markdown column with structured `content jsonb` |
 | 0031 | `contact_finder.sql` | Contact Finder: caches, records, credit ledger, allowlist (see §9) |
 | 0032 | `open_workspace.sql` | The owner's five admin emails into `analytics_admins`; `tool_saves` (owner-only RLS, 2 MB cap, server-stamped `updated_at`) for the open tools' account copies (§4a) |
+| 0033 | `simple_analytics.sql` | The new analytics: `site_visitors`, `site_views`, `track_hit()`, `admin_accounts()` (§12) |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied
 (21 Aug 2026). 0028 applied (Valuation Desk is used in production). 0029/0030: 0029 was found
