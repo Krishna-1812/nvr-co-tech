@@ -257,53 +257,16 @@ export type AssistTurnRow = {
 };
 
 /**
- * The analytics store (0010).
- *
- * Deliberately thin here. The event tables have no insert policy at all — every
- * write goes through a SECURITY DEFINER function taking one jsonb payload — so
- * there is no meaningful Insert shape for them, and the row shapes the screens
- * actually reason about live in lib/analytics/types.ts beside the code that
- * reads them. What this file needs is only enough for the query builder to type
- * a select and for the two caches, which the dashboard does write to directly.
+ * The admin list (0010). The rest of 0010's analytics store was dropped by 0034
+ * when the Admin screen (0033) replaced it.
  */
 export type AnalyticsAdminRow = { email: string; note: string | null; added_at: string };
-
-export type IpResolutionRow = {
-  ip: string;
-  /** Stamped by the resolver, so improved logic re-resolves instead of serving stale. */
-  version: number;
-  resolution: unknown;
-  resolved_at: string;
-  expires_at: string;
-};
-
-export type CompanyEnrichmentRow = {
-  domain: string;
-  tier: 'free' | 'paid';
-  version: number;
-  /** Null is a real cached answer: we looked, and there was nothing. */
-  data: unknown;
-  fetched_at: string;
-  expires_at: string;
-};
-
-export type EnrichmentSpendRow = {
-  id: number;
-  spent_at: string;
-  actor_email: string;
-  kind: 'company' | 'person';
-  subject: string;
-  outcome: 'hit' | 'miss' | 'error';
-};
-
-/** Row shapes for the append-only analytics tables, as the dashboard reads them. */
-type AnalyticsRow = Record<string, unknown>;
 
 /**
  * 0022 — an activation milestone, written from the function that caused it.
  *
- * Named rather than left as an AnalyticsRow because the funnel screen selects
- * specific columns off it and would otherwise have to assert every one.
+ * Still written by the sign-up, voucher and invite functions, so the table
+ * stays; nothing reads it since the Admin screen replaced the funnel.
  */
 export type ProductEventRow = {
   id: number;
@@ -312,64 +275,6 @@ export type ProductEventRow = {
   organization_id: string | null;
   meta: Record<string, unknown> | null;
   created_at: string;
-};
-
-/*
- * 0026 — what the operator functions hand back.
- *
- * These are not table rows. Each one is the return shape of a SECURITY DEFINER
- * function that exists precisely so the operator does not read the underlying
- * table, and the narrowness is the feature: if a screen wants a figure that is
- * not in one of these shapes, the honest move is to go and widen a function
- * body where somebody will see it, not to reach past them into `vouchers`.
- */
-export type OperatorTenantRow = {
-  organization_id: string;
-  name: string;
-  created_at: string;
-  members: number;
-  first_event: string | null;
-  last_event: string | null;
-  chapters_created: number;
-  invites_sent: number;
-  invites_accepted: number;
-  vouchers_drafted: number;
-  vouchers_submitted: number;
-  vouchers_approved: number;
-  vouchers_rejected: number;
-  vouchers_paid: number;
-  reconciliations_saved: number;
-};
-
-export type OperatorMemberRow = {
-  email: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  organization_id: string | null;
-  organization_name: string | null;
-  joined_at: string;
-};
-
-export type OperatorOnboardingRow = {
-  email: string;
-  full_name: string | null;
-  signed_up_at: string;
-};
-
-export type OperatorWorkflowStageRow = {
-  stage: string;
-  samples: number;
-  /** Null when every span in the stage was unmeasurable. */
-  median_hours: number | null;
-  p90_hours: number | null;
-};
-
-export type OperatorStuckRow = {
-  organization_id: string;
-  organization_name: string;
-  status: VoucherStatus;
-  waiting: number;
-  oldest_days: number;
 };
 
 /** 0023 — one open of a metered tool. */
@@ -394,21 +299,6 @@ export type AccessRequestRow = {
   ip: string | null;
   source: string | null;
   visitor_id: string | null;
-};
-
-/**
- * 0024 — a model-written read of a person, keyed by a hash of the facts that
- * produced it rather than by time, so it is regenerated when it stops being
- * true instead of when it gets old.
- */
-export type AiSummaryRow = {
-  fact_hash: string;
-  subject: string;
-  headline: string;
-  summary: string;
-  intent: 'high' | 'medium' | 'low';
-  model: string | null;
-  created_at: string;
 };
 
 /** 0023 — a signed-in person asking for a tool that is not live yet. */
@@ -855,14 +745,6 @@ export type Database = {
 
       // 0010 — the analytics store.
       analytics_admins: Table<AnalyticsAdminRow>;
-      page_views: Table<AnalyticsRow>;
-      visitor_analytics: Table<AnalyticsRow>;
-      visitor_identities: Table<AnalyticsRow>;
-      identity_nodes: Table<AnalyticsRow>;
-      identity_edges: Table<AnalyticsRow>;
-      ip_resolutions: Table<IpResolutionRow>;
-      company_enrichment: Table<CompanyEnrichmentRow>;
-      enrichment_spend: Table<EnrichmentSpendRow>;
 
       // 0011 — shared rate limiting and error logging.
       error_log: Table<ErrorLogRow>;
@@ -870,7 +752,6 @@ export type Database = {
       agent_runs: Table<AgentRunRow>;
       access_requests: Table<AccessRequestRow>;
       feature_requests: Table<FeatureRequestRow>;
-      ai_summaries: Table<AiSummaryRow>;
 
       /*
        * Valuation Desk (0028).
@@ -953,10 +834,6 @@ export type Database = {
       is_analytics_admin: { Args: Record<string, never>; Returns: boolean };
       track_hit: { Args: { p: Record<string, unknown> }; Returns: void };
       admin_accounts: { Args: Record<string, never>; Returns: AdminAccountRow[] };
-      record_visitor_view: { Args: { p: Record<string, unknown> }; Returns: void };
-      record_page_view: { Args: { p: Record<string, unknown> }; Returns: void };
-      record_identity: { Args: { p: Record<string, unknown> }; Returns: void };
-      prune_analytics: { Args: { p_days?: number }; Returns: number };
 
       /*
        * 0011 — a shared rate-limit counter and a caught-failure log, both
@@ -1028,17 +905,6 @@ export type Database = {
 
       // 0024 — writing a generated summary into its cache. Gated on the
       // analytics allowlist because each miss costs a model call.
-      cache_ai_summary: {
-        Args: {
-          p_hash: string;
-          p_subject: string;
-          p_headline: string;
-          p_summary: string;
-          p_intent: 'high' | 'medium' | 'low';
-          p_model?: string | null;
-        };
-        Returns: void;
-      };
       submit_access_request: {
         Args: {
           p_name: string;
@@ -1066,17 +932,6 @@ export type Database = {
        * amount, a vendor, a voucher number or a note, and nothing added later
        * should either — see the header of the migration.
        */
-      operator_tenants: { Args: Record<string, never>; Returns: OperatorTenantRow[] };
-      operator_members: { Args: Record<string, never>; Returns: OperatorMemberRow[] };
-      operator_onboarding: { Args: Record<string, never>; Returns: OperatorOnboardingRow[] };
-      operator_workflow_stages: {
-        Args: Record<string, never>;
-        Returns: OperatorWorkflowStageRow[];
-      };
-      operator_stuck_vouchers: {
-        Args: { p_days?: number };
-        Returns: OperatorStuckRow[];
-      };
 
       /*
        * 0031 — Contact Finder. Every write to those eight tables goes through

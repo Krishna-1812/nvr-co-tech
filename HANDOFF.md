@@ -598,8 +598,9 @@ keep one Admin tab, track simply"). The old system (`public/a.js`, `/api/atrack|
 company identification, identity graph, funnels, operator reports, errors screen, AI digests, 8
 pages, ~25 lib modules) is deleted from the code. **Its tables (0010 onwards: `page_views`,
 `visitor_analytics`, `visitor_identities`, `identity_*`, `ip_resolutions`, `company_enrichment`,
-`product_events`, `ai_summaries`…) are left in the database, unread and unwritten**; dropping them is
-a separate decision for the owner. `error_log` still receives errors (`lib/errors`), there is just no
+`product_events`, `ai_summaries`…) are dropped by migration 0034** at the owner's request, except
+`analytics_admins` (the admin list) and `product_events` (still written by the sign-up, organisation,
+invite and voucher functions, so only emptied). `error_log` still receives errors (`lib/errors`), there is just no
 screen for it. Kept from `lib/analytics`: `admin.ts` (the admin gate), `cookie.ts` (`fi_vid` reader,
 used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
 
@@ -647,6 +648,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0031 | `contact_finder.sql` | Contact Finder: caches, records, credit ledger, allowlist (see §9) |
 | 0032 | `open_workspace.sql` | The owner's five admin emails into `analytics_admins`; `tool_saves` (owner-only RLS, 2 MB cap, server-stamped `updated_at`) for the open tools' account copies (§4a) |
 | 0033 | `simple_analytics.sql` | The new analytics: `site_visitors`, `site_views`, `track_hit()`, `admin_accounts()` (§12) |
+| 0034 | `drop_old_analytics.sql` | Drops the 0010/0024 analytics tables and the old analytics and `operator_*` functions; keeps `analytics_admins`; empties `product_events` (§12) |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied
 (21 Aug 2026). 0028 applied (Valuation Desk is used in production). 0029/0030: 0029 was found
