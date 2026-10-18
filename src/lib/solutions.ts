@@ -8,6 +8,7 @@ import {
   ScanText,
   Layers,
   UserSearch,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react';
 import { AGENTS, type Agent, type AgentStage } from '@/lib/marketing/content';
@@ -39,6 +40,7 @@ const ICON: Record<string, LucideIcon> = {
   'valuation-desk': Layers,
   'contact-finder': UserSearch,
   'true-property-cost': Building,
+  'wealth-tracker': Wallet,
   'gst-reconciliation': Percent,
   'tds-compliance': Landmark,
   'invoice-intake': ScanText,

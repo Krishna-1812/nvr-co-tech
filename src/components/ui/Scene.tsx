@@ -27,7 +27,8 @@ export type SceneMotif =
   | 'owl'
   | 'doorways'
   | 'ledger'
-  | 'gate';
+  | 'gate'
+  | 'nest';
 
 const INK = 'var(--text-c)';
 const SUN = 'var(--scene-sun)';
@@ -286,6 +287,49 @@ function Gate() {
   );
 }
 
+/**
+ * Wealth Tracker: what a household keeps, gathered in one place. A house behind,
+ * a strongbox in front with its clasp, and the coins beside it stacking up one
+ * after another.
+ */
+function Nest() {
+  return (
+    <g>
+      <g className="animate-[rise_1.1s_cubic-bezier(0.22,1,0.36,1)_0.45s_backwards]">
+        <path d="M28 196 V150 L58 124 L88 150 V196 Z" fill={INK} opacity="0.55" />
+        <rect x="50" y="170" width="16" height="26" rx="1.5" fill={SUN} opacity="0.75" />
+        <rect x="76" y="140" width="68" height="56" rx="5" fill={INK} />
+        <path d="M76 142 C 82 118, 138 118, 144 142 Z" fill={INK} opacity="0.85" />
+        <rect x="76" y="148" width="68" height="5" fill={SUN} opacity="0.85" />
+        <rect x="76" y="182" width="68" height="4" fill={CLAY} opacity="0.7" />
+      </g>
+      <g className="animate-[pop_0.5s_cubic-bezier(0.34,1.56,0.64,1)_1.2s_backwards] origin-center" style={BOX}>
+        <rect x="103" y="156" width="14" height="17" rx="3" fill={SUN} />
+        <circle cx="110" cy="163" r="2.2" fill={INK} />
+        <rect x="109" y="164" width="2" height="5" fill={INK} />
+      </g>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <g
+          key={i}
+          className="animate-[rise_0.5s_cubic-bezier(0.34,1.56,0.64,1)_backwards]"
+          style={{ animationDelay: `${1300 + i * 120}ms` }}
+        >
+          <ellipse cx="166" cy={191 - i * 7} rx="15" ry="4.5" fill={SUN} stroke={INK} strokeWidth="1.2" />
+        </g>
+      ))}
+      {[0, 1].map((i) => (
+        <g
+          key={`b${i}`}
+          className="animate-[rise_0.5s_cubic-bezier(0.34,1.56,0.64,1)_backwards]"
+          style={{ animationDelay: `${1900 + i * 120}ms` }}
+        >
+          <ellipse cx="186" cy={194 - i * 7} rx="11" ry="3.6" fill={SUN} stroke={INK} strokeWidth="1.1" opacity="0.9" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
 const MOTIFS: Record<SceneMotif, () => ReactNode> = {
   tower: Tower,
   voucher: Voucher,
@@ -297,6 +341,7 @@ const MOTIFS: Record<SceneMotif, () => ReactNode> = {
   doorways: Doorways,
   ledger: Ledger,
   gate: Gate,
+  nest: Nest,
 };
 
 export function ArchScene({

@@ -31,6 +31,10 @@ export const PROTECTED_PREFIXES = [
   // like every other tool, so the workspace around it is the same one. Its old
   // address, /landed-cost, is a redirect in next.config.
   '/true-property-cost',
+  // Wealth Tracker. Like True Property Cost it runs in the browser and keeps the
+  // record there, under the signed-in person's id; sign-in is what gives the
+  // record an owner to be kept under.
+  '/wealth-tracker',
   // Signed in, but not yet a member of an organization — see requireOrgMember().
   '/onboarding',
   // Visitor intelligence. Gated a second time inside its own layout against the

@@ -16,6 +16,7 @@ import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
 import { SOLUTIONS } from '@/lib/solutions';
 import { LiveSolutionCard, type Reading } from '@/components/hub/LiveSolutionCard';
 import { LandedPanel } from '@/components/landed/LandedPanel';
+import { WealthPanel } from '@/components/wealth/WealthPanel';
 import { RequestCard } from '@/components/hub/RequestCard';
 import { RosterMeter } from '@/components/hub/RosterMeter';
 import { SetupChecklist, type SetupState } from '@/components/hub/SetupChecklist';
@@ -410,6 +411,7 @@ export default async function HubPage() {
   const valuationDesk = SOLUTIONS.find((s) => s.slug === 'valuation-desk');
   const contactFinder = SOLUTIONS.find((s) => s.slug === 'contact-finder');
   const landedCost = SOLUTIONS.find((s) => s.slug === 'true-property-cost');
+  const wealthTracker = SOLUTIONS.find((s) => s.slug === 'wealth-tracker');
   /*
    * `rest` is every non-live tool, so it stays a roadmap and never gets a
    * live tool mislabelled "Not started yet". The other side of that contract
@@ -443,6 +445,7 @@ export default async function HubPage() {
     reconciliation,
     valuationDesk,
     landedCost,
+    wealthTracker,
     finderOpen ? contactFinder : undefined,
   ].filter(Boolean).length;
   const waiting = n.sentBack + (approver ? n.queue : 0) + n.reconOpen;
@@ -676,6 +679,18 @@ export default async function HubPage() {
                 note=""
                 // Counted in the browser, where the schedules are. See LandedPanel.
                 panel={<LandedPanel />}
+              />
+            </div>
+          )}
+
+          {wealthTracker && (
+            <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
+              <LiveSolutionCard
+                solution={wealthTracker}
+                readings={[]}
+                note=""
+                // Counted in the browser, where the record is. See WealthPanel.
+                panel={<WealthPanel userId={user.id} />}
               />
             </div>
           )}

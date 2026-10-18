@@ -204,6 +204,31 @@ export const AGENTS: Agent[] = [
     href: '/true-property-cost',
   },
   {
+    slug: 'wealth-tracker',
+    name: 'Wealth Tracker',
+    stage: 'live',
+    category: 'Personal finance',
+    accent: 'amber',
+    summary:
+      'Everything you own and owe in one record: bank accounts, deposits, shares, funds, PF and PPF, policies, property, gold and loans, with your net worth and a check that every account has a nominee.',
+    pitch:
+      'Most families keep this in one person’s head, or across a dozen apps and a drawer of papers. The day it matters, the people who need it cannot find it, and an account with no nominee can take months to claim. Write it down once, keep it current, and know what would happen if somebody else had to pick it up.',
+    does: [
+      'A head for each kind of asset and liability a household has: savings accounts, FDs, demat, mutual funds, EPF, PPF, NPS and policies; flats, plots, gold and vehicles; home and car loans, credit cards, and money lent or borrowed.',
+      'Asks for the details that identify each one on paper, such as account and folio numbers, IFSC, UAN, PRAN, policy numbers and a property’s address and papers, with the ones people rarely have to hand folded away.',
+      'Asks whether a nominee is registered on every account that takes one, and records who, with their share and a guardian for a minor.',
+      'Works out net worth at your share of anything held jointly, with liquid assets, monthly EMIs and what you owe as a share of what you own.',
+      'Checks the record: missing or unconfirmed nominees, shares that do not add up to 100%, minors without a guardian, maturities, premiums and renewals coming up, values out of date, an account entered twice, and a password or card number typed where it should not be.',
+      'Records the household, whether there is a will and where it is kept, and who should know the record exists.',
+      'Reads amounts the way they are said: 85 lakh, 1.2 cr, 45k.',
+      'Exports a PDF for your family with every detail, or with account numbers hidden for an adviser, and an Excel workbook.',
+      'Runs in your browser. The record is kept on your device, never sent to a server, and can be locked with a passcode. A backup file restores it.',
+    ],
+    inputs: 'Your accounts, investments, property, policies and loans, with as much detail as you have',
+    outputs: 'Net worth, a nominee check on every account, and a record your family can use',
+    href: '/wealth-tracker',
+  },
+  {
     slug: 'gst-reconciliation',
     name: 'GST Reconciliation',
     stage: 'planned',

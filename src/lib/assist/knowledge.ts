@@ -1,6 +1,6 @@
 import { AGENTS, JOBS, LIVE_AGENTS, STAGE_LABEL, TDS_SECTIONS } from '@/lib/marketing/content';
 import { ROLE_META, USER_ROLES } from '@/lib/domain/workflow';
-import { assistSection, landedSection, reconSection, voucherSection } from '@/lib/nav';
+import { assistSection, landedSection, reconSection, voucherSection, wealthSection } from '@/lib/nav';
 
 const LIVE_COUNT = LIVE_AGENTS.length;
 
@@ -140,6 +140,7 @@ function screensDoc(): Doc {
     voucherSection({ role: 'owner' }),
     reconSection(),
     landedSection(),
+    wealthSection(),
     assistSection(),
   ];
 

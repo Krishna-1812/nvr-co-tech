@@ -58,6 +58,20 @@ const BY_AGENT: Record<string, Suggestion[]> = {
       question: 'When does a voucher get its number, and what do the parts of it mean?',
     },
   ],
+  'wealth-tracker': [
+    {
+      label: 'Why a nominee?',
+      question: 'What happens to a bank account or mutual fund if the holder dies without a nominee?',
+    },
+    {
+      label: 'Nominee or will?',
+      question: 'If my mutual funds have a nominee but my will leaves them to someone else, who gets them?',
+    },
+    {
+      label: 'Is my record safe?',
+      question: 'Where does Wealth Tracker keep what I enter, and who can see it?',
+    },
+  ],
   'true-property-cost': [
     {
       label: 'How is it worked out?',

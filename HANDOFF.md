@@ -21,9 +21,9 @@
 - **What it is:** a multi-tenant SaaS for Indian finance teams (chartered accountants), branded
   **The Finance Intelligence**, live at **https://www.thefinanceintelligence.com**. A public
   marketing site plus a signed-in "workspace" of AI-assisted tools ("agents").
-- **Five tools are live:** Voucher Desk, Ledger Reconciliation, Valuation Desk, Contact Finder,
-  True Property Cost. Four more are roadmap entries (GST Reconciliation, TDS Compliance, Invoice
-  Intake, Audit Copilot) and every page says so. **Ask** (an assistant) is a layer across all tools.
+- **Six tools are live:** Voucher Desk, Ledger Reconciliation, Valuation Desk, Contact Finder,
+  True Property Cost, Wealth Tracker (added 18 Oct, §10b). Four more are roadmap entries (GST
+  Reconciliation, TDS Compliance, Invoice Intake, Audit Copilot) and every page says so. **Ask** (an assistant) is a layer across all tools.
 - **Stack:** Next.js 16.2 App Router (`src/proxy.ts`, not middleware) · React 19.2 · TypeScript ·
   Tailwind v4 · Supabase (Postgres + Auth + Storage, Mumbai) · Vercel (`bom1`, Mumbai) · Vitest ·
   Anthropic Claude for AI features · Apollo.io for Contact Finder.
@@ -139,6 +139,7 @@ src/app/
   (value)      Valuation Desk: /comps  /comps/ingest (platform admins only)
   (finder)     Contact Finder: /contacts  /contacts/activity (platform allowlist only)
   (landed)     True Property Cost: /true-property-cost
+  (wealth)     Wealth Tracker: /wealth-tracker
   (assist)     Ask: /ask  /ask/history
   (insight)    Visitor intelligence + operator analytics (platform allowlist only; 404s otherwise):
                /analytics  /analytics/activation  /analytics/external  /analytics/orgs
@@ -153,7 +154,7 @@ src/app/
 
 **Gating** (`src/lib/routes.ts`, `PROTECTED_PREFIXES`) is a **deny-list**: `/hub`, `/dashboard`,
 `/vouchers`, `/approvals`, `/admin`, `/settings`, `/reconcile`, `/ask`, `/comps`,
-`/true-property-cost`, `/onboarding`, `/analytics`, `/contacts`. Everything else is public. The
+`/true-property-cost`, `/wealth-tracker`, `/onboarding`, `/analytics`, `/contacts`. Everything else is public. The
 proxy skips the Supabase round trip when no `sb-*auth-token` cookie exists.
 
 **Two different "admins" — do not confuse them** (a real security bug shipped once, fixed in
@@ -186,6 +187,7 @@ counts on the public site at all.)
 | `valuation-desk` | Valuation Desk | live | `/comps` | any signed-in user reads; ingest = platform admins |
 | `contact-finder` | Contact Finder | live | `/contacts` | platform allowlist only (spends Apollo credits) |
 | `true-property-cost` | True Property Cost | live | `/true-property-cost` | any signed-in user (runs in the browser) |
+| `wealth-tracker` | Wealth Tracker | live | `/wealth-tracker` | any signed-in user (runs in the browser, per-user record) |
 | `gst-reconciliation` | GST Reconciliation | planned | — | — |
 | `tds-compliance` | TDS Compliance | planned | — | — |
 | `invoice-intake` | Invoice Intake | planned | — | — |
@@ -451,6 +453,68 @@ internal module names and the localStorage key still say "landed" — leave them
 - The owner compared it with a reference calculator
   (`property-landed-cost.vivek-gaggar-1909.chatgpt.site`) and asked for rental yield and anything
   missing — that's what `a7e2e01` added.
+
+## 10b. Wealth Tracker (`/wealth-tracker`)
+
+Built 18 Oct at the owner's request: an individual's (or household's) record of everything owned
+and owed, with net worth, a nominee check on every account that takes one, and a record a family
+could use. **Runs entirely in the browser; no DB tables, no migration.** The record never leaves the
+device. That was a deliberate call for this data (account numbers, folios, PRAN/UAN, addresses,
+family DOBs); if the owner ever wants cross-device sync, that is a new design (encrypted at rest,
+RLS per user) and a migration, not a flag.
+
+- **Storage** `src/lib/wealth/store.ts`: `localStorage` key **`tfi:wealth:v1:<userId>`** (per
+  signed-in user, unlike TPC's one key per browser), prefs (`hide`, `holder`) under
+  `tfi:wealth:prefs:<userId>`. `useWealth(userId)` via `useSyncExternalStore`; writes go through one
+  ordered queue; other tabs followed via the `storage` event. Unreadable data is left untouched and
+  the screen starts empty with a notice.
+- **Optional passcode** `lock.ts`: AES-GCM-256, key from PBKDF2-SHA-256 (310k rounds, 16-byte salt),
+  Web Crypto only. Stored blob is `{sealed:'aes-gcm-pbkdf2-sha256', iterations, salt, iv, data}`;
+  the key lives in memory until the tab closes or "Lock now". **A forgotten passcode is
+  unrecoverable** (the UI makes people tick that before setting one; "start again" deletes the
+  locked record). Backups taken while locked are sealed with the same passcode.
+- **Backup/restore**: JSON `{app:'the-finance-intelligence/wealth-tracker', record | sealed}`;
+  `readBackup()` refuses anything else in words. Restore replaces the record (with a count shown
+  first) and keeps this device's lock.
+- **Model** `heads.ts` (one `HeadSpec` per head: kinds, fields with `more` for "More details",
+  `showIf`, validators, `nominee()`, `liquid()`, `counts()`, `shared`, watched dates). **Field keys
+  are stored in people's records and backups: never rename one, add a new key.** `model.ts`
+  (`Item`, `Profile`, `readRecord()` that never trusts input). Heads: bank, deposits, shares &
+  demat, mutual funds, PF/PPF/NPS, insurance, land & buildings, gold/silver/jewellery, vehicles,
+  bonds & small savings, business interests, cash & money owed to you, other assets; home loans,
+  vehicle loans, personal loans, education loans, secured loans (gold/LAP/LAS/OD), credit cards
+  (**last 4 digits only, enforced as typed**), money borrowed from people, other dues.
+- **Maths** `calc.ts`: each entry counts at `value × share%`; no value = not counted and listed;
+  **term and health cover never count** (still listed, with nominees); liquid by head/kind; EMIs,
+  debt ÷ assets, months covered (needs monthly spending in Household). No projection, tax or
+  valuation — the screen and both exports say so.
+- **Checks** `checks.ts` (act / review / note, each pointing at the entry and the editor section):
+  nominee unanswered / none / unsure / unnamed; shares ≠ 100%; minor nominee without guardian (from
+  DOB); missing or stale values (per-head `staleAfter`); watched dates coming up or passed
+  (maturities, premiums, motor insurance/PUC, last EMI, money due back); field-shape problems
+  (IFSC, PIN, UAN/PRAN, registration…); outstanding > sanctioned; co-owners with share 100%;
+  "jointly" mode; unwritten loans; property papers location; duplicate account numbers; a
+  password/PIN/OTP/CVV or a **Luhn-valid** card number typed in free text; loans with no cover and no
+  term policy; household: no will / will location, nobody who knows the record exists, no backup in
+  30 days. No investment advice anywhere.
+- **Money input** `money.ts`: reads "85 lakh", "85L", "1.2 cr", "45k", "₹12,50,000"; says it back in
+  words under the box; never guesses a unit.
+- **UI** `src/components/wealth/`: `WealthWorkbench` (states: loading / locked / welcome / record;
+  tabs Overview · What you own · What you owe · Nominees · Checks · Household & data), `Welcome`
+  ("tick what you have" → guided editor "2 of 6" with Skip), `HeadPicker` (searchable: "ppf",
+  "locker"…), `ItemEditor` (essentials → details → More details → Nominee yes/no/not sure →
+  notes; nothing blocks a save; unsaved-change guard; "Save and add another"), `Hero` (net worth,
+  family filter, hide-amounts toggle, allocation), `Panels`, `Household` (members, will, people,
+  data: backup/restore/PDF/Excel/passcode/delete), `LockScreen`, `WealthPanel` (hub card: counts
+  only, never net worth; nothing when locked). Scene motif **`nest`** in `ui/Scene.tsx`.
+- **Exports** (lazy; `exports.tsx`): PDF `report.tsx` — family copy with full numbers or a masked
+  copy; summary, "for whoever reads this", every entry head by head (title bound to its first entry
+  so it never strands at a page foot), nominee table, open checks, method. Excel `workbook.ts` —
+  Summary, What you own, What you owe, Nominees (row per nominee), Checks, Method; real numbers and
+  dates. Shared wording in `present.ts`.
+- **Tests** `src/lib/wealth/*.test.ts(x)`: parsing, validators, heads, net-worth rules, every check,
+  record reading, real encrypt/decrypt round trips, per-user storage, backups, and both exports
+  read back (PDF via pdf.js, workbook via SheetJS).
 
 ## 11. Ask — the assistant
 

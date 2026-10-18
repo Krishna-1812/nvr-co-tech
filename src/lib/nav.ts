@@ -17,6 +17,7 @@ import {
   TrendingUp,
   UploadCloud,
   Users,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react';
 import { canApprove, isAdmin, type UserRole } from '@/lib/domain/workflow';
@@ -166,6 +167,7 @@ export function sectionFor(
 ): Section {
   if (slug === 'ledger-reconciliation') return reconSection();
   if (slug === LANDED_SLUG) return landedSection();
+  if (slug === WEALTH_SLUG) return wealthSection();
   if (slug === ASSIST_SLUG) return assistSection();
   if (slug === ANALYTICS_SLUG) return analyticsSection();
   if (slug === FINDER_SLUG) return finderSection();
@@ -371,6 +373,39 @@ export function assistSection(): Section {
  * live in the browser, so there is no server-side history to give a page to.
  * No role branch, for the same reason as Ledger Reconciliation below.
  */
+/**
+ * Wealth Tracker.
+ *
+ * One destination, like True Property Cost: the record is a single screen with
+ * its own tabs, and it lives in the browser, so there is no server-side list of
+ * anything to give a page of its own. No role branch: a person's own record has
+ * no approver.
+ */
+export const WEALTH_SLUG = 'wealth-tracker';
+
+export function wealthSection(): Section {
+  return {
+    slug: WEALTH_SLUG,
+    name: 'Wealth Tracker',
+    home: '/wealth-tracker',
+    items: [
+      {
+        href: '/wealth-tracker',
+        label: 'My record',
+        icon: Wallet,
+        hint: 'Assets, liabilities, nominees and net worth',
+        exact: true,
+      },
+      {
+        href: '/settings',
+        label: 'Settings',
+        icon: Settings,
+        hint: 'Your account and appearance',
+      },
+    ],
+  };
+}
+
 export const LANDED_SLUG = 'true-property-cost';
 
 export function landedSection(): Section {
