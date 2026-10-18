@@ -67,10 +67,10 @@ const CLAUSES: Clause[] = [
     ],
   },
   {
-    title: 'Property schedules stay on your device',
+    title: 'True Property Cost and Wealth Tracker: your browser, and your account if you sign in',
     body: [
-      'The payment schedules you enter in True Property Cost, with their amounts, dates, sources of funds and rates, are worked out and saved in your own browser. They are not uploaded and are never sent to a server of ours.',
-      'That also means they exist only in the browser they were typed into. Clearing its data deletes them, and they cannot be recovered by us, because we never had them.',
+      'Both tools work everything out inside your own browser, and both can be used without an account. Used that way, what you type — payment schedules, assets, liabilities, account numbers, nominees — is saved only in that browser and is never sent to a server of ours. Clearing the browser deletes it, and we cannot recover it, because we never had it.',
+      'If you sign in, a copy is also saved to your account so it is not lost with the browser and is there on your other devices. Only your account can read it: not an administrator, and not us. If you set a passcode in Wealth Tracker, the copy saved is encrypted in your browser with that passcode first, so what reaches us cannot be read by anybody without it.',
     ],
   },
   {

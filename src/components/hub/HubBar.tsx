@@ -5,6 +5,7 @@ import { BRAND } from '@/lib/marketing/content';
 import { LogoMark } from '../marketing/Logo';
 import { UserMenu } from '../UserMenu';
 import { AssistPanel } from '../assist/AssistPanel';
+import { SignInButton } from '../access/SignInButton';
 
 /**
  * The bar across the top of the hub.
@@ -26,7 +27,9 @@ export function HubBar({
   fiscal,
   today,
   analyticsAdmin = false,
+  admin = false,
 }: {
+  /** Null for a visitor using the open workspace without an account. */
   user: {
     id: string;
     email: string;
@@ -34,7 +37,7 @@ export function HubBar({
     role: UserRole;
     /** Their Google picture, if they signed in with Google. Passed to UserMenu. */
     avatarUrl?: string | null;
-  };
+  } | null;
   fiscal: Fiscal;
   today: string;
   /**
@@ -44,6 +47,8 @@ export function HubBar({
    * Intelligence — you had to open a tool first to find the door.
    */
   analyticsAdmin?: boolean;
+  /** Platform admin (lib/access), for the account menu. */
+  admin?: boolean;
 }) {
   return (
     <header className="a-glass sticky top-0 z-30 border-b">
@@ -74,8 +79,14 @@ export function HubBar({
         <div className="ml-auto flex items-center gap-2 md:ml-3">
           {/* No tool is open here, so nothing is pinned and the question alone
               decides what the answer is built from. */}
-          <AssistPanel agent={null} agentName={null} />
-          <UserMenu user={user} analyticsAdmin={analyticsAdmin} />
+          {user ? (
+            <>
+              <AssistPanel agent={null} agentName={null} />
+              <UserMenu user={user} analyticsAdmin={analyticsAdmin} admin={admin} />
+            </>
+          ) : (
+            <SignInButton />
+          )}
         </div>
       </div>
     </header>

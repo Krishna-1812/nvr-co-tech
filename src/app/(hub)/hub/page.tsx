@@ -8,7 +8,7 @@ import {
   Sparkles,
   UploadCloud,
 } from 'lucide-react';
-import { requireUser, createClient } from '@/lib/supabase/server';
+import { createClient, getViewer } from '@/lib/supabase/server';
 import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { canApprove, isAdmin, isOwner, ROLE_META } from '@/lib/domain/workflow';
 import { deskBrief } from '@/lib/domain/desk';
@@ -29,6 +29,7 @@ import { ArchScene, SealFigure } from '@/components/ui/Scene';
 import { HeroChip, HeroStat, ToolHero } from '@/components/ui/ToolHero';
 import { IntroCurtain } from '@/components/marketing/play/IntroCurtain';
 import { myFeatureRequests } from '@/app/actions/access';
+import { OpenHub } from '@/components/hub/OpenHub';
 
 export const metadata: Metadata = { title: 'Workspace' };
 
@@ -59,7 +60,18 @@ const PENDING = ['pending_first', 'pending_second'] as const;
  * but shown nowhere. See the comment on `rest` below.
  */
 export default async function HubPage() {
-  const user = await requireUser();
+  /*
+   * Since the workspace opened (lib/access), only a platform admin gets the
+   * screen below, with every tool's figures read from its tables. Everybody
+   * else — a visitor, or anybody signed in without admin standing — gets the
+   * open workspace, which reads no table at all.
+   */
+  const viewer = await getViewer();
+  if (!viewer.admin || !viewer.user) {
+    const asked = viewer.user ? new Set(await myFeatureRequests()) : new Set<string>();
+    return <OpenHub user={viewer.user} asked={asked} />;
+  }
+  const user = viewer.user;
   const supabase = await createClient();
 
   // Whether Contact Finder is openable by this person. Asked of the same
@@ -678,7 +690,7 @@ export default async function HubPage() {
                 readings={[]}
                 note=""
                 // Counted in the browser, where the schedules are. See LandedPanel.
-                panel={<LandedPanel />}
+                panel={<LandedPanel userId={user.id} />}
               />
             </div>
           )}

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, toolRefusal } from '@/lib/supabase/server';
 import { PREVIEW } from '@/lib/preview';
 import { BriefFailure, generateCompanyBrief, parseBriefContent, type CompanyContext } from '@/lib/comps/brief';
 import { logServerError } from '@/lib/errors/server';
@@ -142,6 +142,9 @@ function citationsOf(raw: unknown): { title: string; url: string }[] {
 export async function POST(request: Request) {
   const user = await getCurrentUser().catch(() => null);
   if (!user) return NextResponse.json({ error: 'You are not signed in.' }, { status: 401 });
+  // Admins only since the workspace opened (lib/access); the brief spends model credits.
+  const refused = await toolRefusal('valuation-desk');
+  if (refused) return NextResponse.json({ error: refused }, { status: 403 });
 
   if (PREVIEW) {
     return NextResponse.json(

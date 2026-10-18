@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { USER_ROLES, type UserRole } from '@/lib/domain/workflow';
 import { SITE_URL } from '@/lib/marketing/content';
 import type { ActionResult } from './workflow';
@@ -42,6 +42,8 @@ export async function setUserRole(input: {
   userId: string;
   role: string;
 }): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = roleSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: 'That is not a valid role.' };
 
@@ -79,6 +81,8 @@ export async function inviteUser(input: {
   // look it up again by address — which would be ambiguous the moment somebody
   // is invited twice.
 }): Promise<ActionResult<{ inviteId: string; link: string; email: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = inviteSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid invite.' };
@@ -112,6 +116,8 @@ export async function inviteUser(input: {
  * routing it through the two-person approval chain — see migration 0013.
  */
 export async function setRequiresApproval(value: boolean): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('set_requires_approval', { p_value: value });
 
@@ -139,6 +145,8 @@ export async function createChapter(input: {
   name: string;
   code: string;
 }): Promise<ActionResult<{ id: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = createChapterSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid chapter.' };
@@ -171,6 +179,8 @@ export async function renameChapter(input: {
   id: string;
   name: string;
 }): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('rename_chapter', {
     p_id: input.id,
@@ -190,6 +200,8 @@ export async function setChapterActive(input: {
   id: string;
   active: boolean;
 }): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('set_chapter_active', {
     p_id: input.id,
@@ -218,6 +230,8 @@ const orgNameSchema = z.object({
  * being invited.
  */
 export async function renameOrganization(name: string): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = orgNameSchema.safeParse({ name });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid name.' };
@@ -237,6 +251,8 @@ export async function renameOrganization(name: string): Promise<ActionResult> {
 // ─── The recycle bin ─────────────────────────────────────────────────────────
 
 export async function purgeVoucher(id: string): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('purge_voucher', { p_id: id });
 

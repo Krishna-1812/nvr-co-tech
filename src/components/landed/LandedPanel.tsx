@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react';
 import { Figure } from '@/components/app/Figure';
 import { formatINRShort } from '@/lib/recon/amount';
 import { isIsoDate, landedCost } from '@/lib/landed/calc';
-import { useLandedStore } from '@/lib/landed/store';
+import { bindLandedUser, useLandedStore } from '@/lib/landed/store';
 
 /**
  * True Property Cost's figures on the workspace card.
@@ -14,7 +14,8 @@ import { useLandedStore } from '@/lib/landed/store';
  * the schedules, and they describe this device only, which the note says.
  * Before hydration it shows dashes rather than a zero it has not counted.
  */
-export function LandedPanel() {
+export function LandedPanel({ userId = null }: { userId?: string | null }) {
+  bindLandedUser(userId);
   const state = useLandedStore();
   const schedules = state?.schedules ?? [];
   const results = schedules.map((s) => ({ s, r: landedCost(s) }));

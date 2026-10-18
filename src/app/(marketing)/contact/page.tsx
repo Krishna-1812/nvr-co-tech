@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CalendarClock, LogIn, ShieldCheck, type LucideIcon } from 'lucide-react';
 import type { Metadata } from 'next';
-import { BRAND, CONTACT } from '@/lib/marketing/content';
+import { CONTACT } from '@/lib/marketing/content';
 import { ArchScene, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
@@ -103,9 +103,9 @@ export default function ContactPage() {
                 <div className="m-card p-6 sm:p-7">
                   <PanelHead icon={LogIn} title="Already using it" />
                   <p className="m-dim mt-4 t-3">
-                    If your firm is already on {BRAND.name} you do not need a call. Sign in, or ask
-                    whoever set your organisation up to send you an invite link. Following one puts
-                    you straight into their workspace with the role they chose for you.
+                    You do not need a call to start. The workspace is open without an account, and True
+                    Property Cost and Wealth Tracker work straight away. Sign in to keep your work in an
+                    account; the other tools are opened on request from their own pages.
                   </p>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link

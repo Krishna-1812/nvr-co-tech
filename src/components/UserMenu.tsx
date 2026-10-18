@@ -13,6 +13,7 @@ import { Avatar } from './Avatar';
 export function UserMenu({
   user,
   analyticsAdmin = false,
+  admin = false,
 }: {
   user: {
     email: string;
@@ -34,13 +35,20 @@ export function UserMenu({
    * the two lists are deliberately unrelated.
    */
   analyticsAdmin?: boolean;
+  /**
+   * Whether this person is a platform admin (lib/access), and so has every
+   * tool. Everybody else has the two open ones, and the menu says so rather
+   * than showing a Voucher Desk role that opens nothing for them.
+   */
+  admin?: boolean;
 }) {
   const router = useRouter();
   const theme = useTheme();
 
   const signOut = async () => {
     await createClient().auth.signOut();
-    router.push('/login');
+    // Back to the open workspace: signing out ends the account, not the visit.
+    router.push('/hub');
     router.refresh();
   };
 
@@ -83,10 +91,12 @@ export function UserMenu({
 
           <div className="border-b px-3 py-2">
             <span className="inline-block rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-200">
-              {ROLE_META[user.role].label}
+              {admin ? 'Admin' : 'Open access'}
             </span>
             <p className="text-subtle mt-1.5 text-xs leading-relaxed">
-              {ROLE_META[user.role].grants}
+              {admin
+                ? `Every tool. In Voucher Desk: ${ROLE_META[user.role].label.toLowerCase()}, ${ROLE_META[user.role].grants.charAt(0).toLowerCase()}${ROLE_META[user.role].grants.slice(1)}`
+                : 'True Property Cost and Wealth Tracker, saved to your account. Ask for the others from their pages.'}
             </p>
           </div>
 

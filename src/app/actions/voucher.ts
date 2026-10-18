@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { draftSchema } from '@/lib/domain/schema';
 import type { ActionResult } from './workflow';
 
@@ -24,6 +24,8 @@ function toMessage(error: { message?: string; code?: string } | null, fallback: 
 }
 
 export async function createDraft(): Promise<ActionResult<{ id: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const {
     data: { user },
@@ -62,6 +64,8 @@ export async function saveDraft(
   id: string,
   patch: unknown,
 ): Promise<ActionResult<{ savedAt: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = draftSchema.safeParse(patch);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Some values look wrong.' };
@@ -106,6 +110,8 @@ export async function saveVoucherNo(
   id: string,
   voucherNo: string,
 ): Promise<ActionResult<{ savedAt: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const trimmed = voucherNo.trim();
   if (trimmed.length > 60) {
     return { ok: false, error: 'A voucher number cannot be longer than 60 characters.' };
@@ -136,6 +142,8 @@ export async function suggestVoucherNo(
   chapterId: string,
   date: string | null,
 ): Promise<ActionResult<{ voucherNo: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('next_voucher_no', {
     p_chapter_id: chapterId,
@@ -180,6 +188,8 @@ export async function createEvent(input: {
   chapter_id?: string | null;
   date_of_event?: string;
 }): Promise<ActionResult<{ id: string; name: string; date_of_event: string | null; chapter_id: string | null }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = eventSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid event.' };
@@ -216,6 +226,8 @@ export async function createEvent(input: {
  * update here left no audit entry at all, unlike deleting from the recycle bin.
  */
 export async function deleteDraft(id: string): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('soft_delete_voucher', { p_id: id, p_reason: null });
 

@@ -1,4 +1,4 @@
-import { requireOrgMember } from '@/lib/supabase/server';
+import { getViewer, requireUser } from '@/lib/supabase/server';
 import { assistSection } from '@/lib/nav';
 import { AppShell } from '@/components/AppShell';
 
@@ -11,10 +11,13 @@ import { AppShell } from '@/components/AppShell';
  * groups render the same AppShell and differ only in the Section they hand it.
  */
 export default async function AssistLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireOrgMember();
+  // Any signed-in person, with or without an organisation: Ask is about the
+  // tools, and a conversation is its owner's alone (0009).
+  const user = await requireUser();
+  const { admin } = await getViewer();
 
   return (
-    <AppShell user={user} section={assistSection()}>
+    <AppShell user={user} admin={admin} section={assistSection()}>
       {children}
     </AppShell>
   );

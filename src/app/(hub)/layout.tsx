@@ -1,4 +1,4 @@
-import { requireOrgMember } from '@/lib/supabase/server';
+import { getViewer } from '@/lib/supabase/server';
 import { fiscalYear, istLongDate, istToday } from '@/lib/fiscal';
 import { PREVIEW } from '@/lib/preview';
 import { isAnalyticsAdmin } from '@/lib/analytics/admin';
@@ -18,7 +18,13 @@ import { Play } from '@/components/marketing/play/Play';
  * The two shells share the atmosphere and the account menu and nothing else.
  */
 export default async function HubLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireOrgMember();
+  /*
+   * Open to everybody since the workspace stopped asking for an account: a
+   * visitor sees every tool and uses the two open ones (lib/access). No
+   * organisation is needed either; that is Voucher Desk's business, and its
+   * own layout still sends an admin without one to /onboarding.
+   */
+  const { user, admin } = await getViewer();
   const fiscal = fiscalYear(istToday());
 
   /*
@@ -26,7 +32,7 @@ export default async function HubLayout({ children }: { children: React.ReactNod
    * the door cannot appear for somebody the database would then hand nothing
    * to — and cannot stay hidden from somebody it would. Memoised per request.
    */
-  const analyticsAdmin = await isAnalyticsAdmin();
+  const analyticsAdmin = user ? await isAnalyticsAdmin() : false;
 
   return (
     <div className="relative min-h-screen">
@@ -46,6 +52,7 @@ export default async function HubLayout({ children }: { children: React.ReactNod
         fiscal={fiscal}
         today={istLongDate()}
         analyticsAdmin={analyticsAdmin}
+        admin={admin}
       />
 
       <main id="main" className="mx-auto max-w-[92rem] px-4 pt-6 pb-20 sm:px-6 sm:pt-8">

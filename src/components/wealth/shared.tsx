@@ -1,6 +1,15 @@
 'use client';
 
-import { useId, useState, type CSSProperties } from 'react';
+import { createContext, useContext, useId, useState, type CSSProperties } from 'react';
+
+/**
+ * Whether the person is signed in, so the record's copy is also in their
+ * account (lib/cloud). Every sentence on these screens that says where the
+ * record is kept reads it, so none of them can claim "this device only" for a
+ * record that is in an account too, or the other way round.
+ */
+export const SignedInContext = createContext(false);
+export const useSignedIn = () => useContext(SignedInContext);
 import {
   Banknote,
   Briefcase,

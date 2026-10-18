@@ -25,6 +25,7 @@ export function ProfileCard({
   raised,
   approved,
   memberSince,
+  admin = true,
 }: {
   user: {
     email: string;
@@ -33,15 +34,20 @@ export function ProfileCard({
     /** Their Google picture, if they signed in with Google. */
     avatarUrl?: string | null;
   };
-  /** Vouchers you have raised. */
-  raised: number;
+  /** Vouchers you have raised. Null for somebody without Voucher Desk. */
+  raised: number | null;
   /** Vouchers you have approved. Null for someone who cannot approve. */
   approved: number | null;
   /** "Aug 2025", already in Asia/Kolkata. */
   memberSince: string;
+  /**
+   * A platform admin (lib/access). Anybody else has no Voucher Desk, so the
+   * pill says what their account opens rather than a role in a tool it does not.
+   */
+  admin?: boolean;
 }) {
   const facts = [
-    { label: 'Raised', value: raised },
+    ...(raised === null ? [] : [{ label: 'Raised', value: raised }]),
     ...(approved === null ? [] : [{ label: 'Approved', value: approved }]),
   ];
 
@@ -99,10 +105,10 @@ export function ProfileCard({
             <span
               style={{ '--tone': 'var(--color-brand-600)' } as CSSProperties}
               className="tinted inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-[0.1em] uppercase sm:ml-auto"
-              title={ROLE_META[user.role].grants}
+              title={admin ? ROLE_META[user.role].grants : 'True Property Cost and Wealth Tracker'}
             >
               <ShieldCheck className="size-3" aria-hidden />
-              {ROLE_META[user.role].label}
+              {admin ? ROLE_META[user.role].label : 'Open access'}
             </span>
           </div>
 
@@ -123,7 +129,7 @@ export function ProfileCard({
           everyone else. */}
       <dl
         className={`relative grid divide-x border-t bg-[var(--surface-sunken)] ${
-          facts.length + 1 === 3 ? 'grid-cols-3' : 'grid-cols-2'
+          facts.length + 1 === 3 ? 'grid-cols-3' : facts.length + 1 === 2 ? 'grid-cols-2' : 'grid-cols-1'
         }`}
       >
         {facts.map((f, i) => (

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { renderVoucherPdf, pdfFilename } from '@/lib/pdf/render';
 import { voucherDetailSelect } from '@/lib/domain/rows';
 import { tolerateMissingColumns } from '@/lib/supabase/columns';
@@ -26,6 +26,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return new NextResponse('Not signed in', { status: 401 });
+  if (await toolRefusal('voucher-desk')) return new NextResponse('Not open on this account', { status: 403 });
 
   const { data } = await tolerateMissingColumns(() =>
     supabase

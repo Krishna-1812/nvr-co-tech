@@ -3,23 +3,27 @@
 import { useSyncExternalStore } from 'react';
 import { blankRecord, readRecord, todayIso, type Item, type Profile, type WealthRecord } from './model';
 import { isSealed, newLock, open, seal, type Sealed, type Unlocked } from './lock';
+import { savedLocally } from '@/lib/cloud/sync';
 
 /**
- * A person's wealth record, kept in this browser and nowhere else.
+ * A person's wealth record, kept in this browser, and in their account once
+ * they sign in.
  *
- * ── Why not the database ───────────────────────────────────────────────────
- * Every other record on this platform lives in Postgres. This one does not,
- * deliberately. It is a list of somebody's account numbers, folios, policy
- * numbers, property addresses and the names and birth dates of their family,
- * and none of the arithmetic on it needs a server. Kept in the browser, it is
- * never sent anywhere: not to us, not to a provider, not in a log. The cost is
- * that it lives on one device, which the screen says plainly, and which the
- * backup file and the checks ("never backed up") exist to answer.
+ * ── Where it lives ─────────────────────────────────────────────────────────
+ * Everything is worked out here, in the browser, and the browser's copy is the
+ * one the screen reads. A visitor without an account has only that copy, and
+ * the screen says so. Signing in adds a copy in the account (lib/cloud,
+ * migration 0032) that follows the person to another device. It is a list of
+ * somebody's account numbers, folios, policy numbers, property addresses and
+ * the names and birth dates of their family, so the account copy is readable
+ * by its owner alone, and with a passcode set it is the ciphertext this
+ * browser holds, which nobody without the passcode can read.
  *
  * ── One record per person, not per browser ─────────────────────────────────
- * The key carries the signed-in user's id. True Property Cost uses one key per
- * browser, which is harmless for a payment schedule; for this, two people who
- * share a family laptop and each sign in must never see each other's record.
+ * The key carries the signed-in user's id, or `guest` for a visitor. Two
+ * people who share a family laptop and each sign in must never see each
+ * other's record. A visitor's record becomes the first signed-in person's if
+ * their account has none (lib/cloud), which is what signing in to save means.
  *
  * ── Locked records ─────────────────────────────────────────────────────────
  * With a passcode set (lib/wealth/lock), what is stored is ciphertext, and the
@@ -56,6 +60,7 @@ type Slot = {
   listeners: Set<() => void>;
   prefs: Prefs;
   started: boolean;
+  selfName: string;
 };
 
 const slots = new Map<string, Slot>();
@@ -73,6 +78,7 @@ function slot(user: string): Slot {
       listeners: new Set(),
       prefs: { hide: false, holder: '' },
       started: false,
+      selfName: '',
     };
     slots.set(user, s);
   }
@@ -93,6 +99,7 @@ export function ensureLoaded(user: string, selfName = '') {
   const s = slot(user);
   if (s.started || typeof window === 'undefined') return;
   s.started = true;
+  s.selfName = selfName;
 
   try {
     const p = JSON.parse(localStorage.getItem(PREFS(user)) ?? '{}') as Partial<Prefs>;
@@ -178,6 +185,7 @@ function persist(user: string) {
       const text = JSON.stringify(record);
       const out = lock ? JSON.stringify(await seal(text, lock)) : text;
       localStorage.setItem(KEY(user), out);
+      savedLocally('wealth-tracker', KEY(user));
       if (s.state.saveError) set(s, { saveError: null });
     } catch (e) {
       const full = e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22);
@@ -378,6 +386,37 @@ export function useWealth(user: string, selfName = ''): { state: WealthState; pr
 }
 
 const DEFAULT_PREFS: Prefs = { hide: false, holder: '' };
+
+/** The storage key for this person's record (`guest` for a visitor), for lib/cloud. */
+export function wealthKey(user: string): string {
+  return KEY(user);
+}
+
+/**
+ * Stored text with nothing in it yet: a plain record with no entries and no
+ * household beyond the person themselves. A locked record is never empty, as
+ * there is no telling what is inside.
+ */
+export function wealthIsEmpty(body: string): boolean {
+  try {
+    const parsed = JSON.parse(body);
+    if (isSealed(parsed)) return false;
+    const record = readRecord(parsed);
+    return !!record && record.items.length === 0 && record.profile.members.length <= 1;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Reads storage again, after lib/cloud has written the account's copy into it.
+ * A record locked with the passcode already entered stays open.
+ */
+export function reloadWealth(user: string) {
+  const s = slot(user);
+  if (!s.started) return;
+  load(user, s.selfName, true);
+}
 
 /** The record as it stands, outside React (tests, and code that runs on an event). */
 export function wealthState(user: string): WealthState {

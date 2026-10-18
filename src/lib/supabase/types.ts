@@ -769,6 +769,14 @@ export type FinderCreditRow = {
   created_at: string;
 };
 
+/** 0032 — what a browser-side tool keeps, saved for its signed-in owner. */
+export type ToolSaveRow = {
+  user_id: string;
+  tool: 'wealth-tracker' | 'true-property-cost';
+  body: string;
+  updated_at: string;
+};
+
 type Table<Row> = {
   Row: Row;
   Insert: Partial<Row>;
@@ -793,6 +801,7 @@ export type Database = {
       reconciliations: Table<ReconciliationRow>;
       assist_conversations: Table<AssistConversationRow>;
       assist_turns: Table<AssistTurnRow>;
+      tool_saves: Table<ToolSaveRow>;
 
       // 0010 — the analytics store.
       analytics_admins: Table<AnalyticsAdminRow>;

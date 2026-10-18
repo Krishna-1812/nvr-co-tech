@@ -6,7 +6,7 @@ import { ArchScene } from '@/components/ui/Scene';
 import { Button, Field, Input } from '@/components/ui/primitives';
 import { ASSET_HEADS, LIABILITY_HEADS, type HeadId } from '@/lib/wealth/heads';
 import { cn } from '@/lib/utils';
-import { HeadTile } from './shared';
+import { HeadTile, useSignedIn } from './shared';
 
 /**
  * The first screen of an empty record.
@@ -29,6 +29,7 @@ export function Welcome({
   onStart: (name: string, heads: HeadId[]) => void;
   onRestore: () => void;
 }) {
+  const signedIn = useSignedIn();
   const [name, setName] = useState(selfName);
   const [picked, setPicked] = useState<HeadId[]>([]);
   const toggle = (id: HeadId) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -55,11 +56,18 @@ export function Welcome({
               check that every account has a nominee, and keep a record your family could use if they ever had to.
             </p>
             <ul className="mt-6 flex flex-wrap gap-2">
-              {[
-                { icon: HardDrive, text: 'Kept only on this device' },
-                { icon: EyeOff, text: 'Never sent to a server, including ours' },
-                { icon: LockKeyhole, text: 'Lock it with a passcode if you like' },
-              ].map(({ icon: Icon, text }) => (
+              {(signedIn
+                ? [
+                    { icon: HardDrive, text: 'Saved to your account, readable only by you' },
+                    { icon: EyeOff, text: 'With a passcode, encrypted before it is saved' },
+                    { icon: LockKeyhole, text: 'Lock it with a passcode if you like' },
+                  ]
+                : [
+                    { icon: HardDrive, text: 'Kept only in this browser' },
+                    { icon: EyeOff, text: 'Never sent to a server, including ours' },
+                    { icon: LockKeyhole, text: 'Lock it with a passcode if you like' },
+                  ]
+              ).map(({ icon: Icon, text }) => (
                 <li key={text} className="surface-sunken text-muted inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12.5px]">
                   <Icon className="size-3.5" aria-hidden />
                   {text}

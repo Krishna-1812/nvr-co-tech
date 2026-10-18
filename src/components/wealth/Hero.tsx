@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { Eye, EyeOff, HardDrive, LockKeyhole } from 'lucide-react';
+import { Cloud, Eye, EyeOff, HardDrive, LockKeyhole } from 'lucide-react';
 import { ArchScene } from '@/components/ui/Scene';
 import { HeroStat } from '@/components/ui/ToolHero';
 import { HeroStage } from '@/components/marketing/play/HeroStage';
@@ -10,7 +10,7 @@ import type { Summary } from '@/lib/wealth/calc';
 import { memberName, type Profile } from '@/lib/wealth/model';
 import { compact, rupees } from '@/lib/wealth/money';
 import { cn } from '@/lib/utils';
-import { Amount, HIDDEN } from './shared';
+import { Amount, HIDDEN, useSignedIn } from './shared';
 
 /**
  * Net worth, set the way every tool here opens: the answer as the largest
@@ -38,6 +38,7 @@ export function Hero({
   onHide: () => void;
   locked: boolean;
 }) {
+  const signedIn = useSignedIn();
   const family = profile.members.length > 1;
   const owner = holder ? memberName(profile, holder) : family ? 'Your household' : memberName(profile, 'self');
 
@@ -61,8 +62,8 @@ export function Hero({
               style={{ '--tone': 'var(--status-draft)' } as CSSProperties}
               className="tinted inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold"
             >
-              {locked ? <LockKeyhole className="size-3" aria-hidden /> : <HardDrive className="size-3" aria-hidden />}
-              {locked ? 'Locked with a passcode' : 'On this device only'}
+              {locked ? <LockKeyhole className="size-3" aria-hidden /> : signedIn ? <Cloud className="size-3" aria-hidden /> : <HardDrive className="size-3" aria-hidden />}
+              {locked ? 'Locked with a passcode' : signedIn ? 'Saved to your account' : 'In this browser only'}
             </span>
             <button
               type="button"

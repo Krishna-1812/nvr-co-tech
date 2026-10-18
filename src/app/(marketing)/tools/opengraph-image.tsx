@@ -10,7 +10,7 @@ import { CARD_SIZE, CARD_TYPE, cardAlt, socialCard } from '@/lib/brand/socialCar
 const CARD = {
   eyebrow: 'All tools',
   headline: 'Every tool, in one place.',
-  chips: ['Live and on the roadmap', 'One login', 'The decision stays with you'],
+  chips: ['Live and on the roadmap', 'Two open to anybody', 'The decision stays with you'],
 };
 
 export const size = CARD_SIZE;

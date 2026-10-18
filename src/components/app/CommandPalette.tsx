@@ -50,7 +50,16 @@ type Action = {
   run: () => void;
 };
 
-export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; role: UserRole }) {
+export function CommandPalette({
+  sectionSlug,
+  role,
+  signedIn = true,
+}: {
+  sectionSlug: string;
+  role: UserRole;
+  /** False for a visitor without an account: no assistant, no account, no sign-out. */
+  signedIn?: boolean;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -107,7 +116,7 @@ export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; rol
             },
           ]
         : []),
-      ...section.items.map((item) => ({
+      ...section.items.filter((item) => signedIn || item.href !== '/settings').map((item) => ({
         id: `go-${item.href}`,
         label: item.label,
         hint: item.hint,
@@ -117,15 +126,19 @@ export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; rol
       })),
       // The assistant is on every screen behind ⌘J, which is exactly the sort of
       // thing nobody discovers. So it is also here, where people look.
-      {
-        id: 'go-ask',
-        label: 'Ask',
-        hint: 'Questions about the tools and the accounting',
-        icon: Sparkles,
-        group: 'Go to',
-        keywords: 'assistant chat help ai question explain',
-        run: go('/ask'),
-      },
+      ...(signedIn
+        ? [
+            {
+              id: 'go-ask',
+              label: 'Ask',
+              hint: 'Questions about the tools and the accounting',
+              icon: Sparkles,
+              group: 'Go to',
+              keywords: 'assistant chat help ai question explain',
+              run: go('/ask'),
+            },
+          ]
+        : []),
       // Out of this tool and back up to the platform. Last in the group on
       // purpose: it is the one destination here that leaves where you are.
       {
@@ -163,20 +176,24 @@ export function CommandPalette({ sectionSlug, role }: { sectionSlug: string; rol
         keywords: `theme ${value} colour color mode`,
         run: () => setTheme(value),
       })),
-      {
-        id: 'signout',
-        label: 'Sign out',
-        hint: 'Ends this session on this device',
-        icon: LogOut,
-        group: 'Session',
-        run: async () => {
-          await createClient().auth.signOut();
-          router.push('/login');
-          router.refresh();
-        },
-      },
+      ...(signedIn
+        ? [
+            {
+              id: 'signout',
+              label: 'Sign out',
+              hint: 'Ends this session on this device',
+              icon: LogOut,
+              group: 'Session',
+              run: async () => {
+                await createClient().auth.signOut();
+                router.push('/hub');
+                router.refresh();
+              },
+            },
+          ]
+        : []),
     ];
-  }, [role, router, sectionSlug]);
+  }, [role, router, sectionSlug, signedIn]);
 
   /** Only Voucher Desk has a register, so only there does a stray query search one. */
   const searchable = sectionSlug === 'voucher-desk';

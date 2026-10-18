@@ -96,8 +96,8 @@ function SignupForm() {
               account is ready.
             </p>
             <p className="m-dim-2 mt-5 text-[12px] leading-relaxed">
-              Open it and you will set up your own organisation. If you followed an invite link to
-              get here, you will join theirs instead.
+              Then your work in True Property Cost and Wealth Tracker is saved to your account. If you
+              followed an invite link to get here, you will join that organisation as well.
             </p>
           </div>
         </AuthCard>
@@ -113,7 +113,7 @@ function SignupForm() {
             Create your <span className="m-serif m-grad-text">account.</span>
           </>
         }
-        lead="It takes about a minute, and you can raise your first voucher straight after."
+        lead="It takes about a minute. Work you have already started in the open tools on this device is carried into it."
       />
 
       <AuthCard

@@ -2,16 +2,21 @@
 
 import { useSyncExternalStore } from 'react';
 import { EXAMPLE_NAME, exampleSchedule } from './example';
+import { savedLocally } from '@/lib/cloud/sync';
 import type { Compounding, FundSource, Instalment, Rates, Rental, Schedule } from './calc';
 
 /**
- * Saved schedules, kept in this browser.
+ * Saved schedules, kept in this browser, and in the account once signed in.
  *
- * Nothing here goes to a server, for the same reason Ledger Reconciliation reads
- * its ledgers in the browser: a payment plan for somebody's flat, with the loan
- * behind it, is personal, and the arithmetic needs nothing a server has. The
- * cost is that a schedule lives on the device it was typed on, which the screen
- * says in so many words.
+ * All the arithmetic is here, in the browser, and the browser's copy is what the
+ * screen reads. A visitor without an account has only that copy, which the
+ * screen says in so many words. Signing in adds a copy in the account
+ * (lib/cloud) that follows the person to another device.
+ *
+ * One set per person: the key carries the signed-in user's id. A visitor's set
+ * keeps the original key (`tfi:landed-cost:v1`), which is also where everything
+ * typed before the workspace opened up was kept, so that work becomes the first
+ * signed-in person's when their account has none.
  *
  * The rates and the compounding are also remembered on their own, as the
  * defaults for the next schedule: the cost of a firm's own money and of its
@@ -30,7 +35,46 @@ type State = {
   defaults: { rates: Rates; compounding: Compounding };
 };
 
-const KEY = 'tfi:landed-cost:v1';
+/** The visitor's key, and the key every schedule was kept under before accounts. */
+export const GUEST_LANDED_KEY = 'tfi:landed-cost:v1';
+
+let KEY = GUEST_LANDED_KEY;
+
+/** The key for this person's schedules: theirs when signed in, the guest key otherwise. */
+export function landedKey(user: string | null): string {
+  return user && user !== 'guest' ? `${GUEST_LANDED_KEY}:${user}` : GUEST_LANDED_KEY;
+}
+
+/**
+ * Points the store at whoever is using it. Called first thing by every screen
+ * that shows the schedules; a page has one person, so this changes at most once.
+ */
+export function bindLandedUser(user: string | null) {
+  const next = landedKey(user);
+  if (next === KEY) return;
+  KEY = next;
+  cache = null;
+}
+
+/**
+ * Stored text with no work in it: only schedules nobody has typed into, such
+ * as the blank one the screen starts on a first visit.
+ */
+export function landedIsEmpty(body: string): boolean {
+  try {
+    const parsed = JSON.parse(body) as { schedules?: unknown };
+    const list = Array.isArray(parsed.schedules) ? parsed.schedules.map(readSchedule) : [];
+    return list.every((s) => !s || (!s.ocDate && s.instalments.every((i) => !i.date && !i.amount)));
+  } catch {
+    return false;
+  }
+}
+
+/** Reads storage again, after lib/cloud has written the account's copy into it. */
+export function reloadLanded() {
+  cache = null;
+  listeners.forEach((l) => l());
+}
 
 export const STARTING_DEFAULTS: State['defaults'] = {
   rates: { self: 7, borrowed: 8.5 },
@@ -169,6 +213,7 @@ function write(next: State) {
   cache = next;
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
+    savedLocally('true-property-cost', KEY);
   } catch {
     // Storage full or blocked: the schedule still works for this visit.
   }

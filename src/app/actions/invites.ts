@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { SITE_URL } from '@/lib/marketing/content';
 import { emailConfigured, sendEmail } from '@/lib/notify';
 import { invited } from '@/lib/notify/templates';
@@ -44,6 +44,8 @@ export type PendingInvite = {
  * copy-a-link invite is being able to copy the link again later.
  */
 export async function listPendingInvites(): Promise<PendingInvite[]> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return [];
   const supabase = await createClient();
   const { data } = await supabase
     .from('organization_invites')
@@ -63,6 +65,8 @@ export async function listPendingInvites(): Promise<PendingInvite[]> {
 }
 
 export async function revokeInvite(id: string): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = z.string().uuid().safeParse(id);
   if (!parsed.success) return { ok: false, error: 'Invalid request.' };
 
@@ -82,6 +86,8 @@ export async function revokeInvite(id: string): Promise<ActionResult> {
  * the admin needs to know to fall back to copying the link if it did not.
  */
 export async function emailInvite(id: string): Promise<ActionResult<{ to: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   if (!emailConfigured()) {
     return {
       ok: false,

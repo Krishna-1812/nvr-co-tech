@@ -1,7 +1,10 @@
-import { requireOrgMember } from '@/lib/supabase/server';
+import { Layers } from 'lucide-react';
+import { getViewer, requireUser } from '@/lib/supabase/server';
 import { isAnalyticsAdmin } from '@/lib/analytics/admin';
-import { valuationSection } from '@/lib/nav';
+import { canUseTool } from '@/lib/access';
+import { lockedSection, valuationSection } from '@/lib/nav';
 import { AppShell } from '@/components/AppShell';
+import { LockedTool } from '@/components/access/LockedTool';
 
 /**
  * Valuation Desk.
@@ -20,11 +23,22 @@ import { AppShell } from '@/components/AppShell';
  * request, so asking again inside `AppShell` costs nothing.
  */
 export default async function ValuationLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireOrgMember();
+  // Admins only since the workspace opened (lib/access); see (app)/layout.
+  const viewer = await getViewer();
+  if (!canUseTool('valuation-desk', viewer.admin)) {
+    return (
+      <AppShell user={viewer.user} section={lockedSection('valuation-desk', 'Valuation Desk', '/comps', Layers)}>
+        <LockedTool slug="valuation-desk" signedIn={!!viewer.user} name={viewer.user?.full_name} email={viewer.user?.authEmail} />
+      </AppShell>
+    );
+  }
+  // The registry is shared and readable by any session (0028); no
+  // organisation is needed to read it.
+  const user = await requireUser();
   const canSeed = await isAnalyticsAdmin();
 
   return (
-    <AppShell user={user} section={valuationSection({ canSeed })}>
+    <AppShell user={user} admin section={valuationSection({ canSeed })}>
       {children}
     </AppShell>
   );

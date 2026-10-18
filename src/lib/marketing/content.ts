@@ -197,7 +197,7 @@ export const AGENTS: Agent[] = [
       'Takes stamp duty, registration, GST and other charges as dated payments, so they carry the cost of funds like any instalment.',
       'Recomputes as you type, so moving the OC date six months or switching a demand to the loan shows its effect at once.',
       'Exports a PDF report, with the method and its limits stated, and an Excel workbook with amounts as numbers you can total.',
-      'Runs in your browser. Schedules are saved on your device and are never sent to a server.',
+      'Runs in your browser, with no account needed. Without one, schedules stay in that browser and are never sent to a server; sign in and they are also saved to your account, readable only by you.',
     ],
     inputs: 'Instalment dates and amounts, own or borrowed, the OC date, and the expected rent',
     outputs: 'True cost at possession, the cash cost, and the rental yield on it',
@@ -222,7 +222,7 @@ export const AGENTS: Agent[] = [
       'Records the household, whether there is a will and where it is kept, and who should know the record exists.',
       'Reads amounts the way they are said: 85 lakh, 1.2 cr, 45k.',
       'Exports a PDF for your family with every detail, or with account numbers hidden for an adviser, and an Excel workbook.',
-      'Runs in your browser. The record is kept on your device, never sent to a server, and can be locked with a passcode. A backup file restores it.',
+      'Runs in your browser, with no account needed. Without one, the record stays in that browser and is never sent to a server; sign in and it is also saved to your account, readable only by you. A passcode encrypts it in the browser before it is saved anywhere, and a backup file restores it.',
     ],
     inputs: 'Your accounts, investments, property, policies and loans, with as much detail as you have',
     outputs: 'Net worth, a nominee check on every account, and a record your family can use',
@@ -502,7 +502,7 @@ export const TDS_SECTIONS: readonly { code: string; rate: number; note?: string 
  * than three weeks later on a call.
  */
 export const STAGE_NOTE: Record<AgentStage, string> = {
-  live: 'You can use this today. Sign in and it is there, with the rules running behind it.',
+  live: 'Running today, with the rules behind it. True Property Cost and Wealth Tracker are open to anybody; the others are opened on request.',
   building:
     'We are building this now. You cannot switch it on yet, and we would rather tell you that than give you a date we are not sure of.',
   planned:

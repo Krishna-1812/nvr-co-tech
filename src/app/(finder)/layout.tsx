@@ -1,6 +1,9 @@
-import { notFound } from 'next/navigation';
-import { requireUser } from '@/lib/supabase/server';
-import { finderSection } from '@/lib/nav';
+import { UserSearch } from 'lucide-react';
+import { getViewer, requireUser } from '@/lib/supabase/server';
+import { canUseTool } from '@/lib/access';
+import { finderSection, lockedSection } from '@/lib/nav';
+import { LockedTool } from '@/components/access/LockedTool';
+import { Card, EmptyState } from '@/components/ui/primitives';
 import { analyticsGate } from '@/lib/analytics/admin';
 import { AppShell } from '@/components/AppShell';
 import { NotInstalled } from '@/components/analytics/NotInstalled';
@@ -28,14 +31,41 @@ import { NotInstalled } from '@/components/analytics/NotInstalled';
  * because a layout guards a screen and what needs guarding is the spending.
  */
 export default async function FinderLayout({ children }: { children: React.ReactNode }) {
+  /*
+   * Since the workspace opened, Contact Finder is on the roster like the
+   * others, so there is nothing left to hide by answering 404: anybody who is
+   * not an admin sees the tool described and asks for it (lib/access).
+   */
+  const viewer = await getViewer();
+  if (!canUseTool('contact-finder', viewer.admin)) {
+    return (
+      <AppShell user={viewer.user} section={lockedSection('contact-finder', 'Contact Finder', '/contacts', UserSearch)}>
+        <LockedTool slug="contact-finder" signedIn={!!viewer.user} name={viewer.user?.full_name} email={viewer.user?.authEmail} />
+      </AppShell>
+    );
+  }
   const user = await requireUser();
   const gate = await analyticsGate();
 
-  if (!gate.allowed && gate.reason === 'not-admin') notFound();
-
   return (
-    <AppShell user={user} section={finderSection()}>
-      {gate.allowed ? children : <NotInstalled />}
+    <AppShell user={user} admin section={finderSection()}>
+      {gate.allowed ? (
+        children
+      ) : gate.reason === 'not-installed' ? (
+        <NotInstalled />
+      ) : (
+        // An admin by the code list (lib/access) whose address is not yet in
+        // analytics_admins. The searches are guarded inside Postgres by that
+        // table, so the screen would only fail; migration 0032 adds the owner's
+        // five addresses.
+        <Card className="overflow-hidden">
+          <EmptyState
+            icon={<UserSearch className="size-6" />}
+            title="One step left to switch this on for you"
+            description="Contact Finder checks the platform's admin list inside the database before it spends a credit, and your address is not on it yet. Running migration 0032 adds it."
+          />
+        </Card>
+      )}
     </AppShell>
   );
 }

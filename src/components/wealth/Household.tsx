@@ -22,7 +22,7 @@ import { shortDate } from '@/lib/wealth/checks';
 import { passcodeStrength } from '@/lib/wealth/lock';
 import { readBackup, type WealthActions } from '@/lib/wealth/store';
 import { cn } from '@/lib/utils';
-import { MoneyInput } from './shared';
+import { MoneyInput, useSignedIn } from './shared';
 
 /**
  * The household, the will, the people who should know, and the record's own
@@ -187,6 +187,7 @@ function DataPanel({
   onExport: (kind: 'pdf-full' | 'pdf-masked' | 'excel') => Promise<void>;
   selfName: string;
 }) {
+  const signedIn = useSignedIn();
   const [busy, setBusy] = useState<string | null>(null);
   const [modal, setModal] = useState<'set' | 'remove' | 'wipe' | null>(null);
   const [restoreOpen, setRestoreOpen] = useState(false);
@@ -206,7 +207,11 @@ function DataPanel({
         <CardTitle
           icon={<HardDrive className="size-4" />}
           title="Your data"
-          description="Kept in this browser on this device, under your sign-in. It is never sent to a server, ours included."
+          description={
+            signedIn
+              ? 'Worked out in this browser and saved to your account, which only you can read. With a passcode set, what is saved is encrypted here first.'
+              : 'Kept in this browser on this device. It is never sent to a server, ours included. Sign in to keep a copy in your account.'
+          }
         />
         <div className="space-y-5 px-5 py-5 sm:px-6">
           <div className="surface-sunken rounded-2xl border px-4 py-3 text-[13px]">
@@ -276,7 +281,9 @@ function DataPanel({
           description={
             hasLock
               ? 'This record is locked with a passcode. It is asked for each time the page opens.'
-              : 'Anyone who can open this browser can read the record. A passcode encrypts it on this device.'
+              : signedIn
+                ? 'Anyone who can open this browser or your account can read the record. A passcode encrypts it here, before it is saved anywhere.'
+                : 'Anyone who can open this browser can read the record. A passcode encrypts it on this device.'
           }
         />
         <div className="flex flex-wrap gap-2 px-5 py-5 sm:px-6">
@@ -302,7 +309,7 @@ function DataPanel({
 
       <div className="rounded-3xl border border-dashed px-5 py-4">
         <p className="text-sm font-semibold">Delete everything</p>
-        <p className="text-muted mt-0.5 text-[13px]">Removes every entry from this device. Backups you have downloaded are not touched.</p>
+        <p className="text-muted mt-0.5 text-[13px]">{signedIn ? 'Removes every entry from this device and from your account.' : 'Removes every entry from this device.'} Backups you have downloaded are not touched.</p>
         <Button size="sm" variant="ghost" className="mt-2 text-[var(--status-rejected)]" onClick={() => setModal('wipe')}>
           <Trash2 className="size-3.5" aria-hidden />
           Delete the record
@@ -441,6 +448,7 @@ function PasscodeModal({
 }
 
 function WipeModal({ open, count, onClose, onWipe }: { open: boolean; count: number; onClose: () => void; onWipe: () => void }) {
+  const signedIn = useSignedIn();
   const [typed, setTyped] = useState('');
   return (
     <Modal
@@ -450,7 +458,7 @@ function WipeModal({ open, count, onClose, onWipe }: { open: boolean; count: num
         onClose();
       }}
       title="Delete the whole record?"
-      description={`All ${count} ${count === 1 ? 'entry' : 'entries'} and the household details are removed from this device. This cannot be undone here.`}
+      description={`All ${count} ${count === 1 ? 'entry' : 'entries'} and the household details are removed from this device${signedIn ? ' and from your account' : ''}. This cannot be undone here.`}
     >
       <Field label='Type "delete" to confirm' htmlFor="wipe">
         <Input id="wipe" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />

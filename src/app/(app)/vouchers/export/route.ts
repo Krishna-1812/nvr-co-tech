@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient, getCurrentUser } from '@/lib/supabase/server';
+import { createClient, getCurrentUser, toolRefusal } from '@/lib/supabase/server';
 import { parseFilters, hasFilters, voucherQuery } from '@/lib/domain/voucherQuery';
 import { buildVoucherXlsx } from '@/lib/export/workbook';
 import { exportFilename } from '@/lib/export/columns';
@@ -39,6 +39,7 @@ const SELECT = `
 export async function GET(req: Request) {
   const viewer = await getCurrentUser();
   if (!viewer) return new NextResponse('Not signed in', { status: 401 });
+  if (await toolRefusal('voucher-desk')) return new NextResponse('Not open on this account', { status: 403 });
 
   const supabase = await createClient();
   const sp = Object.fromEntries(new URL(req.url).searchParams);

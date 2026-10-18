@@ -5,7 +5,8 @@ import { AFTER_LOGIN, isProtectedPath } from '@/lib/routes';
 
 /*
  * Gating is a deny-list (see lib/routes.ts) rather than the allow-list it used
- * to be, because the public surface is now the larger and faster-growing one:
+ * to be, because the public surface is now the larger and faster-growing one —
+ * since the workspace opened it is nearly everything:
  * with an allow-list, every new marketing page needs a matching edit here, and
  * forgetting one hides a public page behind a login wall. Erring in this
  * direction is also the safer one — this is not the only gate. Every page under
@@ -27,7 +28,9 @@ export default async function proxy(request: NextRequest) {
    * PREVIEW can ever be true, one of which is "not a production build".
    */
   if (PREVIEW) {
-    if (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')) {
+    // Preview pretending to be a visitor (lib/supabase/server) may see the sign-in screens.
+    const guest = request.cookies.get('tfi-preview-as')?.value === 'guest';
+    if (!guest && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup'))) {
       const url = request.nextUrl.clone();
       url.pathname = AFTER_LOGIN;
       url.search = '';

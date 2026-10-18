@@ -103,12 +103,14 @@ export function SiteHeader() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            {/* The workspace is open without an account (lib/access), so the way
+                in is the door itself; signing in is offered inside it. */}
             <Link
-              href="/login"
-              data-signin=""
+              href="/hub"
+              data-workspace=""
               className="m-dim hidden px-1 py-2 t-3 font-medium whitespace-nowrap transition-colors hover:text-[var(--m-ink)] sm:block"
             >
-              Sign in
+              Open the workspace
             </Link>
             <Link
               href="/contact"
@@ -147,11 +149,11 @@ export function SiteHeader() {
               ))}
               <div className="mt-3 flex gap-2 border-t border-[var(--m-line)] pt-4 pb-2">
                 <Link
-                  href="/login"
-                  data-signin=""
+                  href="/hub"
+                  data-workspace=""
                   className="flex h-11 flex-1 items-center justify-center rounded-full border-[1.5px] border-[var(--m-ink)] t-3 font-semibold"
                 >
-                  Sign in
+                  Open the workspace
                 </Link>
                 <Link
                   href="/contact"

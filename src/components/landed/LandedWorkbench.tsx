@@ -8,7 +8,7 @@ import { Button, DataTable, Td, Th, Thead, Tr } from '@/components/ui/primitives
 import { cn } from '@/lib/utils';
 import { formatINR } from '@/lib/recon/amount';
 import { COMPOUNDING_LABEL, SOURCE_LABEL, landedCost, problems, timeline, type LandedCost } from '@/lib/landed/calc';
-import { landedStore, useLandedStore, type SavedSchedule } from '@/lib/landed/store';
+import { bindLandedUser, landedStore, useLandedStore, type SavedSchedule } from '@/lib/landed/store';
 import { METHOD, afterOcNote } from '@/lib/landed/words';
 import { Hero } from './Hero';
 import { MoneyChart } from './MoneyChart';
@@ -39,7 +39,8 @@ function fileBase(name: string): string {
   return name.replace(/[^\p{L}\p{M}\p{N}\- ]+/gu, '').replace(/ +/g, ' ').trim() || 'True property cost';
 }
 
-export function LandedWorkbench() {
+export function LandedWorkbench({ userId = null }: { userId?: string | null }) {
+  bindLandedUser(userId);
   const state = useLandedStore();
 
   // A first visit has nothing saved. Start one rather than show an empty screen
@@ -59,10 +60,10 @@ export function LandedWorkbench() {
     );
   }
 
-  return <Editor key={active.id} schedule={active} all={state.schedules} />;
+  return <Editor key={active.id} schedule={active} all={state.schedules} userId={userId} />;
 }
 
-function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule[] }) {
+function Editor({ schedule, all, userId }: { schedule: SavedSchedule; all: SavedSchedule[]; userId: string | null }) {
   const save = (patch: Partial<SavedSchedule>) => landedStore.save({ ...schedule, ...patch });
 
   const result = useMemo(() => landedCost(schedule), [schedule]);
@@ -193,14 +194,20 @@ function Editor({ schedule, all }: { schedule: SavedSchedule; all: SavedSchedule
       <Method />
 
       <p className="text-subtle text-center text-xs">
-        Saved in this browser only. Nothing on this page is sent to a server; use Excel to keep a copy elsewhere.
+        {userId
+          ? 'Worked out in this browser and saved to your account, which only you can read. Use Excel to keep a copy elsewhere.'
+          : 'Saved in this browser only. Nothing on this page is sent to a server; sign in to keep a copy in your account, or use Excel.'}
       </p>
 
       <Modal
         open={confirming}
         onClose={() => setConfirming(false)}
         title={`Delete ${schedule.name.trim() || 'this property'}?`}
-        description="It is saved only in this browser, so once it is deleted it cannot be recovered. Download the Excel first if you want a copy."
+        description={
+          userId
+            ? 'It is removed from this browser and from your account, and cannot be recovered. Download the Excel first if you want a copy.'
+            : 'It is saved only in this browser, so once it is deleted it cannot be recovered. Download the Excel first if you want a copy.'
+        }
       >
         <div className="flex justify-end gap-2">
           <Button onClick={() => setConfirming(false)}>Keep it</Button>

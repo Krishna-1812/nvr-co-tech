@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { submitVoucher, approveVoucher, rejectVoucher, markVoucherPaid } from './workflow';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 
 /**
  * The server actions themselves, not the SQL functions they call.
@@ -13,7 +13,10 @@ import { createClient } from '@/lib/supabase/server';
  */
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
-vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }));
+// Every voucher action asks first whether this person may use Voucher Desk at
+// all (lib/access). These tests are about what happens after that question,
+// so it answers yes unless a test says otherwise.
+vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn(), toolRefusal: vi.fn().mockResolvedValue(null) }));
 
 function mockRpc(result: { data?: unknown; error?: { message: string } | null }) {
   const rpc = vi.fn().mockResolvedValue({ data: result.data ?? null, error: result.error ?? null });
@@ -33,6 +36,14 @@ describe('workflow server actions', () => {
     const res = await submitVoucher(UUID);
     expect(rpc).toHaveBeenCalledWith('submit_voucher', { p_id: UUID });
     expect(res).toEqual({ ok: true, data: { voucherNo: 'FI/HO/26-27/0001' } });
+  });
+
+  it('never reaches the database for somebody Voucher Desk is not open to', async () => {
+    const rpc = mockRpc({ data: { voucher_no: 'FI/HO/26-27/0001' } });
+    vi.mocked(toolRefusal).mockResolvedValueOnce('This tool is not open on your account.');
+    const res = await submitVoucher(UUID);
+    expect(rpc).not.toHaveBeenCalled();
+    expect(res).toEqual({ ok: false, error: 'This tool is not open on your account.' });
   });
 
   it('strips PL/pgSQL context noise from a bare Postgres exception', async () => {

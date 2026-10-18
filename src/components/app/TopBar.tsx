@@ -7,6 +7,7 @@ import { buttonClass } from '../ui/primitives';
 import { AssistPanel } from '../assist/AssistPanel';
 import { CommandPalette } from './CommandPalette';
 import { HomeCrumb } from './HomeCrumb';
+import { SignInButton } from '../access/SignInButton';
 
 /**
  * The bar across the top of every signed-in screen.
@@ -24,7 +25,9 @@ export function TopBar({
   fiscal,
   today,
   analyticsAdmin = false,
+  admin = false,
 }: {
+  /** Null for a visitor without an account: no assistant, a Sign in button instead of a menu. */
   user: {
     id: string;
     email: string;
@@ -32,12 +35,13 @@ export function TopBar({
     role: UserRole;
     /** Their Google picture, if they signed in with Google. Passed to UserMenu. */
     avatarUrl?: string | null;
-  };
+  } | null;
   section: Section;
   fiscal: Fiscal;
   today: string;
   /** Decided once in AppShell, from the same function the RLS policies call. */
   analyticsAdmin?: boolean;
+  admin?: boolean;
 }) {
   const Primary = section.primary?.icon;
 
@@ -54,7 +58,7 @@ export function TopBar({
         {/* The slug rather than the section: the palette is a client component,
             and a Section carries Lucide icons, which are functions and cannot
             cross that boundary. It rebuilds the section from the slug. */}
-        <CommandPalette sectionSlug={section.slug} role={user.role} />
+        <CommandPalette sectionSlug={section.slug} role={user?.role ?? 'member'} signedIn={!!user} />
 
         {/*
           Today's date and the financial year, both in Asia/Kolkata — and only in
@@ -91,7 +95,7 @@ export function TopBar({
             which one that is. Not offered on its own page, where the whole screen
             is already it.
           */}
-          {section.slug !== ASSIST_SLUG && (
+          {user && section.slug !== ASSIST_SLUG && (
             <AssistPanel agent={section.slug} agentName={section.name} />
           )}
 
@@ -111,7 +115,11 @@ export function TopBar({
               <span className="hidden sm:inline">{section.primary.short}</span>
             </Link>
           )}
-          <UserMenu user={user} analyticsAdmin={analyticsAdmin} />
+          {user ? (
+            <UserMenu user={user} analyticsAdmin={analyticsAdmin} admin={admin} />
+          ) : (
+            <SignInButton />
+          )}
         </div>
       </div>
     </header>

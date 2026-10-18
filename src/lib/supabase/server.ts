@@ -6,6 +6,7 @@ import { tolerateMissingColumns, withAvatar } from './columns';
 import { safeAvatarUrl } from '@/lib/avatar';
 import { PREVIEW } from '@/lib/preview';
 import { createPreviewClient } from '@/lib/preview/client';
+import { canUseTool, isAdminEmail } from '@/lib/access';
 
 /**
  * Supabase client for Server Components, Server Actions and Route Handlers.
@@ -20,7 +21,10 @@ import { createPreviewClient } from '@/lib/preview/client';
 export const createClient = cache(async () => {
   // Preview mode: no database, no RLS, fixtures instead. Dev builds only.
   if (PREVIEW) {
-    return createPreviewClient() as unknown as ReturnType<typeof createServerClient<Database>>;
+    // `tfi-preview-as` lets the open workspace be looked at as a visitor
+    // ("guest") or as a signed-in person who is not an admin ("member").
+    const as = (await cookies()).get('tfi-preview-as')?.value;
+    return createPreviewClient(as === 'guest' || as === 'member' ? as : 'admin') as unknown as ReturnType<typeof createServerClient<Database>>;
   }
 
   const cookieStore = await cookies();
@@ -189,4 +193,38 @@ export async function requireOrgMember() {
     redirect('/onboarding');
   }
   return user as typeof user & { organizationId: string };
+}
+
+/**
+ * Whoever is looking at the workspace, signed in or not, and whether they are
+ * one of the platform's admins (lib/access).
+ *
+ * `user` is null for a visitor without an account, who may still use the open
+ * tools. The admin test asks the code list first and the analytics allowlist
+ * second, so a visitor costs no round trip at all and an admin on the code list
+ * costs none beyond the session itself. Memoised per request like the rest.
+ */
+export const getViewer = cache(async () => {
+  const user = await getCurrentUser();
+  if (!user) return { user: null, admin: false } as const;
+  if (isAdminEmail(user.authEmail) || isAdminEmail(user.email)) return { user, admin: true } as const;
+  const { isAnalyticsAdmin } = await import('@/lib/analytics/admin');
+  return { user, admin: await isAnalyticsAdmin() } as const;
+});
+
+export type Viewer = Awaited<ReturnType<typeof getViewer>>;
+
+/**
+ * The guard for a locked tool's server actions and route handlers.
+ *
+ * A layout guards a screen; an action is reachable without it. Returns the
+ * refusal sentence when this person may not use the tool, and null when they
+ * may, so an action can hand it straight back as its error.
+ */
+export async function toolRefusal(slug: string): Promise<string | null> {
+  const viewer = await getViewer();
+  if (canUseTool(slug, viewer.admin)) return null;
+  return viewer.user
+    ? 'This tool is not open on your account. Ask for access from its page and we will get back to you.'
+    : 'Sign in first.';
 }

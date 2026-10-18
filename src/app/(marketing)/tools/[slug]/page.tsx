@@ -32,6 +32,7 @@ import { ReconDemo } from '@/components/marketing/agents/ReconDemo';
 import { PropertyDemo } from '@/components/marketing/agents/PropertyDemo';
 import { FlowDiagram } from '@/components/marketing/agents/FlowDiagram';
 import { Roost } from '@/components/brand/Owl';
+import { OPEN_TOOLS } from '@/lib/access';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -335,12 +336,16 @@ export default async function AgentPage({ params }: Params) {
               <div className="relative max-w-xl">
                 <h2 className="m-display t-h3">
                   {agent.stage === 'live'
-                    ? 'It is running. Go and use it.'
+                    ? OPEN_TOOLS.includes(agent.slug)
+                      ? 'It is running. Go and use it.'
+                      : 'It is running. Ask for access.'
                     : `Talk to us about ${agent.name}.`}
                 </h2>
                 <p className="m-dim mt-5 t-4">
                   {agent.stage === 'live'
-                    ? 'Sign in and it is there. If you would rather somebody showed you round first, we are happy to do that instead.'
+                    ? OPEN_TOOLS.includes(agent.slug)
+                      ? 'Open it and start. No account is needed; sign in only if you want your work saved to an account.'
+                      : 'Our own team uses it every day. Open it to see everything it does and ask for access there, and a person replies. Or have somebody show you round first.'
                     : 'A walkthrough covers what you can use today, what this one will do, and where it sits in the queue. We will not give you a date on the call that we are not sure of.'}
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -410,7 +415,7 @@ function StageActions({ agent }: { agent: Agent }) {
   if (agent.stage === 'live' && agent.href) {
     return (
       <>
-        <CTA href={agent.href}>Open {agent.name}</CTA>
+        <CTA href={agent.href}>{OPEN_TOOLS.includes(agent.slug) ? `Open ${agent.name}` : 'Request access'}</CTA>
         <CTA href="/contact" variant="ghost" data={{ 'data-demo': '', 'data-interest': agent.name }}>
           Book a walkthrough
         </CTA>

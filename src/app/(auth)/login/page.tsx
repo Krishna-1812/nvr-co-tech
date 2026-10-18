@@ -69,7 +69,7 @@ function LoginForm() {
             Welcome <span className="m-serif m-grad-text">back.</span>
           </>
         }
-        lead="Sign in to raise a voucher, or to clear the ones waiting on you."
+        lead="Sign in to keep your work in your account, on any device. The tools open to you are the same either way."
       />
 
       <AuthCard

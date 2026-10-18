@@ -1,6 +1,9 @@
-import { requireOrgMember } from '@/lib/supabase/server';
-import { reconSection } from '@/lib/nav';
+import { Scale } from 'lucide-react';
+import { getViewer, requireUser } from '@/lib/supabase/server';
+import { canUseTool } from '@/lib/access';
+import { lockedSection, reconSection } from '@/lib/nav';
 import { AppShell } from '@/components/AppShell';
+import { LockedTool } from '@/components/access/LockedTool';
 
 /**
  * Ledger Reconciliation.
@@ -12,10 +15,21 @@ import { AppShell } from '@/components/AppShell';
  * same AppShell and differ only in the Section they hand it.
  */
 export default async function ReconLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireOrgMember();
+  // Admins only since the workspace opened (lib/access); see (app)/layout.
+  const viewer = await getViewer();
+  if (!canUseTool('ledger-reconciliation', viewer.admin)) {
+    return (
+      <AppShell user={viewer.user} section={lockedSection('ledger-reconciliation', 'Ledger Reconciliation', '/reconcile', Scale)}>
+        <LockedTool slug="ledger-reconciliation" signedIn={!!viewer.user} name={viewer.user?.full_name} email={viewer.user?.authEmail} />
+      </AppShell>
+    );
+  }
+  // A session, not an organisation: a reconciliation is its creator's alone
+  // (0008), so belonging to a firm is not a condition of running one.
+  const user = await requireUser();
 
   return (
-    <AppShell user={user} section={reconSection()}>
+    <AppShell user={user} admin section={reconSection()}>
       {children}
     </AppShell>
   );

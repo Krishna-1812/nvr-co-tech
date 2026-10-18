@@ -39,7 +39,7 @@ const TRAIL = [
 const GROUPS: { stage: AgentStage; lead: string }[] = [
   {
     stage: 'live',
-    lead: 'Up and running and open to use. Sign in and every one of them is there today, under the one login.',
+    lead: 'Up and running. True Property Cost and Wealth Tracker are open to anybody, with no account; the others are opened on request.',
   },
   {
     stage: 'building',

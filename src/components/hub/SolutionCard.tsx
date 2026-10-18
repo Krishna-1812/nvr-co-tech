@@ -25,7 +25,16 @@ import { WantThis } from './WantThis';
  * internal screen. It earns its place because it does something — what gets built
  * next is decided partly by this — where a greyed-out Open never would.
  */
-export function SolutionCard({ solution, asked = false }: { solution: Solution; asked?: boolean }) {
+export function SolutionCard({
+  solution,
+  asked = false,
+  canAsk = true,
+}: {
+  solution: Solution;
+  asked?: boolean;
+  /** False for a visitor: an ask is recorded against a person, and there is none. */
+  canAsk?: boolean;
+}) {
   const { icon: Icon, tone, stage } = solution;
 
   // In build gets its colour on the mark; on the roadmap does not. The same
@@ -98,7 +107,7 @@ export function SolutionCard({ solution, asked = false }: { solution: Solution; 
       <div className="surface-sunken relative flex items-center justify-between gap-3 border-t px-5 py-3 sm:px-6">
         <span className="a-label truncate">{STAGE_NOTE[stage]}</span>
         <span className="flex shrink-0 items-center gap-4">
-          <WantThis slug={solution.slug} asked={asked} />
+          {canAsk && <WantThis slug={solution.slug} asked={asked} />}
           <Link
             href={solution.plan}
             className="group/l inline-flex shrink-0 items-center gap-1 text-xs font-semibold transition hover:text-brand-600 dark:hover:text-brand-300"

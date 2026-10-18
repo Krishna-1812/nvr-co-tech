@@ -20,7 +20,10 @@
 
 - **What it is:** a multi-tenant SaaS for Indian finance teams (chartered accountants), branded
   **The Finance Intelligence**, live at **https://www.thefinanceintelligence.com**. A public
-  marketing site plus a signed-in "workspace" of AI-assisted tools ("agents").
+  marketing site plus a "workspace" of AI-assisted tools ("agents"). **Since 18 Oct the workspace
+  needs no login**: anybody uses True Property Cost and Wealth Tracker; the other four are for the
+  five platform admins and everybody else can request access; signing in saves work to an account
+  (§4a, migration 0032).
 - **Six tools are live:** Voucher Desk, Ledger Reconciliation, Valuation Desk, Contact Finder,
   True Property Cost, Wealth Tracker (added 18 Oct, §10b). Four more are roadmap entries (GST
   Reconciliation, TDS Compliance, Invoice Intake, Audit Copilot) and every page says so. **Ask** (an assistant) is a layer across all tools.
@@ -152,10 +155,63 @@ src/app/
   actions/     server actions ('use server' files)
 ```
 
-**Gating** (`src/lib/routes.ts`, `PROTECTED_PREFIXES`) is a **deny-list**: `/hub`, `/dashboard`,
-`/vouchers`, `/approvals`, `/admin`, `/settings`, `/reconcile`, `/ask`, `/comps`,
-`/true-property-cost`, `/wealth-tracker`, `/onboarding`, `/analytics`, `/contacts`. Everything else is public. The
-proxy skips the Supabase round trip when no `sb-*auth-token` cookie exists.
+**Gating** (`src/lib/routes.ts`, `PROTECTED_PREFIXES`) is a **deny-list**, and since 18 Oct it is
+short: `/settings`, `/ask`, `/onboarding`, `/analytics`. Everything else is public, **including the
+whole workspace** (see §4a). The proxy skips the Supabase round trip when no `sb-*auth-token` cookie
+exists. `/settings` moved from `(app)` to its own `(account)` route group (it cannot live inside a
+tool that is locked to most people).
+
+### 4a. The open workspace (18 Oct 2026) — who can use what
+
+The owner asked for the login to come off: anybody can walk into `/hub` with no account and see all
+six live tools; **True Property Cost and Wealth Tracker** are usable by everybody, signed in or not;
+**Voucher Desk, Ledger Reconciliation, Valuation Desk, Contact Finder** are for **platform admins
+only**, and everybody else (visitor *or* signed-in non-admin) gets the tool described in full with a
+**Request access** form. Signing in never opens more tools; it **saves the open tools' work to the
+account**.
+
+- **Rules** `src/lib/access.ts`: `ADMIN_EMAILS` (the owner's five: vivekgaggar@yahoo.com,
+  triptigaggar@yahoo.com, vivek.gaggar@nvrandco.com, ladhakrishna2022@gmail.com,
+  team@thefinanceintelligence.com), `OPEN_TOOLS`, `LOCKED_TOOLS`, `canUseTool()`. An admin is
+  anybody on that list **or** on `analytics_admins` (so adding a colleague is still one INSERT).
+  Compared against the Supabase-verified email.
+- **Server** `src/lib/supabase/server.ts`: `getViewer()` → `{ user | null, admin }` (memoised; no
+  network for a visitor), `toolRefusal(slug)` → refusal sentence or null.
+- **Locked tools**: each of `(app)`, `(recon)`, `(value)`, `(finder)` layouts renders
+  `components/access/LockedTool` (hero, the `does` list from `AGENTS`, takes/gives, the request form,
+  links to the two open tools) for anybody who may not use it, on every screen under it. **Every
+  server action** in `actions/{voucher,workflow,attachments,admin,invites,reconciliation}.ts` and the
+  route handlers (`vouchers/[id]/pdf`, `vouchers/export`, `reconcile/export`, `api/comps/brief`)
+  start with `toolRefusal()`. Contact Finder's routes were already guarded by `is_analytics_admin()`
+  in Postgres; an admin on the code list but not yet in that table sees a "run migration 0032" card.
+  Only Voucher Desk still needs an organisation (`requireOrgMember` → `/onboarding`); Recon and
+  Valuation now need only a session; Ask needs only a session.
+- **Request access** (`components/access/AccessRequest`) posts through the existing
+  `requestAccess()` → `submit_access_request` (rate-limited, emailed to the team mailbox when email is
+  configured) with `interest = "Access to <tool>"`; it shows on **Analytics → Access requests**.
+  Remembered per browser (`tfi:asked:<slug>`).
+- **Shell**: `AppShell`/`TopBar`/`HubBar` accept `user: null` (a "Sign in to save" button instead of
+  the account menu; no Ask; no Settings in the rail or palette; no PageTiming). `UserMenu` shows
+  "Admin" or "Open access" instead of a Voucher Desk role. Sign-out returns to `/hub`.
+- **Hub**: admins get the old screen unchanged; everybody else gets `components/hub/OpenHub`
+  (reads no table): open cards with browser-counted panels, an "On request" row of locked cards, the
+  roadmap.
+- **Saving to the account** — `src/lib/cloud/sync.ts` + `actions/saves.ts` + table `tool_saves`
+  (migration **0032**). Both tools still compute and store in localStorage; the module mirrors the
+  stored text (unparsed — a passcode-locked Wealth record goes up as ciphertext) to one row per
+  user per tool. Keys: Wealth `tfi:wealth:v1:<userId|guest>`, TPC `tfi:landed-cost:v1` (visitor;
+  also every pre-18-Oct schedule) and `tfi:landed-cost:v1:<userId>`. On open, `decide()` (tested)
+  copies whichever side has work, takes the account copy if only another device moved on, pushes if
+  only this device did, and if both did keeps the account's and stashes the local text under
+  `<key>:before-sync`. A visitor's work is **adopted** by the first signed-in person whose account
+  and device have none. Writes go up 1.2s after the last change; two devices at once is
+  last-write-wins. `components/access/SaveStatus` shows the state (in this browser only / saving /
+  saved / could not reach / not switched on yet — the last when 0032 is missing). In preview the
+  account copy is an in-memory map.
+- **Copy changed to match**: auth screens, contact page, `/tools` and `/tools/[slug]` CTAs ("Open X"
+  vs "Request access"), header "Open the workspace", `STAGE_NOTE.live`, the WT/TPC `does` lines,
+  privacy page section, the assistant's platform docs, every Wealth/TPC "this device only" sentence
+  (they read `SignedInContext` / `userId`). `robots.ts` still keeps crawlers out of workspace paths.
 
 **Two different "admins" — do not confuse them** (a real security bug shipped once, fixed in
 `72e21a5`):
@@ -182,12 +238,12 @@ counts on the public site at all.)
 
 | Slug | Name | Stage | Opens at | Access |
 |---|---|---|---|---|
-| `voucher-desk` | Voucher Desk | live | `/dashboard` | any org member |
-| `ledger-reconciliation` | Ledger Reconciliation | live | `/reconcile` | any signed-in user |
-| `valuation-desk` | Valuation Desk | live | `/comps` | any signed-in user reads; ingest = platform admins |
-| `contact-finder` | Contact Finder | live | `/contacts` | platform allowlist only (spends Apollo credits) |
-| `true-property-cost` | True Property Cost | live | `/true-property-cost` | any signed-in user (runs in the browser) |
-| `wealth-tracker` | Wealth Tracker | live | `/wealth-tracker` | any signed-in user (runs in the browser, per-user record) |
+| `voucher-desk` | Voucher Desk | live | `/dashboard` | platform admins (+ an organisation); others request access (§4a) |
+| `ledger-reconciliation` | Ledger Reconciliation | live | `/reconcile` | platform admins; others request access |
+| `valuation-desk` | Valuation Desk | live | `/comps` | platform admins (ingest too); others request access |
+| `contact-finder` | Contact Finder | live | `/contacts` | platform admins who are also in `analytics_admins` (spends Apollo credits) |
+| `true-property-cost` | True Property Cost | live | `/true-property-cost` | **anybody, no account** (runs in the browser; saved to the account when signed in) |
+| `wealth-tracker` | Wealth Tracker | live | `/wealth-tracker` | **anybody, no account** (runs in the browser; saved to the account when signed in) |
 | `gst-reconciliation` | GST Reconciliation | planned | — | — |
 | `tds-compliance` | TDS Compliance | planned | — | — |
 | `invoice-intake` | Invoice Intake | planned | — | — |
@@ -385,7 +441,7 @@ Built 10 Oct as "Landed Cost", renamed by the owner (permanent redirects in `nex
 internal module names and the localStorage key still say "landed" — leave them). It is the
 **template every other tool's design was brought up to** in `aa28cb8`.
 
-- **Signed-in** (`(landed)/layout.tsx`, `requireOrgMember()`, `landedSection()`), but runs
+- **Open to everybody since 18 Oct** (§4a; `(landed)/layout.tsx` uses `getViewer()`), runs
   **entirely in the browser**; schedules are saved to `localStorage` key `tfi:landed-cost:v1`
   (`src/lib/landed/store.ts`). No DB tables.
 - **Maths** `src/lib/landed/calc.ts` (pure, UTC whole-day counts, actual/365):
@@ -458,13 +514,13 @@ internal module names and the localStorage key still say "landed" — leave them
 
 Built 18 Oct at the owner's request: an individual's (or household's) record of everything owned
 and owed, with net worth, a nominee check on every account that takes one, and a record a family
-could use. **Runs entirely in the browser; no DB tables, no migration.** The record never leaves the
-device. That was a deliberate call for this data (account numbers, folios, PRAN/UAN, addresses,
-family DOBs); if the owner ever wants cross-device sync, that is a new design (encrypted at rest,
-RLS per user) and a migration, not a flag.
+could use. **All the work happens in the browser.** As built it never left the device; since the
+open workspace (§4a) a visitor's record still never does, and a signed-in person's record is also
+mirrored to `tool_saves` (owner-only RLS) so it follows them — as ciphertext when a passcode is set.
+Every "where is it kept" sentence on the screens reads `SignedInContext`.
 
 - **Storage** `src/lib/wealth/store.ts`: `localStorage` key **`tfi:wealth:v1:<userId>`** (per
-  signed-in user, unlike TPC's one key per browser), prefs (`hide`, `holder`) under
+  signed-in user; `guest` for a visitor), prefs (`hide`, `holder`) under
   `tfi:wealth:prefs:<userId>`. `useWealth(userId)` via `useSyncExternalStore`; writes go through one
   ordered queue; other tabs followed via the `storage` event. Unreadable data is left untouched and
   the screen starts empty with a notice.
@@ -571,6 +627,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0029 | `company_briefs.sql` | Cache table for the AI company brief |
 | 0030 | `company_briefs_structured.sql` | Replaces the brief's markdown column with structured `content jsonb` |
 | 0031 | `contact_finder.sql` | Contact Finder: caches, records, credit ledger, allowlist (see §9) |
+| 0032 | `open_workspace.sql` | The owner's five admin emails into `analytics_admins`; `tool_saves` (owner-only RLS, 2 MB cap, server-stamped `updated_at`) for the open tools' account copies (§4a) |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied
 (21 Aug 2026). 0028 applied (Valuation Desk is used in production). 0029/0030: 0029 was found
@@ -650,6 +707,12 @@ double gate (flag *and* NODE_ENV) must never be relaxed** — it is an auth bypa
 about RLS/triggers/constraints. Fixtures live on `globalThis`: restart the dev server after editing
 them. Opening `/vouchers/new` creates an empty draft in the in-memory fixtures each time — that is
 expected and clears on restart.
+
+**Seeing the open workspace in preview:** set a cookie `tfi-preview-as` to `guest` (no session; the
+sign-in screens become reachable) or `member` (signed in, not an admin: email
+`member@preview.invalid`, `is_analytics_admin` false). Anything else, or no cookie, is the owner
+(an admin). Read in `createClient()`; e.g. Playwright `context.addCookies([{ name: 'tfi-preview-as',
+value: 'guest', url: 'http://localhost:3001' }])`.
 
 `.claude/launch.json` (local, untracked) has three configs; the one used for all recent QA is:
 

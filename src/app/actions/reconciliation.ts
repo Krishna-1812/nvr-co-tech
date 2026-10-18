@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { recordRun } from '@/lib/analytics/meter';
 import type { ReconResult } from '@/lib/recon/types';
 import type { ActionResult } from './workflow';
@@ -43,6 +43,8 @@ function isStorable(result: ReconResult): boolean {
 export async function saveReconciliation(
   result: ReconResult,
 ): Promise<ActionResult<{ id: string }>> {
+  const refused = await toolRefusal('ledger-reconciliation');
+  if (refused) return { ok: false, error: refused };
   if (!isStorable(result)) {
     return { ok: false, error: 'That reconciliation is not in a state that can be saved.' };
   }
@@ -110,6 +112,8 @@ export async function saveReconciliation(
 }
 
 export async function deleteReconciliation(id: string): Promise<ActionResult> {
+  const refused = await toolRefusal('ledger-reconciliation');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const {
     data: { user },

@@ -142,6 +142,35 @@ export function voucherSection({
   };
 }
 
+/** Your account. One destination, and the way back to the tools is the platform mark. */
+export function accountSection(): Section {
+  return {
+    slug: 'account',
+    name: 'Your account',
+    home: '/settings',
+    items: [{ href: '/settings', label: 'Settings', icon: Settings, hint: 'Your account and appearance', exact: true }],
+  };
+}
+
+/**
+ * The rail for a tool this person may not use (lib/access).
+ *
+ * One destination, the tool's own front door, because every screen under a
+ * locked tool shows the same thing: what the tool does and the request for it.
+ * Offering its Vouchers or History would be offering five doors to one room.
+ */
+export function lockedSection(slug: string, name: string, home: string, icon: LucideIcon): Section {
+  return {
+    slug,
+    name,
+    home,
+    items: [
+      { href: home, label: 'About this tool', icon, hint: 'What it does, and the request for access', exact: true },
+      { href: '/settings', label: 'Settings', icon: Settings, hint: 'Your account and appearance' },
+    ],
+  };
+}
+
 /**
  * The assistant is not on the roster, and this slug is what says so.
  *

@@ -100,9 +100,9 @@ function Gate() {
       >
         <SceneArch motif="gate" className="h-[min(30rem,58vh)] min-h-[20rem]" />
       </div>
-      <p className="m-eyebrow mt-10">One door in</p>
+      <p className="m-eyebrow mt-10">Optional, and free</p>
       <p className="m-display mt-3 max-w-[20rem] text-[1.6rem] leading-[1.2] text-[var(--m-ink)]">
-        Every tool your organisation uses, behind the one sign-in.
+        The workspace is open without one. An account keeps your work.
       </p>
     </div>
   );

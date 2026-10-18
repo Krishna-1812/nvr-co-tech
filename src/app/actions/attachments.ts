@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { BUCKET } from '@/lib/domain/attachments';
 import type { ActionResult } from './workflow';
 
@@ -37,6 +37,8 @@ export async function recordAttachment(input: {
   mime_type: string;
   size_bytes: number;
 }): Promise<ActionResult<AttachmentRow>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const {
     data: { user },
@@ -62,6 +64,8 @@ export async function recordAttachment(input: {
 }
 
 export async function deleteAttachment(id: string): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
 
   const { data: row } = await supabase
@@ -92,6 +96,8 @@ export async function deleteAttachment(id: string): Promise<ActionResult> {
  * RLS decides whether they get a URL at all.
  */
 export async function getAttachmentUrl(id: string): Promise<ActionResult<{ url: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
 
   const { data: row } = await supabase

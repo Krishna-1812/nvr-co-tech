@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { BRAND } from '@/lib/marketing/content';
 import { buildReconXlsx } from '@/lib/recon/export/workbook';
 import { renderReconPdf } from '@/lib/recon/export/pdf';
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return new NextResponse('Not signed in', { status: 401 });
+  if (await toolRefusal('ledger-reconciliation')) return new NextResponse('Not open on this account', { status: 403 });
 
   const declared = Number(req.headers.get('content-length') ?? 0);
   if (declared > MAX_BODY_BYTES) {

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { notify } from '@/lib/notify';
 import {
   awaitingApproval,
@@ -60,6 +60,8 @@ function refresh(id?: string) {
 // ─── Submit ──────────────────────────────────────────────────────────────────
 
 export async function submitVoucher(id: string): Promise<ActionResult<{ voucherNo: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('submit_voucher', { p_id: id });
 
@@ -132,6 +134,8 @@ export async function approveVoucher(input: {
   id: string;
   note?: string;
 }): Promise<ActionResult<{ status: string }>> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = approveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: 'Invalid request.' };
 
@@ -216,6 +220,8 @@ export async function rejectVoucher(input: {
   id: string;
   reason: string;
 }): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = rejectSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid request.' };
@@ -253,6 +259,8 @@ export async function rejectVoucher(input: {
  * their part in it.
  */
 export async function withdrawVoucher(id: string): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('withdraw_voucher', { p_id: id });
 
@@ -267,6 +275,8 @@ export async function reopenVoucher(input: {
   id: string;
   reason?: string;
 }): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('reopen_voucher', {
     p_id: input.id,
@@ -291,6 +301,8 @@ export async function markVoucherPaid(input: {
   utr: string;
   paymentDate?: string;
 }): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const parsed = paidSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid request.' };
@@ -320,6 +332,8 @@ export async function markVoucherPaid(input: {
  * entered the approval workflow, which the edit policy forbids by design.
  */
 export async function softDeleteVoucher(id: string, reason?: string): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('soft_delete_voucher', {
     p_id: id,
@@ -332,6 +346,8 @@ export async function softDeleteVoucher(id: string, reason?: string): Promise<Ac
 }
 
 export async function restoreVoucher(id: string): Promise<ActionResult> {
+  const refused = await toolRefusal('voucher-desk');
+  if (refused) return { ok: false, error: refused };
   const supabase = await createClient();
   const { error } = await supabase.rpc('restore_voucher', { p_id: id });
 

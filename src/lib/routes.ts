@@ -14,37 +14,31 @@
  */
 export const AFTER_LOGIN = '/hub';
 
-/** The signed-in application. Everything not under one of these is public. */
+/**
+ * The few screens that only make sense with an account. Everything else is
+ * public — including, since 18 October 2026, the whole workspace.
+ *
+ * The workspace used to sit behind this list in full. It is open now (see
+ * lib/access): a visitor can walk into /hub, use True Property Cost and Wealth
+ * Tracker without an account, and open any of the four locked tools to see it
+ * described and ask for it. Those locked tools decide for themselves, in their
+ * layouts and again in every action and route behind them, and a visitor
+ * reaching one is shown the tool rather than a sign-in screen, because signing
+ * in would not open it.
+ *
+ * What is left is what an account is for.
+ */
 export const PROTECTED_PREFIXES = [
-  '/hub',
-  '/dashboard',
-  '/vouchers',
-  '/approvals',
-  '/admin',
+  // Your account.
   '/settings',
-  '/reconcile',
+  // Ask. A conversation is kept against its owner (0009), and every answer
+  // spends model credits, so it needs somebody to belong to.
   '/ask',
-  // Valuation Desk. Reads the shared company registry, which every signed-in
-  // person may read and none may write — see migration 0028.
-  '/comps',
-  // True Property Cost. Runs entirely in the browser, but sits behind sign-in
-  // like every other tool, so the workspace around it is the same one. Its old
-  // address, /landed-cost, is a redirect in next.config.
-  '/true-property-cost',
-  // Wealth Tracker. Like True Property Cost it runs in the browser and keeps the
-  // record there, under the signed-in person's id; sign-in is what gives the
-  // record an owner to be kept under.
-  '/wealth-tracker',
-  // Signed in, but not yet a member of an organization — see requireOrgMember().
+  // Signed in, setting up an organisation for Voucher Desk.
   '/onboarding',
   // Visitor intelligence. Gated a second time inside its own layout against the
-  // analytics allowlist, which is a different and much shorter list than
-  // "anybody with a session" — see lib/analytics/admin.
+  // analytics allowlist — see lib/analytics/admin.
   '/analytics',
-  // Contact Finder. Gated against the same allowlist and for a sharper reason:
-  // a search here can spend from the platform's own credit pool, so a session
-  // alone is not enough — see lib/analytics/admin and the note on FINDER_SLUG.
-  '/contacts',
 ] as const;
 
 export function isProtectedPath(pathname: string): boolean {

@@ -631,6 +631,11 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
       return ok(operator.operatorWorkflowStages());
     case 'operator_stuck_vouchers':
       return ok(operator.operatorStuckVouchers(Number(args.p_days ?? 7)));
+    // The open workspace's "Request access" (actions/access.ts). Accepted and
+    // dropped: there is no table to keep it in, and the screen only needs the
+    // answer to be yes.
+    case 'submit_access_request':
+      return ok();
     case 'record_visitor_view':
     case 'record_page_view':
     case 'record_identity':
@@ -643,15 +648,21 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
 
 // ─── The client ──────────────────────────────────────────────────────────────
 
-export function createPreviewClient() {
+/**
+ * `as` is who preview pretends you are: the owner fixture (an admin, the
+ * default), a signed-in person who is not an admin, or nobody at all.
+ */
+export function createPreviewClient(as: 'admin' | 'member' | 'guest' = 'admin') {
   const profile = me();
+  const email = as === 'member' ? 'member@preview.invalid' : profile.email;
 
   return {
     from: table,
-    rpc,
+    rpc: (fn: string, args?: Record<string, unknown>) =>
+      fn === 'is_analytics_admin' && as !== 'admin' ? Promise.resolve(ok(false)) : rpc(fn, args),
     auth: {
       getUser: async () => ({
-        data: { user: { id: PREVIEW_USER_ID, email: profile.email } },
+        data: { user: as === 'guest' ? null : { id: PREVIEW_USER_ID, email } },
         error: null,
       }),
       getSession: async () => ({ data: { session: { user: { id: PREVIEW_USER_ID } } }, error: null }),

@@ -16,6 +16,7 @@ import { ChecksPanel, ItemsPanel, NomineesPanel, Overview, type Tab } from './Pa
 import { Household, RestoreModal, saveFile } from './Household';
 import { LockScreen } from './LockScreen';
 import { Welcome } from './Welcome';
+import { SignedInContext } from './shared';
 
 /**
  * Wealth Tracker: the whole tool, on one screen.
@@ -41,7 +42,24 @@ type Editing = { item: Item; isNew: boolean; focus?: Area };
  */
 type Queue = { heads: HeadId[]; step: number; saved: Record<number, string>; drafts: Record<number, Item> };
 
-export function WealthWorkbench({ userId, selfName }: { userId: string; selfName: string }) {
+export function WealthWorkbench({
+  userId,
+  selfName,
+  signedIn = false,
+}: {
+  userId: string;
+  selfName: string;
+  /** Signed in, so the record is also kept in the account (lib/cloud). */
+  signedIn?: boolean;
+}) {
+  return (
+    <SignedInContext.Provider value={signedIn}>
+      <Workbench userId={userId} selfName={selfName} />
+    </SignedInContext.Provider>
+  );
+}
+
+function Workbench({ userId, selfName }: { userId: string; selfName: string }) {
   const { state, prefs } = useWealth(userId, selfName);
   const actions = useMemo(() => wealthActions(userId), [userId]);
   const today = useMemo(() => todayIso(), []);

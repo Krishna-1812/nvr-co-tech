@@ -15,6 +15,7 @@ import { RouteStage } from './app/RouteStage';
 import { Play } from './marketing/play/Play';
 
 type Props = {
+  /** Null for a visitor using the open workspace without an account. */
   user: {
     id: string;
     email: string;
@@ -22,7 +23,9 @@ type Props = {
     role: UserRole;
     /** Their Google picture, if they signed in with Google. Passed to UserMenu. */
     avatarUrl?: string | null;
-  };
+  } | null;
+  /** Whether this person is a platform admin (lib/access). Shown in the account menu. */
+  admin?: boolean;
   /** Which tool you are inside. Decides the rail, the dock and the palette. */
   section: Section;
   children: React.ReactNode;
@@ -43,7 +46,9 @@ type Props = {
  * content column follow it when it collapses without either of them holding
  * state. See RailToggle for why that matters.
  */
-export async function AppShell({ user, section, children }: Props) {
+export async function AppShell({ user, admin = false, section: given, children }: Props) {
+  // A visitor has no account to set, so the rail does not offer one.
+  const section = user ? given : { ...given, items: given.items.filter((i) => i.href !== '/settings') };
   const fiscal = fiscalYear(istToday());
 
   /*
@@ -59,7 +64,7 @@ export async function AppShell({ user, section, children }: Props) {
    * Memoised per request, so on the analytics screens themselves — where the
    * layout has already asked — this costs nothing.
    */
-  const analyticsAdmin = await isAnalyticsAdmin();
+  const analyticsAdmin = user ? await isAnalyticsAdmin() : false;
 
   return (
     <div className="relative min-h-screen">
@@ -89,6 +94,7 @@ export async function AppShell({ user, section, children }: Props) {
           fiscal={fiscal}
           today={istLongDate()}
           analyticsAdmin={analyticsAdmin}
+          admin={admin}
         />
 
         {/*
@@ -114,7 +120,7 @@ export async function AppShell({ user, section, children }: Props) {
         without it — and here rather than in the root layout so it never runs on
         the public site, which has its own tracker and its own consent rules.
       */}
-      <PageTiming />
+      {user && <PageTiming />}
       <ThemeColor />
 
       {/* Same reasoning as PageTiming: one place for the whole signed-in side,

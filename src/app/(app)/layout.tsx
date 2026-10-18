@@ -1,10 +1,29 @@
-import { requireOrgMember, createClient } from '@/lib/supabase/server';
+import { LayoutDashboard } from 'lucide-react';
+import { requireOrgMember, createClient, getViewer } from '@/lib/supabase/server';
 import { canApprove } from '@/lib/domain/workflow';
-import { voucherSection } from '@/lib/nav';
+import { canUseTool } from '@/lib/access';
+import { lockedSection, voucherSection } from '@/lib/nav';
 import { AppShell } from '@/components/AppShell';
+import { LockedTool } from '@/components/access/LockedTool';
 
-/** Voucher Desk. Middleware has already guaranteed a session. */
+/**
+ * Voucher Desk.
+ *
+ * For a platform admin only since the workspace opened (lib/access). Anybody
+ * else, signed in or not, gets the tool described and the request for it, on
+ * every screen under here, so a deep link to a voucher lands on that too. Each
+ * route handler and server action behind these screens asks the same question
+ * again (`toolRefusal`), because a layout guards a screen and not a request.
+ */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const viewer = await getViewer();
+  if (!canUseTool('voucher-desk', viewer.admin)) {
+    return (
+      <AppShell user={viewer.user} section={lockedSection('voucher-desk', 'Voucher Desk', '/dashboard', LayoutDashboard)}>
+        <LockedTool slug="voucher-desk" signedIn={!!viewer.user} name={viewer.user?.full_name} email={viewer.user?.authEmail} />
+      </AppShell>
+    );
+  }
   const user = await requireOrgMember();
 
   // Queue badge: how many vouchers this person could actually action.
@@ -22,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <AppShell user={user} section={voucherSection({ role: user.role, pendingCount })}>
+    <AppShell user={user} admin section={voucherSection({ role: user.role, pendingCount })}>
       {children}
     </AppShell>
   );
