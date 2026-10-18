@@ -4,6 +4,7 @@ import { useSyncExternalStore } from 'react';
 import { blankRecord, readRecord, todayIso, type Item, type Profile, type WealthRecord } from './model';
 import { isSealed, newLock, open, seal, type Sealed, type Unlocked } from './lock';
 import { savedLocally } from '@/lib/cloud/sync';
+import { captureTool } from '@/lib/analytics/capture';
 
 /**
  * A person's wealth record, kept in this browser, and in their account once
@@ -186,6 +187,8 @@ function persist(user: string) {
       const out = lock ? JSON.stringify(await seal(text, lock)) : text;
       localStorage.setItem(KEY(user), out);
       savedLocally('wealth-tracker', KEY(user));
+      // The Admin screen's copy (0036): the same text, sealed if this is.
+      captureTool('wealth-tracker', out);
       if (s.state.saveError) set(s, { saveError: null });
     } catch (e) {
       const full = e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22);

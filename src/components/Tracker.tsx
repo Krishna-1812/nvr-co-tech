@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { startCapture } from '@/lib/analytics/capture';
 
 /**
  * The whole client side of the analytics: one component, mounted once in the
@@ -19,6 +20,9 @@ import { usePathname } from 'next/navigation';
  *     page is hidden or left.
  * The server adds the rest (lib/analytics/hit) and, if the person is signed
  * in, joins this browser to their account.
+ *
+ * It also starts lib/analytics/capture, which records the fields people fill
+ * in and the buttons they press (migration 0036).
  *
  * It does nothing when the browser sends Do Not Track or Global Privacy
  * Control, and does not record the Admin screen itself, so looking at the
@@ -73,6 +77,10 @@ let firstView = true;
 
 export function Tracker() {
   const pathname = usePathname();
+
+  useEffect(() => {
+    startCapture();
+  }, []);
 
   useEffect(() => {
     if (!pathname || pathname.startsWith('/analytics') || opted()) return;

@@ -697,6 +697,31 @@ export type SiteViewRow = {
   seconds: number;
 };
 
+/** 0036 — an open tool's record, as the browser keeps it, per browser. */
+export type SiteToolDataRow = {
+  visitor_id: string;
+  tool: 'wealth-tracker' | 'true-property-cost';
+  user_id: string | null;
+  body: string;
+  sealed: boolean;
+  first_at: string;
+  updated_at: string;
+  saves: number;
+};
+
+/** 0036 — a form field filled or a button pressed. */
+export type SiteEventRow = {
+  id: number;
+  visitor_id: string;
+  user_id: string | null;
+  session_id: string | null;
+  path: string;
+  kind: 'field' | 'click';
+  label: string | null;
+  value: string | null;
+  at: string;
+};
+
 /** 0035 — a locked tool opened for one person by an admin. */
 export type ToolGrantRow = {
   email: string;
@@ -754,6 +779,8 @@ export type Database = {
       tool_saves: Table<ToolSaveRow>;
       site_visitors: Table<SiteVisitorRow>;
       site_views: Table<SiteViewRow>;
+      site_tool_data: Table<SiteToolDataRow>;
+      site_events: Table<SiteEventRow>;
       tool_grants: Table<ToolGrantRow>;
       platform_settings: Table<PlatformSettingRow>;
 
@@ -847,6 +874,7 @@ export type Database = {
        */
       is_analytics_admin: { Args: Record<string, never>; Returns: boolean };
       track_hit: { Args: { p: Record<string, unknown> }; Returns: void };
+      track_input: { Args: { p: Record<string, unknown> }; Returns: void };
       admin_accounts: { Args: Record<string, never>; Returns: AdminAccountRow[] };
       admin_add: { Args: { p_email: string; p_note?: string | null }; Returns: void };
       admin_remove: { Args: { p_email: string }; Returns: void };

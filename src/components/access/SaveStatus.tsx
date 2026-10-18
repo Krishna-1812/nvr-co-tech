@@ -3,6 +3,7 @@
 import { useEffect, type CSSProperties } from 'react';
 import { Cloud, CloudOff, HardDrive, LoaderCircle } from 'lucide-react';
 import { startSync, useCloudStatus, type CloudStatus, type CloudTool } from '@/lib/cloud/sync';
+import { captureTool } from '@/lib/analytics/capture';
 import { cn } from '@/lib/utils';
 
 /**
@@ -53,6 +54,17 @@ export function SaveStatus({
   useEffect(() => {
     if (signedIn) startSync({ tool, key: storageKey, guestKey, reload, isEmpty });
   }, [signedIn, tool, storageKey, guestKey, reload, isEmpty]);
+
+  // Work typed before what people enter was recorded (0036) is sent once on
+  // opening, so a returning visitor's record is on the Admin screen too.
+  useEffect(() => {
+    try {
+      const body = localStorage.getItem(storageKey);
+      if (body && !isEmpty?.(body)) captureTool(tool, body);
+    } catch {
+      // Storage blocked: there is nothing to send.
+    }
+  }, [tool, storageKey, isEmpty]);
 
   const { text, tone } = WORDS[shown];
   const Icon = shown === 'local' ? HardDrive : shown === 'saving' || shown === 'checking' ? LoaderCircle : shown === 'saved' ? Cloud : CloudOff;
