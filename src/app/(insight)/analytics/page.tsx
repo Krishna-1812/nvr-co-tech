@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
-import { Activity, Clock3, Globe2, KeyRound, LayoutList, MonitorSmartphone, Radio, Route, UserCheck, Users } from 'lucide-react';
+import { Activity, ChevronRight, Clock3, Globe2, KeyRound, LayoutList, MonitorSmartphone, Radio, Route, UserCheck, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { istToday } from '@/lib/fiscal';
 import { SITE_URL } from '@/lib/marketing/content';
@@ -16,6 +16,7 @@ import { BarList, DayChart } from '@/components/admin/Charts';
 import { People } from '@/components/admin/People';
 import { Requests } from '@/components/admin/Requests';
 import { Accounts } from '@/components/admin/Accounts';
+import { Drill, DrillProvider, type Focus } from '@/components/admin/Drill';
 
 export const metadata: Metadata = { title: 'Admin' };
 
@@ -87,7 +88,17 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const rangeLabel = RANGES.find((r) => r.id === range)!.label;
   const missing = accounts.error && /admin_accounts|function/i.test(accounts.error.message);
 
+  const country = (code: string) => {
+    if (code === 'Unknown') return code;
+    try {
+      return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) ?? code;
+    } catch {
+      return code;
+    }
+  };
+
   return (
+    <DrillProvider report={report} accounts={accounts.data ?? []} since={since} now={now}>
     <div className="space-y-6">
       <ToolHero
         id="admin-hero"
@@ -104,13 +115,32 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         }
         glow="var(--color-brand-500)"
         scene={
-          <ArchScene
-            motif="owl"
-            className="h-full min-h-[18rem]"
-            seal={<SealFigure value={duration(t.seconds)} note="time spent in all" />}
-          />
+          <Drill focus={{ t: 'time' }} label="Time spent, person by person" className="h-full rounded-[1.5rem] [&>svg]:hidden">
+            <ArchScene
+              motif="owl"
+              className="h-full min-h-[18rem]"
+              seal={<SealFigure value={duration(t.seconds)} note="time spent in all" />}
+            />
+          </Drill>
         }
       >
+ <div className="mt-5 flex flex-wrap gap-2">
+          {(
+            [
+              [{ t: 'people', which: 'all' }, `Everyone · ${t.people}`],
+              [{ t: 'people', which: 'live' }, `Here now · ${liveNow}`],
+              [{ t: 'people', which: 'visitor' }, `Without an account · ${t.anonymous}`],
+              [{ t: 'views' }, `Pages opened · ${t.views.toLocaleString('en-IN')}`],
+            ] as [Focus, string][]
+          ).map(([focus, text]) => (
+            <Drill key={text} focus={focus} label={text} className="w-auto rounded-full [&>svg]:hidden">
+              <span className="surface-sunken inline-flex items-center rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition group-hover/drill:border-[var(--border-strong)]">
+                {text}
+              </span>
+            </Drill>
+          ))}
+        </div>
+
         <nav aria-label="Period" className="surface-sunken mt-6 inline-flex flex-wrap gap-1 rounded-full border p-1">
           {RANGES.map((r) => (
             <Link
@@ -128,10 +158,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </nav>
 
         <div className="mt-6 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-          <HeroStat strong label="Signed in" value={<Figure value={t.signedIn} delay={120} />} note={`${t.accounts} accounts in all, ${t.newAccounts} new`} />
-          <HeroStat label="Came back" tone="var(--color-brand-500)" value={<Figure value={t.returning} delay={180} />} note="More than one visit" />
-          <HeroStat label="Time per person" tone="var(--h-cyan)" value={duration(perPerson)} note={`${t.views.toLocaleString('en-IN')} pages opened`} />
-          <HeroStat label="Requests" tone="var(--status-warn)" value={<Figure value={t.requests} delay={240} />} note="Access and roadmap asks" />
+          <Drill focus={{ t: 'people', which: 'account' }} label="See the signed-in people" className="rounded-2xl">
+            <HeroStat strong className="h-full" label="Signed in" value={<Figure value={t.signedIn} delay={120} />} note={`${t.accounts} accounts in all, ${t.newAccounts} new`} />
+          </Drill>
+          <Drill focus={{ t: 'people', which: 'returning' }} label="See who came back" className="rounded-2xl">
+            <HeroStat className="h-full" label="Came back" tone="var(--color-brand-500)" value={<Figure value={t.returning} delay={180} />} note="More than one visit" />
+          </Drill>
+          <Drill focus={{ t: 'time' }} label="See time spent, person by person" className="rounded-2xl">
+            <HeroStat className="h-full" label="Time per person" tone="var(--h-cyan)" value={duration(perPerson)} note={`${t.views.toLocaleString('en-IN')} pages opened`} />
+          </Drill>
+          <Drill focus={{ t: 'requests' }} label="See every request" className="rounded-2xl">
+            <HeroStat className="h-full" label="Requests" tone="var(--status-warn)" value={<Figure value={t.requests} delay={240} />} note="Access and roadmap asks" />
+          </Drill>
         </div>
       </ToolHero>
 
@@ -147,24 +185,29 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       )}
 
       <Card className="overflow-hidden">
-        <CardTitle icon={<Activity className="size-4" />} title="People per day" description="Each person counted once a day, in Indian time." />
+        <CardTitle
+          icon={<Activity className="size-4" />}
+          title="People per day"
+          description="Each person counted once a day, in Indian time. Click a day to see who came."
+          action={<SeeAll focus={{ t: 'people', which: 'all' }} />}
+        />
         <div className="px-5 pt-8 pb-5 sm:px-6">
           <DayChart days={report.days} />
         </div>
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <Panel icon={<LayoutList className="size-4" />} title="Most read" note="Opens and time">
-          <BarList items={report.pages} unit="view" showTime empty="No pages yet." />
+        <Panel icon={<LayoutList className="size-4" />} title="Most read" note="Opens and time" all={{ t: 'views' }}>
+          <BarList kind="page" items={report.pages} unit="view" showTime empty="No pages yet." />
         </Panel>
-        <Panel icon={<Route className="size-4" />} title="Where they came from" note="First visit">
-          <BarList items={report.sources} unit="person" empty="Nobody yet." />
+        <Panel icon={<Route className="size-4" />} title="Where they came from" note="First visit" all={{ t: 'breakdown', by: 'source' }}>
+          <BarList kind="source" items={report.sources} unit="person" empty="Nobody yet." />
         </Panel>
-        <Panel icon={<Globe2 className="size-4" />} title="Countries" note="From their address">
-          <BarList items={report.places} unit="person" empty="Nobody yet." />
+        <Panel icon={<Globe2 className="size-4" />} title="Countries" note="From their address" all={{ t: 'breakdown', by: 'country' }}>
+          <BarList kind="country" name={country} items={report.places} unit="person" empty="Nobody yet." />
         </Panel>
-        <Panel icon={<MonitorSmartphone className="size-4" />} title="Devices" note="Latest browser">
-          <BarList items={report.devices} unit="person" empty="Nobody yet." />
+        <Panel icon={<MonitorSmartphone className="size-4" />} title="Devices" note="Latest browser" all={{ t: 'breakdown', by: 'device' }}>
+          <BarList kind="device" items={report.devices} unit="person" empty="Nobody yet." />
         </Panel>
       </div>
 
@@ -179,7 +222,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       </Card>
 
       <Card className="overflow-hidden">
-        <CardTitle icon={<KeyRound className="size-4" />} title="Requests" description={`${t.requests} in this period. Reply straight from here.`} />
+        <CardTitle
+          icon={<KeyRound className="size-4" />}
+          title="Requests"
+          description={`${t.requests} in this period. Open one to read it and reply.`}
+          action={<SeeAll focus={{ t: 'requests' }} />}
+        />
         <Requests requests={report.requests} />
       </Card>
 
@@ -188,6 +236,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           icon={<UserCheck className="size-4" />}
           title="Accounts and sign-ins"
           description={`All ${t.accounts} accounts, with when each was made and last signed in. Visits and time are for this period.`}
+          action={<SeeAll focus={{ t: 'accounts', which: 'all' }} />}
         />
         <Accounts accounts={accounts.data ?? []} people={report.people} now={now} />
       </Card>
@@ -197,6 +246,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         Time counts only while a page is open in front of someone and they have been active in the last two minutes.
       </p>
     </div>
+    </DrillProvider>
   );
 }
 
@@ -210,12 +260,23 @@ function readClock(): number {
   return Date.now();
 }
 
-function Panel({ icon, title, note, children }: { icon: ReactNode; title: string; note: string; children: ReactNode }) {
+function Panel({ icon, title, note, all, children }: { icon: ReactNode; title: string; note: string; all: Focus; children: ReactNode }) {
   return (
     <Card className="overflow-hidden">
-      <CardTitle icon={icon} title={title} description={note} />
+      <CardTitle icon={icon} title={title} description={note} action={<SeeAll focus={all} />} />
       <div className="p-3">{children}</div>
     </Card>
+  );
+}
+
+/** "See all" in a card's heading, opening everything behind the card. */
+function SeeAll({ focus }: { focus: Focus }) {
+  return (
+    <Drill focus={focus} label="See all" className="w-auto rounded-full hover:translate-y-0 [&>svg]:hidden">
+      <span className="surface-sunken inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11.5px] font-semibold whitespace-nowrap transition group-hover/drill:border-[var(--border-strong)]">
+        See all <ChevronRight className="size-3" aria-hidden />
+      </span>
+    </Drill>
   );
 }
 

@@ -1,14 +1,18 @@
+'use client';
+
 import type { Person } from '@/lib/analytics/report';
 import { duration } from '@/lib/analytics/report';
 import type { AdminAccountRow } from '@/lib/supabase/types';
 import { isAdminEmail } from '@/lib/access';
 import { ago, stamp } from './when';
+import { useDrill } from './Drill';
 
 /**
  * Every account there is, whether or not it was used in the range, with when
  * it was made, the last sign-in and how, and the time it spent in the range.
  */
 export function Accounts({ accounts, people, now }: { accounts: AdminAccountRow[]; people: Person[]; now: number }) {
+  const { open } = useDrill();
   if (accounts.length === 0) return <p className="text-subtle px-6 py-12 text-center text-sm">No accounts yet.</p>;
   const byKey = new Map(people.map((p) => [p.key, p]));
   return (
@@ -28,9 +32,13 @@ export function Accounts({ accounts, people, now }: { accounts: AdminAccountRow[
           {accounts.map((a) => {
             const p = byKey.get(`u:${a.id}`);
             return (
-              <tr key={a.id} className="transition hover:bg-[color-mix(in_oklab,var(--surface-sunken)_60%,transparent)]">
+              <tr
+                key={a.id}
+                onClick={() => open({ t: 'account', id: a.id })}
+                className="cursor-pointer transition hover:bg-[color-mix(in_oklab,var(--surface-sunken)_60%,transparent)]"
+              >
                 <td className="max-w-[18rem] px-5 py-3 sm:px-6">
-                  <a href={p ? `#person-u:${a.id}` : undefined} className="block min-w-0">
+                  <button type="button" className="block min-w-0 text-left focus-visible:underline focus-visible:outline-none">
                     <span className="block truncate font-semibold">
                       {a.full_name ?? a.email ?? 'No name'}
                       {isAdminEmail(a.email) && (
@@ -40,7 +48,7 @@ export function Accounts({ accounts, people, now }: { accounts: AdminAccountRow[
                       )}
                     </span>
                     {a.full_name && <span className="text-subtle block truncate text-[12px]">{a.email}</span>}
-                  </a>
+                  </button>
                 </td>
                 <td className="text-muted px-3 py-3 whitespace-nowrap">{stamp(a.created_at, false)}</td>
                 <td className="text-muted px-3 py-3 whitespace-nowrap" title={a.last_sign_in_at ? stamp(a.last_sign_in_at) : undefined}>

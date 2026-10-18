@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Count, Report } from '@/lib/analytics/report';
 import { duration } from '@/lib/analytics/report';
+import { Drill, type Focus } from './Drill';
 
 /**
  * The two pictures on the Admin screen: people per day, and short ranked lists.
@@ -32,10 +33,11 @@ export function DayChart({ days }: { days: Report['days'] }) {
         </span>
         <div className="relative flex h-full items-end gap-[3px]">
           {days.map((d, i) => (
-            <div
+            <Drill
               key={d.day}
-              title={`${label(d.day)}: ${d.people} ${d.people === 1 ? 'person' : 'people'}, ${d.signedIn} signed in`}
-              className="group relative flex h-full min-w-0 flex-1 items-end"
+              focus={{ t: 'day', day: d.day }}
+              label={`${label(d.day)}: ${d.people} ${d.people === 1 ? 'person' : 'people'}, ${d.signedIn} signed in`}
+              className="group relative flex h-full min-w-0 flex-1 items-end rounded-t-[5px] hover:translate-y-0 [&>svg]:hidden"
             >
               <div
                 className="relative w-full origin-bottom animate-[rise-y_0.7s_cubic-bezier(0.22,1,0.36,1)_backwards] overflow-hidden rounded-t-[5px] bg-[color-mix(in_oklab,var(--color-brand-500)_30%,transparent)] transition-[filter] group-hover:brightness-110"
@@ -46,7 +48,7 @@ export function DayChart({ days }: { days: Report['days'] }) {
                   style={{ height: d.people ? `${(d.signedIn / d.people) * 100}%` : 0 }}
                 />
               </div>
-            </div>
+            </Drill>
           ))}
         </div>
       </div>
@@ -86,27 +88,47 @@ export function DayChart({ days }: { days: Report['days'] }) {
 }
 
 /** A short ranked list with a bar behind each row. */
-export function BarList({ items, unit, showTime = false, empty }: { items: Count[]; unit: string; showTime?: boolean; empty: string }) {
+export function BarList({
+  items,
+  unit,
+  showTime = false,
+  empty,
+  kind,
+  name = (label) => label,
+}: {
+  items: Count[];
+  unit: string;
+  showTime?: boolean;
+  empty: string;
+  /** What a row opens: the page, or the people from that source, country or device. */
+  kind: 'page' | 'source' | 'country' | 'device';
+  /** How a label is shown, when the stored one is a code. */
+  name?: (label: string) => string;
+}) {
   if (items.length === 0) return <p className="text-subtle py-6 text-center text-[13px]">{empty}</p>;
   const max = Math.max(...items.map((i) => i.value));
   return (
     <ol className="space-y-1.5">
       {items.map((item, i) => (
-        <li key={item.label} className="relative overflow-hidden rounded-lg px-3 py-2">
+        <li key={item.label}>
+          <Drill
+            focus={(kind === 'page' ? { t: 'page', path: item.label } : { t: kind, label: item.label }) as Focus}
+            label={`${name(item.label)}: ${item.value} ${item.value === 1 ? unit : `${unit}s`}`}
+            className="overflow-hidden rounded-lg px-3 py-2 hover:translate-y-0 hover:bg-[var(--surface-sunken)] [&>svg]:hidden"
+          >
           <span
             aria-hidden
             className="absolute inset-y-0 left-0 origin-left animate-[grow_0.8s_cubic-bezier(0.22,1,0.36,1)_backwards] rounded-lg bg-[color-mix(in_oklab,var(--color-brand-500)_13%,transparent)]"
             style={{ width: `${(item.value / max) * 100}%`, animationDelay: `${i * 60}ms` }}
           />
           <span className="relative flex items-baseline justify-between gap-3 text-[13px]">
-            <span className="min-w-0 truncate font-medium" title={item.label}>
-              {item.label}
-            </span>
+            <span className="min-w-0 truncate font-medium">{name(item.label)}</span>
             <span className="text-muted shrink-0 tabular-nums">
               {item.value} {item.value === 1 ? unit : `${unit}s`}
               {showTime && item.seconds ? <span className="text-subtle"> · {duration(item.seconds)}</span> : null}
             </span>
           </span>
+          </Drill>
         </li>
       ))}
     </ol>

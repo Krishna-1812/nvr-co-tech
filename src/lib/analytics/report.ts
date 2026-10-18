@@ -48,11 +48,16 @@ export type Person = {
   browser: string | null;
   os: string | null;
   place: string | null;
+  /** Two-letter country code from the address, for the Countries list. */
+  country: string | null;
   source: string;
   language: string | null;
   screen: string | null;
   ip: string | null;
+  /** Newest first, up to 200 pages. */
   journey: Journey[];
+  /** More than one visit, or first seen before the period began. */
+  returning: boolean;
   requests: number;
   joined: string | null;
   lastSignIn: string | null;
@@ -210,11 +215,13 @@ export function buildReport({
           browser: null,
           os: null,
           place: null,
+          country: null,
           source: 'Direct',
           language: null,
           screen: null,
           ip: null,
           journey: [],
+          returning: false,
           requests: 0,
           joined: account?.created_at ?? null,
           lastSignIn: account?.last_sign_in_at ?? null,
@@ -263,6 +270,7 @@ export function buildReport({
       p.browser = latest.browser;
       p.os = latest.os;
       p.place = place(latest);
+      p.country = latest.country;
       p.language = latest.language;
       p.screen = latest.screen;
       p.ip = latest.ip;
@@ -277,8 +285,9 @@ export function buildReport({
         if (v && v.first_seen < p.firstSeen) p.firstSeen = v.first_seen;
       }
     }
-    if (p.visits > 1 || (since !== null && p.firstSeen < since)) returning += 1;
-    p.journey = p.journey.slice(-40).reverse();
+    p.returning = p.visits > 1 || (since !== null && p.firstSeen < since);
+    if (p.returning) returning += 1;
+    p.journey = p.journey.slice(-200).reverse();
     bump(sources, p.source);
     bump(places, latest?.country ? place({ ...latest, city: null, region: null }) ?? 'Unknown' : 'Unknown');
     bump(devices, p.device ?? 'Unknown');

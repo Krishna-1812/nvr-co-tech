@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { ChevronDown, Globe, Laptop, MonitorSmartphone, Search, Smartphone, Tablet, UserRound } from 'lucide-react';
+import { ChevronDown, Laptop, MonitorSmartphone, Search, Smartphone, Tablet, UserRound } from 'lucide-react';
 import type { Person } from '@/lib/analytics/report';
 import { duration } from '@/lib/analytics/report';
 import { cn } from '@/lib/utils';
-import { ago, stamp } from './when';
+import { ago } from './when';
+import { PersonDetail, initials } from './PersonDetail';
 
 /**
  * Everybody who came in the range, one row each: an account (every browser it
@@ -176,47 +177,8 @@ function Row({ person: p, now, open, onToggle }: { person: Person; now: number; 
       </button>
 
       {open && (
-        <div className="grid animate-[rise_0.4s_cubic-bezier(0.22,1,0.36,1)_backwards] gap-5 bg-[color-mix(in_oklab,var(--surface-sunken)_55%,transparent)] px-5 pt-1 pb-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-          <dl className="grid grid-cols-2 content-start gap-2.5">
-            <Fact label="First seen" value={stamp(p.firstSeen)} />
-            <Fact label="Last seen" value={stamp(p.lastSeen)} />
-            <Fact label="Pages opened" value={String(p.views)} />
-            <Fact label="Browsers" value={String(p.browsers)} />
-            <Fact label="Arrived from" value={p.source} />
-            <Fact label="Location" value={p.place ?? 'Unknown'} />
-            <Fact label="Device" value={[p.device, p.browser, p.os].filter(Boolean).join(' · ') || 'Unknown'} />
-            <Fact label="Screen · language" value={[p.screen, p.language].filter(Boolean).join(' · ') || 'Unknown'} />
-            <Fact label="IP address" value={p.ip ?? 'Unknown'} />
-            <Fact label="Requests" value={String(p.requests)} />
-            {p.kind === 'account' && (
-              <>
-                <Fact label="Account created" value={p.joined ? stamp(p.joined) : 'Unknown'} />
-                <Fact label="Last sign-in" value={p.lastSignIn ? `${stamp(p.lastSignIn)}${p.provider ? ` · ${provider(p.provider)}` : ''}` : 'Unknown'} />
-              </>
-            )}
-            {p.kind === 'visitor' && <Fact label="Visitor ID" value={p.key.slice(2)} wide />}
-          </dl>
-
-          <div className="min-w-0">
-            <p className="a-label flex items-center gap-1.5">
-              <Globe className="size-3" aria-hidden /> Pages, newest first
-            </p>
-            <ol className="relative mt-3 space-y-0.5 border-l border-dashed pl-4">
-              {p.journey.map((j, i) => (
-                <li key={`${j.at}-${i}`} className="relative py-1.5">
-                  <span aria-hidden className="absolute top-3 -left-[21px] size-2 rounded-full border-2 border-[var(--surface-raised)] bg-[var(--color-brand-500)]" />
-                  <span className="flex items-baseline justify-between gap-3 text-[13px]">
-                    <span className="min-w-0 truncate font-medium" title={j.title ?? j.path}>
-                      {j.path}
-                    </span>
-                    <span className="text-subtle shrink-0 text-[11.5px] tabular-nums">
-                      {duration(j.seconds)} · {stamp(j.at)}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
+        <div className="animate-[rise_0.4s_cubic-bezier(0.22,1,0.36,1)_backwards] bg-[color-mix(in_oklab,var(--surface-sunken)_55%,transparent)] px-5 pt-1 pb-6 sm:px-6">
+          <PersonDetail person={p} />
         </div>
       )}
     </li>
@@ -230,24 +192,4 @@ function Stat({ value, label }: { value: string; label: string }) {
       <span className="text-subtle block text-[11px]">{label}</span>
     </span>
   );
-}
-
-function Fact({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
-  return (
-    <div className={cn('surface min-w-0 rounded-xl border px-3 py-2', wide && 'col-span-2')}>
-      <dt className="a-label">{label}</dt>
-      <dd className="mt-1 truncate text-[13px] font-medium" title={value}>
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function initials(s: string): string {
-  const parts = s.replace(/@.*/, '').split(/[\s._-]+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? '?') + (parts[1]?.[0] ?? '')).toUpperCase();
-}
-
-function provider(p: string): string {
-  return p === 'google' ? 'Google' : p === 'email' ? 'Email and password' : p;
 }

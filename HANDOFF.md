@@ -627,6 +627,11 @@ used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
   most-read pages, sources, countries, devices, the People list (search, filter, expand for facts and
   page timeline), Requests (access requests + "I want this", linked to the person), Accounts and
   sign-ins. Reads in pages of 1,000 up to 50,000 rows and says so if capped.
+- **Everything opens** (`components/admin/Drill.tsx`): every figure, chip, chart bar, list row,
+  request and account opens a centred panel (`CenterPanel`) with what is behind it — the people a
+  figure counts, a day's visitors, a page's readers, a source/country/device, a request with reply,
+  an account — and every person opens to their record (`PersonDetail`), with Back. Worked out in
+  the browser from the report already loaded; no extra requests.
 - **Preview**: tracking works in memory (`previewTrack` in `lib/preview/client.ts`), so the screen
   shows your own preview browsing; access requests are kept too. Use a normal user agent in
   Playwright (HeadlessChrome is dropped as a bot).

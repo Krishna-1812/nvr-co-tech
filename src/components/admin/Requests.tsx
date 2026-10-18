@@ -1,7 +1,10 @@
+'use client';
+
 import type { CSSProperties } from 'react';
 import { Hand, KeyRound, Mail } from 'lucide-react';
 import type { Request } from '@/lib/analytics/report';
 import { stamp } from './when';
+import { useDrill } from './Drill';
 
 /**
  * Every ask, newest first: "Request access" from a locked tool or the contact
@@ -9,6 +12,7 @@ import { stamp } from './when';
  * from when the browser or the address is known to the panel.
  */
 export function Requests({ requests }: { requests: Request[] }) {
+  const { open } = useDrill();
   if (requests.length === 0) {
     return <p className="text-subtle px-6 py-12 text-center text-sm">No requests in this period.</p>;
   }
@@ -18,7 +22,17 @@ export function Requests({ requests }: { requests: Request[] }) {
         const Icon = r.kind === 'access' ? KeyRound : Hand;
         const tone = r.kind === 'access' ? 'var(--status-warn)' : 'var(--status-pending)';
         return (
-          <li key={r.id} className="surface-sunken a-inner relative flex min-w-0 flex-col rounded-2xl border p-4">
+          <li
+            key={r.id}
+            className="surface-sunken a-inner group relative flex min-w-0 flex-col rounded-2xl border p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)]"
+          >
+            {/* The whole card opens the request; the two links sit above this. */}
+            <button
+              type="button"
+              onClick={() => open({ t: 'request', id: r.id })}
+              aria-label={`Open the request: ${r.what}`}
+              className="absolute inset-0 z-[1] cursor-pointer rounded-2xl focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:outline-none"
+            />
             <div className="flex items-start gap-3">
               <span
                 aria-hidden
@@ -36,15 +50,19 @@ export function Requests({ requests }: { requests: Request[] }) {
               <span className="text-subtle shrink-0 text-[11.5px]">{stamp(r.at)}</span>
             </div>
             {r.message && <p className="mt-3 line-clamp-4 text-[13px] leading-relaxed text-pretty whitespace-pre-line">{r.message}</p>}
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-[12.5px] font-semibold">
+            <div className="relative z-[2] mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-[12.5px] font-semibold">
               <a href={`mailto:${r.email}`} className="inline-flex min-w-0 items-center gap-1.5 hover:underline">
                 <Mail className="size-3.5 shrink-0" aria-hidden />
                 <span className="truncate">{r.email}</span>
               </a>
               {r.personKey && (
-                <a href={`#person-${r.personKey}`} className="text-muted hover:text-[var(--text-c)] hover:underline">
+                <button
+                  type="button"
+                  onClick={() => open({ t: 'person', key: r.personKey! })}
+                  className="text-muted hover:text-[var(--text-c)] hover:underline"
+                >
                   See their visits
-                </a>
+                </button>
               )}
             </div>
           </li>
