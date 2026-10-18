@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/server';
 import { istToday } from '@/lib/fiscal';
 import { SITE_URL } from '@/lib/marketing/content';
 import { RANGES, buildReport, duration, type Range } from '@/lib/analytics/report';
-import type { SiteViewRow, SiteVisitorRow } from '@/lib/supabase/types';
+import type { AdminAccountRow, SiteViewRow, SiteVisitorRow } from '@/lib/supabase/types';
+import { ADMIN_EMAILS } from '@/lib/access';
 import { cn } from '@/lib/utils';
 import { Figure } from '@/components/app/Figure';
 import { Card, CardTitle } from '@/components/ui/primitives';
@@ -59,7 +60,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const since = days === null ? null : new Date(Date.parse(`${today}T00:00:00+05:30`) - (days - 1) * 86_400_000).toISOString();
 
   const supabase = await createClient();
-  const [views, visitors, accounts, access, roadmap] = await Promise.all([
+  const [views, visitors, accounts, access, roadmap, settings, dbAdmins] = await Promise.all([
     readAll<SiteViewRow>((from, to) => {
       const q = supabase.from('site_views').select('*').order('started_at', { ascending: false });
       return (since ? q.gte('started_at', since) : q).range(from, to);
@@ -68,11 +69,27 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     supabase.rpc('admin_accounts'),
     supabase.from('access_requests').select('*').order('created_at', { ascending: false }).limit(1000),
     supabase.from('feature_requests').select('*').order('created_at', { ascending: false }).limit(1000),
+    supabase.from('platform_settings').select('key, value'),
+    supabase.from('analytics_admins').select('email'),
   ]);
 
+  /*
+   * "Leave admins out of the figures" (Admin settings, 0035): drop every view
+   * by an admin's account, and every browser an admin has signed in on. The
+   * rows stay in the database; switching it off brings them back.
+   */
+  const excludeAdmins = (settings.data ?? []).find((s) => s.key === 'exclude_admins')?.value === true;
+  const adminEmails = new Set([...ADMIN_EMAILS, ...(dbAdmins.data ?? []).map((a) => a.email.toLowerCase())]);
+  const adminIds = new Set(((accounts.data ?? []) as AdminAccountRow[]).filter((a) => a.email && adminEmails.has(a.email.toLowerCase())).map((a) => a.id));
+  const adminBrowsers = new Set(visitors.rows.filter((v) => v.user_id && adminIds.has(v.user_id)).map((v) => v.id));
+  const keptViews = excludeAdmins
+    ? views.rows.filter((v) => !(v.user_id && adminIds.has(v.user_id)) && !adminBrowsers.has(v.visitor_id))
+    : views.rows;
+  const keptVisitors = excludeAdmins ? visitors.rows.filter((v) => !adminBrowsers.has(v.id)) : visitors.rows;
+
   const report = buildReport({
-    visitors: visitors.rows,
-    views: views.rows,
+    visitors: keptVisitors,
+    views: keptViews,
     accounts: accounts.data ?? [],
     access: access.data ?? [],
     roadmap: roadmap.data ?? [],
@@ -102,7 +119,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <div className="space-y-6">
       <ToolHero
         id="admin-hero"
-        label={`Admin · ${range === 'all' ? 'all time' : `last ${rangeLabel}`}`}
+        label={`Admin · ${range === 'all' ? 'all time' : `last ${rangeLabel}`}${excludeAdmins ? ' · admins left out' : ''}`}
         pill={{ text: liveNow === 1 ? '1 here now' : `${liveNow} here now`, tone: liveNow ? 'var(--status-approved)' : 'var(--status-draft)', live: liveNow > 0 }}
         variant="figure"
         title={t.people.toLocaleString('en-IN')}

@@ -697,6 +697,18 @@ export type SiteViewRow = {
   seconds: number;
 };
 
+/** 0035 — a locked tool opened for one person by an admin. */
+export type ToolGrantRow = {
+  email: string;
+  tool: 'voucher-desk' | 'ledger-reconciliation' | 'valuation-desk';
+  note: string | null;
+  granted_by: string | null;
+  granted_at: string;
+};
+
+/** 0035 — a small platform switch. */
+export type PlatformSettingRow = { key: string; value: unknown; updated_by: string | null; updated_at: string };
+
 /** 0033 — `admin_accounts()`. */
 export type AdminAccountRow = {
   id: string;
@@ -742,6 +754,8 @@ export type Database = {
       tool_saves: Table<ToolSaveRow>;
       site_visitors: Table<SiteVisitorRow>;
       site_views: Table<SiteViewRow>;
+      tool_grants: Table<ToolGrantRow>;
+      platform_settings: Table<PlatformSettingRow>;
 
       // 0010 — the analytics store.
       analytics_admins: Table<AnalyticsAdminRow>;
@@ -834,6 +848,12 @@ export type Database = {
       is_analytics_admin: { Args: Record<string, never>; Returns: boolean };
       track_hit: { Args: { p: Record<string, unknown> }; Returns: void };
       admin_accounts: { Args: Record<string, never>; Returns: AdminAccountRow[] };
+      admin_add: { Args: { p_email: string; p_note?: string | null }; Returns: void };
+      admin_remove: { Args: { p_email: string }; Returns: void };
+      grant_tool: { Args: { p_email: string; p_tool: string; p_note?: string | null }; Returns: void };
+      revoke_tool: { Args: { p_email: string; p_tool: string }; Returns: void };
+      set_platform_setting: { Args: { p_key: string; p_value: unknown }; Returns: void };
+      reset_site_analytics: { Args: Record<string, never>; Returns: void };
 
       /*
        * 0011 — a shared rate-limit counter and a caught-failure log, both

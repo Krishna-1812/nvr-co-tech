@@ -25,7 +25,7 @@ import { LockedTool } from '@/components/access/LockedTool';
 export default async function ValuationLayout({ children }: { children: React.ReactNode }) {
   // Admins only since the workspace opened (lib/access); see (app)/layout.
   const viewer = await getViewer();
-  if (!canUseTool('valuation-desk', viewer.admin)) {
+  if (!canUseTool('valuation-desk', viewer.admin, viewer.grants)) {
     return (
       <AppShell user={viewer.user} section={lockedSection('valuation-desk', 'Valuation Desk', '/comps', Layers)}>
         <LockedTool slug="valuation-desk" signedIn={!!viewer.user} name={viewer.user?.full_name} email={viewer.user?.authEmail} />
@@ -38,7 +38,7 @@ export default async function ValuationLayout({ children }: { children: React.Re
   const canSeed = await isAnalyticsAdmin();
 
   return (
-    <AppShell user={user} admin section={valuationSection({ canSeed })}>
+    <AppShell user={user} admin={viewer.admin} section={valuationSection({ canSeed })}>
       {children}
     </AppShell>
   );

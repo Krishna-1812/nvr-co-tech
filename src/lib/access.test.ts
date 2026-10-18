@@ -24,6 +24,12 @@ describe('access', () => {
     expect(canUseTool('gst-reconciliation', true)).toBe(false);
   });
 
+  it('opens a locked tool for one person when an admin has granted it, except Contact Finder', () => {
+    expect(canUseTool('ledger-reconciliation', false, ['ledger-reconciliation'])).toBe(true);
+    expect(canUseTool('voucher-desk', false, ['ledger-reconciliation'])).toBe(false);
+    expect(canUseTool('contact-finder', false, ['contact-finder'])).toBe(false);
+  });
+
   it('covers every live tool on the roster, once', () => {
     const live = AGENTS.filter((a) => a.stage === 'live').map((a) => a.slug).sort();
     expect([...OPEN_TOOLS, ...LOCKED_TOOLS].sort()).toEqual(live);

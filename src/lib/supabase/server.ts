@@ -206,11 +206,24 @@ export async function requireOrgMember() {
  */
 export const getViewer = cache(async () => {
   const user = await getCurrentUser();
-  if (!user) return { user: null, admin: false } as const;
-  if (isAdminEmail(user.authEmail) || isAdminEmail(user.email)) return { user, admin: true } as const;
+  if (!user) return { user: null, admin: false, grants: [] as string[] };
+  if (isAdminEmail(user.authEmail) || isAdminEmail(user.email)) return { user, admin: true, grants: [] as string[] };
   const { isAnalyticsAdmin } = await import('@/lib/analytics/admin');
-  return { user, admin: await isAnalyticsAdmin() } as const;
+  if (await isAnalyticsAdmin()) return { user, admin: true, grants: [] as string[] };
+  return { user, admin: false, grants: await myGrants() };
 });
+
+/**
+ * The locked tools an admin has opened for this person (0035). Row-level
+ * security hands back only rows for the caller's own verified email. A missing
+ * table (0035 not applied) is no grants, not a failure.
+ */
+async function myGrants(): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('tool_grants').select('tool');
+  if (error || !data) return [];
+  return data.map((r) => r.tool);
+}
 
 export type Viewer = Awaited<ReturnType<typeof getViewer>>;
 
@@ -223,7 +236,7 @@ export type Viewer = Awaited<ReturnType<typeof getViewer>>;
  */
 export async function toolRefusal(slug: string): Promise<string | null> {
   const viewer = await getViewer();
-  if (canUseTool(slug, viewer.admin)) return null;
+  if (canUseTool(slug, viewer.admin, viewer.grants)) return null;
   return viewer.user
     ? 'This tool is not open on your account. Ask for access from its page and we will get back to you.'
     : 'Sign in first.';

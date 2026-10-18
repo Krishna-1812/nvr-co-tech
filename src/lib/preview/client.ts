@@ -78,6 +78,10 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   site_visitors: [],
   site_views: [],
   access_requests: [],
+  // Admin settings (0035).
+  analytics_admins: [],
+  tool_grants: [],
+  platform_settings: [],
   /*
    * Valuation Desk (0028). Seeded, like the analytics tables and unlike the
    * reconciliation and assistant histories: a peer set is assembled FROM a
@@ -617,6 +621,33 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
     // join up when preview switches from a visitor to a signed-in person.
     case 'track_hit':
       // Answered in createPreviewClient, which knows who preview is pretending to be.
+      return ok();
+    // Admin settings (0035), in memory. The checks the Postgres functions make
+    // (not yourself, not the last admin) are the database's; preview only
+    // records the change so the screen can be seen doing it.
+    case 'admin_add': {
+      const e = String(args.p_email ?? '').trim().toLowerCase();
+      if (!TABLES.analytics_admins.some((r) => r.email === e)) TABLES.analytics_admins.push({ email: e, note: args.p_note ?? 'Added in preview', added_at: nowIso() });
+      return ok();
+    }
+    case 'admin_remove':
+      TABLES.analytics_admins = TABLES.analytics_admins.filter((r) => r.email !== String(args.p_email).toLowerCase());
+      return ok();
+    case 'grant_tool': {
+      const e = String(args.p_email ?? '').trim().toLowerCase();
+      TABLES.tool_grants = TABLES.tool_grants.filter((r) => !(r.email === e && r.tool === args.p_tool));
+      TABLES.tool_grants.unshift({ email: e, tool: args.p_tool, note: args.p_note ?? null, granted_by: me().email, granted_at: nowIso() });
+      return ok();
+    }
+    case 'revoke_tool':
+      TABLES.tool_grants = TABLES.tool_grants.filter((r) => !(r.email === String(args.p_email).toLowerCase() && r.tool === args.p_tool));
+      return ok();
+    case 'set_platform_setting':
+      TABLES.platform_settings = [...TABLES.platform_settings.filter((r) => r.key !== args.p_key), { key: args.p_key, value: args.p_value, updated_at: nowIso() }];
+      return ok();
+    case 'reset_site_analytics':
+      TABLES.site_views.length = 0;
+      TABLES.site_visitors.length = 0;
       return ok();
     case 'admin_accounts':
       return ok(

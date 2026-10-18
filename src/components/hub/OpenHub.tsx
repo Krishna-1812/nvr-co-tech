@@ -36,10 +36,13 @@ import { SignInButton } from '../access/SignInButton';
 export function OpenHub({
   user,
   asked,
+  grants = [],
 }: {
   user: { id: string; email: string; full_name: string | null } | null;
   /** Roadmap tools this person has already asked for (signed in only). */
   asked: Set<string>;
+  /** Locked tools an admin has opened for this person (Admin settings). */
+  grants?: string[];
 }) {
   const fiscal = fiscalYear(istToday());
   const { partOfDay, weekday } = istParts();
@@ -47,7 +50,8 @@ export function OpenHub({
   const greeting = firstName ? `Good ${partOfDay}, ${firstName}.` : `Good ${partOfDay}.`;
 
   const open = SOLUTIONS.filter((s) => OPEN_TOOLS.includes(s.slug));
-  const locked = SOLUTIONS.filter((s) => LOCKED_TOOLS.includes(s.slug));
+  const locked = SOLUTIONS.filter((s) => LOCKED_TOOLS.includes(s.slug) && !grants.includes(s.slug));
+  const given = SOLUTIONS.filter((s) => LOCKED_TOOLS.includes(s.slug) && grants.includes(s.slug));
   const rest = SOLUTIONS.filter((s) => s.stage !== 'live');
   const wealth = open.find((s) => s.slug === 'wealth-tracker');
   const landed = open.find((s) => s.slug === 'true-property-cost');
@@ -93,7 +97,12 @@ export function OpenHub({
 
         <div className="surface-sunken a-inner mt-8 rounded-2xl border p-4 sm:p-5">
           <div className="grid gap-2.5 sm:grid-cols-3">
-            <HeroStat strong label="Open to you" value={<Figure value={open.length} delay={120} />} note="No account needed" />
+            <HeroStat
+              strong
+              label="Open to you"
+              value={<Figure value={open.length + given.length} delay={120} />}
+              note={given.length ? `${given.length} opened for you` : 'No account needed'}
+            />
             <HeroStat
               label="On request"
               tone="var(--status-warn)"
@@ -152,10 +161,26 @@ export function OpenHub({
               <LiveSolutionCard solution={wealth} readings={[]} note="" panel={<WealthPanel userId={user?.id ?? 'guest'} />} />
             </div>
           )}
+          {given.map((s) => (
+            <div key={s.slug} className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_180ms_backwards]">
+              <LiveSolutionCard
+                solution={s}
+                readings={[]}
+                note=""
+                panel={
+                  <p className="tinted mt-3.5 flex min-h-[3.5rem] items-center rounded-xl border px-3 py-2 text-[12px] leading-relaxed font-medium [--tone:var(--status-approved)]">
+                    Opened for you by an admin.
+                  </p>
+                }
+              />
+            </div>
+          ))}
         </div>
       </section>
 
       <section aria-labelledby="hub-locked">
+        {locked.length > 0 && (
+        <>
         <SectionHead
           id="hub-locked"
           count={locked.length}
@@ -169,6 +194,8 @@ export function OpenHub({
             </li>
           ))}
         </ul>
+        </>
+        )}
       </section>
 
       <section aria-labelledby="hub-roadmap">

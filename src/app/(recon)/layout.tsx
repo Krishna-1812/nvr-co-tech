@@ -17,7 +17,7 @@ import { LockedTool } from '@/components/access/LockedTool';
 export default async function ReconLayout({ children }: { children: React.ReactNode }) {
   // Admins only since the workspace opened (lib/access); see (app)/layout.
   const viewer = await getViewer();
-  if (!canUseTool('ledger-reconciliation', viewer.admin)) {
+  if (!canUseTool('ledger-reconciliation', viewer.admin, viewer.grants)) {
     return (
       <AppShell user={viewer.user} section={lockedSection('ledger-reconciliation', 'Ledger Reconciliation', '/reconcile', Scale)}>
         <LockedTool slug="ledger-reconciliation" signedIn={!!viewer.user} name={viewer.user?.full_name} email={viewer.user?.authEmail} />
@@ -29,7 +29,7 @@ export default async function ReconLayout({ children }: { children: React.ReactN
   const user = await requireUser();
 
   return (
-    <AppShell user={user} admin section={reconSection()}>
+    <AppShell user={user} admin={viewer.admin} section={reconSection()}>
       {children}
     </AppShell>
   );

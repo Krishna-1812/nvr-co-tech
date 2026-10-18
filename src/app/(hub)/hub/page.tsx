@@ -69,7 +69,7 @@ export default async function HubPage() {
   const viewer = await getViewer();
   if (!viewer.admin || !viewer.user) {
     const asked = viewer.user ? new Set(await myFeatureRequests()) : new Set<string>();
-    return <OpenHub user={viewer.user} asked={asked} />;
+    return <OpenHub user={viewer.user} asked={asked} grants={viewer.grants} />;
   }
   const user = viewer.user;
   const supabase = await createClient();

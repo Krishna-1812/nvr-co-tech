@@ -627,6 +627,17 @@ used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
   most-read pages, sources, countries, devices, the People list (search, filter, expand for facts and
   page timeline), Requests (access requests + "I want this", linked to the person), Accounts and
   sign-ins. Reads in pages of 1,000 up to 50,000 rows and says so if capped.
+- **Admin settings** `/analytics/settings` (rail item "Admin settings"; the account's own
+  `/settings` is separate). Migration **0035**: add/remove admins (`analytics_admins` via
+  `admin_add`/`admin_remove`; the five code-list addresses show as "Built in" and cannot be removed;
+  you cannot remove yourself or the last one); **tool access** — open Voucher Desk, Ledger
+  Reconciliation or Valuation Desk for one email (`tool_grants`, `grant_tool`/`revoke_tool`; Contact
+  Finder stays admins-only), with a "waiting" list built from access requests not yet answered;
+  `canUseTool(slug, admin, grants)` and `getViewer().grants` read a person's own grants under RLS,
+  and the open hub shows granted tools as open; **counting** — `platform_settings.exclude_admins`
+  leaves admins' accounts and every browser they signed in on out of the figures (rows kept);
+  **data** — CSV of every page view (`/analytics/export`, admins only, formula-safe cells) and
+  `reset_site_analytics()`. Server actions in `actions/adminSettings.ts`.
 - **Everything opens** (`components/admin/Drill.tsx`): every figure, chip, chart bar, list row,
   request and account opens a centred panel (`CenterPanel`) with what is behind it — the people a
   figure counts, a day's visitors, a page's readers, a source/country/device, a request with reply,
@@ -654,6 +665,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0032 | `open_workspace.sql` | The owner's five admin emails into `analytics_admins`; `tool_saves` (owner-only RLS, 2 MB cap, server-stamped `updated_at`) for the open tools' account copies (§4a) |
 | 0033 | `simple_analytics.sql` | The new analytics: `site_visitors`, `site_views`, `track_hit()`, `admin_accounts()` (§12) |
 | 0034 | `drop_old_analytics.sql` | Drops the 0010/0024 analytics tables and the old analytics and `operator_*` functions; keeps `analytics_admins`; empties `product_events` (§12) |
+| 0035 | `admin_settings.sql` | Admin settings: `tool_grants`, `platform_settings`, `admin_add/remove`, `grant_tool/revoke_tool`, `set_platform_setting`, `reset_site_analytics` (§12) |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied
 (21 Aug 2026). 0028 applied (Valuation Desk is used in production). 0029/0030: 0029 was found

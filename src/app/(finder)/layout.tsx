@@ -37,7 +37,7 @@ export default async function FinderLayout({ children }: { children: React.React
    * not an admin sees the tool described and asks for it (lib/access).
    */
   const viewer = await getViewer();
-  if (!canUseTool('contact-finder', viewer.admin)) {
+  if (!canUseTool('contact-finder', viewer.admin, viewer.grants)) {
     return (
       <AppShell user={viewer.user} section={lockedSection('contact-finder', 'Contact Finder', '/contacts', UserSearch)}>
         <LockedTool slug="contact-finder" signedIn={!!viewer.user} name={viewer.user?.full_name} email={viewer.user?.authEmail} />

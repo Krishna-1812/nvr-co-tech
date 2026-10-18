@@ -17,7 +17,7 @@ import { LockedTool } from '@/components/access/LockedTool';
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer();
-  if (!canUseTool('voucher-desk', viewer.admin)) {
+  if (!canUseTool('voucher-desk', viewer.admin, viewer.grants)) {
     return (
       <AppShell user={viewer.user} section={lockedSection('voucher-desk', 'Voucher Desk', '/dashboard', LayoutDashboard)}>
         <LockedTool slug="voucher-desk" signedIn={!!viewer.user} name={viewer.user?.full_name} email={viewer.user?.authEmail} />
@@ -41,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <AppShell user={user} admin section={voucherSection({ role: user.role, pendingCount })}>
+    <AppShell user={user} admin={viewer.admin} section={voucherSection({ role: user.role, pendingCount })}>
       {children}
     </AppShell>
   );

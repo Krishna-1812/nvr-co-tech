@@ -52,14 +52,25 @@ export const LOCKED_TOOLS: readonly string[] = [
   'contact-finder',
 ];
 
+/**
+ * The locked tools an admin may open for one person (Admin settings, migration
+ * 0035). Contact Finder is not among them: it spends the platform's credits and
+ * its caches hold revealed contact details, so it stays with admins.
+ */
+export const GRANTABLE_TOOLS: readonly string[] = ['voucher-desk', 'ledger-reconciliation', 'valuation-desk'];
+
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   const e = email.trim().toLowerCase();
   return ADMIN_EMAILS.includes(e);
 }
 
-/** Whether somebody with this standing may use a tool. Unknown slugs are no. */
-export function canUseTool(slug: string, admin: boolean): boolean {
+/**
+ * Whether somebody with this standing may use a tool: open to all, an admin's,
+ * or opened for this person by an admin (`grants`). Unknown slugs are no.
+ */
+export function canUseTool(slug: string, admin: boolean, grants: readonly string[] = []): boolean {
   if (OPEN_TOOLS.includes(slug)) return true;
-  return admin && LOCKED_TOOLS.includes(slug);
+  if (!LOCKED_TOOLS.includes(slug)) return false;
+  return admin || (GRANTABLE_TOOLS.includes(slug) && grants.includes(slug));
 }

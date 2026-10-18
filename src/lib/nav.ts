@@ -10,6 +10,7 @@ import {
   Scale,
   Search,
   Settings,
+  SlidersHorizontal,
   Sparkles,
   UploadCloud,
   Users,
@@ -226,10 +227,11 @@ export function analyticsSection(): Section {
         exact: true,
       },
       {
-        href: '/settings',
-        label: 'Settings',
-        icon: Settings,
-        hint: 'Your account and appearance',
+        href: '/analytics/settings',
+        label: 'Admin settings',
+        short: 'Settings',
+        icon: SlidersHorizontal,
+        hint: 'Admins, tool access for people, how the figures are counted, and the visit data',
       },
     ],
   };
