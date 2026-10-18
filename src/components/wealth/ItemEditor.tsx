@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Calculator, ChevronDown, Info, Plus, ShieldAlert, Trash2, UserRound, X } from 'lucide-react';
+import { ArrowLeft, Calculator, ChevronDown, Info, Plus, ShieldAlert, Trash2, UserRound, X } from 'lucide-react';
 import { CenterPanel } from '@/components/ui/Drawer';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui/primitives';
@@ -42,7 +42,11 @@ import { HeadTile, MoneyInput, SecretInput } from './shared';
  *   - Closing with unsaved changes asks first.
  */
 
-type Guide = { step: number; total: number; onSkip: () => void };
+/**
+ * The guided first run. `onBack` hands over the draft as it stands, so the
+ * step can be reopened later with whatever had been typed into it.
+ */
+type Guide = { step: number; total: number; onSkip: () => void; onBack?: (draft: Item) => void };
 
 export function ItemEditor({
   open,
@@ -138,6 +142,12 @@ export function ItemEditor({
               <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(true)} className="text-[var(--status-rejected)]">
                 <Trash2 className="size-3.5" aria-hidden />
                 Delete
+              </Button>
+            )}
+            {guide?.onBack && guide.step > 1 && (
+              <Button type="button" size="sm" onClick={() => guide.onBack?.(draft)}>
+                <ArrowLeft className="size-3.5" aria-hidden />
+                Back
               </Button>
             )}
             {guide && (

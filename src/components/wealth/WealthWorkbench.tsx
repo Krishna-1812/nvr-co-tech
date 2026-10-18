@@ -34,6 +34,13 @@ import { Welcome } from './Welcome';
 
 type Editing = { item: Item; isNew: boolean; focus?: Area };
 
+/**
+ * The guided first run: the heads ticked on the welcome screen, which one is
+ * open, the entry saved at each step (so Back reopens it to change), and any
+ * draft left on a step by going Back (so Next does not lose it).
+ */
+type Queue = { heads: HeadId[]; step: number; saved: Record<number, string>; drafts: Record<number, Item> };
+
 export function WealthWorkbench({ userId, selfName }: { userId: string; selfName: string }) {
   const { state, prefs } = useWealth(userId, selfName);
   const actions = useMemo(() => wealthActions(userId), [userId]);
@@ -41,7 +48,7 @@ export function WealthWorkbench({ userId, selfName }: { userId: string; selfName
   const [tab, setTab] = useState<Tab>('overview');
   const [picker, setPicker] = useState<Side | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
-  const [queue, setQueue] = useState<{ heads: HeadId[]; step: number } | null>(null);
+  const [queue, setQueue] = useState<Queue | null>(null);
   const [began, setBegan] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -77,17 +84,33 @@ export function WealthWorkbench({ userId, selfName }: { userId: string; selfName
 
   const startNew = (headId: HeadId) => setEditing({ item: blankItem(headId, holder || undefined), isNew: true });
 
-  const nextInQueue = () => {
-    if (!queue) return setEditing(null);
-    const step = queue.step + 1;
-    if (step >= queue.heads.length) {
+  /** Opens a step of the guided run: its draft, else what was saved there, else a blank. */
+  const openStep = (q: Queue, step: number) => {
+    if (step >= q.heads.length) {
       setQueue(null);
       setEditing(null);
       setTab('overview');
       return;
     }
-    setQueue({ ...queue, step });
-    setEditing({ item: blankItem(queue.heads[step]), isNew: true });
+    const saved = q.saved[step] ? record.items.find((i) => i.id === q.saved[step]) : undefined;
+    const item = q.drafts[step] ?? saved ?? blankItem(q.heads[step]);
+    setQueue({ ...q, step });
+    setEditing({ item, isNew: !saved });
+  };
+
+  /** Next, after a save (the entry's id is kept for Back) or a skip (nothing kept). */
+  const nextInQueue = (savedId?: string) => {
+    if (!queue) return setEditing(null);
+    const drafts = { ...queue.drafts };
+    delete drafts[queue.step];
+    const saved = { ...queue.saved };
+    if (savedId) saved[queue.step] = savedId;
+    openStep({ ...queue, saved, drafts }, queue.step + 1);
+  };
+
+  const backInQueue = (draft: Item) => {
+    if (!queue || queue.step === 0) return;
+    openStep({ ...queue, drafts: { ...queue.drafts, [queue.step]: draft } }, queue.step - 1);
   };
 
   const doExport = async (kind: 'pdf-full' | 'pdf-masked' | 'excel') => {
@@ -129,7 +152,7 @@ export function WealthWorkbench({ userId, selfName }: { userId: string; selfName
             });
             setBegan(true);
             if (heads.length > 0) {
-              setQueue({ heads, step: 0 });
+              setQueue({ heads, step: 0, saved: {}, drafts: {} });
               setEditing({ item: blankItem(heads[0]), isNew: true });
             }
           }}
@@ -229,10 +252,14 @@ export function WealthWorkbench({ userId, selfName }: { userId: string; selfName
           isNew={editing.isNew}
           record={record}
           focus={editing.focus}
-          guide={queue ? { step: queue.step + 1, total: queue.heads.length, onSkip: nextInQueue } : undefined}
+          guide={
+            queue
+              ? { step: queue.step + 1, total: queue.heads.length, onSkip: () => nextInQueue(), onBack: backInQueue }
+              : undefined
+          }
           onSave={(item) => {
             actions.saveItem(item);
-            if (queue) nextInQueue();
+            if (queue) nextInQueue(item.id);
             else {
               setEditing(null);
               const side = head(item.head).side;
@@ -245,7 +272,14 @@ export function WealthWorkbench({ userId, selfName }: { userId: string; selfName
           }}
           onDelete={(id) => {
             actions.deleteItem(id);
-            setEditing(null);
+            if (queue) {
+              // Deleting a step's saved entry during the guided run leaves the
+              // step open, blank, rather than ending the run.
+              const saved = { ...queue.saved };
+              delete saved[queue.step];
+              setQueue({ ...queue, saved });
+              setEditing({ item: blankItem(queue.heads[queue.step]), isNew: true });
+            } else setEditing(null);
           }}
           onClose={() => {
             setEditing(null);

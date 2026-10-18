@@ -501,7 +501,8 @@ RLS per user) and a migration, not a flag.
   words under the box; never guesses a unit.
 - **UI** `src/components/wealth/`: `WealthWorkbench` (states: loading / locked / welcome / record;
   tabs Overview · What you own · What you owe · Nominees · Checks · Household & data), `Welcome`
-  ("tick what you have" → guided editor "2 of 6" with Skip), `HeadPicker` (searchable: "ppf",
+  ("tick what you have" → guided editor "2 of 6" with Back and Skip; Back reopens the saved entry
+  to change in place, and a draft left by Back is restored on Next), `HeadPicker` (searchable: "ppf",
   "locker"…), `ItemEditor` (essentials → details → More details → Nominee yes/no/not sure →
   notes; nothing blocks a save; unsaved-change guard; "Save and add another"; the editor and the picker
   open as a large centred `CenterPanel` from `ui/Drawer.tsx`, not a side drawer, at the owner's
