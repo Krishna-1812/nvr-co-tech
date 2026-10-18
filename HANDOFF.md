@@ -716,9 +716,10 @@ client navigations only), letter-by-letter headlines that answer the pointer (`L
 scroll speed), words read into ink (`ScrollWords`), the final panel opening like a window
 (`.s-portal`), buttons that flood from the pointer (`.m-flood` on `CTA`), confetti on
 `data-demo`/`data-signup` clicks, labels that decode, the footer wordmark and shape toys
-(`Footplay`), and a draggable hero card on a spring (`HeroStage`; the card is `home/WorkPanel.tsx`, a generic
-"this month's work: done, the decision left to you" panel that replaced the expense voucher on
-17 Oct at the owner's request, so the home page names no single tool; the "Have a go" GST/TDS
+(`Footplay`), and a draggable hero card on a spring (`HeroStage`; the picture is `home/HeroVisual.tsx`: three
+wordless drawn sheets — ledger, chart, ticked document with a seal — that replaced the expense
+voucher (17 Oct) and then a worded checklist card (18 Oct), both at the owner's request, so the
+home page names no single tool and shows no figures; the "Have a go" GST/TDS
 slider section, `RulesPlayground`, came off the home page the same day for the same reason). A pinned
 scroll story (`HowItMoves`, a sheet through four doorways) was added in its place the same
 day and then removed at the owner's request; don't re-add it. The `/tools`

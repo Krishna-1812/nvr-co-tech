@@ -2792,6 +2792,29 @@ body:has([data-skin='desert']) {
 }
 @media (prefers-reduced-motion: reduce) { .m-toy { transition: none; } }
 
+/* ── The hero's picture (home/HeroVisual.tsx) ──
+   Three sheets dealt onto the desk, then the work on them: bars come up,
+   lines are ticked, a total is drawn and a seal is pressed. Each beat waits
+   on --d (which already includes the opening curtain's --intro-wait). The
+   fan angle is `rotate`, not part of the animated transform, so the sheets
+   keep it with or without motion. Under reduced motion all of it is simply
+   there. */
+.hv-deal, .hv-stamp { rotate: var(--r, 0deg); }
+@media not (prefers-reduced-motion: reduce) {
+  .hv-deal  { animation: hv-deal 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0ms) backwards; }
+  .hv-grow  { animation: hv-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0ms) backwards; }
+  .hv-pop   { animation: hv-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0ms) backwards; }
+  .hv-draw  { animation: hv-draw 0.6s ease-out var(--d, 0ms) backwards; }
+  .hv-stamp { animation: hv-stamp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) var(--d, 0ms) backwards; }
+  .hv-float { animation: hv-float var(--f, 7s) ease-in-out calc(var(--intro-wait, 0ms) + 3s) infinite; }
+}
+@keyframes hv-deal  { from { transform: translateY(2.5rem) scale(0.94); opacity: 0; } }
+@keyframes hv-grow  { from { transform: scaleY(0); } }
+@keyframes hv-pop   { from { transform: scale(0); opacity: 0; } }
+@keyframes hv-draw  { from { transform: scaleX(0); } }
+@keyframes hv-stamp { from { transform: scale(1.8); opacity: 0; } }
+@keyframes hv-float { 50% { transform: translateY(-4px); } }
+
 /* ── The roadmap spine on /about (about/RoadmapList.tsx) ──
    Each number sits on the spine in bone until the fill reaches it, then takes
    its tool's colour. Rows wait a little dimmed and to the right, but only once

@@ -1,6 +1,6 @@
 import { ArrowDown } from 'lucide-react';
 import { CTA, Container, LineRise, Rise } from '../bits';
-import { WorkPanel } from './WorkPanel';
+import { HeroVisual } from './HeroVisual';
 import { HeroStage } from '../play/HeroStage';
 import { IntroCurtain } from '../play/IntroCurtain';
 import { Letters } from '../play/Letters';
@@ -128,7 +128,7 @@ export function Hero() {
               />
               <div className="m-drift-near relative">
                 <div data-grab>
-                  <WorkPanel />
+                  <HeroVisual />
                 </div>
               </div>
             </HeroStage>
