@@ -34,14 +34,13 @@ export function HomeCrumb({ section }: { section: Section }) {
   const Icon = solution?.icon ?? Sparkles;
   const tone = solution?.tone ?? 'var(--color-brand-600)';
 
-  // `shrink-0` on the nav, so the search box beside it gives up the space rather
-  // than this does. That is the order the bar was already in before the
-  // breadcrumb existed and it is the right one: the search box reads the same at
-  // any width, and "Ledger Reconciliation" squeezed to "Led…" tells nobody
-  // anything. The cap on the tool crumb is what stops a long name pushing the
-  // account menu off the screen.
+  // The nav may shrink, and when it does it is the tool's name that gives way,
+  // cut short with an ellipsis: the marks and the search box keep their size,
+  // because an icon squeezed narrower than itself is no icon at all. The cap on
+  // the tool crumb is what stops a long name pushing the account menu off the
+  // screen.
   return (
-    <nav aria-label="Breadcrumb" className="flex shrink-0 items-center">
+    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center sm:shrink-0">
       <ol className="flex min-w-0 items-center gap-0.5">
         {/* ── The platform, which is the way home ── */}
         <li className="shrink-0">
@@ -75,7 +74,7 @@ export function HomeCrumb({ section }: { section: Section }) {
           </Link>
         </li>
 
-        <li aria-hidden className="text-subtle shrink-0">
+        <li aria-hidden className="text-subtle hidden shrink-0 sm:block">
           <ChevronRight className="size-3.5" />
         </li>
 
@@ -93,13 +92,11 @@ export function HomeCrumb({ section }: { section: Section }) {
               <Icon className="size-[13px]" />
             </span>
             {/*
-              Below sm the bar is already holding the palette, the assistant, the
-              tool's primary action and the account menu, and "Ledger
-              Reconciliation" only truncates to something unreadable. The mark
-              carries the tool on a phone, where the dock is naming the screen
-              anyway.
+              On a phone too, cut short if it must (and left out below 360px, where the marks are all that fits): with only the two marks the
+              bar did not say which tool this was, and the hairline under it is
+              not a name. The platform's name is what gives way, not this.
             */}
-            <span className="hidden truncate text-[13px] font-semibold tracking-tight sm:block">
+            <span className="max-w-[6.5rem] truncate text-[13px] font-semibold tracking-tight max-[359px]:hidden sm:max-w-none">
               {section.name}
             </span>
           </Link>

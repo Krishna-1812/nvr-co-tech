@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
 import type { UserRole } from '@/lib/domain/workflow';
 import type { Fiscal } from '@/lib/fiscal';
 import { ASSIST_SLUG, type Section } from '@/lib/nav';
+import { SOLUTIONS } from '@/lib/solutions';
 import { UserMenu } from '../UserMenu';
 import { buttonClass } from '../ui/primitives';
 import { AssistPanel } from '../assist/AssistPanel';
@@ -44,10 +46,22 @@ export function TopBar({
   admin?: boolean;
 }) {
   const Primary = section.primary?.icon;
+  // The tool's own colour, from the same roster the breadcrumb reads.
+  const tone = SOLUTIONS.find((s) => s.slug === section.slug)?.tone ?? 'var(--color-brand-500)';
 
   return (
-    <header className="a-glass elev-1 sticky top-0 z-30 border-b">
-      <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
+    <header style={{ '--tone': tone } as CSSProperties} className="a-glass elev-1 sticky top-0 z-30 border-b">
+      {/*
+        A hairline in the tool's colour along the foot of the bar, brightest
+        under the breadcrumb and fading out to the right: the same accent the
+        tool's mark carries, so each tool's bar is recognisably its own without
+        the bar itself changing colour.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-[linear-gradient(90deg,var(--tone),color-mix(in_oklab,var(--tone)_35%,transparent)_40%,transparent_85%)] opacity-70"
+      />
+      <div className="flex h-16 items-center gap-2 px-4 sm:gap-3 sm:px-6">
         {/*
           At every width, not just where the rail is missing. A tool is something
           you are inside, and the bar should say so and offer the way out whether
@@ -58,7 +72,11 @@ export function TopBar({
         {/* The slug rather than the section: the palette is a client component,
             and a Section carries Lucide icons, which are functions and cannot
             cross that boundary. It rebuilds the section from the slug. */}
-        <CommandPalette sectionSlug={section.slug} role={user?.role ?? 'member'} signedIn={!!user} />
+        {/* Centred in the room the bar has, from lg, where there is room to
+            centre it; to the right of the breadcrumb below that. */}
+        <div className="flex min-w-9 justify-start lg:flex-1 lg:justify-center">
+          <CommandPalette sectionSlug={section.slug} role={user?.role ?? 'member'} signedIn={!!user} />
+        </div>
 
         {/*
           Today's date and the financial year, both in Asia/Kolkata — and only in
@@ -74,7 +92,7 @@ export function TopBar({
           So it shows from `md`, where the dock is still on and there is no rail,
           and stops at `lg`, where the rail takes the job over.
         */}
-        <div className="ml-auto hidden items-center gap-3 md:flex lg:hidden">
+        <div className="ml-auto hidden shrink-0 items-center gap-3 whitespace-nowrap md:flex lg:hidden">
           <span className="text-subtle numeric text-xs">{today}</span>
           <span aria-hidden className="h-4 w-px bg-[var(--border-c)]" />
           <span className="a-label" title={`${fiscal.daysLeft} days left in this financial year`}>
@@ -89,7 +107,7 @@ export function TopBar({
           Ask button and the account menu sit against the search box with the
           rest of the bar empty.
         */}
-        <div className="ml-auto flex items-center gap-2 md:ml-3 lg:ml-auto">
+        <div className="ml-auto flex items-center gap-2 md:ml-3 lg:ml-0">
           {/*
             The assistant follows you into whichever tool you are in, and is told
             which one that is. Not offered on its own page, where the whole screen

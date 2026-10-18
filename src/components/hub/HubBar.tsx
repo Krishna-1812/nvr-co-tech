@@ -52,6 +52,12 @@ export function HubBar({
 }) {
   return (
     <header className="a-glass sticky top-0 z-30 border-b">
+      {/* The same hairline as a tool's bar (app/TopBar), in the house colour:
+          the hub is the platform's own screen, not any one tool's. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-[linear-gradient(90deg,var(--color-brand-500),color-mix(in_oklab,var(--color-brand-500)_35%,transparent)_40%,transparent_85%)] opacity-70"
+      />
       <div className="mx-auto flex h-16 max-w-[92rem] items-center gap-3 px-4 sm:px-6">
         <Link href="/hub" className="group flex min-w-0 items-center gap-2.5">
           <LogoMark
