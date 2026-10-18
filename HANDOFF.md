@@ -503,7 +503,9 @@ RLS per user) and a migration, not a flag.
   tabs Overview · What you own · What you owe · Nominees · Checks · Household & data), `Welcome`
   ("tick what you have" → guided editor "2 of 6" with Skip), `HeadPicker` (searchable: "ppf",
   "locker"…), `ItemEditor` (essentials → details → More details → Nominee yes/no/not sure →
-  notes; nothing blocks a save; unsaved-change guard; "Save and add another"), `Hero` (net worth,
+  notes; nothing blocks a save; unsaved-change guard; "Save and add another"; the editor and the picker
+  open as a large centred `CenterPanel` from `ui/Drawer.tsx`, not a side drawer, at the owner's
+  request — actions in its `footer`, the submit button tied to the form by `form="we-form"`), `Hero` (net worth,
   family filter, hide-amounts toggle, allocation), `Panels`, `Household` (members, will, people,
   data: backup/restore/PDF/Excel/passcode/delete), `LockScreen`, `WealthPanel` (hub card: counts
   only, never net worth; nothing when locked). Scene motif **`nest`** in `ui/Scene.tsx`.

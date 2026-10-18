@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { ChevronRight, Search } from 'lucide-react';
-import { Drawer } from '@/components/ui/Drawer';
+import { CenterPanel } from '@/components/ui/Drawer';
 import { Input } from '@/components/ui/primitives';
 import { ASSET_HEADS, LIABILITY_HEADS, type HeadId, type HeadSpec, type Side } from '@/lib/wealth/heads';
 import { HeadTile } from './shared';
@@ -36,7 +36,8 @@ export function HeadPicker({
   }, [q, heads]);
 
   return (
-    <Drawer
+    <CenterPanel
+      size="md"
       open={open}
       onClose={() => {
         setQ('');
@@ -57,7 +58,7 @@ export function HeadPicker({
         </div>
       }
     >
-      <ul className="-mx-2 space-y-1">
+      <ul className="-mx-2 grid gap-1 sm:grid-cols-2">
         {shown.map((h) => (
           <li key={h.id}>
             <button
@@ -78,7 +79,7 @@ export function HeadPicker({
           </li>
         ))}
         {shown.length === 0 && (
-          <li className="text-muted px-2 py-6 text-center text-sm">
+          <li className="text-muted px-2 py-6 text-center text-sm sm:col-span-2">
             Nothing matches “{q}”. It probably fits under{' '}
             <button type="button" className="font-semibold underline underline-offset-2" onClick={() => onPick(side === 'asset' ? 'other_asset' : 'other_liability')}>
               {side === 'asset' ? 'Other assets' : 'Other dues'}
@@ -87,6 +88,6 @@ export function HeadPicker({
           </li>
         )}
       </ul>
-    </Drawer>
+    </CenterPanel>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Calculator, ChevronDown, Info, Plus, ShieldAlert, Trash2, UserRound, X } from 'lucide-react';
-import { Drawer } from '@/components/ui/Drawer';
+import { CenterPanel } from '@/components/ui/Drawer';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui/primitives';
 import { fieldsFor, head, type FieldSpec, type Fields } from '@/lib/wealth/heads';
@@ -129,10 +129,37 @@ export function ItemEditor({
 
   return (
     <>
-      <Drawer
+      <CenterPanel
         open={open}
         onClose={close}
-        width="lg"
+        footer={
+          <div className="flex flex-wrap items-center gap-2">
+            {!isNew && (
+              <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(true)} className="text-[var(--status-rejected)]">
+                <Trash2 className="size-3.5" aria-hidden />
+                Delete
+              </Button>
+            )}
+            {guide && (
+              <Button type="button" variant="ghost" size="sm" onClick={guide.onSkip}>
+                Skip for now
+              </Button>
+            )}
+            <div className="ml-auto flex flex-wrap justify-end gap-2">
+              <Button type="button" onClick={close}>
+                Cancel
+              </Button>
+              {isNew && !guide && onSaveAnother && (
+                <Button type="button" onClick={() => onSaveAnother(finished())}>
+                  Save and add another
+                </Button>
+              )}
+              <Button type="submit" form="we-form" variant="primary">
+                {guide && guide.step < guide.total ? 'Save and next' : isNew ? 'Add to record' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        }
         title={isNew ? `Add ${spec.one}` : itemName(draft)}
         header={
           <div className="mt-3 flex flex-col gap-3">
@@ -178,6 +205,7 @@ export function ItemEditor({
         }
       >
         <form
+          id="we-form"
           onSubmit={(e) => {
             e.preventDefault();
             save();
@@ -316,35 +344,8 @@ export function ItemEditor({
             </section>
           </div>
 
-          {/* Pinned to the bottom of the panel's one scrolling region. */}
-          <div className="sticky bottom-0 -mx-5 -mb-4 flex flex-wrap items-center gap-2 border-t bg-[var(--surface-raised)] px-5 py-3">
-            {!isNew && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(true)} className="text-[var(--status-rejected)]">
-                <Trash2 className="size-3.5" aria-hidden />
-                Delete
-              </Button>
-            )}
-            {guide && (
-              <Button type="button" variant="ghost" size="sm" onClick={guide.onSkip}>
-                Skip for now
-              </Button>
-            )}
-            <div className="ml-auto flex flex-wrap justify-end gap-2">
-              <Button type="button" onClick={close}>
-                Cancel
-              </Button>
-              {isNew && !guide && onSaveAnother && (
-                <Button type="button" onClick={() => onSaveAnother(finished())}>
-                  Save and add another
-                </Button>
-              )}
-              <Button type="submit" variant="primary">
-                {guide && guide.step < guide.total ? 'Save and next' : isNew ? 'Add to record' : 'Save'}
-              </Button>
-            </div>
-          </div>
         </form>
-      </Drawer>
+      </CenterPanel>
 
       <Modal
         open={confirmClose}

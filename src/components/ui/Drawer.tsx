@@ -146,3 +146,66 @@ export function WideModal({
     </Dialog.Root>
   );
 }
+
+/**
+ * A large panel in the middle of the screen, with a title band like Drawer's.
+ *
+ * For a form somebody will spend minutes in rather than glance at: Wealth
+ * Tracker's entry editor, at the owner's request (18 Oct), and the picker that
+ * leads into it. Centred and wide so a two-column form has room, capped at 90%
+ * of the window's height, and nearly the whole screen on a phone. The scroll
+ * rule is Drawer's: the header stays put and exactly one region scrolls, so the
+ * close button is always in reach.
+ */
+export function CenterPanel({
+  open,
+  onClose,
+  title,
+  header,
+  footer,
+  children,
+  size = 'lg',
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  header?: ReactNode;
+  /** Pinned under the scrolling region, outside it: the panel's actions. */
+  footer?: ReactNode;
+  children: ReactNode;
+  /** `lg` for a form (about 960px), `md` for a list (about 760px). */
+  size?: 'md' | 'lg';
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="animate-[fade_0.18s_ease-out] fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px]" />
+        <Dialog.Content
+          aria-describedby={undefined}
+          className={cn(
+            'a-ring elev-4 animate-[pop_0.22s_cubic-bezier(0.34,1.56,0.64,1)] fixed top-1/2 left-1/2 z-50 flex -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border bg-[var(--surface-raised)] sm:rounded-3xl',
+            'max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] sm:max-h-[90vh] sm:w-[calc(100vw-3rem)]',
+            size === 'lg' ? 'max-w-[60rem]' : 'max-w-[48rem]',
+          )}
+        >
+          <header className="shrink-0 border-b px-5 py-4 sm:px-8 sm:py-5">
+            <div className="flex items-start justify-between gap-4">
+              <Dialog.Title className="text-lg leading-tight font-semibold tracking-tight sm:text-xl">{title}</Dialog.Title>
+              <Dialog.Close
+                className="text-muted -m-1 rounded-lg p-1.5 transition hover:bg-[var(--surface-sunken)] hover:text-[var(--text-c)]"
+                aria-label="Close"
+              >
+                <X className="size-5" aria-hidden />
+              </Dialog.Close>
+            </div>
+            {header}
+          </header>
+
+          {/* The one scrolling region. */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6">{children}</div>
+          {footer && <footer className="shrink-0 border-t px-5 py-3 sm:px-8 sm:py-4">{footer}</footer>}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
