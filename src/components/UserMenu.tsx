@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { LayoutGrid, LogOut, Moon, Sun, Monitor, Activity, Search, Settings } from 'lucide-react';
+import { LayoutGrid, LogOut, Moon, Sun, Monitor, Activity, Settings } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ROLE_META, type UserRole } from '@/lib/domain/workflow';
 import { setTheme, useTheme } from '@/lib/theme';
@@ -146,31 +146,21 @@ export function UserMenu({
           </DropdownMenu.Item>
 
           {/*
-            The two tools that are not on the roster, both behind the same list.
-            They are here rather than in the hub because the hub renders AGENTS,
-            which is what we sell, and neither of these is that.
+            The Admin screen is not on the roster, so it is reached from here.
+            It is here rather than in the hub because the hub renders AGENTS,
+            which is what we sell, and this is not that. Contact Finder is on
+            the roster and opens from the hub like the other tools.
           */}
           {analyticsAdmin && (
-            <>
-              <DropdownMenu.Item asChild>
-                <Link
-                  href="/analytics"
-                  className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--surface-sunken)]"
-                >
-                  <Activity className="size-4" aria-hidden />
-                  Admin
-                </Link>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item asChild>
-                <Link
-                  href="/contacts"
-                  className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--surface-sunken)]"
-                >
-                  <Search className="size-4" aria-hidden />
-                  Contact Finder
-                </Link>
-              </DropdownMenu.Item>
-            </>
+            <DropdownMenu.Item asChild>
+              <Link
+                href="/analytics"
+                className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--surface-sunken)]"
+              >
+                <Activity className="size-4" aria-hidden />
+                Admin
+              </Link>
+            </DropdownMenu.Item>
           )}
 
           <DropdownMenu.Item asChild>
