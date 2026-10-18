@@ -1,24 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { JOBS, agentBySlug } from '@/lib/marketing/content';
+import { JOBS } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
-import { ACCENT, ACCENT_TEXT, ON_ACCENT, ArrowLink, Container, Eyebrow, StageBadge } from '../bits';
+import { ArrowLink, Container, Eyebrow } from '../bits';
 import { Reveal } from '../Reveal';
 import { ScrollWords } from '../play/ScrollWords';
 import { Roost } from '@/components/brand/Owl';
 
 /**
- * The finance month, and which tool takes each job.
+ * The finance month: eight jobs a finance team repeats, and their dates.
  *
- * This sits high on the page on purpose. Everything below it is Voucher Desk,
- * because Voucher Desk is the one that exists, and a reader who meets the deep
- * dive first comes away thinking we sell one thing. Here the subject is the work
- * rather than the product: eight jobs a finance team already repeats, with our
- * name against the part we take on and a badge saying honestly whether that part
- * is built.
+ * About the work, not about us. Until 18 Oct each job carried the tool that
+ * takes it on, a badge saying whether that tool was built, and a "Handled by"
+ * link; with the month opening on TDS, the section read as a page about one
+ * tool. The owner asked for it to be generic, so each job now says how it
+ * usually goes and what it looks like done well, as good practice anyone would
+ * recognise, and names nothing we sell. One colour for every job, for the same
+ * reason: the tools' own colours were the last trace of the roster here.
  *
  * The ruler carries only the three statutory dates we are certain of for a
  * monthly filer. See the note on JOBS for why, and the footnote under the ruler
@@ -34,16 +34,15 @@ const MARK: Record<string, string> = {
 
 const DATED = JOBS.filter((j) => j.day !== undefined);
 
+/** The site's accent, for every job alike; see the note above. */
+const ACCENT = 'var(--m-gold)';
+
 /** Day 1 sits at 0% and day 31 at 100%, which is also how the ticks are placed. */
 const at = (day: number) => `${((day - 1) / 30) * 100}%`;
 
 export function WorkCalendar() {
   const [active, setActive] = useState(2);
   const job = JOBS[active];
-  const agent = agentBySlug(job.agent);
-  const accent = agent ? ACCENT[agent.accent] : 'var(--m-indigo)';
-  // The same colour where it is set as type; sun and sage are too light to read.
-  const accentText = agent ? ACCENT_TEXT[agent.accent] : 'var(--m-gold)';
 
   return (
     <section id="work" className="relative border-t border-[var(--m-line)] bg-[var(--m-bg-2)] py-20 sm:py-28">
@@ -62,18 +61,17 @@ export function WorkCalendar() {
               <Eyebrow className="mb-4">The work</Eyebrow>
               <h2 className="m-display s-settle t-h2">
                 Every month, the same jobs.{' '}
-                <span className="m-serif m-grad-text">Here is who does what.</span>
+                <span className="m-serif m-grad-text">On the same dates.</span>
               </h2>
               {/* Read into ink as it scrolls past; see play/ScrollWords. */}
               <ScrollWords
                 className="mt-5 max-w-2xl t-4 text-[var(--m-ink)] sm:t-5"
-                text="None of this is new work. It is the list your team already gets through between the 1st and the 31st. What changes is how much of it somebody has to do by hand, and how much of it is waiting for you when the date comes round."
+                text="None of this is new work. It is the list every finance team gets through between the 1st and the 31st, whatever the size of the business. Pick a job to see how it usually goes, and what it looks like done well."
               />
             </div>
             {/*
-              The only way from this page into the roster, now that the grid of
-              six product cards two screens below it is gone. It belongs here
-              because this is the section that introduces them.
+              The one way from this section to the roster, kept as a plain
+              link: the section itself no longer names a tool.
             */}
             <ArrowLink href="/tools" className="mb-2">
               All tools
@@ -90,7 +88,6 @@ export function WorkCalendar() {
             {/* ── The jobs ── */}
             <ul className="divide-y divide-[var(--m-line)]">
               {JOBS.map((j, i) => {
-                const a = agentBySlug(j.agent);
                 const on = i === active;
                 return (
                   <li key={j.id}>
@@ -108,7 +105,7 @@ export function WorkCalendar() {
                         aria-hidden
                         className="h-8 w-[3px] shrink-0 rounded-full transition-opacity"
                         style={{
-                          background: a ? ACCENT[a.accent] : 'var(--m-line-2)',
+                          background: ACCENT,
                           opacity: on ? 1 : 0.22,
                         }}
                       />
@@ -142,13 +139,10 @@ export function WorkCalendar() {
 
             {/* ── What happens to it ── */}
             <div className="relative overflow-hidden border-t border-[var(--m-line)] bg-[var(--m-bg)] p-6 sm:p-8 lg:border-t-0 lg:border-l">
-              {/* The agent's own doorway, standing in the corner of the panel in
-                  its colour. It changes with the pick, so the colour the eye
-                  follows down the list is the colour it lands on here. */}
+              {/* A doorway with the sun in it, standing in the panel's corner. */}
               <span
                 aria-hidden
-                className="m-arch pointer-events-none absolute -top-6 right-8 h-36 w-24 opacity-[0.22] transition-colors duration-500"
-                style={{ background: accent }}
+                className="m-arch pointer-events-none absolute -top-6 right-8 h-36 w-24 bg-[var(--m-sun)] opacity-[0.22]"
               />
 
               {/* Keyed on the job so the panel replays its entrance on every pick. */}
@@ -157,40 +151,24 @@ export function WorkCalendar() {
                   <span
                     className="m-mono rounded-full border px-2.5 py-1 t-1 t-caps uppercase"
                     style={{
-                      color: accentText,
-                      borderColor: `color-mix(in oklab, ${accent} 34%, transparent)`,
-                      background: `color-mix(in oklab, ${accent} 10%, transparent)`,
+                      color: ACCENT,
+                      borderColor: `color-mix(in oklab, ${ACCENT} 34%, transparent)`,
+                      background: `color-mix(in oklab, ${ACCENT} 10%, transparent)`,
                     }}
                   >
                     {job.when}
                   </span>
-                  {agent && <StageBadge stage={agent.stage} />}
                 </div>
 
-                <h3 className="m-display mt-5 t-h5">
+                <h3 className="m-display mt-5 pr-16 t-h5 sm:pr-28">
                   {job.title}
                 </h3>
 
                 <div className="mt-6 space-y-5">
-                  <Block label="How it goes now" body={job.now} />
-                  <Block label="What we take on" body={job.ours} accent={accentText} />
+                  <Block label="How it usually goes" body={job.now} />
+                  <Block label="What good looks like" body={job.good} accent={ACCENT} />
                 </div>
 
-                {agent && (
-                  <Link
-                    href={`/tools/${agent.slug}`}
-                    className="group mt-7 inline-flex items-center gap-2 border-t border-[var(--m-line)] pt-5 t-3 font-semibold text-[var(--m-ink)] transition hover:text-[var(--m-gold)]"
-                  >
-                    <span className="m-mono m-dim-2 t-1 t-caps uppercase">
-                      Handled by
-                    </span>
-                    {agent.name}
-                    <ArrowRight
-                      className="size-3.5 transition-transform group-hover:translate-x-1"
-                      aria-hidden
-                    />
-                  </Link>
-                )}
               </div>
             </div>
           </div>
@@ -215,8 +193,7 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
       <div className="relative h-[4.75rem] sm:h-24">
         {DATED.map((j) => {
           const on = j.id === activeId;
-          const agent = agentBySlug(j.agent);
-          const accent = agent ? ACCENT[agent.accent] : 'var(--m-indigo)';
+          const accent = ACCENT;
           return (
             <button
               key={j.id}
@@ -257,7 +234,7 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
                     ? {
                         background: accent,
                         borderColor: accent,
-                        color: agent ? ON_ACCENT[agent.accent] : 'var(--m-on-grad)',
+                        color: 'var(--m-on-grad)',
                         boxShadow: `0 0 0 6px color-mix(in oklab, ${accent} 14%, transparent)`,
                       }
                     : undefined

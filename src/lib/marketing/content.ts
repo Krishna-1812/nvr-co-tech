@@ -337,12 +337,12 @@ export const NAV = [
  */
 
 /**
- * The finance month, and which tool takes each job.
+ * The finance month: the work a finance team already repeats every month.
  *
- * This is the roster told from the other side: instead of six products looking
- * for a use, it is the work a finance team already repeats every month, with our
- * name against the part we take on. It is also the honest way to show that five
- * of the six are not built yet, because the job is real either way.
+ * The home page shows each job's dates, how it usually goes (`now`) and what it
+ * looks like done well (`good`), and names no tool (18 Oct, at the owner's
+ * request). `agent` and `ours` stay because the site's assistant still answers
+ * "which tool does this job?" from them.
  *
  * `day` is the statutory date for a monthly filer, and only the three dates we
  * are sure of are given one. Deposit TDS by the 7th of the following month,
@@ -364,7 +364,14 @@ export type Job = {
   title: string;
   /** How the job goes today, before any of this. */
   now: string;
-  /** The part we take on. */
+  /**
+   * What the job looks like done well, said as good practice rather than as
+   * anything we sell. The home page shows this; it names no tool (18 Oct, at
+   * the owner's request, so the section is about the finance month and not
+   * about the roster).
+   */
+  good: string;
+  /** The part we take on. Read by the assistant (lib/assist), not the home page. */
   ours: string;
   agent: string;
 };
@@ -375,6 +382,7 @@ export const JOBS: readonly Job[] = [
     when: 'All month',
     title: 'Bills turn up from everywhere',
     now: 'One by email, one on WhatsApp, one as a photo somebody took in a taxi. Each one gets typed into a form by hand, and the numbers get typed wrong often enough to matter.',
+    good: 'Every bill captured once, the day it arrives, with the original kept beside the entry so nobody has to retype it or hunt for it later.',
     ours: 'The invoice is read for you. The supplier, the GSTIN, the invoice number and the values come back already filled in, with the original document attached to the record.',
     agent: 'invoice-intake',
   },
@@ -383,6 +391,7 @@ export const JOBS: readonly Job[] = [
     when: 'All month',
     title: 'Payments have to be raised and signed off',
     now: 'A form, a print, two signatures chased over WhatsApp, and a folder somebody has to keep in case anyone asks later.',
+    good: 'Every payment approved by somebody other than the person who raised it, with the approval and the reason kept where anyone can find them.',
     ours: 'The voucher is raised on screen and the database does the arithmetic. Ask for a signature and it can never be the person who raised it; skip it and the voucher goes straight to paid. Either way the record keeps a history nobody can edit.',
     agent: 'voucher-desk',
   },
@@ -392,6 +401,7 @@ export const JOBS: readonly Job[] = [
     day: 7,
     title: 'Last month’s TDS has to be in the bank',
     now: 'Somebody goes back through every payment working out which section applied to it, after the money has already gone out. Getting it wrong now costs interest.',
+    good: 'The section and the rate settled when the payment is made, not reconstructed a month later from memory and bank statements.',
     ours: 'The section and the rate are worked out while the voucher is still a draft. By the 7th the figure is already there, with the payments behind it listed.',
     agent: 'tds-compliance',
   },
@@ -401,6 +411,7 @@ export const JOBS: readonly Job[] = [
     day: 14,
     title: 'GSTR-2B lands and has to be matched',
     now: 'Two spreadsheets side by side, sorted by amount, hoping the invoice numbers were typed the same way twice.',
+    good: 'Every line of 2B matched to the purchase register, with the real mismatches told apart from the ones that are only typed differently.',
     ours: 'Every line of 2B matched to your purchase register on GSTIN, invoice number and value, with the near misses told apart from the real mismatches.',
     agent: 'gst-reconciliation',
   },
@@ -410,6 +421,7 @@ export const JOBS: readonly Job[] = [
     day: 20,
     title: 'The credit you claim has to be the credit you have',
     now: 'Settled in a rush the night before. Anything that would not match gets left for next month, and next month it is somebody else’s problem.',
+    good: 'Credit claimed only where it is actually available, and a follow-up list for what is missing that starts with the largest amounts.',
     ours: 'What you can claim, what is blocked and what is still missing, line by line and sorted by rupee value, so the follow up list starts with the biggest.',
     agent: 'gst-reconciliation',
   },
@@ -418,6 +430,7 @@ export const JOBS: readonly Job[] = [
     when: 'Month end',
     title: 'The bank statement has to agree with the ledger',
     now: 'A day of matching, then a difference column nobody can explain, then a suspense entry that quietly stays there.',
+    good: 'A reconciliation where every difference has a reason next to it, and nothing sits in a suspense account without one.',
     ours: 'The lines that agree are cleared in seconds, and the statement is built for you. What is left is a short list, and each line says why it is on it.',
     agent: 'ledger-reconciliation',
   },
@@ -426,6 +439,7 @@ export const JOBS: readonly Job[] = [
     when: 'Quarter end',
     title: 'The quarterly return has to be built',
     now: 'Payments, challans and PANs pulled back together from three places, a quarter after the fact.',
+    good: 'The return built from payments already on record, with the challans attached, well before the due date rather than on it.',
     ours: '26Q and 24Q put together from the payments already on record, with the challan details attached and the filing dates tracked.',
     agent: 'tds-compliance',
   },
@@ -434,6 +448,7 @@ export const JOBS: readonly Job[] = [
     when: 'Year end',
     title: 'The auditor asks who approved what',
     now: 'A week of pulling files, and an awkward gap wherever the person who signed has since left.',
+    good: 'Any approval traced to a person, a date and the papers behind it in minutes, even when the person who signed has since left.',
     ours: 'Ask the question in plain words and get the answer with the records behind it, so you can check it rather than take it on trust.',
     agent: 'audit-copilot',
   },

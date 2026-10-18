@@ -719,7 +719,9 @@ scroll speed), words read into ink (`ScrollWords`), the final panel opening like
 (`Footplay`), and a draggable hero card on a spring (`HeroStage`; the picture is `home/HeroVisual.tsx`: three
 wordless drawn sheets — ledger, chart, ticked document with a seal — that replaced the expense
 voucher (17 Oct) and then a worded checklist card (18 Oct), both at the owner's request, so the
-home page names no single tool and shows no figures; the "Have a go" GST/TDS
+home page names no single tool and shows no figures; the month-of-work section (`home/WorkCalendar.tsx`) also names
+no tool since 18 Oct — each job shows "How it usually goes" (`JOBS[].now`) and "What good looks
+like" (`JOBS[].good`), one accent for all; `agent`/`ours` remain only for the assistant; the "Have a go" GST/TDS
 slider section, `RulesPlayground`, came off the home page the same day for the same reason). A pinned
 scroll story (`HowItMoves`, a sheet through four doorways) was added in its place the same
 day and then removed at the owner's request; don't re-add it. The `/tools`
