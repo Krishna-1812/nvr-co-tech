@@ -653,7 +653,7 @@ are described one by one in `Context file.md` §4. Since then:
 missing once and the owner was told to run 0029 then 0030; they were later giving feedback on the
 structured brief's content, so both are very likely applied — confirm with
 `select column_name from information_schema.columns where table_name = 'company_briefs';` (expect
-`content`). 0031: owner confirmed applied. 0032: owner ran it 18 Oct 2026; verification returned 5 admins and `tool_saves`.
+`content`). 0031: owner confirmed applied. 0032: owner ran it 18 Oct 2026; verification returned 5 admins and `tool_saves`. 0033: owner ran it 18 Oct 2026; verification returned `site_visitors`, `site_views` and `track_hit`.
 
 **Rules:** apply the migration **before** pushing code that needs it; write paste scripts
 re-runnable (`if not exists`, `create or replace`, guarded constraints) because drift is normal;
