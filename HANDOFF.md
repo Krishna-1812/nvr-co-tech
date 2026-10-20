@@ -650,6 +650,49 @@ used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
 
 ---
 
+## 12b. Tax notice watch (`/analytics/notices`, `workers/itd-notices`)
+
+**Asked for on 20 Oct 2026:** log in to each client's Income Tax e-Filing account every morning,
+read **Pending Actions → e-Proceedings**, download the notices, show them on a dashboard and email
+when something is new, because unseen notices become penalties. Built 20 Oct; **not yet run against
+the real portal** (see below).
+
+- **Worker** `workers/itd-notices/` — its own Node package (Playwright 1.63, supabase-js,
+  nodemailer), not part of the Next app or its build. `src/run.mjs` reads the accounts from a Google
+  Sheet (`sheet.mjs`, service-account token signed by hand — no googleapis), checks each account in
+  turn with one browser (`portal.mjs`: two-step login with the secure-access tick, takes over
+  "logged in elsewhere", classifies OTP / CAPTCHA / bad password / locked / portal down / layout,
+  reads both tabs, opens "View Notices/Orders" for new or changed cards — all of them on an account's
+  first read — downloads PDFs, logs out), diffs against what is stored (`parse.mjs`, pure and tested:
+  a proceeding's key is PAN + name + AY + FY + earliest date; first read is a silent baseline; new
+  card → `new-proceeding`, higher count → `more-notices`, new date → `new-date`), saves (`store.mjs`,
+  Supabase or a JSON file for dry runs/tests), and emails (`mail.mjs`: Resend, SMTP or a test
+  outbox): one alert per client with new files attached, and a team summary only when something is
+  new, due within 7 days (or missed in the last 14), or not checked. Never solves CAPTCHA/OTP, never
+  retries a password. PANs are masked (last four) in logs, emails and failure screenshots.
+- **Tests:** `npm test` (15, node:test) and `node test/e2e.mjs` — three mornings against a stand-in
+  portal (`test/mock-portal`, built from the owner's screenshots) covering baseline, OTP, wrong
+  password, logged-in-elsewhere, new notice + new proceeding emailed with files, quiet day.
+- **Schema** migration **0037**: `itd_accounts` (no passwords), `itd_runs`, `itd_checks`,
+  `itd_proceedings`, `itd_documents`, `itd_alerts`; admin-read RLS (`is_analytics_admin()`); writes
+  only by the worker's service-role key; `itd_set_handled()`; private storage bucket `itd-notices`
+  (admin read).
+- **Dashboard** `(insight)/analytics/notices/page.tsx` (rail item "Tax notices"), arithmetic in
+  `lib/notices/view.ts` (tested): stale-run warning (no finished run in 26h), tiles, "Needs a look",
+  "Not checked" with the failure screenshot, every client (collapsible), recent runs; "Mark handled"
+  via `actions/notices.ts`. Files open through 1-hour signed URLs. Preview fixtures in
+  `lib/preview/notices.ts`.
+- **Hosting (open):** the portal refuses Claude's cloud. It answered data centres in Mumbai,
+  Rajpura, Singapore and the US (check-host.net, 20 Oct). A Railway Singapore test got HTTP 200 but
+  the login page had not loaded in 60s; a second, longer test (`ops/itd-notices/reach-test` on the
+  session branch) was waiting on a Railway build outage. Fallback: Oracle Cloud free VM in Mumbai.
+  Setup steps for both are in the worker's README.
+- **Unknowns until the first real run:** the notices view's layout (not in the screenshots; its
+  text is saved per proceeding and any PDF/download link is tried), whether accounts ask for OTP at
+  login, and whether the portal treats the automated browser differently.
+
+---
+
 ## 13. Data model & migrations
 
 All schema, RLS, triggers and functions are in `supabase/migrations/` (31 files). Each has a long
@@ -666,6 +709,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0033 | `simple_analytics.sql` | The new analytics: `site_visitors`, `site_views`, `track_hit()`, `admin_accounts()` (§12) |
 | 0034 | `drop_old_analytics.sql` | Drops the 0010/0024 analytics tables and the old analytics and `operator_*` functions; keeps `analytics_admins`; empties `product_events` (§12) |
 | 0035 | `admin_settings.sql` | Admin settings: `tool_grants`, `platform_settings`, `admin_add/remove`, `grant_tool/revoke_tool`, `set_platform_setting`, `reset_site_analytics` (§12) |
+| 0037 | `itd_notices.sql` | Tax notice watch: `itd_*` tables, `itd_set_handled()`, private bucket `itd-notices` (§12b). Numbered 0037 because 0036 (input capture) exists unapplied on the session branch only |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied
 (21 Aug 2026). 0028 applied (Valuation Desk is used in production). 0029/0030: 0029 was found
@@ -984,7 +1028,9 @@ keys into chat.
 | `ANALYTICS_IDENTIFY_TOKEN`, `ANALYTICS_EXCLUDE_ORGS`, `ANALYTICS_CONTACT_EMAIL`, `ANALYTICS_REGISTRY_LOOKUP`, `ANALYTICS_COOP_FILE` | analytics extras | safe defaults |
 | `ERROR_ALERT_WEBHOOK_URL` | push alert on caught server errors | errors only in `/analytics/errors` |
 | `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL` | workflow + invite emails | nothing sent, nothing breaks (owner deliberately skipped Resend) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY` | unbuilt Sheets sync | n/a |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY` | the tax notice worker's accounts sheet (set on the worker's server, not Vercel) | worker refuses to start |
+
+The tax notice worker has its own settings (Supabase service-role key, `ITD_SHEET_ID`, `NOTIFY_TO`, Resend or `SMTP_URL`), set on its server only — listed in `workers/itd-notices/README.md`.
 
 > **Security note:** Apollo API keys were pasted into a chat transcript in an earlier session.
 > Recommend the owner rotates the Apollo key (Apollo dashboard → API keys), updates it in Vercel,
@@ -1050,7 +1096,7 @@ Code, optional:
     Yahoo price fetch may be refused from Vercel's IP (then multiples stay blank for US filers).
 11. Legal pages' reading measure is ~88 characters, not the intended 64.
 12. Rage-click card could return to the analytics behaviour screen when traffic supports it.
-13. Not built: Google Sheets sync; the four planned agents.
+13. Not built: Google Sheets sync for vouchers; the four planned agents. (The tax notice worker reads its own accounts sheet, §12b.)
 
 ---
 

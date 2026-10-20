@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Plus,
   Scale,
+  ScrollText,
   Search,
   Settings,
   SlidersHorizontal,
@@ -225,6 +226,13 @@ export function analyticsSection(): Section {
         icon: Activity,
         hint: 'Who visited, who signed in, the time each spent, and every request',
         exact: true,
+      },
+      {
+        href: '/analytics/notices',
+        label: 'Tax notices',
+        short: 'Notices',
+        icon: ScrollText,
+        hint: "New income tax notices from each client's e-Proceedings, what is due, and the files",
       },
       {
         href: '/analytics/settings',
