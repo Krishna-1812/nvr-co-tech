@@ -4,8 +4,8 @@ Every morning this logs in to each client's account on the Income Tax e-Filing
 portal, reads **Pending Actions → e-Proceedings** (both tabs), opens the
 notices that are new or changed, downloads their files, and:
 
-- saves everything to Supabase (migration `0037_itd_notices.sql`), where the
-  Admin screen shows it at **/analytics/notices**;
+- saves everything to Supabase (migration `0037_itd_notices.sql`), where
+  **Tax Notice Watch** on the hub shows it (**/tax-notices**);
 - emails the client's addresses and the team when a notice is new, with the
   files attached;
 - emails the team a short summary when anything is new, a response is due

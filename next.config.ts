@@ -34,6 +34,9 @@ const nextConfig: NextConfig = {
        * one hop rather than two.
        */
       { source: '/agents', destination: '/tools', permanent: true },
+      // Tax Notice Watch opened as a page of the Admin screen on 20 Oct 2026 and
+      // became a tool of its own the same day; the morning emails of that day link here.
+      { source: '/analytics/notices', destination: '/tax-notices', permanent: true },
       { source: '/agents/:slug', destination: '/tools/:slug', permanent: true },
     ];
   },

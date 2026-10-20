@@ -8,14 +8,15 @@ import type { ItdAccountRow, ItdAlertRow, ItdDocumentRow, ItdProceedingRow, ItdR
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardTitle } from '@/components/ui/primitives';
-import { HeroStat } from '@/components/ui/ToolHero';
+import { HeroStat, ToolHero } from '@/components/ui/ToolHero';
+import { ArchScene, SealFigure } from '@/components/ui/Scene';
 import { NoticeList } from '@/components/admin/Notices';
 import { ago, stamp } from '@/components/admin/when';
 
-export const metadata: Metadata = { title: 'Tax notices' };
+export const metadata: Metadata = { title: 'Tax Notice Watch' };
 
 /**
- * Tax notices: what the morning check found in each client's e-Proceedings on
+ * Tax Notice Watch: what the morning check found in each client's e-Proceedings on
  * the Income Tax e-Filing portal (migration 0037, workers/itd-notices).
  *
  * The owner asked for this (20 Oct 2026) because notices that go unseen turn
@@ -23,6 +24,9 @@ export const metadata: Metadata = { title: 'Tax notices' };
  * fortnight, or a response due within a week) and on any account the check
  * could not get into, because a client nobody can see is the dangerous one.
  * Everything else is below, client by client.
+ *
+ * It began as a page of the Admin screen and moved to a tool of its own the
+ * same day, at the owner's request, so it opens from the hub like the others.
  *
  * The files are in a private bucket; each link is a signed address that lasts
  * an hour, made for the admin reading the page.
@@ -98,32 +102,56 @@ export default async function NoticesPage() {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <Header />
+  const lastAt = last ? (last.finished_at ?? last.started_at) : null;
+  const look = view.attention.length;
 
-      {view.stale ? (
+  return (
+    <div className="space-y-6">
+      <ToolHero
+        id="notices-hero"
+        label={`Tax Notice Watch${lastAt ? ` · checked ${stamp(lastAt)}` : ''}`}
+        pill={
+          view.stale
+            ? { text: 'Morning check not running', tone: 'var(--status-rejected)' }
+            : { text: `${last?.ok ?? 0} of ${last?.accounts ?? 0} read ${lastAt ? ago(lastAt, now) : ''}`.trim(), tone: 'var(--status-approved)', live: true }
+        }
+        variant="figure"
+        title={String(look)}
+        sub={
+          <>
+            {look === 1 ? 'proceeding needs' : 'proceedings need'} a look: new in the last fortnight, or a response due within a week.{' '}
+            <strong className="text-[var(--text-c)]">
+              {total} client account{total === 1 ? '' : 's'}
+            </strong>{' '}
+            in the sheet, checked every morning.
+          </>
+        }
+        glow="var(--h-rose)"
+        scene={
+          <ArchScene
+            motif="sundial"
+            className="h-full min-h-[18rem]"
+            seal={<SealFigure value={view.tiles.due} note={view.tiles.due === 1 ? 'response due this week' : 'responses due this week'} />}
+          />
+        }
+      >
+        <div className="mt-6 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+          <HeroStat strong className="h-full" label="New this week" value={view.tiles.fresh} note="Proceedings with something new" />
+          <HeroStat className="h-full" label="Due in 7 days" tone="var(--status-warn)" value={view.tiles.due} note="Responses not marked handled" />
+          <HeroStat className="h-full" label="Not checked" tone="var(--status-rejected)" value={view.tiles.notChecked} note={`Of ${total} account${total === 1 ? '' : 's'} in the sheet`} />
+          <HeroStat className="h-full" label="For your action" tone="var(--color-brand-500)" value={view.tiles.forAction} note="Open on the portal's action tab" />
+        </div>
+      </ToolHero>
+
+      {view.stale && (
         <p role="status" style={tone('var(--status-rejected)')} className="tinted flex items-start gap-2 rounded-2xl border px-4 py-3 text-sm">
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
           <span>
-            The morning check has not finished a run {last ? `since ${stamp(last.finished_at ?? last.started_at)}` : 'yet'}
+            The morning check has not finished a run {lastAt ? `since ${stamp(lastAt)}` : 'yet'}
             {last?.status === 'crashed' && last.note ? ` (it stopped with: ${last.note})` : ''}. Until it runs, nothing new is being found.
           </span>
         </p>
-      ) : (
-        last && (
-          <p className="text-muted text-sm">
-            Last checked {stamp(last.finished_at ?? last.started_at)} ({ago(last.finished_at ?? last.started_at, now)}): {last.ok} of {last.accounts} account{last.accounts === 1 ? '' : 's'} read.
-          </p>
-        )
       )}
-
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-        <HeroStat strong className="h-full" label="New this week" value={view.tiles.fresh} note="Proceedings with something new" />
-        <HeroStat className="h-full" label="Due in 7 days" tone="var(--status-warn)" value={view.tiles.due} note="Responses not marked handled" />
-        <HeroStat className="h-full" label="Not checked" tone="var(--status-rejected)" value={view.tiles.notChecked} note={`Of ${total} account${total === 1 ? '' : 's'} in the sheet`} />
-        <HeroStat className="h-full" label="For your action" tone="var(--color-brand-500)" value={view.tiles.forAction} note="Open on the portal's action tab" />
-      </div>
 
       <Card className="overflow-hidden">
         <CardTitle icon={<BellRing className="size-4" />} title="Needs a look" description="New in the last fortnight, or a response due within a week. Mark each one handled once it is dealt with." />
@@ -235,7 +263,7 @@ export default async function NoticesPage() {
 function Header() {
   return (
     <PageHeader
-      eyebrow="Admin"
+      eyebrow="Tax Notice Watch"
       title="Tax notices"
       description="What the morning check finds in each client's e-Proceedings on the Income Tax portal: new notices, what is due, and the files."
     />

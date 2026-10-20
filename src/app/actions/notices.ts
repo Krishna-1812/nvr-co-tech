@@ -7,7 +7,7 @@ import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import type { ActionResult } from './workflow';
 
 /**
- * The Tax notices page's one write: marking a proceeding dealt with, or not
+ * Tax Notice Watch's one write: marking a proceeding dealt with, or not
  * (migration 0037). Asked of `isAnalyticsAdmin()` here and again inside
  * `itd_set_handled()`, as the Admin settings writes are. A later notice on
  * the same proceeding clears the mark; the morning check does that.
@@ -32,6 +32,6 @@ export async function setNoticeHandled(raw: { key: string; handled: boolean; not
   if (error) {
     return { ok: false, error: /does not exist|PGRST202/i.test(error.message) ? 'This needs migration 0037 to be run first.' : error.message.replace(/^ERROR:\s*/i, '') };
   }
-  revalidatePath('/analytics/notices');
+  revalidatePath('/tax-notices');
   return { ok: true, data: undefined };
 }

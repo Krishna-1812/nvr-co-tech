@@ -12,6 +12,7 @@ const MOTIF: Record<string, SceneMotif> = {
   'ledger-reconciliation': 'scales',
   'valuation-desk': 'columns',
   'contact-finder': 'seekers',
+  'tax-notices': 'sundial',
 };
 
 /**
