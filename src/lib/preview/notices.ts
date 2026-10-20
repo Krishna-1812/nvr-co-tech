@@ -39,10 +39,10 @@ export function noticeFixtures() {
     ...over,
   });
   const proceedings = [
-    proc('pv-1', 'AAAPZ1111A', { name: 'Issue Letter', ay: '2024-25', fy: '2023-24', notice_count: 2, due_on: day(4), last_change_at: iso(at(-1)), dates: [{ date: day(-1), status: 'Open' }, { date: day(-60), status: 'Open' }] }),
+    proc('pv-1', 'AAAPZ1111A', { name: 'Issue Letter', ay: '2024-25', fy: '2023-24', notice_count: 2, due_on: day(4), notice_text: 'Notice u/s 142(1) DIN: ITBA/AST/S/142(1)/2026-27/1000000001(1)\nNotice u/s 148 DIN: ITBA/AST/S/148/2026-27/1000000002(1)', last_change_at: iso(at(-1)), dates: [{ date: day(-1), status: 'Open' }, { date: day(-60), status: 'Open' }] }),
     proc('pv-2', 'AAAPZ1111A', { name: 'Faceless Assessment', ay: '2023-24', fy: '2022-23', notice_count: 3, due_on: day(19), dates: [{ date: day(-20), status: 'Open' }] }),
     proc('pv-3', 'AAAPZ1111A', { tab: 'information', name: 'Intimation u/s 143(1)', ay: '2025-26', fy: '2024-25', notice_count: 1, dates: [{ date: day(-70), status: 'Closed' }] }),
-    proc('pv-4', 'BBBPY2222B', { name: 'Adjustment u/s 143(1)(a)', ay: '2025-26', fy: '2024-25', notice_count: 1, due_on: day(1), marked_new: true, dates: [{ date: day(-29), status: 'Open' }] }),
+    proc('pv-4', 'BBBPY2222B', { notice_text: 'Intimation under section 143(1)(a) DIN: CPC/2526/A6/000000003', name: 'Adjustment u/s 143(1)(a)', ay: '2025-26', fy: '2024-25', notice_count: 1, due_on: day(1), marked_new: true, dates: [{ date: day(-29), status: 'Open' }] }),
     proc('pv-5', 'BBBPY2222B', { tab: 'information', name: 'Issue Letter', ay: 'Not Available', fy: 'Not Available', notice_count: 1, due_on: day(-40), handled_at: iso(at(-35, 5)), handled_by: 'team@thefinanceintelligence.com', handled_note: 'Replied on the portal', dates: [{ date: day(-50), status: 'Open' }] }),
     proc('pv-6', 'CCCPX3333C', { name: 'Issue Letter', ay: '2022-23', fy: '2021-22', notice_count: 1, dates: [{ date: day(-120), status: 'Open' }] }),
   ];

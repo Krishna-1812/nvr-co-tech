@@ -115,7 +115,7 @@ export function parseNoticeText(text) {
     const d = isoDate(m[1]);
     if (d) due.push(d);
   }
-  const sections = [...new Set([...t.matchAll(/(?:u\/s|under section|section)\s*([0-9]{2,3}[A-Z]{0,3}(?:\(\d+[A-Za-z]?\))*)/gi)].map((m) => m[1]))];
+  const sections = [...new Set([...t.matchAll(/(?:u\/s|under section|section)\s*([0-9]{2,3}[A-Z]{0,3}(?:\((?:\d+[A-Za-z]?|[a-z]{1,3})\))*)/gi)].map((m) => m[1]))];
   return { dins, dueDates: [...new Set(due)].sort(), sections };
 }
 
