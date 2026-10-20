@@ -727,6 +727,101 @@ export type ToolSaveRow = {
   updated_at: string;
 };
 
+// --- Tax notice watch (0037) ------------------------------------------------
+
+/** A login on the e-Filing portal the morning check reads; no password is kept. */
+export type ItdAccountRow = {
+  pan: string;
+  name: string | null;
+  notify: string[];
+  status: string | null;
+  message: string | null;
+  last_checked_at: string | null;
+  last_ok_at: string | null;
+  first_ok_at: string | null;
+  action_count: number | null;
+  information_count: number | null;
+  in_sheet: boolean;
+  updated_at: string;
+};
+
+/** One morning's check of every account. */
+export type ItdRunRow = {
+  id: number;
+  started_at: string;
+  finished_at: string | null;
+  host: string | null;
+  accounts: number;
+  ok: number;
+  failed: number;
+  alerts: number;
+  emailed: boolean;
+  status: 'running' | 'done' | 'crashed';
+  note: string | null;
+};
+
+/** One account's part in a run, and how it ended. */
+export type ItdCheckRow = {
+  id: number;
+  run_id: number | null;
+  pan: string;
+  status: string;
+  message: string | null;
+  proceedings: number | null;
+  took_ms: number | null;
+  shot_path: string | null;
+  at: string;
+};
+
+/** A proceeding card from e-Proceedings, as last read. */
+export type ItdProceedingRow = {
+  key: string;
+  pan: string;
+  tab: 'action' | 'information' | null;
+  name: string;
+  ay: string | null;
+  fy: string | null;
+  act: string | null;
+  assessee: string | null;
+  dates: { date: string; status: string | null }[];
+  notice_count: number | null;
+  marked_new: boolean;
+  due_on: string | null;
+  notice_text: string | null;
+  first_seen_at: string;
+  last_seen_at: string;
+  last_change_at: string | null;
+  gone_at: string | null;
+  handled_at: string | null;
+  handled_by: string | null;
+  handled_note: string | null;
+};
+
+/** A notice's file, kept in the private `itd-notices` bucket. */
+export type ItdDocumentRow = {
+  id: number;
+  proceeding_key: string;
+  pan: string;
+  label: string | null;
+  file_name: string | null;
+  storage_path: string;
+  size_bytes: number | null;
+  sha256: string;
+  first_seen_at: string;
+};
+
+/** Something new the morning check found. */
+export type ItdAlertRow = {
+  id: number;
+  run_id: number | null;
+  pan: string;
+  proceeding_key: string | null;
+  kind: 'new-proceeding' | 'more-notices' | 'new-date';
+  detail: string;
+  at: string;
+  emailed_at: string | null;
+};
+
 type Table<Row> = {
   Row: Row;
   Insert: Partial<Row>;
@@ -756,6 +851,14 @@ export type Database = {
       site_views: Table<SiteViewRow>;
       tool_grants: Table<ToolGrantRow>;
       platform_settings: Table<PlatformSettingRow>;
+
+      // 0037 — tax notice watch; written by workers/itd-notices only.
+      itd_accounts: Table<ItdAccountRow>;
+      itd_runs: Table<ItdRunRow>;
+      itd_checks: Table<ItdCheckRow>;
+      itd_proceedings: Table<ItdProceedingRow>;
+      itd_documents: Table<ItdDocumentRow>;
+      itd_alerts: Table<ItdAlertRow>;
 
       // 0010 — the analytics store.
       analytics_admins: Table<AnalyticsAdminRow>;
@@ -854,6 +957,7 @@ export type Database = {
       revoke_tool: { Args: { p_email: string; p_tool: string }; Returns: void };
       set_platform_setting: { Args: { p_key: string; p_value: unknown }; Returns: void };
       reset_site_analytics: { Args: Record<string, never>; Returns: void };
+      itd_set_handled: { Args: { p_key: string; p_handled: boolean; p_note?: string | null }; Returns: void };
 
       /*
        * 0011 — a shared rate-limit counter and a caught-failure log, both

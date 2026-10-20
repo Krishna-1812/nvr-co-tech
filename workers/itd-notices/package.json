@@ -1,0 +1,17 @@
+{
+  "name": "itd-notices",
+  "private": true,
+  "type": "module",
+  "description": "Daily check of Income Tax e-Filing e-Proceedings for new notices",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/run.mjs",
+    "dry": "node src/run.mjs --dry",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.111.0",
+    "nodemailer": "10.0.15",
+    "playwright": "1.63.0"
+  }
+}

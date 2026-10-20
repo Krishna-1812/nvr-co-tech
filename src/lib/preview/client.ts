@@ -1,5 +1,6 @@
 import * as fixtures from './fixtures';
 import * as comps from './comps';
+import { noticeFixtures } from './notices';
 import { PREVIEW_USER_ID } from './fixtures';
 import { financialYear } from '@/lib/domain/voucher';
 import {
@@ -48,6 +49,7 @@ type Tables = Record<string, Row[]>;
  * run in a production build (see ./index.ts), so this never ships.
  */
 const globalForPreview = globalThis as typeof globalThis & { __fiPreviewTables?: Tables };
+const NOTICES = noticeFixtures();
 
 const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   // One row. Read by the workspace and /admin for the approval setting, and by
@@ -82,6 +84,13 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   analytics_admins: [],
   tool_grants: [],
   platform_settings: [],
+  // Tax notices (0037), invented and dated relative to today: ./notices.ts.
+  itd_accounts: NOTICES.accounts as Row[],
+  itd_proceedings: NOTICES.proceedings as Row[],
+  itd_documents: NOTICES.documents as Row[],
+  itd_alerts: NOTICES.alerts as Row[],
+  itd_runs: NOTICES.runs as Row[],
+  itd_checks: NOTICES.checks as Row[],
   /*
    * Valuation Desk (0028). Seeded, like the analytics tables and unlike the
    * reconciliation and assistant histories: a peer set is assembled FROM a
@@ -649,6 +658,11 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
       TABLES.site_views.length = 0;
       TABLES.site_visitors.length = 0;
       return ok();
+    case 'itd_set_handled': {
+      const p = TABLES.itd_proceedings.find((r) => r.key === args.p_key);
+      if (p) Object.assign(p, args.p_handled ? { handled_at: nowIso(), handled_by: me().email, handled_note: args.p_note ?? null } : { handled_at: null, handled_by: null, handled_note: null });
+      return ok();
+    }
     case 'admin_accounts':
       return ok(
         TABLES.profiles.map((p) => ({
@@ -756,6 +770,10 @@ export function createPreviewClient(as: 'admin' | 'member' | 'guest' = 'admin') 
         createSignedUrl: async () => ({
           data: null,
           error: { message: 'This is sample data — there is no file behind it.' },
+        }),
+        createSignedUrls: async (paths: string[]) => ({
+          data: paths.map((path) => ({ path, signedUrl: null, error: 'This is sample data — there is no file behind it.' })),
+          error: null,
         }),
       }),
     },
