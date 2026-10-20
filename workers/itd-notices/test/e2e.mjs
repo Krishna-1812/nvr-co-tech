@@ -104,8 +104,8 @@ try {
   assert.equal(d1.store.proceedings.find((p) => p.ay === 'Not Available').marked_new, true);
   assert.equal(d1.mails.length, 1, 'only the team summary');
   assert.match(d1.mails[0].subject, /2 not checked/);
-  assert.match(d1.mails[0].html, /asks for an OTP/);
-  assert.match(d1.mails[0].html, /password rejected/);
+  assert.match(d1.mails[0].html, /asks for an OTP/i);
+  assert.match(d1.mails[0].html, /password rejected/i);
   assert.match(d1.mails[0].html, /Now watching 2 new accounts/);
   assert.equal(d1.store.checks.filter((c) => c.shot_path).length, 2, 'a screenshot for each failure');
   assert.equal(d1.store.runs[0].status, 'done');

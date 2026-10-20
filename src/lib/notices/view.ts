@@ -30,6 +30,8 @@ export type NoticeItem = {
   markedNew: boolean;
   handled: { at: string; by: string | null; note: string | null } | null;
   docs: NoticeDoc[];
+  /** What could be read off the notices view: DINs and sections. */
+  facts: { dins: string[]; sections: string[] };
 };
 
 export type ClientGroup = {
@@ -122,6 +124,7 @@ export function buildNoticesView({
         markedNew: p.marked_new,
         handled: p.handled_at ? { at: p.handled_at, by: p.handled_by, note: p.handled_note } : null,
         docs: docsBy.get(p.key) ?? [],
+        facts: noticeFacts(p.notice_text),
       };
     });
 
@@ -164,6 +167,18 @@ export function buildNoticesView({
     clients,
     failing,
   };
+}
+
+/**
+ * The document identification numbers and sections in a notice's text, the
+ * two things a person quotes when they reply. The same patterns the morning
+ * check reads due dates with (workers/itd-notices/src/parse.mjs).
+ */
+export function noticeFacts(text: string | null | undefined): { dins: string[]; sections: string[] } {
+  const t = String(text ?? '');
+  const dins = [...new Set(t.match(/\b(?:ITBA|CPC|ITD)\/[A-Z0-9/().-]{8,}/g) ?? [])].slice(0, 6);
+  const sections = [...new Set([...t.matchAll(/(?:u\/s|under section|section)\s*([0-9]{2,3}[A-Z]{0,3}(?:\((?:\d+[A-Za-z]?|[a-z]{1,3})\))*)/gi)].map((m) => m[1]))].slice(0, 6);
+  return { dins, sections };
 }
 
 /** "Due in 3 days", "Due today", "Due 2 days ago". */

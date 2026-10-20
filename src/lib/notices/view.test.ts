@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ItdAccountRow, ItdAlertRow, ItdProceedingRow, ItdRunRow } from '@/lib/supabase/types';
-import { buildNoticesView, dueWords } from './view';
+import { buildNoticesView, dueWords, noticeFacts } from './view';
 
 const TODAY = '2026-10-20';
 const NOW = Date.parse('2026-10-20T09:00:00+05:30');
@@ -86,5 +86,13 @@ describe('buildNoticesView', () => {
 describe('dueWords', () => {
   it('reads naturally either side of today', () => {
     expect([dueWords(0), dueWords(1), dueWords(4), dueWords(-1), dueWords(-3)]).toEqual(['Due today', 'Due tomorrow', 'Due in 4 days', 'Due 1 day ago', 'Due 3 days ago']);
+  });
+});
+
+describe('noticeFacts', () => {
+  it('reads DINs and sections once each, and nothing from no text', () => {
+    const text = 'Notice u/s 142(1) DIN: ITBA/AST/S/142(1)/2026-27/1081234567(1)\nRef ITBA/AST/S/142(1)/2026-27/1081234567(1) under section 143(2) and u/s 143(1)(a)';
+    expect(noticeFacts(text)).toEqual({ dins: ['ITBA/AST/S/142(1)/2026-27/1081234567(1)'], sections: ['142(1)', '143(2)', '143(1)(a)'] });
+    expect(noticeFacts(null)).toEqual({ dins: [], sections: [] });
   });
 });

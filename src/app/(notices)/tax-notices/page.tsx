@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { CSSProperties } from 'react';
-import { BellRing, CircleAlert, History, ScrollText, Users } from 'lucide-react';
+import { BellRing, CheckCircle2, CircleAlert, Clock, History, LogIn, Mail, ScrollText, Sheet, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { istToday } from '@/lib/fiscal';
 import { buildNoticesView, STATUS_WORDS } from '@/lib/notices/view';
@@ -8,9 +8,9 @@ import type { ItdAccountRow, ItdAlertRow, ItdDocumentRow, ItdProceedingRow, ItdR
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardTitle } from '@/components/ui/primitives';
-import { HeroStat, ToolHero } from '@/components/ui/ToolHero';
+import { HeroChip, HeroStat, ToolHero } from '@/components/ui/ToolHero';
 import { ArchScene, SealFigure } from '@/components/ui/Scene';
-import { NoticeList } from '@/components/admin/Notices';
+import { ClientBook, NoticeList } from '@/components/admin/Notices';
 import { ago, stamp } from '@/components/admin/when';
 
 export const metadata: Metadata = { title: 'Tax Notice Watch' };
@@ -85,22 +85,7 @@ export default async function NoticesPage() {
   const total = view.clients.filter((c) => c.inSheet).length;
   const last = view.lastRun;
 
-  if (!total && !last) {
-    return (
-      <div className="mx-auto max-w-4xl space-y-6">
-        <Header />
-        <Card>
-          <div className="px-6 py-12 text-center">
-            <ScrollText className="text-subtle mx-auto size-8" aria-hidden />
-            <p className="mt-3 font-semibold">Nothing checked yet</p>
-            <p className="text-muted mx-auto mt-1 max-w-md text-sm text-pretty">
-              Once the morning check runs with the accounts sheet, every client appears here with their proceedings, notices and files.
-            </p>
-          </div>
-        </Card>
-      </div>
-    );
-  }
+  if (!total && !last) return <Waiting />;
 
   const lastAt = last ? (last.finished_at ?? last.started_at) : null;
   const look = view.attention.length;
@@ -187,46 +172,29 @@ export default async function NoticesPage() {
 
       <Card className="overflow-hidden">
         <CardTitle icon={<Users className="size-4" />} title="Every client" description="All proceedings on each account, action tab first, newest first. Files open from the private store." />
-        <div className="divide-y">
-          {view.clients.map((c) => {
-            const open = c.items.filter((i) => !i.handled).length;
-            const hot = c.items.some((i) => !i.handled && (i.fresh || (i.dueIn !== null && i.dueIn <= 7 && i.dueIn >= -14)));
-            return (
-              <details key={c.pan} className="group" open={hot}>
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3.5 transition hover:bg-[color-mix(in_oklab,var(--surface-sunken)_60%,transparent)] sm:px-6">
-                  <span className="min-w-0">
-                    <span className={cn('block truncate font-semibold', !c.inSheet && 'text-muted')}>
-                      {c.name}
-                      {!c.inSheet && <span className="text-subtle font-normal"> · no longer in the sheet</span>}
-                    </span>
-                    <span className="text-subtle block font-mono text-[12px]">{c.pan}</span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-2">
-                    {c.status && c.status !== 'ok' && (
-                      <span style={tone('var(--status-rejected)')} className="tinted hidden rounded-full border px-2 py-0.5 text-[11.5px] font-semibold sm:inline">
-                        Not checked
-                      </span>
-                    )}
-                    <span className="text-muted text-[12.5px] tabular-nums whitespace-nowrap">
-                      {c.items.length} proceeding{c.items.length === 1 ? '' : 's'}
-                      {open !== c.items.length ? ` · ${open} open` : ''}
-                    </span>
-                    <span aria-hidden className="text-subtle transition group-open:rotate-90">›</span>
-                  </span>
-                </summary>
-                <div className="surface-sunken border-t">
-                  <NoticeList items={c.items} urls={urls} empty={c.lastOk ? 'No proceedings on this account.' : 'Not read yet.'} />
-                </div>
-              </details>
-            );
-          })}
-        </div>
+        <ClientBook clients={view.clients} urls={urls} now={now} />
       </Card>
 
       {(runs.data ?? []).length > 0 && (
         <Card className="overflow-hidden">
           <CardTitle icon={<History className="size-4" />} title="Recent checks" description="Each morning's run: how many accounts were read, what was new, and whether the team was emailed." />
-          <div className="scroll-x-hint overflow-x-auto">
+          <ul className="divide-y sm:hidden">
+            {((runs.data ?? []) as ItdRunRow[]).map((r) => (
+              <li key={r.id} className="space-y-1.5 px-5 py-3">
+                <p className="flex items-baseline justify-between gap-3 text-[13.5px]">
+                  <span className="font-semibold">{stamp(r.started_at)}</span>
+                  <span className="text-muted text-[12px]">{took(r)}</span>
+                </p>
+                <p className="text-muted flex flex-wrap gap-x-3 gap-y-0.5 text-[12.5px] tabular-nums">
+                  <span>{r.ok} read</span>
+                  <span className={cn(r.failed && 'font-semibold text-[var(--text-c)]')}>{r.failed} not checked</span>
+                  <span className={cn(r.alerts && 'font-semibold text-[var(--text-c)]')}>{r.alerts} new</span>
+                  <span>{emailWords(r)}</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto sm:block">
             <table className="w-full min-w-[36rem] text-left text-[13px]">
               <thead className="surface-sunken">
                 <tr className="a-label">
@@ -243,12 +211,12 @@ export default async function NoticesPage() {
                   <tr key={r.id}>
                     <td className="px-5 py-2.5 whitespace-nowrap sm:px-6">{stamp(r.started_at)}</td>
                     <td className="text-muted px-3 py-2.5 whitespace-nowrap">
-                      {r.status === 'running' ? 'Running' : r.status === 'crashed' ? 'Stopped' : r.finished_at ? minutes(Date.parse(r.finished_at) - Date.parse(r.started_at)) : '—'}
+                      {took(r)}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{r.ok}</td>
                     <td className={cn('px-3 py-2.5 text-right tabular-nums', r.failed && 'font-semibold')}>{r.failed}</td>
                     <td className={cn('px-3 py-2.5 text-right tabular-nums', r.alerts && 'font-semibold')}>{r.alerts}</td>
-                    <td className="text-muted px-5 py-2.5 sm:px-6">{r.emailed ? 'Sent' : r.status === 'done' ? 'Nothing to send' : '—'}</td>
+                    <td className="text-muted px-5 py-2.5 sm:px-6">{emailWords(r)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -256,6 +224,56 @@ export default async function NoticesPage() {
           </div>
         </Card>
       )}
+    </div>
+  );
+}
+
+/**
+ * Before the first morning check: the arch and the promise, then the four
+ * things the check does, so the page is worth opening on day one. Every state
+ * shown is one the page knows (the tables answered, no run has been recorded);
+ * nothing here pretends the check has run.
+ */
+function Waiting() {
+  const steps = [
+    { icon: Sheet, title: 'Reads the sheet', body: 'The accounts to check come from the firm’s Google Sheet: login, password, client name and who to tell.' },
+    { icon: LogIn, title: 'Logs in, one by one', body: 'Each account is opened on the e-Filing portal in turn. An OTP or CAPTCHA is reported, never forced.' },
+    { icon: ScrollText, title: 'Reads e-Proceedings', body: 'Both tabs of Pending Actions → e-Proceedings. New notices are opened and their files kept.' },
+    { icon: Mail, title: 'Tells the team', body: 'An email the morning a notice arrives, with the files and the response date, and the list here.' },
+  ];
+  return (
+    <div className="space-y-6">
+      <ToolHero
+        id="notices-hero"
+        label="Tax Notice Watch"
+        pill={{ text: 'Waiting for the first morning check', tone: 'var(--status-warn)' }}
+        title="Every client’s notices, read each morning"
+        mark="each morning"
+        sub="Once the morning check runs, each client appears here with their proceedings, the notice files and when a response is due. What needs a look comes first."
+        glow="var(--h-rose)"
+        scene={<ArchScene motif="sundial" className="h-full min-h-[18rem]" />}
+      >
+        <div className="mt-6 flex flex-wrap gap-2">
+          <HeroChip icon={CheckCircle2}>Database ready</HeroChip>
+          <HeroChip icon={Clock}>No check has run yet</HeroChip>
+        </div>
+      </ToolHero>
+
+      <Card className="overflow-hidden">
+        <CardTitle icon={<ScrollText className="size-4" />} title="What the morning check does" description="Unattended, every morning, for every account in the sheet." />
+        <ol className="grid gap-px border-t bg-[var(--border-c)] sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map((s, i) => (
+            <li key={s.title} className="bg-[var(--surface-raised)] px-5 py-5 sm:px-6">
+              <span style={tone('var(--h-rose)')} className="tinted inline-grid size-9 place-items-center rounded-xl border">
+                <s.icon className="size-4" aria-hidden />
+              </span>
+              <p className="text-subtle mt-3 text-[11.5px] font-semibold tracking-wide uppercase tabular-nums">Step {i + 1}</p>
+              <p className="mt-0.5 font-semibold">{s.title}</p>
+              <p className="text-muted mt-1 text-[13px] leading-relaxed text-pretty">{s.body}</p>
+            </li>
+          ))}
+        </ol>
+      </Card>
     </div>
   );
 }
@@ -270,9 +288,16 @@ function Header() {
   );
 }
 
-function minutes(ms: number) {
-  const m = Math.round(ms / 60_000);
+function took(r: ItdRunRow) {
+  if (r.status === 'running') return 'Running';
+  if (r.status === 'crashed') return 'Stopped';
+  if (!r.finished_at) return '—';
+  const m = Math.round((Date.parse(r.finished_at) - Date.parse(r.started_at)) / 60_000);
   return m < 1 ? 'under a minute' : `${m} min`;
+}
+
+function emailWords(r: ItdRunRow) {
+  return r.emailed ? 'Email sent' : r.status === 'done' ? 'Nothing to email' : '—';
 }
 
 function readClock(): number {

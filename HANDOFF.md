@@ -688,9 +688,16 @@ the real portal** (see below).
   readings (need a look / due this week / not checked) via `buildNoticesView`.
 - **Screen** `(notices)/tax-notices/page.tsx` (ToolHero with the "need a look" count), arithmetic in
   `lib/notices/view.ts` (tested): stale-run warning (no finished run in 26h), tiles, "Needs a look",
-  "Not checked" with the failure screenshot, every client (collapsible), recent runs; "Mark handled"
-  via `actions/notices.ts`. Files open through 1-hour signed URLs. Preview fixtures in
-  `lib/preview/notices.ts`.
+  "Not checked" with the failure screenshot, every client (`ClientBook` in `components/admin/Notices.tsx`:
+  search by client/PAN/proceeding, filters All / Needs a look / Not checked), recent runs (a table
+  from `sm`, a stacked list on phones); "Mark handled" via `actions/notices.ts`. Each row shows the
+  section(s) and DIN(s) read from the notice text (`noticeFacts`, same patterns as the worker's
+  `parseNoticeText`) with a copy button. Before the first run the page shows a waiting hero and the
+  four steps of the check rather than an empty card. Files open through 1-hour signed URLs. Preview
+  fixtures in `lib/preview/notices.ts`.
+- **Emails** (`mail.mjs`) use the site's palette inline (bone page, terracotta button, serif title),
+  laid out in tables for Gmail/Outlook: the alert has one card per change with a response-date pill
+  (red ≤2 days, amber ≤7); the summary opens with three figures (new / due soon / not checked).
 - **Hosting (open):** the portal refuses Claude's cloud. It answered data centres in Mumbai,
   Rajpura, Singapore and the US (check-host.net, 20 Oct). A Railway Singapore test got HTTP 200 but
   the login page had not loaded in 60s; a second, longer test (`ops/itd-notices/reach-test` on the
