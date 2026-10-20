@@ -251,6 +251,7 @@ export const AGENT_MOTIF: Record<string, SceneMotif> = {
   'ledger-reconciliation': 'scales',
   'valuation-desk': 'columns',
   'contact-finder': 'seekers',
+  'tax-notices': 'sundial',
   'true-property-cost': 'tower',
   'wealth-tracker': 'nest',
   'gst-reconciliation': 'ledger',

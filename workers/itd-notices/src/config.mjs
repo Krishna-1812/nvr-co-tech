@@ -28,7 +28,7 @@ export function loadConfig({ dry = false } = {}) {
     outbox: env.ITD_MAIL_OUTBOX,
     from: env.NOTIFY_FROM_EMAIL || 'Tax notice watch <notices@thefinanceintelligence.com>',
     notifyTo: list(env.NOTIFY_TO),
-    dashboardUrl: `${site}/analytics/notices`,
+    dashboardUrl: `${site}/tax-notices`,
 
     // Pace: seconds between accounts, and a cap on notices opened per tab per account.
     pauseMs: Number(env.ITD_PAUSE_SECONDS ?? 20) * 1000,

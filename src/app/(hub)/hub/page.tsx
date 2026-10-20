@@ -14,6 +14,7 @@ import { canApprove, isAdmin, isOwner, ROLE_META } from '@/lib/domain/workflow';
 import { deskBrief } from '@/lib/domain/desk';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
 import { SOLUTIONS } from '@/lib/solutions';
+import { buildNoticesView } from '@/lib/notices/view';
 import { LiveSolutionCard, type Reading } from '@/components/hub/LiveSolutionCard';
 import { LandedPanel } from '@/components/landed/LandedPanel';
 import { WealthPanel } from '@/components/wealth/WealthPanel';
@@ -245,6 +246,33 @@ export default async function HubPage() {
     { month: 0, today: 0 },
   );
 
+  /*
+   * Tax Notice Watch's figures (migration 0037). Its tables are readable by
+   * the same admin list as Contact Finder's, which is also who sees its card,
+   * and a missing table means the migration has not been run: the card then
+   * says so rather than the workspace falling over.
+   */
+  const noticeView = finderOpen
+    ? await Promise.all([
+        supabase.from('itd_accounts').select('*'),
+        supabase.from('itd_proceedings').select('*').is('gone_at', null).limit(5000),
+        supabase.from('itd_alerts').select('*').gte('at', `${daysBefore(today, 14)}T00:00:00+05:30`).limit(1000),
+        supabase.from('itd_runs').select('*').order('started_at', { ascending: false }).limit(5),
+      ]).then(([a, p, al, r]) =>
+        a.error
+          ? null
+          : buildNoticesView({
+              accounts: a.data ?? [],
+              proceedings: p.data ?? [],
+              documents: [],
+              alerts: al.data ?? [],
+              runs: r.data ?? [],
+              today,
+              now: readClock(),
+            }),
+      )
+    : null;
+
   const n = {
     drafts: drafts.count ?? 0,
     sentBack: sentBack.count ?? 0,
@@ -418,10 +446,43 @@ export default async function HubPage() {
           tone: undefined,
         };
 
+  const noticeReadings: Reading[] = noticeView
+    ? [
+        {
+          label: 'Need a look',
+          value: noticeView.attention.length,
+          tone: 'var(--status-warn)',
+          hint: 'New in the last fortnight, or a response due within a week, and not marked handled.',
+        },
+        {
+          label: 'Due this week',
+          value: noticeView.tiles.due,
+          tone: 'var(--status-rejected)',
+          hint: 'Responses due in the next seven days that nobody has marked handled.',
+        },
+        {
+          label: 'Not checked',
+          value: noticeView.tiles.notChecked,
+          tone: 'var(--status-rejected)',
+          hint: 'Accounts in the sheet the morning check could not get into: a new notice on them would be missed.',
+        },
+      ]
+    : [];
+  const noticeBrief = !noticeView
+    ? { text: 'Not switched on yet: migration 0037 has to be run first.', tone: 'var(--status-draft)' }
+    : !noticeView.lastRun
+      ? { text: 'Ready. The morning check has not run yet, so there is nothing to show.', tone: 'var(--status-draft)' }
+      : noticeView.stale
+        ? { text: 'The morning check has stopped running, so nothing new is being found.', tone: 'var(--status-rejected)' }
+        : noticeView.attention.length
+          ? { text: `${noticeView.attention.length} ${plural(noticeView.attention.length, 'proceeding needs', 'proceedings need')} a look.`, tone: 'var(--status-warn)' }
+          : { text: 'Nothing new or due. Every client was checked this morning.', tone: undefined };
+
   const voucherDesk = SOLUTIONS.find((s) => s.slug === 'voucher-desk');
   const reconciliation = SOLUTIONS.find((s) => s.slug === 'ledger-reconciliation');
   const valuationDesk = SOLUTIONS.find((s) => s.slug === 'valuation-desk');
   const contactFinder = SOLUTIONS.find((s) => s.slug === 'contact-finder');
+  const taxNotices = SOLUTIONS.find((s) => s.slug === 'tax-notices');
   const landedCost = SOLUTIONS.find((s) => s.slug === 'true-property-cost');
   const wealthTracker = SOLUTIONS.find((s) => s.slug === 'wealth-tracker');
   /*
@@ -459,6 +520,7 @@ export default async function HubPage() {
     landedCost,
     wealthTracker,
     finderOpen ? contactFinder : undefined,
+    finderOpen ? taxNotices : undefined,
   ].filter(Boolean).length;
   const waiting = n.sentBack + (approver ? n.queue : 0) + n.reconOpen;
 
@@ -718,6 +780,12 @@ export default async function HubPage() {
             </div>
           )}
 
+          {taxNotices && finderOpen && (
+            <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
+              <LiveSolutionCard solution={taxNotices} readings={noticeReadings} note={noticeBrief.text} noteTone={noticeBrief.tone} />
+            </div>
+          )}
+
           {/*
           The last cell of the grid, and the one place on the screen that
           answers "which of these do I want" for somebody who does not know
@@ -798,4 +866,13 @@ const LG_SPAN = { 1: 'lg:col-span-1', 2: 'lg:col-span-2', 3: 'lg:col-span-3' } a
 /** Local because it is two words of grammar, not a utility. */
 function plural(n: number, one: string, many: string) {
   return n === 1 ? one : many;
+}
+
+/** The date `days` before an IST day, as YYYY-MM-DD. */
+function daysBefore(day: string, days: number): string {
+  return new Date(Date.parse(`${day}T12:00:00+05:30`) - days * 86_400_000).toISOString().slice(0, 10);
+}
+
+function readClock(): number {
+  return Date.now();
 }

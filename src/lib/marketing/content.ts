@@ -177,6 +177,30 @@ export const AGENTS: Agent[] = [
     href: '/contacts',
   },
   {
+    slug: 'tax-notices',
+    name: 'Tax Notice Watch',
+    stage: 'live',
+    category: 'Tax & compliance',
+    accent: 'rose',
+    summary:
+      'Checks every client’s e-Proceedings on the Income Tax portal each morning, downloads any new notice, and emails the team the day it arrives, with the response date.',
+    pitch:
+      'A notice on the e-Filing portal does not wait to be noticed. It sits under Pending Actions with a response date, the email about it lands in a client’s spam folder, and the first anybody hears of it is the penalty. Checking forty logins by hand every morning is nobody’s job, so it is done here, and the only thing left to a person is the reply.',
+    does: [
+      'Reads the accounts to check from a Google Sheet the firm keeps: login, password, client name and who to tell. A row marked No is skipped.',
+      'Logs in to each account every morning, one after another, and reads both tabs of Pending Actions → e-Proceedings: For your Action and For your Information.',
+      'Notices what is new since yesterday: a new proceeding, more notices on one already there, or a new dated entry. The first look at an account only records what is already there, so adding a client does not announce old notices as new.',
+      'Opens the notices that are new, downloads their files and reads the response date where the portal gives one.',
+      'Emails the client’s addresses and the team when something is new, with the files attached, and sends the team one short summary on mornings when something is new, due within a week, or could not be checked.',
+      'Never gets past an OTP or a CAPTCHA and never retries a password. An account that asks for one is reported as not checked, with a picture of what the portal showed, rather than skipped silently.',
+      'Shows every client’s proceedings, files and due dates on one screen, with what needs a look first and a Mark handled button for each.',
+      'Keeps no passwords. They stay in the firm’s sheet and pass through the check only for the length of one login.',
+    ],
+    inputs: 'A Google Sheet of client logins, and who to tell',
+    outputs: 'New notices with their files and due dates, and an email the day one arrives',
+    href: '/tax-notices',
+  },
+  {
     slug: 'true-property-cost',
     name: 'True Property Cost',
     stage: 'live',

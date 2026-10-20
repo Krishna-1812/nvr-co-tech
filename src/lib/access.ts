@@ -50,12 +50,15 @@ export const LOCKED_TOOLS: readonly string[] = [
   'ledger-reconciliation',
   'valuation-desk',
   'contact-finder',
+  'tax-notices',
 ];
 
 /**
  * The locked tools an admin may open for one person (Admin settings, migration
  * 0035). Contact Finder is not among them: it spends the platform's credits and
- * its caches hold revealed contact details, so it stays with admins.
+ * its caches hold revealed contact details, so it stays with admins. Nor is Tax
+ * Notice Watch: it shows every client's notices, and its tables (0037) are
+ * readable by admins only, so a grant would open an empty screen.
  */
 export const GRANTABLE_TOOLS: readonly string[] = ['voucher-desk', 'ledger-reconciliation', 'valuation-desk'];
 

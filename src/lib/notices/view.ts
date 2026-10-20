@@ -1,7 +1,7 @@
 import type { ItdAccountRow, ItdAlertRow, ItdDocumentRow, ItdProceedingRow, ItdRunRow } from '@/lib/supabase/types';
 
 /**
- * The Tax notices page, worked out from the tables the morning check writes
+ * Tax Notice Watch's screen, worked out from the tables the morning check writes
  * (migration 0037, workers/itd-notices).
  *
  * Kept apart from the page so the arithmetic that decides what a person is

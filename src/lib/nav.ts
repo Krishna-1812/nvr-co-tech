@@ -198,6 +198,7 @@ export function sectionFor(
   if (slug === ASSIST_SLUG) return assistSection();
   if (slug === ANALYTICS_SLUG) return analyticsSection();
   if (slug === FINDER_SLUG) return finderSection();
+  if (slug === NOTICES_SLUG) return noticesSection();
   return voucherSection({ role, pendingCount });
 }
 
@@ -226,13 +227,6 @@ export function analyticsSection(): Section {
         icon: Activity,
         hint: 'Who visited, who signed in, the time each spent, and every request',
         exact: true,
-      },
-      {
-        href: '/analytics/notices',
-        label: 'Tax notices',
-        short: 'Notices',
-        icon: ScrollText,
-        hint: "New income tax notices from each client's e-Proceedings, what is due, and the files",
       },
       {
         href: '/analytics/settings',
@@ -298,6 +292,37 @@ export function finderSection(): Section {
         label: 'Activity',
         icon: Activity,
         hint: 'Searches you have run, the rows you kept, and what the credits went on',
+      },
+      {
+        href: '/settings',
+        label: 'Settings',
+        icon: Settings,
+        hint: 'Your account and appearance',
+      },
+    ],
+  };
+}
+
+export const NOTICES_SLUG = 'tax-notices';
+
+/**
+ * Tax Notice Watch: one screen, because what it holds is one list read three
+ * ways (what needs a look, what could not be checked, every client). It moved
+ * here from the Admin screen on 20 Oct 2026 at the owner's request, so it sits
+ * on the hub with the other tools rather than behind the Admin menu.
+ */
+export function noticesSection(): Section {
+  return {
+    slug: NOTICES_SLUG,
+    name: 'Tax Notice Watch',
+    home: '/tax-notices',
+    items: [
+      {
+        href: '/tax-notices',
+        label: 'Notices',
+        icon: ScrollText,
+        hint: "New income tax notices from each client's e-Proceedings, what is due, and the files",
+        exact: true,
       },
       {
         href: '/settings',

@@ -144,6 +144,7 @@ src/app/
   (landed)     True Property Cost: /true-property-cost
   (wealth)     Wealth Tracker: /wealth-tracker
   (assist)     Ask: /ask  /ask/history
+  (notices)    Tax Notice Watch: /tax-notices (platform admins; others request access)
   (insight)    The Admin screen, one page (platform admins only; 404s otherwise): /analytics
   (account)    /settings
   api/         assist  track (the tracker's endpoint)  comps/brief
@@ -242,6 +243,7 @@ counts on the public site at all.)
 | `contact-finder` | Contact Finder | live | `/contacts` | platform admins who are also in `analytics_admins` (spends Apollo credits) |
 | `true-property-cost` | True Property Cost | live | `/true-property-cost` | **anybody, no account** (runs in the browser; saved to the account when signed in) |
 | `wealth-tracker` | Wealth Tracker | live | `/wealth-tracker` | **anybody, no account** (runs in the browser; saved to the account when signed in) |
+| `tax-notices` | Tax Notice Watch | live | `/tax-notices` | platform admins in `analytics_admins` (shows every client's notices; not grantable); others request access. Fed by `workers/itd-notices` (§12b) |
 | `gst-reconciliation` | GST Reconciliation | planned | — | — |
 | `tds-compliance` | TDS Compliance | planned | — | — |
 | `invoice-intake` | Invoice Intake | planned | — | — |
@@ -650,7 +652,7 @@ used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
 
 ---
 
-## 12b. Tax notice watch (`/analytics/notices`, `workers/itd-notices`)
+## 12b. Tax Notice Watch (`/tax-notices`, `workers/itd-notices`)
 
 **Asked for on 20 Oct 2026:** log in to each client's Income Tax e-Filing account every morning,
 read **Pending Actions → e-Proceedings**, download the notices, show them on a dashboard and email
@@ -677,7 +679,14 @@ the real portal** (see below).
   `itd_proceedings`, `itd_documents`, `itd_alerts`; admin-read RLS (`is_analytics_admin()`); writes
   only by the worker's service-role key; `itd_set_handled()`; private storage bucket `itd-notices`
   (admin read).
-- **Dashboard** `(insight)/analytics/notices/page.tsx` (rail item "Tax notices"), arithmetic in
+- **A tool of its own** since 20 Oct (first built as an Admin page; the owner asked for it on the
+  hub instead; `/analytics/notices` 308s to `/tax-notices`). Roster slug `tax-notices` ("Tax Notice
+  Watch", live, accent rose, motif sundial), in `LOCKED_TOOLS` but **not** `GRANTABLE_TOOLS` (its
+  tables are admin-read only, so a grant would open an empty screen). Route group `(notices)` with
+  a Contact-Finder-shaped layout (LockedTool for non-admins; "one step left" card for a code-list
+  admin missing from `analytics_admins`); `noticesSection()` in nav; hub card for admins with live
+  readings (need a look / due this week / not checked) via `buildNoticesView`.
+- **Screen** `(notices)/tax-notices/page.tsx` (ToolHero with the "need a look" count), arithmetic in
   `lib/notices/view.ts` (tested): stale-run warning (no finished run in 26h), tiles, "Needs a look",
   "Not checked" with the failure screenshot, every client (collapsible), recent runs; "Mark handled"
   via `actions/notices.ts`. Files open through 1-hour signed URLs. Preview fixtures in

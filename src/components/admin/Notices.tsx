@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { stamp } from './when';
 
 /**
- * The rows of the Tax notices page (/analytics/notices): one proceeding each,
+ * The rows of Tax Notice Watch (/tax-notices): one proceeding each,
  * with what is new on it, when a response is due, its files, and the one
  * thing an admin does here, marking it handled.
  */
