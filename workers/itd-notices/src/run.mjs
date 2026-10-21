@@ -165,7 +165,15 @@ async function main() {
       } catch (e) {
         const status = e.status ?? 'error';
         log(`  not checked: ${status}: ${e.message}`);
-        if (report && e.pageText) log(`    page text: ${squeeze(e.pageText, 900)}`);
+        if (report) {
+          if (e.url) log(`    at: ${e.url.replace(/[?].*$/, '')}`);
+          for (const n of e.notes ?? []) log(`    portal says: ${squeeze(n, 300)}`);
+          // The portal's header and menu come first on every page; skip to
+          // what is under them.
+          const text = squeeze(e.pageText, 4000);
+          const at = text.search(/Downloads\s+Help\s+/i);
+          if (e.pageText) log(`    page text: ${squeeze(at > 0 ? text.slice(at + 15) : text, 1500)}`);
+        }
         failures.push({ account, status, message: e.message });
         await store.upsertAccount({ pan, status, message: e.message, last_checked_at: now() });
         await store.addCheck(runId, { pan, status, message: e.message, took_ms: Date.now() - started }, e.shot ?? null);
