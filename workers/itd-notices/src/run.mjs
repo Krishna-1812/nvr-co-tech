@@ -57,8 +57,11 @@ async function main() {
 
   // Without the automation flag the browser looks like any other Chrome to the
   // portal's firewall, which refused it at least once from a cloud host.
+  // Playwright's full Chromium in its new headless mode, which is closer to
+  // the Chrome a person uses than the stripped-down headless shell.
   const browser = await chromium.launch({
     headless: true,
+    ...(process.env.ITD_CHROMIUM_PATH ? {} : { channel: 'chromium' }),
     args: ['--disable-blink-features=AutomationControlled'],
     ...(process.env.ITD_CHROMIUM_PATH ? { executablePath: process.env.ITD_CHROMIUM_PATH } : {}),
   });
@@ -69,6 +72,14 @@ async function main() {
       const started = Date.now();
       log(`(${i + 1}/${accounts.length}) ${pan} ${account.name ?? ''}`);
       const before = await store.getAccount(pan);
+      // A password the portal rejected is not tried again for a week, so a
+      // wrong password in the sheet can never walk an account into a lockout.
+      // Correcting it in the sheet and waiting, or a person logging in, is the fix.
+      if (['bad-password', 'locked'].includes(before?.status) && before.last_checked_at && Date.parse(before.last_checked_at) > Date.now() - 7 * 86_400_000) {
+        log(`  skipped: the last try ended "${before.status}" on ${before.last_checked_at.slice(0, 10)}; not trying the password again for a week`);
+        failures.push({ account, status: before.status, message: before.message ?? before.status });
+        continue;
+      }
       await store.upsertAccount({ pan, name: account.name, notify: account.notify });
       const previous = await store.getProceedings(pan);
       const baseline = !before?.first_ok_at;

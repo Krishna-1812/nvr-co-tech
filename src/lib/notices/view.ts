@@ -61,7 +61,8 @@ const days = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:0
 /** Why an account was not checked, in words for the page. */
 export const STATUS_WORDS: Record<string, string> = {
   ok: 'Checked',
-  'bad-password': 'Password rejected: update it in the sheet',
+  'bad-password': 'Password rejected: update it in the sheet (not retried for a week)',
+  refused: 'The portal refused the automated login; tried again tomorrow',
   'bad-user': 'User ID not accepted: check it in the sheet',
   otp: 'Asks for an OTP, so it cannot be checked unattended',
   captcha: 'The portal asked for a CAPTCHA',
