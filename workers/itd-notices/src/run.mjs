@@ -55,7 +55,13 @@ async function main() {
   const alertIds = [];
   let ok = 0;
 
-  const browser = await chromium.launch({ headless: true, ...(process.env.ITD_CHROMIUM_PATH ? { executablePath: process.env.ITD_CHROMIUM_PATH } : {}) });
+  // Without the automation flag the browser looks like any other Chrome to the
+  // portal's firewall, which refused it at least once from a cloud host.
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--disable-blink-features=AutomationControlled'],
+    ...(process.env.ITD_CHROMIUM_PATH ? { executablePath: process.env.ITD_CHROMIUM_PATH } : {}),
+  });
   try {
     for (const [i, account] of accounts.entries()) {
       if (i > 0) await sleep(cfg.pauseMs);
