@@ -131,7 +131,8 @@ ${a.dueOn ? `<p style="margin:10px 0 0">${duePill(a.dueOn)}</p>` : ''}
 }
 
 const STATUS_WORDS = {
-  'bad-password': 'password rejected: update it in the sheet',
+  'bad-password': 'password rejected: update it in the sheet (not retried for a week)',
+  refused: 'the portal refused the automated login; it is tried again tomorrow',
   'bad-user': 'user ID not accepted: check the PAN in the sheet',
   otp: 'asks for an OTP, so it cannot be checked unattended',
   captcha: 'the portal asked for a CAPTCHA',

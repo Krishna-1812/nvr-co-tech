@@ -45,8 +45,13 @@ async function login(page, base, account, log) {
   });
   const userBox = page.getByPlaceholder(/PAN/i);
   if (!(await visible(userBox, 60000))) throw new CheckError('portal-down', 'The login page did not load');
-  await userBox.first().fill(account.userId);
-  await page.getByRole('button', { name: /continue/i }).first().click();
+  // Typed a key at a time with a pause between steps, as a person would: the
+  // portal refused a login whose fields were filled in one go.
+  await page.waitForTimeout(1500);
+  await userBox.first().click();
+  await userBox.first().pressSequentially(account.userId, { delay: 110 });
+  await page.waitForTimeout(800);
+  await page.getByRole('button', { name: /continue/i }).filter({ visible: true }).first().click({ timeout: 15000 });
 
   const pwBox = page.locator('input[type="password"]');
   if (!(await visible(pwBox, 45000))) {
@@ -57,14 +62,21 @@ async function login(page, base, account, log) {
     throw new CheckError('layout', 'The password page never appeared');
   }
 
+  // The secure-access tick is a styled checkbox; clicking its words is what a
+  // person does and what the page listens for. Forcing the input is the
+  // fallback, and the result is checked rather than assumed.
   const tick = page.getByRole('checkbox').first();
-  if (await visible(tick, 3000)) {
-    if (!(await tick.isChecked().catch(() => false))) {
-      await tick.check({ force: true }).catch(() => page.getByText(/secure access message/i).first().click());
-    }
+  if (await tick.count().catch(() => 0)) {
+    if (!(await tick.isChecked().catch(() => false))) await page.getByText(/secure access message/i).first().click({ timeout: 5000 }).catch(() => {});
+    if (!(await tick.isChecked().catch(() => false))) await tick.check({ force: true }).catch(() => {});
+    if (!(await tick.isChecked().catch(() => false))) log('secure access tick did not take');
   }
-  await pwBox.first().fill(account.password);
-  await page.getByRole('button', { name: /continue/i }).first().click();
+  await page.waitForTimeout(900);
+  await pwBox.first().click();
+  await pwBox.first().pressSequentially(account.password, { delay: 120 });
+  await page.waitForTimeout(1000);
+  // Only the Continue on screen: the PAN step's button can still be in the page.
+  await page.getByRole('button', { name: /continue/i }).filter({ visible: true }).first().click({ timeout: 15000 });
 
   const deadline = Date.now() + 90000;
   while (Date.now() < deadline) {
@@ -79,8 +91,13 @@ async function login(page, base, account, log) {
     const t = await pageText(page);
     if (/captcha/i.test(t)) throw new CheckError('captcha', 'The portal asked for a CAPTCHA after the password');
     if (/one time password|enter (the )?otp|\botp\b.*(sent|mobile|email)/i.test(t)) throw new CheckError('otp', 'This account needs an OTP to log in, so it cannot be checked unattended');
+    // Only what is on screen counts: the portal keeps its "locked" and
+    // "attempts remaining" dialogs in every page, hidden until needed.
+    if (/has been locked|account is locked/i.test(t)) throw new CheckError('locked', 'The portal says this account is locked');
+    if (/attempts? remaining/i.test(t)) throw new CheckError('bad-password', 'The portal rejected the password and warns that one more wrong try will lock the account');
     if (/invalid password|incorrect password|password is incorrect|wrong password/i.test(t)) throw new CheckError('bad-password', 'The portal rejected the password');
-    if (/locked|disabled|deactivated/i.test(t) && !/unlock/i.test(t)) throw new CheckError('locked', 'The portal says this account is locked');
+    if (/request is not authenticated/i.test(t)) throw new CheckError('refused', 'The portal refused the login ("Request is not authenticated")');
+    if (/disabled|deactivated/i.test(t)) throw new CheckError('locked', 'The portal says this account is disabled');
     await page.waitForTimeout(1000);
   }
   throw new CheckError('layout', 'Did not reach the dashboard after the password');
@@ -243,6 +260,16 @@ export async function checkAccount(browser, account, { base, want = () => [], lo
     await maskPage(page);
     err.shot = await page.screenshot({ fullPage: true }).catch(() => null);
     err.pageText = (await pageText(page)).slice(0, 4000);
+    err.url = page.url();
+    // Whatever the portal is saying in a dialog, toast or field error, which is
+    // usually the reason a step stopped.
+    err.notes = (await page
+      .locator('[role="dialog"], [role="alert"], mat-error, .mat-mdc-dialog-container, .toast, .alert, .error, .errorMsg, .invalid-feedback')
+      .allInnerTexts()
+      .catch(() => []))
+      .map((t) => t.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .slice(0, 6);
     if (page.url().includes('#/dashboard')) await logout(page).catch(() => {});
     throw err;
   } finally {

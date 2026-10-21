@@ -6,4 +6,5 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
 COPY src ./src
+COPY tools ./tools
 CMD ["node", "src/run.mjs"]

@@ -698,11 +698,20 @@ the real portal** (see below).
 - **Emails** (`mail.mjs`) use the site's palette inline (bone page, terracotta button, serif title),
   laid out in tables for Gmail/Outlook: the alert has one card per change with a response-date pill
   (red ≤2 days, amber ≤7); the summary opens with three figures (new / due soon / not checked).
-- **Hosting (open):** the portal refuses Claude's cloud. It answered data centres in Mumbai,
-  Rajpura, Singapore and the US (check-host.net, 20 Oct). A Railway Singapore test got HTTP 200 but
-  the login page had not loaded in 60s; a second, longer test (`ops/itd-notices/reach-test` on the
-  session branch) was waiting on a Railway build outage. Fallback: Oracle Cloud free VM in Mumbai.
-  Setup steps for both are in the worker's README.
+- **Hosting:** Railway project `illustrious-optimism`, service `nvr-co-tech`, region Singapore,
+  root `/workers/itd-notices` (its Dockerfile), restart Never. Variables set there: `ITD_SHEET_ID`,
+  `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY` (Supabase, email and cron not yet). Every push
+  to main redeploys the service and runs its start command, so the start command is left at
+  `node tools/probe.mjs` (no login) between tests. `tools/probe.mjs` prints the host's address and
+  whether a browser gets the login page.
+- **First real runs (21 Oct, dry):** the sheet read fine (1 account). One run from a Google-Cloud
+  egress address got "Permission Denied!!"; runs from Railway's own address loaded the login page in
+  3s. Two runs submitted the password and both got **"Error : Request is not authenticated"** under
+  the password box (the "locked" / "one attempt remaining" dialogs in the DOM are hidden templates,
+  not shown). Since then: keys typed one at a time with pauses, the full Chromium in new headless
+  mode, the automation flag off, and that error is its own status (`refused`). A rejected password
+  or a lock is not retried for 7 days (run.mjs), so a wrong sheet password cannot lock an account.
+  **No further login attempt without the owner's go-ahead.**
 - **Unknowns until the first real run:** the notices view's layout (not in the screenshots; its
   text is saved per proceeding and any PDF/download link is tried), whether accounts ask for OTP at
   login, and whether the portal treats the automated browser differently.
