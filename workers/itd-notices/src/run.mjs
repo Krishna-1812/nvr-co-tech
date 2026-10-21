@@ -22,10 +22,14 @@ import { diffProceedings, maskPan } from './parse.mjs';
 
 const args = process.argv.slice(2);
 const dry = args.includes('--dry');
+// A dry run also reports what it read, card by card, so a first run against
+// the real portal shows whether every field and file came through.
+const report = dry || args.includes('--report');
 const only = args.includes('--only') ? String(args[args.indexOf('--only') + 1] ?? '').toUpperCase() : null;
 
 const cfg = loadConfig({ dry });
 const log = (s) => console.log(`[${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false })}] ${maskPan(s)}`);
+const squeeze = (t, n) => String(t ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // Set once the run is recorded, so a crash after that point is recorded too.
 let recorded = null;
@@ -127,6 +131,14 @@ async function main() {
         await store.addCheck(runId, { pan, status: 'ok', message: null, proceedings: rows.length, took_ms: Date.now() - started });
         ok++;
         log(`  ok: ${rows.length} proceeding(s), ${alerts.length} new, ${res.notices.length} opened, ${docs.length} new file(s)`);
+        if (report) {
+          log(`  tabs say: action ${res.counts?.action ?? '?'}, information ${res.counts?.information ?? '?'}`);
+          rows.forEach((r) => log(`  [${r.tab}] ${r.name} | AY ${r.ay ?? '-'} | FY ${r.fy ?? '-'} | ${r.noticeCount ?? '?'} notice(s) | dates ${r.dates.map((d) => `${d.date}${d.status ? ` ${d.status}` : ''}`).join(', ') || '-'}${r.markedNew ? ' | NEW' : ''}`));
+          for (const n of res.notices) {
+            log(`  opened [${n.tab} #${n.index + 1}]: ${n.files.length} file(s)${n.files.length ? ` (${n.files.map((f) => `${f.name} ${Math.round(f.bytes.length / 1024)} KB`).join(', ')})` : ''}; DINs ${n.parsed.dins.length}; sections ${n.parsed.sections.join(', ') || '-'}; due ${n.parsed.dueDates.join(', ') || '-'}`);
+            log(`    view text: ${squeeze(n.text, 700)}`);
+          }
+        }
 
         if (baseline) baselined.push({ account, count: rows.length });
         if (alerts.length) {
@@ -147,6 +159,7 @@ async function main() {
       } catch (e) {
         const status = e.status ?? 'error';
         log(`  not checked: ${status}: ${e.message}`);
+        if (report && e.pageText) log(`    page text: ${squeeze(e.pageText, 900)}`);
         failures.push({ account, status, message: e.message });
         await store.upsertAccount({ pan, status, message: e.message, last_checked_at: now() });
         await store.addCheck(runId, { pan, status, message: e.message, took_ms: Date.now() - started }, e.shot ?? null);
