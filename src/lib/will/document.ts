@@ -126,3 +126,22 @@ export function plainText(doc: WillDocument): string {
   });
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
 }
+
+/**
+ * Every piece of text in the will, in reading order: what each export must
+ * contain. The PDF and the Word file are checked against this list, so a
+ * clause that went missing from either one fails a test instead of a signing.
+ * Lettered markers "(a)" and column headings are layout, not content, and are
+ * not in it.
+ */
+export function contentStrings(doc: WillDocument): string[] {
+  const out: string[] = [doc.title, ...doc.opening];
+  for (const s of doc.sections) out.push(`${s.number}. ${s.heading}`, ...s.paragraphs, ...s.items);
+  if (doc.schedule.length > 0) {
+    out.push('SCHEDULE');
+    for (const r of doc.schedule) out.push(r.title, r.kind, r.description, r.ownership);
+  }
+  out.push(doc.signing.text, doc.signing.testator, doc.attestation.text);
+  for (const w of doc.attestation.witnesses) out.push(...[w.name, w.address].filter(Boolean));
+  return out;
+}

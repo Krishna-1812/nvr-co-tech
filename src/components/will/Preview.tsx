@@ -5,6 +5,7 @@ import { buildWill } from '@/lib/will/document';
 import { readiness, type Finding } from '@/lib/will/checks';
 import { LAW } from '@/lib/will/law';
 import type { WillRecord } from '@/lib/will/model';
+import { ExportBar } from './ExportBar';
 import { Notice } from './shared';
 
 /**
@@ -29,6 +30,8 @@ export function Preview({ record, findings, today }: { record: WillRecord; findi
           : `${ready.act} thing${ready.act === 1 ? '' : 's'} to fix first (see Checks).`}{' '}
         {LAW.advocateSignOff ? '' : 'The rules behind this tool are awaiting an advocate’s review.'}
       </Notice>
+
+      <ExportBar record={record} today={today} />
 
       <article
         aria-label="Draft of your will"

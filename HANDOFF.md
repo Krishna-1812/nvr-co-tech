@@ -575,13 +575,13 @@ Every "where is it kept" sentence on the screens reads `SignedInContext`.
   record reading, real encrypt/decrypt round trips, per-user storage, backups, and both exports
   read back (PDF via pdf.js, workbook via SheetJS).
 
-## 10c. Will Maker (Phases 1–2 built, admin-only; 24 Oct 2026)
+## 10c. Will Maker (Phases 1–3 built, admin-only; 24 Oct 2026)
 
 The owner asked for a tool like willjini.com's online will. **Research is in
 `docs/will-maker/01-research.md`, the 5-phase plan in `docs/will-maker/02-plan.md`; read both
-before touching it.** Phase 1 (rules library) and **Phase 2 (the interview UI at `/will-maker`)**
-are built. Phases 3-5 (PDF/Word + signing pack, safekeeping & assisted services, advocate
-sign-off and launch) are not started.
+before touching it.** Phase 1 (rules library), Phase 2 (the interview UI at `/will-maker`) and
+**Phase 3 (the files: PDF, Word, signing guide)** are built. Phases 4-5 (safekeeping & assisted
+services, advocate sign-off and launch) are not started.
 
 **It is admin-only.** `lib/will/flag.ts` `willMakerOpen(admin)`: the `(will)` layout 404s everybody
 who is not a platform admin unless `NEXT_PUBLIC_WILL_MAKER=1` (do **not** set that before an
@@ -604,6 +604,24 @@ sitemap or any menu; `robots.ts` disallows `/will-maker`. Visible in preview mod
   removes them from every gift, backup and role.
 - **Import** from Wealth Tracker is on the "What you own" step (`useWealth`); a locked or empty
   Wealth record says so and links to it.
+- **Files** (Phase 3) `lib/will/exports.tsx` `willFile(kind, record, today)` → `will-pdf`,
+  `will-docx`, `guide-pdf`, `sample-pdf`; all lazy-imported on click (`@react-pdf/renderer`, `docx`).
+  `report.tsx` (PDF), `docx.ts` (Word), `guide.ts` (the signing steps; the screen's Signing step and
+  the guide PDF both render it), `ref.ts` (6-character document reference printed on every page).
+  **One `WillDocument` feeds screen, PDF and Word; `contentStrings()` is the list every export is
+  tested against** (tests read the PDF back with pdf.js and unzip the .docx).
+  - **Draft vs clean:** any `act` finding (including the two unticked declarations) makes every file a
+    DRAFT (diagonal mark on every PDF page, banner in Word, "(DRAFT)" in the name). Nothing is
+    refused. `ExportBar` (Preview + Signing steps) says which it will be and why.
+  - **The signing guide is a separate PDF**, never page 1 of the will, so it cannot be signed or
+    stapled on by mistake. The will's last page always carries operative text (the last Schedule
+    row, or last clause) above the signature.
+  - **react-pdf `lineHeight` traps (measured):** unitless `lineHeight` spaces lines ~2.9x on a Text
+    or View; on the Page it is right but makes `render` text (page numbers) vanish silently.
+    Use **points** (`'17pt'`) on a wrapper View, footer outside it. `fontFamily` stack as in
+    `lib/pdf/fonts`. pdf.js reads Devanagari in visual order (a pre-base vowel reads reversed), so
+    tests use names without one.
+  - The sample (`sample-pdf`) is always the worked example with invented names, marked SAMPLE.
 - **Verified** in a browser (preview mode, `next dev`): every step, Fix navigation, import,
   persistence across reload, backup download, passcode lock round trip (ciphertext at rest),
   Muslim gate, dark mode, 390px width with no horizontal overflow.

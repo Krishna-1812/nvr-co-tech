@@ -2,7 +2,8 @@
 
 import { Field, Input } from '@/components/ui/primitives';
 import { readiness } from '@/lib/will/checks';
-import { LAW } from '@/lib/will/law';
+import { GUIDE, NOT_NEEDED } from '@/lib/will/guide';
+import { ExportBar } from './ExportBar';
 import { StepFindings, StepHead, type StepProps } from './shared';
 
 /**
@@ -21,7 +22,8 @@ export function SignStep({ record, update, findings, today }: StepProps) {
   return (
     <div>
       <StepHead title="Signing">
-        Fill these in now, or leave them blank and write them by hand when you sign.
+        Fill these in now, or leave them blank and write them by hand when you sign. Then take the will and the guide with
+        you.
       </StepHead>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -42,22 +44,33 @@ export function SignStep({ record, update, findings, today }: StepProps) {
         </p>
       </section>
 
-      <section aria-label="How a will is signed" className="mt-7">
-        <h3 className="a-label mb-3">How a will is signed</h3>
-        <ol className="text-muted list-decimal space-y-2 pl-5 text-[14px] leading-relaxed">
-          <li>Print the final will and read every page. Initial each page.</li>
-          <li>Sign it on paper, in ink, at the end, with two witnesses watching you do it.</li>
-          <li>
-            Each witness then signs in your presence. They need at least {LAW.witnessesNeeded}; they do not have to sign
-            together.
-          </li>
-          <li>Choose witnesses who get nothing under the will, and who are not related to anyone who does.</li>
-          <li>Keep the original somewhere safe, and tell your executor where.</li>
-        </ol>
-        <p className="text-subtle mt-3 text-xs">
-          Registering the will with the Sub-Registrar is optional, and makes it harder to dispute. A will does not need
-          stamp paper.
-        </p>
+      <div className="mt-7">
+        <ExportBar record={record} today={today} />
+      </div>
+
+      <section aria-label="How a will is signed" className="mt-8">
+        {GUIDE.map((part) => (
+          <div key={part.id} className="mb-6">
+            <h3 className="a-label mb-3">{part.heading}</h3>
+            <ul className="space-y-3">
+              {part.steps.map((st) => (
+                <li key={st.text} className="text-[14px] leading-relaxed">
+                  <span className="font-semibold">{st.text}</span>
+                  {st.detail && <span className="text-muted block">{st.detail}</span>}
+                  <span className="text-subtle mt-0.5 block text-[11px] font-semibold tracking-wide uppercase">
+                    {st.kind === 'rule' ? `Required by law${st.cite ? `: ${st.cite}` : ''}` : 'Good practice'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        <h3 className="a-label mb-2">You do not need</h3>
+        <ul className="text-muted list-disc space-y-1 pl-5 text-[14px]">
+          {NOT_NEEDED.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
       </section>
 
       <StepFindings findings={findings} step="sign" />

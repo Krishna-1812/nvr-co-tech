@@ -104,7 +104,7 @@ Exit: a tester can go from nothing (or from a Wealth Tracker record) to a clean 
 10 minutes at 375px and desktop, light and dark; checks all reachable by keyboard; tests for the
 store and the import.
 
-## Phase 3 — The document: PDF, Word, signing pack
+## Phase 3 — The document: PDF, Word, signing pack  *(built; see notes)*
 
 Scope
 - PDF via `@react-pdf/renderer` in the house style: numbered clauses, schedule of assets, page
@@ -121,6 +121,8 @@ Scope
   person confirms the readiness panel and ticks the declarations.
 
 Exit: exports read back and match; the sample renders at A4; fonts print ₹ and Devanagari names.
+
+**As built, differences from the above:** (1) the signing guide is a *separate PDF*, not page 1 of the will, so it can never be signed or attached by mistake; (2) every page carries a six-character document reference as well as "Page x of y" and an initials line; (3) the DRAFT mark is applied to the PDF on every page and to Word as a header banner, whenever any `act` finding stands (the file is still made, never refused); (4) the sample is a labelled SAMPLE PDF of the worked example.
 
 ## Phase 4 — Keep it alive: safekeeping, reminders, assisted services
 
