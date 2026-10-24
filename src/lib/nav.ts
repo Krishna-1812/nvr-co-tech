@@ -195,6 +195,7 @@ export function sectionFor(
   if (slug === 'ledger-reconciliation') return reconSection();
   if (slug === LANDED_SLUG) return landedSection();
   if (slug === WEALTH_SLUG) return wealthSection();
+  if (slug === WILL_SLUG) return willSection();
   if (slug === ASSIST_SLUG) return assistSection();
   if (slug === ANALYTICS_SLUG) return analyticsSection();
   if (slug === FINDER_SLUG) return finderSection();
@@ -400,6 +401,36 @@ export function wealthSection(): Section {
         label: 'My record',
         icon: Wallet,
         hint: 'Assets, liabilities, nominees and net worth',
+        exact: true,
+      },
+      {
+        href: '/settings',
+        label: 'Settings',
+        icon: Settings,
+        hint: 'Your account and appearance',
+      },
+    ],
+  };
+}
+
+/**
+ * Will Maker. One destination, like Wealth Tracker: a draft is a single screen
+ * with its own tabs and lives in the browser. Not on the roster (`AGENTS`)
+ * until it has been legally reviewed; see lib/will/flag.
+ */
+export const WILL_SLUG = 'will-maker';
+
+export function willSection(): Section {
+  return {
+    slug: WILL_SLUG,
+    name: 'Will Maker',
+    home: '/will-maker',
+    items: [
+      {
+        href: '/will-maker',
+        label: 'My will',
+        icon: ScrollText,
+        hint: 'Draft a will, check it, and see what it says',
         exact: true,
       },
       {

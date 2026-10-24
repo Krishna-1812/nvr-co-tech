@@ -82,7 +82,7 @@ Scope
 
 Exit: `npm run check` green; no route, no nav change, nothing user-visible; pushed.
 
-## Phase 2 — The guided interview (UI) and Wealth Tracker import
+## Phase 2 — The guided interview (UI) and Wealth Tracker import  *(built; see notes)*
 
 Scope
 - Route group `(will)`, `/will-maker`; entry screen that states scope and refuses early (Muslim /
@@ -97,6 +97,8 @@ Scope
   (counts only), `/tools/will-maker`, sitemap/robots/`llms.txt`, Ask corpus, analytics event names
   (counts, never content).
 - **Behind a flag** (`NEXT_PUBLIC_WILL_MAKER=1` + admins) until Phase 5 sign-off.
+
+**As built, two deliberate differences from the above:** (1) no account mirror (`cloud/sync.ts`): the draft stays in the browser, with a backup file and optional passcode, and an encrypted account copy moves to Phase 4 because it needs a migration and a privacy decision of its own; (2) it is not registered on the roster, hub, sitemap, assistant or analytics at all while flagged, because registering a tool the public cannot open would advertise it. Registration is a Phase 5 task.
 
 Exit: a tester can go from nothing (or from a Wealth Tracker record) to a clean review in under
 10 minutes at 375px and desktop, light and dark; checks all reachable by keyboard; tests for the

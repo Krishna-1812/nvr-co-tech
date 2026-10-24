@@ -91,6 +91,19 @@ export async function open(blob: Sealed, passcode: string): Promise<{ plain: str
   }
 }
 
+/**
+ * Opens a blob with a key already in memory, for a tab that is unlocked and
+ * sees another tab save. Null if the key does not open it (the other tab
+ * changed the passcode).
+ */
+export async function openWithLock(blob: Sealed, lock: Unlocked): Promise<string | null> {
+  try {
+    return dec.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(blob.iv) }, lock.key, fromB64(blob.data)));
+  } catch {
+    return null;
+  }
+}
+
 export function isSealed(v: unknown): v is Sealed {
   if (!v || typeof v !== 'object') return false;
   const o = v as Record<string, unknown>;

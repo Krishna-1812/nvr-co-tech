@@ -575,14 +575,38 @@ Every "where is it kept" sentence on the screens reads `SignedInContext`.
   record reading, real encrypt/decrypt round trips, per-user storage, backups, and both exports
   read back (PDF via pdf.js, workbook via SheetJS).
 
-## 10c. Will Maker (planned; Phase 1 library only — 24 Oct 2026)
+## 10c. Will Maker (Phases 1–2 built, admin-only; 24 Oct 2026)
 
 The owner asked for a tool like willjini.com's online will. **Research is in
 `docs/will-maker/01-research.md`, the 5-phase plan in `docs/will-maker/02-plan.md`; read both
-before touching it.** What exists today is **Phase 1 only: a tested pure library, no route, no nav
-entry, no roster entry, nothing user-visible**. Phases 2–5 (interview UI + Wealth Tracker import,
-PDF/Word + signing pack, safekeeping & assisted services, advocate sign-off and launch) are not
-started. Do not add it to `AGENTS`/`OPEN_TOOLS` or link it from anywhere until Phase 5.
+before touching it.** Phase 1 (rules library) and **Phase 2 (the interview UI at `/will-maker`)**
+are built. Phases 3-5 (PDF/Word + signing pack, safekeeping & assisted services, advocate
+sign-off and launch) are not started.
+
+**It is admin-only.** `lib/will/flag.ts` `willMakerOpen(admin)`: the `(will)` layout 404s everybody
+who is not a platform admin unless `NEXT_PUBLIC_WILL_MAKER=1` (do **not** set that before an
+advocate has signed off). It is deliberately **not** in `AGENTS`, `OPEN_TOOLS`, the hub, the
+sitemap or any menu; `robots.ts` disallows `/will-maker`. Visible in preview mode (you are an admin).
+
+- **UI** `src/components/will/`: `WillWorkbench` (tabs Interview, Preview, Checks, Where it is
+  kept; eight steps: About you, People, What you own, Who gets what, Everything else, Executor &
+  witnesses, Your wishes, Signing), one file per step, `SharesEditor` (shares + backups + "split
+  equally"), `Preview` (the live will), `ChecksPanel` (each finding has **Fix**, which opens the
+  right step and ringed card), `DataPanel` (backup / restore / passcode / delete). A scope verdict
+  of `out` (Muslim, Goa, minor) closes the later steps and the Preview and shows the reason.
+- **Store** `lib/will/store.ts`: `tfi:will:v1:<userId|guest>`, optional passcode (reuses
+  `wealth/lock.ts`), backup file marked `the-finance-intelligence/will-maker`. **Deliberately kept
+  in this browser only: no account copy (not in `tool_saves`/`cloud/sync.ts`) and nothing sent to
+  the Admin analytics (Wealth's store forwards its text via `captureTool`; the will store must
+  never).** An encrypted account copy is a Phase 4 decision and needs a migration (`tool_saves.tool`
+  is constrained).
+- **Edits** `lib/will/edit.ts`: every change goes through pure functions; `removePerson` also
+  removes them from every gift, backup and role.
+- **Import** from Wealth Tracker is on the "What you own" step (`useWealth`); a locked or empty
+  Wealth record says so and links to it.
+- **Verified** in a browser (preview mode, `next dev`): every step, Fix navigation, import,
+  persistence across reload, backup download, passcode lock round trip (ciphertext at rest),
+  Muslim gate, dark mode, 390px width with no horizontal overflow.
 
 - `src/lib/will/law.ts` — statute citations (`CITE`), `LAW.advocateSignOff` (**null: nobody has
   signed these rules off; the tool must not go public while it is null**), `ageOn`, and
