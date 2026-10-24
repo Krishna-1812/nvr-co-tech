@@ -12,5 +12,5 @@ export const metadata: Metadata = { title: 'Will Maker', robots: { index: false,
 export default async function WillMakerPage() {
   const { user } = await getViewer();
   const userId = user?.id ?? 'guest';
-  return <WillWorkbench key={userId} userId={userId} selfName={(user?.full_name ?? '').trim()} />;
+  return <WillWorkbench key={userId} userId={userId} selfName={(user?.full_name ?? '').trim()} signedIn={!!user} email={user?.email ?? ''} />;
 }

@@ -158,6 +158,38 @@ export type Extras = {
   payDebts: boolean;
 };
 
+/**
+ * What is true about the will once it exists on paper: not the will itself,
+ * which is built from everything else in the record, but where it is, who
+ * knows, and when to look at it again. Never printed in the will.
+ */
+export type Register = {
+  /** ISO date the signed original was signed. Blank means not signed yet. */
+  signedOn: string;
+  /** Where the signed original is kept, in the person's words. */
+  originalKept: string;
+  /** The executor has been told where it is. */
+  executorTold: boolean;
+  /** Anyone else who knows, and how to reach them. */
+  alsoKnows: string;
+  /** Registered with the Sub-Registrar. */
+  registered: boolean;
+  /** Which office, and the registration number, if registered. */
+  registeredAt: string;
+  /** ISO date to read the will again. */
+  reviewBy: string;
+};
+
+export const blankRegister = (): Register => ({
+  signedOn: '',
+  originalKept: '',
+  executorTold: false,
+  alsoKnows: '',
+  registered: false,
+  registeredAt: '',
+  reviewBy: '',
+});
+
 export type WillRecord = {
   version: 1;
   testator: Testator;
@@ -173,6 +205,8 @@ export type WillRecord = {
   witnessIds: string[];
   extras: Extras;
   signing: { place: string; date: string };
+  /** After signing (lib/will/register). Drafts saved before it existed read back blank. */
+  register: Register;
   updatedAt: string;
 };
 
@@ -207,6 +241,7 @@ export function blankWill(name = ''): WillRecord {
     witnessIds: [],
     extras: { funeral: '', digital: '', pets: '', payDebts: true },
     signing: { place: '', date: '' },
+    register: blankRegister(),
     updatedAt: new Date().toISOString(),
   };
 }
@@ -348,6 +383,19 @@ function readTestator(raw: unknown): Testator {
   };
 }
 
+function readRegister(raw: unknown): Register {
+  const o = obj(raw);
+  return {
+    signedOn: str(o.signedOn),
+    originalKept: str(o.originalKept),
+    executorTold: bool(o.executorTold),
+    alsoKnows: str(o.alsoKnows),
+    registered: bool(o.registered),
+    registeredAt: str(o.registeredAt),
+    reviewBy: str(o.reviewBy),
+  };
+}
+
 /**
  * A will record from anything: parsed JSON from storage or a backup. Returns
  * null only when it is not a will record at all, so a restore can say "that is
@@ -381,6 +429,7 @@ export function readWill(raw: unknown): WillRecord | null {
       payDebts: bool(extras.payDebts, true),
     },
     signing: { place: str(signing.place), date: str(signing.date) },
+    register: readRegister(o.register),
     updatedAt: str(o.updatedAt, new Date().toISOString()),
   };
 }

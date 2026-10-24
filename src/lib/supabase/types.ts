@@ -747,7 +747,7 @@ export type AdminAccountRow = {
 /** 0032 — what a browser-side tool keeps, saved for its signed-in owner. */
 export type ToolSaveRow = {
   user_id: string;
-  tool: 'wealth-tracker' | 'true-property-cost';
+  tool: 'wealth-tracker' | 'true-property-cost' | 'will-maker';
   body: string;
   updated_at: string;
 };

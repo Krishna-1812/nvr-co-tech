@@ -575,13 +575,14 @@ Every "where is it kept" sentence on the screens reads `SignedInContext`.
   record reading, real encrypt/decrypt round trips, per-user storage, backups, and both exports
   read back (PDF via pdf.js, workbook via SheetJS).
 
-## 10c. Will Maker (Phases 1–3 built, admin-only; 24 Oct 2026)
+## 10c. Will Maker (Phases 1–4 built, admin-only; 24 Oct 2026)
 
 The owner asked for a tool like willjini.com's online will. **Research is in
 `docs/will-maker/01-research.md`, the 5-phase plan in `docs/will-maker/02-plan.md`; read both
 before touching it.** Phase 1 (rules library), Phase 2 (the interview UI at `/will-maker`) and
-**Phase 3 (the files: PDF, Word, signing guide)** are built. Phases 4-5 (safekeeping & assisted
-services, advocate sign-off and launch) are not started.
+**Phase 3 (the files: PDF, Word, signing guide)** and **Phase 4 (after signing: register, review
+prompts, encrypted account copy, help request)** are built. Phase 5 (advocate sign-off, legal
+copy, launch) is not started.
 
 **It is admin-only.** `lib/will/flag.ts` `willMakerOpen(admin)`: the `(will)` layout 404s everybody
 who is not a platform admin unless `NEXT_PUBLIC_WILL_MAKER=1` (do **not** set that before an
@@ -595,11 +596,30 @@ sitemap or any menu; `robots.ts` disallows `/will-maker`. Visible in preview mod
   right step and ringed card), `DataPanel` (backup / restore / passcode / delete). A scope verdict
   of `out` (Muslim, Goa, minor) closes the later steps and the Preview and shows the reason.
 - **Store** `lib/will/store.ts`: `tfi:will:v1:<userId|guest>`, optional passcode (reuses
-  `wealth/lock.ts`), backup file marked `the-finance-intelligence/will-maker`. **Deliberately kept
-  in this browser only: no account copy (not in `tool_saves`/`cloud/sync.ts`) and nothing sent to
-  the Admin analytics (Wealth's store forwards its text via `captureTool`; the will store must
-  never).** An encrypted account copy is a Phase 4 decision and needs a migration (`tool_saves.tool`
-  is constrained).
+  `wealth/lock.ts`), backup file marked `the-finance-intelligence/will-maker`. **Nothing about a will
+  is ever sent to the Admin analytics** (Wealth's store forwards its text via `captureTool`; the will
+  store must never; `SaveStatus`'s `tool` type excludes `'will-maker'` so it cannot be wired to it).
+  **Account copy (Phase 4, migration 0038 — NOT YET APPLIED, the owner pastes it):** a signed-in
+  person who has set a passcode also gets an **encrypted** copy in `tool_saves` (tool
+  `will-maker`) so it survives a cleared browser. **A readable will never leaves the browser, enforced
+  three times:** the client (`WillSave` binds `startSync` with `accept: willIsSealed`; status
+  `needs-passcode`), the server (`lib/cloud/guard.ts` `acceptsBody`, called by `writeSave`), and the
+  database (constraint `tool_saves_will_is_sealed`). The copy is removed (`lib/will/account.ts`
+  `forgetAccountCopy`) when the draft is deleted, the passcode is removed or the person starts over
+  after forgetting it, else it would be taken back as the "newer" copy and resurrect the draft.
+  Until 0038 is applied the status reads "not switched on yet" and the draft stays in the browser.
+- **After signing** (Phase 4) `lib/will/register.ts` + `components/will/AfterPanel.tsx`:
+  `WillRecord.register` (signed on, where the original is, executor told, registered, review-by;
+  never printed in the will; old drafts read back blank). `registerPrompts()` checks it;
+  `reviewPrompts(will, wealth|null, today)` checks the will against the person's Wealth Tracker
+  record (items in Wealth not in the will, will items gone from Wealth, family in the household not
+  in the will, **nominee changed since the draft**, review date, a guardian clause for grown
+  children); `writeBackPlan`/`applyWriteBack` offer to set Wealth Tracker's household "will / where
+  kept / executor" (never downgrades "have a will", never blanks a field, shows each change first).
+  **Help request** (`HelpRequest.tsx`) goes through the existing `requestAccess` →
+  `submit_access_request` (Admin → Access requests), interest "Will Maker: <what>", **no will content,
+  no payments, no promise of a named lawyer** (copy says "we are setting up advocate review"). It
+  deliberately has no `data-lead-form`.
 - **Edits** `lib/will/edit.ts`: every change goes through pure functions; `removePerson` also
   removes them from every gift, backup and role.
 - **Import** from Wealth Tracker is on the "What you own" step (`useWealth`); a locked or empty
@@ -807,6 +827,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0033 | `simple_analytics.sql` | The new analytics: `site_visitors`, `site_views`, `track_hit()`, `admin_accounts()` (§12) |
 | 0034 | `drop_old_analytics.sql` | Drops the 0010/0024 analytics tables and the old analytics and `operator_*` functions; keeps `analytics_admins`; empties `product_events` (§12) |
 | 0035 | `admin_settings.sql` | Admin settings: `tool_grants`, `platform_settings`, `admin_add/remove`, `grant_tool/revoke_tool`, `set_platform_setting`, `reset_site_analytics` (§12) |
+| 0038 | `will_maker_saves.sql` | **Not yet applied.** `tool_saves.tool` also allows `'will-maker'`, and constraint `tool_saves_will_is_sealed` makes the database refuse any Will Maker row that is not a sealed (encrypted) blob (§10c) |
 | 0037 | `itd_notices.sql` | Tax notice watch: `itd_*` tables, `itd_set_handled()`, private bucket `itd-notices` (§12b). Numbered 0037 because 0036 (input capture) exists unapplied on the session branch only |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied

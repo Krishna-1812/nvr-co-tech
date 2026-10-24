@@ -124,7 +124,7 @@ Exit: exports read back and match; the sample renders at A4; fonts print ₹ and
 
 **As built, differences from the above:** (1) the signing guide is a *separate PDF*, not page 1 of the will, so it can never be signed or attached by mistake; (2) every page carries a six-character document reference as well as "Page x of y" and an initials line; (3) the DRAFT mark is applied to the PDF on every page and to Word as a header banner, whenever any `act` finding stands (the file is still made, never refused); (4) the sample is a labelled SAMPLE PDF of the worked example.
 
-## Phase 4 — Keep it alive: safekeeping, reminders, assisted services
+## Phase 4 — Keep it alive: safekeeping, reminders, assisted services  *(built; see notes)*
 
 Scope
 - **Will register** (not the will): where the signed original is kept, who knows, executor
@@ -142,6 +142,8 @@ Scope
 
 Exit: a signed will can be "registered" in the tool, the Wealth Tracker reflects it, a reminder
 fires, an assisted request reaches the Admin screen.
+
+**As built, differences from the above:** (1) **reminders are in-product prompts, not emails**: the review date and the "what changed" checks show on the After signing tab when the person opens Will Maker; no email is sent (that needs a scheduler and a consent decision of its own); (2) the **encrypted account copy** is here (migration 0038) and is enforced three times so a readable will can never be stored; (3) the assisted layer is a **request form only** (no payments, no named advocate), reusing the existing access-request inbox, and it carries no will content; (4) "life-event prompts" are derived only from facts the product already holds (Wealth Tracker's record and the will's own dates), not from asking about marriages or births.
 
 ## Phase 5 — Legal sign-off, launch and growth
 

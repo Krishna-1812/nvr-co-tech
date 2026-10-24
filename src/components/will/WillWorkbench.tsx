@@ -10,7 +10,11 @@ import { checkWill, readiness, STEPS, type Finding, type Step } from '@/lib/will
 import { LAW, scopeOf } from '@/lib/will/law';
 import { todayIso } from '@/lib/wealth/model';
 import { useWill, willActions } from '@/lib/will/store';
+import { forgetAccountCopy } from '@/lib/will/account';
+import { afterPrompts } from '@/lib/will/register';
+import { useWealth, wealthActions } from '@/lib/wealth/store';
 import { cn } from '@/lib/utils';
+import { AfterPanel } from './AfterPanel';
 import { AssetsStep } from './AssetsStep';
 import { ChecksPanel } from './ChecksPanel';
 import { DataPanel } from './DataPanel';
@@ -21,6 +25,7 @@ import { PeopleStep } from './PeopleStep';
 import { Preview } from './Preview';
 import { SignStep } from './SignStep';
 import { Notice, type StepProps } from './shared';
+import { WillSave } from './WillSave';
 import { YouStep } from './YouStep';
 
 /**
@@ -38,7 +43,7 @@ import { YouStep } from './YouStep';
  * will that would mislead.
  */
 
-type Tab = 'interview' | 'preview' | 'checks' | 'data';
+type Tab = 'interview' | 'preview' | 'checks' | 'after' | 'data';
 
 const STEP_LABEL: Record<Step, string> = {
   you: 'About you',
@@ -51,8 +56,23 @@ const STEP_LABEL: Record<Step, string> = {
   sign: 'Signing',
 };
 
-export function WillWorkbench({ userId, selfName }: { userId: string; selfName: string }) {
+export function WillWorkbench({
+  userId,
+  selfName,
+  signedIn = false,
+  email = '',
+}: {
+  userId: string;
+  selfName: string;
+  /** Signed in, so an encrypted copy may also be kept in the account (once the draft is locked). */
+  signedIn?: boolean;
+  email?: string;
+}) {
   const state = useWill(userId, selfName);
+  // The person's Wealth Tracker record, to check the will against. Read-only here
+  // apart from the household profile the "After signing" tab may update.
+  const wealthState = useWealth(userId, selfName).state;
+  const wealth = wealthState.status === 'ready' && (wealthState.record.items.length > 0 || wealthState.record.profile.members.length > 1) ? wealthState.record : null;
   const actions = useMemo(() => willActions(userId), [userId]);
   const today = useMemo(() => todayIso(), []);
   const [tab, setTab] = useState<Tab>('interview');
@@ -64,6 +84,8 @@ export function WillWorkbench({ userId, selfName }: { userId: string; selfName: 
   const ready = useMemo(() => readiness(findings), [findings]);
   const scope = useMemo(() => scopeOf(record.testator, today), [record.testator, today]);
   const blocked = scope.level === 'out';
+  const prompts = useMemo(() => afterPrompts(record, wealth, today), [record, wealth, today]);
+  const afterCount = prompts.filter((p) => p.severity !== 'note').length;
 
   // A check's "Fix" sends us to a step and a card; scroll to the card once it is on screen.
   const focusId = focus?.personId ?? focus?.assetId;
@@ -83,7 +105,15 @@ export function WillWorkbench({ userId, selfName }: { userId: string; selfName: 
     );
   }
   if (state.status === 'locked') {
-    return <LockScreen subject="draft will" onUnlock={(code) => actions.unlock(code)} onStartOver={() => actions.startOver(selfName)} />;
+    return <LockScreen
+        subject="draft will"
+        onUnlock={(code) => actions.unlock(code)}
+        onStartOver={() => {
+          // The encrypted copy in the account is locked with the same lost passcode: it goes too, or it would come back.
+          void forgetAccountCopy();
+          actions.startOver(selfName);
+        }}
+      />;
   }
 
   const stepProps: StepProps = {
@@ -111,7 +141,8 @@ export function WillWorkbench({ userId, selfName }: { userId: string; selfName: 
 
   return (
     <div className="space-y-5">
-      <Hero ready={ready} blocked={blocked} />
+      <WillSave userId={userId} signedIn={signedIn} />
+      <Hero ready={ready} blocked={blocked} signedIn={signedIn} />
 
       {state.saveError && <Notice tone="var(--status-rejected)">{state.saveError}</Notice>}
 
@@ -119,7 +150,7 @@ export function WillWorkbench({ userId, selfName }: { userId: string; selfName: 
         tab={tab}
         onTab={setTab}
         disabled={blocked ? ['preview'] : []}
-        counts={{ checks: ready.act + ready.review }}
+        counts={{ checks: ready.act + ready.review, after: afterCount }}
         alert={{ checks: ready.act > 0 }}
       />
 
@@ -156,7 +187,19 @@ export function WillWorkbench({ userId, selfName }: { userId: string; selfName: 
         )}
         {tab === 'preview' && !blocked && <Preview record={record} findings={findings} today={today} />}
         {tab === 'checks' && <ChecksPanel findings={findings} onFix={fix} />}
-        {tab === 'data' && <DataPanel record={record} actions={actions} hasLock={state.hasLock} selfName={selfName} />}
+        {tab === 'after' && (
+          <AfterPanel
+            record={record}
+            update={actions.update}
+            wealth={wealth}
+            wealthLocked={wealthState.status === 'locked'}
+            onWriteBack={(profile) => wealthActions(userId).setProfile(profile)}
+            today={today}
+            name={selfName}
+            email={email}
+          />
+        )}
+        {tab === 'data' && <DataPanel record={record} actions={actions} hasLock={state.hasLock} selfName={selfName} signedIn={signedIn} />}
       </div>
     </div>
   );
@@ -183,7 +226,7 @@ function CurrentStep({ step, props, userId, selfName }: { step: Step; props: Ste
   }
 }
 
-function Hero({ ready, blocked }: { ready: ReturnType<typeof readiness>; blocked: boolean }) {
+function Hero({ ready, blocked, signedIn }: { ready: ReturnType<typeof readiness>; blocked: boolean; signedIn: boolean }) {
   return (
     <section aria-labelledby="wm-title" className="surface-lit a-ring relative isolate overflow-hidden rounded-[2rem]">
       <span
@@ -202,7 +245,7 @@ function Hero({ ready, blocked }: { ready: ReturnType<typeof readiness>; blocked
             with the section of the law behind each one.
           </p>
           <ul className="mt-5 flex flex-wrap gap-2">
-            <Chip icon={HardDrive}>Kept only in this browser</Chip>
+            <Chip icon={HardDrive}>{signedIn ? 'In this browser; encrypted in your account once locked' : 'Kept only in this browser'}</Chip>
             <Chip icon={Scale}>A drafting aid, not legal advice</Chip>
             <Chip icon={ShieldAlert} warn={!LAW.advocateSignOff}>
               {LAW.advocateSignOff ? `Rules reviewed: ${LAW.advocateSignOff}` : 'In testing: not yet reviewed by an advocate'}
@@ -259,6 +302,7 @@ function Tabs({
     { id: 'interview', label: 'Interview' },
     { id: 'preview', label: 'Preview' },
     { id: 'checks', label: 'Checks' },
+    { id: 'after', label: 'After signing' },
     { id: 'data', label: 'Where it is kept' },
   ];
   return (

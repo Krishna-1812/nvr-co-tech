@@ -6,6 +6,8 @@ import { Button, Field, Input } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/Modal';
 import { saveFile } from '@/components/wealth/Household';
 import { passcodeStrength } from '@/lib/wealth/lock';
+import { useCloudStatus, type CloudStatus } from '@/lib/cloud/sync';
+import { forgetAccountCopy } from '@/lib/will/account';
 import type { WillRecord } from '@/lib/will/model';
 import { readWillBackup, willBackupFileName, type WillActions } from '@/lib/will/store';
 import { Notice } from './shared';
@@ -24,12 +26,15 @@ export function DataPanel({
   actions,
   hasLock,
   selfName,
+  signedIn = false,
 }: {
   record: WillRecord;
   actions: WillActions;
   hasLock: boolean;
   selfName: string;
+  signedIn?: boolean;
 }) {
+  const cloud = useCloudStatus('will-maker');
   const [passcodeOpen, setPasscodeOpen] = useState(false);
   const [wipeOpen, setWipeOpen] = useState(false);
   const [restore, setRestore] = useState<{ text: string; needsPasscode: boolean; error: string | null } | null>(null);
@@ -44,12 +49,19 @@ export function DataPanel({
       <section className="surface-lit a-ring flex gap-3 rounded-2xl border p-5">
         <HardDrive className="mt-0.5 size-5 shrink-0" aria-hidden />
         <div>
-          <h3 className="text-sm font-semibold">Kept only in this browser</h3>
+          <h3 className="text-sm font-semibold">{signedIn && hasLock ? 'In this browser, and encrypted in your account' : 'Kept only in this browser'}</h3>
           <p className="text-muted mt-1 text-[13.5px] leading-relaxed text-pretty">
-            Your draft is not sent to a server, not saved to your account, and not counted in our statistics. Clearing this
-            browser’s site data, or using another device, means it is gone. Download a backup to keep a copy.
-            {hasLock ? ' It is locked with a passcode, so it is stored encrypted.' : ''}
+            {signedIn && hasLock
+              ? 'The copy in your account is the draft as it is encrypted on this device with your passcode. We cannot read it, and it is not counted in our statistics. '
+              : 'Your draft is not sent to a server, not saved to your account, and not counted in our statistics. Clearing this browser’s site data, or using another device, means it is gone. '}
+            Download a backup to keep a copy of your own.
+            {hasLock && !(signedIn) ? ' It is locked with a passcode, so it is stored encrypted.' : ''}
           </p>
+          {signedIn && (
+            <p className="mt-2 text-[13px] font-medium" role="status">
+              {ACCOUNT_WORDS[hasLock ? cloud : 'needs-passcode']}
+            </p>
+          )}
         </div>
       </section>
 
@@ -109,7 +121,15 @@ export function DataPanel({
           {hasLock && (
             <>
               <Button onClick={() => void actions.lockNow()}>Lock now</Button>
-              <Button variant="ghost" onClick={async () => (await actions.removePasscode(), setMessage('Passcode removed. The draft is stored as plain text again.'))}>
+              <Button
+                variant="ghost"
+                onClick={async () => {
+                  await actions.removePasscode();
+                  // A draft with no passcode is never kept in the account, so the encrypted copy goes.
+                  if (signedIn) void forgetAccountCopy();
+                  setMessage(`Passcode removed. The draft is stored as plain text again${signedIn ? ', and the encrypted copy was removed from your account' : ''}.`);
+                }}
+              >
                 Remove the passcode
               </Button>
             </>
@@ -119,7 +139,7 @@ export function DataPanel({
 
       <section className="surface-lit a-ring rounded-2xl border p-5">
         <h3 className="text-sm font-semibold">Delete</h3>
-        <p className="text-muted mt-1 text-[13.5px]">Removes this draft from this browser. Anything you backed up stays in the file.</p>
+        <p className="text-muted mt-1 text-[13.5px]">Removes this draft from this browser{signedIn ? ' and the encrypted copy from your account' : ''}. Anything you backed up stays in the file.</p>
         <Button className="mt-3" variant="danger" onClick={() => setWipeOpen(true)} disabled={people === 0 && assets === 0 && !record.testator.name}>
           <Trash2 className="size-4" aria-hidden />
           Delete this draft
@@ -158,14 +178,26 @@ export function DataPanel({
           onCancel={() => setWipeOpen(false)}
           onWipe={() => {
             actions.wipe(selfName);
+            // Otherwise the account's copy would be taken as the newer one and bring the draft back.
+            if (signedIn) void forgetAccountCopy();
             setWipeOpen(false);
-            setMessage('The draft was deleted from this browser.');
+            setMessage(`The draft was deleted from this browser${signedIn ? ' and from your account' : ''}.`);
           }}
         />
       </Modal>
     </div>
   );
 }
+
+const ACCOUNT_WORDS: Record<CloudStatus, string> = {
+  local: 'Kept in this browser only.',
+  checking: 'Checking your account…',
+  saving: 'Saving the encrypted copy to your account…',
+  saved: 'Encrypted copy saved to your account.',
+  offline: 'Your account could not be reached. The draft is safe in this browser; the next change tries again.',
+  unavailable: 'Saving to your account is not switched on yet. The draft is safe in this browser.',
+  'needs-passcode': 'Only a locked draft is kept in your account. Lock it with a passcode below and an encrypted copy is saved; until then nothing is sent.',
+};
 
 function WipeConfirm({ onCancel, onWipe }: { onCancel: () => void; onWipe: () => void }) {
   const [typed, setTyped] = useState('');

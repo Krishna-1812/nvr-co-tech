@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { savedLocally } from '@/lib/cloud/sync';
 import { todayIso } from '../wealth/model';
 import { isSealed, newLock, open, openWithLock, seal, type Sealed, type Unlocked } from '../wealth/lock';
 import { blankWill, readWill, type WillRecord } from './model';
@@ -145,6 +146,9 @@ function persist(user: string) {
     try {
       const text = JSON.stringify(record);
       localStorage.setItem(KEY(user), lock ? JSON.stringify(await seal(text, lock)) : text);
+      // For a signed-in person only, and only ever the sealed text: lib/cloud
+      // refuses anything readable for this tool (`accept`, in WillSave).
+      savedLocally('will-maker', KEY(user));
       if (s.state.saveError) set(s, { saveError: null });
     } catch (e) {
       const full = e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22);
@@ -296,6 +300,53 @@ export function useWill(user: string, selfName = ''): WillState {
     () => s.state,
     () => LOADING,
   );
+}
+
+/** The storage key for this person's draft (`guest` for a visitor), for lib/cloud. */
+export const willKey = KEY;
+
+/**
+ * Stored text with nothing in it yet: no people, assets, gifts or answers
+ * beyond a name. A locked draft is never empty, as there is no telling what is
+ * inside. For lib/cloud, which must not take a blank starting state for work.
+ */
+export function willIsEmpty(body: string): boolean {
+  try {
+    const parsed = JSON.parse(body);
+    if (isSealed(parsed)) return false;
+    const r = readWill(parsed);
+    return (
+      !!r &&
+      r.people.length === 0 &&
+      r.assets.length === 0 &&
+      r.gifts.length === 0 &&
+      r.residue.length === 0 &&
+      !r.testator.dob &&
+      !r.testator.address &&
+      !r.testator.religion
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Whether stored text is a locked draft: the only kind that may leave the browser. */
+export function willIsSealed(body: string): boolean {
+  try {
+    return isSealed(JSON.parse(body));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Reads storage again, after lib/cloud has written the account's copy into it.
+ * A draft locked with the passcode already entered stays open.
+ */
+export function reloadWill(user: string) {
+  const s = slot(user);
+  if (!s.started) return;
+  load(user, s.selfName, true);
 }
 
 /** The draft as it stands, outside React (tests, and code that runs on an event). */
