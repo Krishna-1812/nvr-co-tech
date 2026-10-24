@@ -594,7 +594,9 @@ DPDP, apply migration 0038, set `NEXT_PUBLIC_WILL_MAKER=1`).
 flag alone does nothing. When public, `content.ts` adds Will Maker to `AGENTS`, which is what the hub,
 `/tools`, the sitemap, `llms.txt` and the assistant's knowledge read, and `OPEN_TOOLS`, the privacy
 page's Will Maker clause and the tool page's FAQ (+ FAQPage JSON-LD) appear with it; before that none
-of them mention it (`launch.test.ts`). `robots.ts` disallows `/will-maker` (the working screen);
+of them mention it (`launch.test.ts`). **The one exception is the admins' hub** (`(hub)/hub/page.tsx`): it shows a
+Will Maker card (`WILL_SOLUTION` in `lib/solutions.ts`, from the `WILL_MAKER` entry in `content.ts`, with `WillPanel`: counts only,
+never a name) to platform admins; everybody else gets `OpenHub`, which reads `SOLUTIONS` and so does not have it. `robots.ts` disallows `/will-maker` (the working screen);
 `/tools/will-maker` is the indexable page. Visible to admins in preview mode.
 
 - **Sign-off control (Phase 5)** `lib/will/review.ts`: `REVIEWED_FILES` (law, checks, clauses,

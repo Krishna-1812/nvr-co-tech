@@ -13,11 +13,12 @@ import { isAnalyticsAdmin } from '@/lib/analytics/admin';
 import { canApprove, isAdmin, isOwner, ROLE_META } from '@/lib/domain/workflow';
 import { deskBrief } from '@/lib/domain/desk';
 import { fiscalYear, istParts, istToday } from '@/lib/fiscal';
-import { SOLUTIONS } from '@/lib/solutions';
+import { SOLUTIONS, WILL_SOLUTION } from '@/lib/solutions';
 import { buildNoticesView } from '@/lib/notices/view';
 import { LiveSolutionCard, type Reading } from '@/components/hub/LiveSolutionCard';
 import { LandedPanel } from '@/components/landed/LandedPanel';
 import { WealthPanel } from '@/components/wealth/WealthPanel';
+import { WillPanel } from '@/components/will/WillPanel';
 import { RequestCard } from '@/components/hub/RequestCard';
 import { RosterMeter } from '@/components/hub/RosterMeter';
 import { SetupChecklist, type SetupState } from '@/components/hub/SetupChecklist';
@@ -512,13 +513,18 @@ export default async function HubPage() {
    * tie out. Only an approver has a queue, for the same reason the brief only
    * ranks one for them.
    */
-  const liveTotal = SOLUTIONS.filter((s) => s.stage === 'live').length;
+  // Will Maker is shown to the admins on this screen while it is not public (the
+  // roster that everybody else sees leaves it out until an advocate has signed it
+  // off, lib/will/flag). Once it is public it is already in SOLUTIONS.
+  const willMaker = SOLUTIONS.find((s) => s.slug === 'will-maker') ?? WILL_SOLUTION;
+  const liveTotal = SOLUTIONS.filter((s) => s.stage === 'live').length + (SOLUTIONS.some((s) => s.slug === 'will-maker') ? 0 : 1);
   const openToYou = [
     voucherDesk,
     reconciliation,
     valuationDesk,
     landedCost,
     wealthTracker,
+    willMaker,
     finderOpen ? contactFinder : undefined,
     finderOpen ? taxNotices : undefined,
   ].filter(Boolean).length;
@@ -768,6 +774,16 @@ export default async function HubPage() {
               />
             </div>
           )}
+
+          <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
+            <LiveSolutionCard
+              solution={willMaker}
+              readings={[]}
+              note=""
+              // Counted in the browser, where the draft is. See WillPanel.
+              panel={<WillPanel userId={user.id} />}
+            />
+          </div>
 
           {contactFinder && finderOpen && (
             <div className="h-full animate-[rise_0.6s_cubic-bezier(0.22,1,0.36,1)_240ms_backwards]">
