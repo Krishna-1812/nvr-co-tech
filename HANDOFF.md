@@ -575,6 +575,37 @@ Every "where is it kept" sentence on the screens reads `SignedInContext`.
   record reading, real encrypt/decrypt round trips, per-user storage, backups, and both exports
   read back (PDF via pdf.js, workbook via SheetJS).
 
+## 10c. Will Maker (planned; Phase 1 library only — 24 Oct 2026)
+
+The owner asked for a tool like willjini.com's online will. **Research is in
+`docs/will-maker/01-research.md`, the 5-phase plan in `docs/will-maker/02-plan.md`; read both
+before touching it.** What exists today is **Phase 1 only: a tested pure library, no route, no nav
+entry, no roster entry, nothing user-visible**. Phases 2–5 (interview UI + Wealth Tracker import,
+PDF/Word + signing pack, safekeeping & assisted services, advocate sign-off and launch) are not
+started. Do not add it to `AGENTS`/`OPEN_TOOLS` or link it from anywhere until Phase 5.
+
+- `src/lib/will/law.ts` — statute citations (`CITE`), `LAW.advocateSignOff` (**null: nobody has
+  signed these rules off; the tool must not go public while it is null**), `ageOn`, and
+  `scopeOf()` → `ok | caution | out` (Muslim testators, Goa, minors are `out`; unanswered religion
+  and the six "circumstances" are `caution`).
+- `model.ts` — `WillRecord` v1 and `readWill()` (defensive, like Wealth Tracker's `readRecord`).
+  People are listed once and referenced by id. **Field names are stored in people's records: never
+  rename one.**
+- `checks.ts` — `checkWill()` → `act | review | note` findings with section citations and the
+  interview step to fix them at; `readiness().ready` is false while any `act` remains (witness who
+  is also a beneficiary, s.67; shares ≠ 100; no residue; …).
+- `clauses.ts` / `document.ts` — the clause library (our own wording; **nothing a person types is
+  made into a clause**) and `buildWill()` → `WillDocument` + `plainText()`. One document feeds the
+  screen, PDF and Word file. `ADVOCATE_QUESTIONS` is the list for the sign-off.
+- `fromWealth.ts` — `importFromWealth(will, wealthRecord)`: assets, nominees and household members
+  become a starting will; repeatable, never overwrites the person's edits, identifiers shown as
+  last four digits unless the person turns the full number on.
+- `example.ts` — a labelled SAMPLE family; `example.golden.txt` is the reviewed full text of its
+  will (update it deliberately with `vitest -u` and read the diff).
+- **Legal posture:** deterministic, no LLM writes a clause; a drafting aid, not legal advice; wet-ink
+  signing with two witnesses only (wills are outside the IT Act's e-signature provisions — to be
+  confirmed by counsel). WillJini's own site terms forbid copying their content: write our own.
+
 ## 11. Ask — the assistant
 
 A chat panel on every signed-in screen plus `/ask` and `/ask/history`. `src/lib/assist`, provider
@@ -1149,4 +1180,5 @@ Read it for depth, but correct these:
   (the "sign-in sends you to localhost" trap and how to diagnose it with curl).
 - `docs/01-system-analysis.md` (v1 analysis), `docs/02-reference-constants.ts` (v1 business rules
   — do not change), `docs/03-rebuild-architecture.md` (original decisions; predates multi-tenancy).
+- `docs/will-maker/` — Will Maker research and 5-phase plan (§10c).
 - Every migration's header comment — the real design record.
