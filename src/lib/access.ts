@@ -32,6 +32,8 @@
  * a confirmed email), never anything the browser sends.
  */
 
+import { willMakerPublic } from '@/lib/will/flag';
+
 /** The platform's admins, as the owner listed them. Compared in lower case. */
 export const ADMIN_EMAILS: readonly string[] = [
   'vivekgaggar@yahoo.com',
@@ -42,7 +44,12 @@ export const ADMIN_EMAILS: readonly string[] = [
 ];
 
 /** The tools anybody may use, signed in or not. */
-export const OPEN_TOOLS: readonly string[] = ['true-property-cost', 'wealth-tracker'];
+export const OPEN_TOOLS: readonly string[] = [
+  'true-property-cost',
+  'wealth-tracker',
+  // Browser-only like the two above, and public only once it is cleared to be (lib/will/flag).
+  ...(willMakerPublic() ? ['will-maker'] : []),
+];
 
 /** The live tools that only an admin may use. Everybody else may ask. */
 export const LOCKED_TOOLS: readonly string[] = [

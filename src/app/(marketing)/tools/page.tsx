@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { AGENTS, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
+import { AGENTS, OPEN_NAMES, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
   ACCENT,
   ArchScene,
@@ -39,7 +39,7 @@ const TRAIL = [
 const GROUPS: { stage: AgentStage; lead: string }[] = [
   {
     stage: 'live',
-    lead: 'Up and running. True Property Cost and Wealth Tracker are open to anybody, with no account; the others are opened on request.',
+    lead: `Up and running. ${OPEN_NAMES} open to anybody, with no account; the others are opened on request.`,
   },
   {
     stage: 'building',

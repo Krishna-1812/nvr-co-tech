@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { EXAMPLE_NAME, exampleSchedule } from './example';
 import { savedLocally } from '@/lib/cloud/sync';
+import { captureTool } from '@/lib/analytics/capture';
 import type { Compounding, FundSource, Instalment, Rates, Rental, Schedule } from './calc';
 
 /**
@@ -212,8 +213,11 @@ function snapshot(): State {
 function write(next: State) {
   cache = next;
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    const text = JSON.stringify(next);
+    localStorage.setItem(KEY, text);
     savedLocally('true-property-cost', KEY);
+    // The Admin screen's copy (0036), once something has been typed.
+    if (!landedIsEmpty(text)) captureTool('true-property-cost', text);
   } catch {
     // Storage full or blocked: the schedule still works for this visit.
   }

@@ -10,7 +10,7 @@ import { PROTECTED_PREFIXES } from '@/lib/routes';
  * of app screens rather than pages to find in search: the public /tools pages
  * are what describe each tool, and those stay crawlable.
  */
-const WORKSPACE = ['/hub', '/dashboard', '/vouchers', '/approvals', '/admin', '/reconcile', '/comps', '/contacts', '/tax-notices', '/true-property-cost', '/wealth-tracker'];
+const WORKSPACE = ['/hub', '/dashboard', '/vouchers', '/approvals', '/admin', '/reconcile', '/comps', '/contacts', '/tax-notices', '/true-property-cost', '/wealth-tracker', '/will-maker'];
 
 export default function robots(): MetadataRoute.Robots {
   return {

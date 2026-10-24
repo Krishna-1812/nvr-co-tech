@@ -10,6 +10,9 @@
  * dash to hold itself together, it wants to be two sentences.
  */
 
+import { FAQ } from '@/lib/will/faq';
+import { willMakerPublic } from '@/lib/will/flag';
+
 /**
  * Absolute origin of the public site.
  *
@@ -59,6 +62,8 @@ export type Agent = {
   /** Only set for the live agent, where signing in takes you. */
   href?: string;
   accent: 'indigo' | 'cyan' | 'emerald' | 'amber' | 'violet' | 'rose' | 'lime' | 'magenta';
+  /** Plain questions and answers, shown on the tool's page and described to search engines. */
+  faq?: readonly { q: string; a: string }[];
 };
 
 export const STAGE_LABEL: Record<AgentStage, string> = {
@@ -80,7 +85,7 @@ export const STAGE_LABEL: Record<AgentStage, string> = {
  * one of these ships, this is the entry that gets rewritten down to what the
  * thing actually does.
  */
-export const AGENTS: Agent[] = [
+const BASE_AGENTS: Agent[] = [
   {
     slug: 'voucher-desk',
     name: 'Voucher Desk',
@@ -333,6 +338,48 @@ export const AGENTS: Agent[] = [
   },
 ];
 
+/**
+ * Will Maker, which is on the roster only when it is public.
+ *
+ * Everything that lists tools (the hub, the sitemap, llms.txt, the assistant's
+ * knowledge, the tool's own page) reads this roster, so leaving it out here
+ * leaves it out everywhere, with nothing to remember to undo. `willMakerPublic`
+ * needs both a recorded advocate sign-off and the owner's switch (lib/will/flag).
+ * Its legal sentences come from lib/will/faq, which the advocate reads.
+ */
+/** The open tools, as a sentence's subject and verb. */
+export const OPEN_NAMES = willMakerPublic()
+  ? 'True Property Cost, Wealth Tracker and Will Maker are'
+  : 'True Property Cost and Wealth Tracker are';
+
+const WILL_MAKER: Agent = {
+  slug: 'will-maker',
+  name: 'Will Maker',
+  stage: 'live',
+  category: 'Wills & succession',
+  accent: 'violet',
+  summary:
+    'Answer plain questions and get a print-ready will, a Word copy and a signing guide for an Indian will, with every check tied to the section of the law behind it. Your will stays in your browser.',
+  pitch:
+    'A will is the document a family cannot ask you to explain afterwards. Most people put it off because it feels like a lawyer’s job, and leave nothing in writing at all. Will Maker asks in plain words who you love and what you own, assembles the will from fixed clauses an advocate has reviewed, and checks it against the Indian Succession Act before it lets you call it final.',
+  does: [
+    'Asks about you, your family, what you own and who gets what, one short step at a time, and shows the will taking shape as you go.',
+    'Builds the will from a fixed library of clauses. Nothing is generated and nothing you type becomes a clause, so the wording does not change from one person to the next.',
+    'Checks the draft as you go: shares that do not add up, a gift to someone who is also a witness, an asset given twice, a person on your list twice. Each check names the section of the law behind it.',
+    'Turns away the cases it is not built for, such as a Muslim testator, a testator in Goa or a minor, and tells you why, instead of producing something that looks right and is not.',
+    'Prints a PDF with the same reference and page count on every page and a place to sign, gives you a Word copy to edit, and a guide to signing it before two witnesses.',
+    'Fills in your assets from Wealth Tracker if you keep one, and afterwards checks the will against it: new assets, assets that are gone, family not in the will, nominees that changed.',
+    'Records where the signed original is kept and who knows, and shows a note when it is time to read the will again.',
+    'Keeps the draft in your browser and sends it nowhere. A passcode locks it, and if you are signed in only the locked copy is saved to your account, which we cannot read.',
+  ],
+  inputs: 'Your details, your family, what you own and who should have it',
+  outputs: 'A print-ready will, a Word copy, a signing guide and a list of what still needs fixing',
+  href: '/will-maker',
+  faq: FAQ,
+};
+
+export const AGENTS: Agent[] = willMakerPublic() ? [...BASE_AGENTS, WILL_MAKER] : BASE_AGENTS;
+
 export const LIVE_AGENTS = AGENTS.filter((a) => a.stage === 'live');
 
 /*
@@ -526,7 +573,7 @@ export const TDS_SECTIONS: readonly { code: string; rate: number; note?: string 
  * than three weeks later on a call.
  */
 export const STAGE_NOTE: Record<AgentStage, string> = {
-  live: 'Running today, with the rules behind it. True Property Cost and Wealth Tracker are open to anybody; the others are opened on request.',
+  live: `Running today, with the rules behind it. ${OPEN_NAMES} open to anybody; the others are opened on request.`,
   building:
     'We are building this now. You cannot switch it on yet, and we would rather tell you that than give you a date we are not sure of.',
   planned:

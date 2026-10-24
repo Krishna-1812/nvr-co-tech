@@ -3,6 +3,7 @@
 import { useEffect, type CSSProperties } from 'react';
 import { Cloud, CloudOff, HardDrive, LoaderCircle } from 'lucide-react';
 import { startSync, useCloudStatus, type CloudStatus, type CloudTool } from '@/lib/cloud/sync';
+import { captureTool } from '@/lib/analytics/capture';
 import { cn } from '@/lib/utils';
 
 /**
@@ -26,6 +27,7 @@ const WORDS: Record<CloudStatus, { text: string; tone: string }> = {
   saved: { text: 'Saved to your account', tone: 'var(--status-approved)' },
   offline: { text: 'Saved in this browser. Your account could not be reached; the next change tries again.', tone: 'var(--status-warn)' },
   unavailable: { text: 'Saved in this browser. Saving to your account is not switched on yet.', tone: 'var(--status-warn)' },
+  'needs-passcode': { text: 'Kept in this browser only: lock it with a passcode to also keep an encrypted copy in your account.', tone: 'var(--status-draft)' },
 };
 
 export function SaveStatus({
@@ -37,7 +39,12 @@ export function SaveStatus({
   isEmpty,
   className,
 }: {
-  tool: CloudTool;
+  /**
+   * Not Will Maker, on purpose: this component also forwards what people enter
+   * to the Admin screen's capture (0036), and a will must never go there. Will
+   * Maker has its own status line (components/will/DataPanel).
+   */
+  tool: Exclude<CloudTool, 'will-maker'>;
   signedIn: boolean;
   /** This person's key in localStorage, and the visitor's, for lib/cloud. */
   storageKey: string;
@@ -53,6 +60,17 @@ export function SaveStatus({
   useEffect(() => {
     if (signedIn) startSync({ tool, key: storageKey, guestKey, reload, isEmpty });
   }, [signedIn, tool, storageKey, guestKey, reload, isEmpty]);
+
+  // Work typed before what people enter was recorded (0036) is sent once on
+  // opening, so a returning visitor's record is on the Admin screen too.
+  useEffect(() => {
+    try {
+      const body = localStorage.getItem(storageKey);
+      if (body && !isEmpty?.(body)) captureTool(tool, body);
+    } catch {
+      // Storage blocked: there is nothing to send.
+    }
+  }, [tool, storageKey, isEmpty]);
 
   const { text, tone } = WORDS[shown];
   const Icon = shown === 'local' ? HardDrive : shown === 'saving' || shown === 'checking' ? LoaderCircle : shown === 'saved' ? Cloud : CloudOff;

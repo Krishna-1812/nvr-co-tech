@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { BRAND, CONTACT } from '@/lib/marketing/content';
 import { LegalPage, type Clause } from '@/components/marketing/LegalPage';
+import { willMakerPublic } from '@/lib/will/flag';
 
 export const metadata: Metadata = {
   title: 'Privacy',
@@ -36,6 +37,15 @@ const CLAUSES: Clause[] = [
     title: 'Information you enter into the tools',
     body: 'Depending on the tool, what you enter may be kept in your own browser, saved to your account when you are signed in, or processed on our servers to produce a result. Some tools work entirely within your browser.',
   },
+  // Only once Will Maker is public: this page should not describe a tool that is not there.
+  ...(willMakerPublic()
+    ? [
+        {
+          title: 'Will Maker',
+          body: 'Will Maker writes your will in your browser and keeps it there. It is not sent to us, and what you type or click in it is not recorded in our usage statistics (we do count that the page was opened). If you sign in and lock your will with a passcode, an encrypted copy is saved to your account that we cannot read, and we cannot recover a forgotten passcode. If you ask for an advocate’s help, we receive what you type in that request and the usual details of a visit, and nothing from your will.',
+        },
+      ]
+    : []),
   {
     title: 'Cookies',
     body: 'We use cookies and similar storage to keep you signed in, remember your preferences and recognise returning visitors. You can clear or block cookies in your browser settings, though some features may not work without them.',

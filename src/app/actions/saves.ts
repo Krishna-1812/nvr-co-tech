@@ -3,10 +3,12 @@
 import { createClient, getCurrentUser } from '@/lib/supabase/server';
 import { PREVIEW } from '@/lib/preview';
 import type { ToolSaveRow } from '@/lib/supabase/types';
+import { acceptsBody } from '@/lib/cloud/guard';
 import type { ActionResult } from './workflow';
 
 /**
- * A signed-in person's saved work for the two open tools (migration 0032).
+ * A signed-in person's saved work for the browser-side tools (migration 0032;
+ * Will Maker from 0038, and only ever as ciphertext: see lib/cloud/guard).
  *
  * The browser does all the work and keeps its own copy; these three calls only
  * move that copy to and from the account, as text, unread. lib/cloud decides
@@ -21,7 +23,7 @@ export type SavedCopy = { body: string; updatedAt: string } | null;
 type Tool = ToolSaveRow['tool'];
 type Result<T> = ActionResult<T> | { ok: false; error: string; missing: true };
 
-const TOOLS: readonly Tool[] = ['wealth-tracker', 'true-property-cost'];
+const TOOLS: readonly Tool[] = ['wealth-tracker', 'true-property-cost', 'will-maker'];
 const MAX = 2_000_000;
 
 /** PostgREST's "no such table" (cache miss) and Postgres's own. */
@@ -64,6 +66,7 @@ export async function writeSave(tool: Tool, body: string): Promise<Result<{ upda
   const me = await who(tool);
   if ('error' in me) return { ok: false, error: me.error };
   if (typeof body !== 'string' || body.length > MAX) return { ok: false, error: 'Too large to save to your account.' };
+  if (!acceptsBody(tool, body)) return { ok: false, error: 'A will is only saved to your account once it is locked with a passcode.' };
   if (PREVIEW) {
     const updatedAt = new Date().toISOString();
     previewSaves.set(`${me.userId}:${tool}`, { body, updatedAt });

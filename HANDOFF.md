@@ -575,6 +575,128 @@ Every "where is it kept" sentence on the screens reads `SignedInContext`.
   record reading, real encrypt/decrypt round trips, per-user storage, backups, and both exports
   read back (PDF via pdf.js, workbook via SheetJS).
 
+## 10c. Will Maker (Phases 1–5 built; admin-only until an advocate signs off; 24 Oct 2026)
+
+The owner asked for a tool like willjini.com's online will. **Research is in
+`docs/will-maker/01-research.md`, the 5-phase plan in `docs/will-maker/02-plan.md`; read both
+before touching it.** Phase 1 (rules library), Phase 2 (the interview UI at `/will-maker`) and
+**Phase 3 (the files: PDF, Word, signing guide)** and **Phase 4 (after signing: register, review
+prompts, encrypted account copy, help request)** are built. **Phase 5 (launch readiness) is built**:
+the sign-off interlock, the generated advocate packet, the privacy/security audit, an accessibility
+pass, the public FAQ and registration. **What is left is people, not code: see
+`docs/will-maker/launch-runbook.md`** (choose the advocate, record `SIGN_OFF`, counsel on terms and
+DPDP, apply migration 0038, set `NEXT_PUBLIC_WILL_MAKER=1`).
+
+**It is admin-only until two things are true.** `lib/will/flag.ts`: `willMakerPublic()` =
+`NEXT_PUBLIC_WILL_MAKER=1` **and** `LAW.advocateSignOff !== null` (the record lives in
+`lib/will/signoff.ts`, outside the digested files); `willMakerOpen(admin) = admin || public`. The
+`(will)` layout 404s everybody else. **Never set the flag before an advocate has signed off**, and the
+flag alone does nothing. When public, `content.ts` adds Will Maker to `AGENTS`, which is what the hub,
+`/tools`, the sitemap, `llms.txt` and the assistant's knowledge read, and `OPEN_TOOLS`, the privacy
+page's Will Maker clause and the tool page's FAQ (+ FAQPage JSON-LD) appear with it; before that none
+of them mention it (`launch.test.ts`). `robots.ts` disallows `/will-maker` (the working screen);
+`/tools/will-maker` is the indexable page. Visible to admins in preview mode.
+
+- **Sign-off control (Phase 5)** `lib/will/review.ts`: `REVIEWED_FILES` (law, checks, clauses,
+  document, guide, **faq**, register) are hashed (`review-digest.ts`); `buildReviewPacket(digest)`
+  writes `docs/will-maker/legal-review.md` **from the code** (every clause under variants, every
+  check, every prompt, the guide and the public FAQ verbatim). `npm run will:packet` regenerates it;
+  `review.test.ts` fails if the committed packet is stale, if a check/prompt id is missing from it,
+  or if `SIGN_OFF.packet` is not the current digest. **Any edit to a reviewed file means regenerate the
+  packet and get a fresh sign-off.**
+- **Privacy/security (Phase 5)** `privacy.test.ts` statically forbids analytics imports, logging,
+  `fetch`/beacons, URL/cookie reads and stray storage in the will code. The site-wide tracker used to
+  be able to read will fields: `lib/analytics/private-paths.ts` (`NEVER_CAPTURE = ['/will-maker']`) now
+  stops it on the client (`capture.ts`) and the server (`input.ts`), and the workbench is `data-private`.
+  A browser audit (24 Oct 2026) found 61 requests, none cross-origin, none carrying will text, only a
+  page-view and a time-on-page ping. Details and what to tell counsel: `docs/will-maker/dpdp.md`;
+  draft terms: `terms-draft.md`.
+- **Accessibility (Phase 5)** axe (WCAG 2.2 AA + best practice) over every step, tab and dialog, light and
+  dark, 1280 and 390 wide: clean for Will Maker. Fixed along the way: heading order, a keyboard-focusable
+  scrolling schedule, the tabs now follow the ARIA pattern (arrows, Home, End, `tabpanel`), the shared
+  `ui/Modal` returns focus to what opened it (it had been dropping to the page top), and the header search
+  button has a name on phones. Two shell items remain, not Will Maker's: the avatar button's initials vs its
+  label, and the preview-mode banner outside a landmark.
+
+- **UI** `src/components/will/`: `WillWorkbench` (tabs Interview, Preview, Checks, Where it is
+  kept; eight steps: About you, People, What you own, Who gets what, Everything else, Executor &
+  witnesses, Your wishes, Signing), one file per step, `SharesEditor` (shares + backups + "split
+  equally"), `Preview` (the live will), `ChecksPanel` (each finding has **Fix**, which opens the
+  right step and ringed card), `DataPanel` (backup / restore / passcode / delete). A scope verdict
+  of `out` (Muslim, Goa, minor) closes the later steps and the Preview and shows the reason.
+- **Store** `lib/will/store.ts`: `tfi:will:v1:<userId|guest>`, optional passcode (reuses
+  `wealth/lock.ts`), backup file marked `the-finance-intelligence/will-maker`. **Nothing about a will
+  is ever sent to the Admin analytics** (Wealth's store forwards its text via `captureTool`; the will
+  store must never; `SaveStatus`'s `tool` type excludes `'will-maker'` so it cannot be wired to it).
+  **Account copy (Phase 4, migration 0038 — NOT YET APPLIED, the owner pastes it):** a signed-in
+  person who has set a passcode also gets an **encrypted** copy in `tool_saves` (tool
+  `will-maker`) so it survives a cleared browser. **A readable will never leaves the browser, enforced
+  three times:** the client (`WillSave` binds `startSync` with `accept: willIsSealed`; status
+  `needs-passcode`), the server (`lib/cloud/guard.ts` `acceptsBody`, called by `writeSave`), and the
+  database (constraint `tool_saves_will_is_sealed`). The copy is removed (`lib/will/account.ts`
+  `forgetAccountCopy`) when the draft is deleted, the passcode is removed or the person starts over
+  after forgetting it, else it would be taken back as the "newer" copy and resurrect the draft.
+  Until 0038 is applied the status reads "not switched on yet" and the draft stays in the browser.
+- **After signing** (Phase 4) `lib/will/register.ts` + `components/will/AfterPanel.tsx`:
+  `WillRecord.register` (signed on, where the original is, executor told, registered, review-by;
+  never printed in the will; old drafts read back blank). `registerPrompts()` checks it;
+  `reviewPrompts(will, wealth|null, today)` checks the will against the person's Wealth Tracker
+  record (items in Wealth not in the will, will items gone from Wealth, family in the household not
+  in the will, **nominee changed since the draft**, review date, a guardian clause for grown
+  children); `writeBackPlan`/`applyWriteBack` offer to set Wealth Tracker's household "will / where
+  kept / executor" (never downgrades "have a will", never blanks a field, shows each change first).
+  **Help request** (`HelpRequest.tsx`) goes through the existing `requestAccess` →
+  `submit_access_request` (Admin → Access requests), interest "Will Maker: <what>", **no will content,
+  no payments, no promise of a named lawyer** (copy says "we are setting up advocate review"). It
+  deliberately has no `data-lead-form`.
+- **Edits** `lib/will/edit.ts`: every change goes through pure functions; `removePerson` also
+  removes them from every gift, backup and role.
+- **Import** from Wealth Tracker is on the "What you own" step (`useWealth`); a locked or empty
+  Wealth record says so and links to it.
+- **Files** (Phase 3) `lib/will/exports.tsx` `willFile(kind, record, today)` → `will-pdf`,
+  `will-docx`, `guide-pdf`, `sample-pdf`; all lazy-imported on click (`@react-pdf/renderer`, `docx`).
+  `report.tsx` (PDF), `docx.ts` (Word), `guide.ts` (the signing steps; the screen's Signing step and
+  the guide PDF both render it), `ref.ts` (6-character document reference printed on every page).
+  **One `WillDocument` feeds screen, PDF and Word; `contentStrings()` is the list every export is
+  tested against** (tests read the PDF back with pdf.js and unzip the .docx).
+  - **Draft vs clean:** any `act` finding (including the two unticked declarations) makes every file a
+    DRAFT (diagonal mark on every PDF page, banner in Word, "(DRAFT)" in the name). Nothing is
+    refused. `ExportBar` (Preview + Signing steps) says which it will be and why.
+  - **The signing guide is a separate PDF**, never page 1 of the will, so it cannot be signed or
+    stapled on by mistake. The will's last page always carries operative text (the last Schedule
+    row, or last clause) above the signature.
+  - **react-pdf `lineHeight` traps (measured):** unitless `lineHeight` spaces lines ~2.9x on a Text
+    or View; on the Page it is right but makes `render` text (page numbers) vanish silently.
+    Use **points** (`'17pt'`) on a wrapper View, footer outside it. `fontFamily` stack as in
+    `lib/pdf/fonts`. pdf.js reads Devanagari in visual order (a pre-base vowel reads reversed), so
+    tests use names without one.
+  - The sample (`sample-pdf`) is always the worked example with invented names, marked SAMPLE.
+- **Verified** in a browser (preview mode, `next dev`): every step, Fix navigation, import,
+  persistence across reload, backup download, passcode lock round trip (ciphertext at rest),
+  Muslim gate, dark mode, 390px width with no horizontal overflow.
+
+- `src/lib/will/law.ts` — statute citations (`CITE`), `LAW.advocateSignOff` (**null: nobody has
+  signed these rules off; the tool must not go public while it is null**), `ageOn`, and
+  `scopeOf()` → `ok | caution | out` (Muslim testators, Goa, minors are `out`; unanswered religion
+  and the six "circumstances" are `caution`).
+- `model.ts` — `WillRecord` v1 and `readWill()` (defensive, like Wealth Tracker's `readRecord`).
+  People are listed once and referenced by id. **Field names are stored in people's records: never
+  rename one.**
+- `checks.ts` — `checkWill()` → `act | review | note` findings with section citations and the
+  interview step to fix them at; `readiness().ready` is false while any `act` remains (witness who
+  is also a beneficiary, s.67; shares ≠ 100; no residue; …).
+- `clauses.ts` / `document.ts` — the clause library (our own wording; **nothing a person types is
+  made into a clause**) and `buildWill()` → `WillDocument` + `plainText()`. One document feeds the
+  screen, PDF and Word file. `ADVOCATE_QUESTIONS` is the list for the sign-off.
+- `fromWealth.ts` — `importFromWealth(will, wealthRecord)`: assets, nominees and household members
+  become a starting will; repeatable, never overwrites the person's edits, identifiers shown as
+  last four digits unless the person turns the full number on.
+- `example.ts` — a labelled SAMPLE family; `example.golden.txt` is the reviewed full text of its
+  will (update it deliberately with `vitest -u` and read the diff).
+- **Legal posture:** deterministic, no LLM writes a clause; a drafting aid, not legal advice; wet-ink
+  signing with two witnesses only (wills are outside the IT Act's e-signature provisions — to be
+  confirmed by counsel). WillJini's own site terms forbid copying their content: write our own.
+
 ## 11. Ask — the assistant
 
 A chat panel on every signed-in screen plus `/ask` and `/ask/history`. `src/lib/assist`, provider
@@ -734,6 +856,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0033 | `simple_analytics.sql` | The new analytics: `site_visitors`, `site_views`, `track_hit()`, `admin_accounts()` (§12) |
 | 0034 | `drop_old_analytics.sql` | Drops the 0010/0024 analytics tables and the old analytics and `operator_*` functions; keeps `analytics_admins`; empties `product_events` (§12) |
 | 0035 | `admin_settings.sql` | Admin settings: `tool_grants`, `platform_settings`, `admin_add/remove`, `grant_tool/revoke_tool`, `set_platform_setting`, `reset_site_analytics` (§12) |
+| 0038 | `will_maker_saves.sql` | **Not yet applied.** `tool_saves.tool` also allows `'will-maker'`, and constraint `tool_saves_will_is_sealed` makes the database refuse any Will Maker row that is not a sealed (encrypted) blob (§10c) |
 | 0037 | `itd_notices.sql` | Tax notice watch: `itd_*` tables, `itd_set_handled()`, private bucket `itd-notices` (§12b). Numbered 0037 because 0036 (input capture) exists unapplied on the session branch only |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied
@@ -1149,4 +1272,5 @@ Read it for depth, but correct these:
   (the "sign-in sends you to localhost" trap and how to diagnose it with curl).
 - `docs/01-system-analysis.md` (v1 analysis), `docs/02-reference-constants.ts` (v1 business rules
   — do not change), `docs/03-rebuild-architecture.md` (original decisions; predates multi-tenancy).
+- `docs/will-maker/` — Will Maker research and 5-phase plan (§10c).
 - Every migration's header comment — the real design record.

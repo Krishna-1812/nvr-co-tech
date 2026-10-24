@@ -160,6 +160,26 @@ export function serviceLd(agent: Agent) {
   ]);
 }
 
+/**
+ * A tool's plain questions and answers, for the ones that have them.
+ *
+ * Only what is written on the page, word for word: structured data that says
+ * more than the page does is the thing search engines penalise, and here it
+ * would also be legal advice nobody reviewed.
+ */
+export function faqLd(faq: readonly { q: string; a: string }[]) {
+  return graph([
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ]);
+}
+
 /** The home page's claim about who is behind all of this. */
 export function siteLd() {
   return graph([organization(), localBusiness(), website()]);

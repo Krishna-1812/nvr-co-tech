@@ -35,7 +35,7 @@ import { readSave, writeSave } from '@/app/actions/saves';
  * guest copy is left where it is rather than written over either.
  */
 
-export type CloudTool = 'wealth-tracker' | 'true-property-cost';
+export type CloudTool = 'wealth-tracker' | 'true-property-cost' | 'will-maker';
 
 export type CloudStatus =
   /** No account: kept in this browser only. */
@@ -46,7 +46,9 @@ export type CloudStatus =
   /** Signed in, but the account could not be reached; kept in this browser. */
   | 'offline'
   /** Signed in, but account saving is not switched on (0032 not applied). */
-  | 'unavailable';
+  | 'unavailable'
+  /** Signed in, but what is in the browser is not locked, so it was not sent (Will Maker). */
+  | 'needs-passcode';
 
 type Meta = { at: string; hash: string };
 
@@ -106,6 +108,12 @@ type Binding = {
   reload: () => void;
   /** See `decide`. */
   isEmpty?: (body: string) => boolean;
+  /**
+   * Whether this text may go to the account at all. A tool that must never
+   * send readable text (Will Maker: only a locked draft) says so here, and
+   * text it refuses stays in the browser with the status `needs-passcode`.
+   */
+  accept?: (body: string) => boolean;
 };
 
 type Entry = {
@@ -217,6 +225,10 @@ export function startSync(binding: Binding) {
 async function push(e: Entry, body: string) {
   const b = e.binding;
   if (!b) return;
+  if (b.accept && !b.accept(body)) {
+    setStatus(e, 'needs-passcode');
+    return;
+  }
   setStatus(e, 'saving');
   const res = await writeSave(b.tool, body).catch(() => ({ ok: false as const, error: 'offline' }));
   if (res.ok) {

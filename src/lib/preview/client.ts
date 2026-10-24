@@ -79,6 +79,9 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
    */
   site_visitors: [],
   site_views: [],
+  // What people entered (0036), filled the same way through `track_input`.
+  site_tool_data: [],
+  site_events: [],
   access_requests: [],
   // Admin settings (0035).
   analytics_admins: [],
@@ -655,6 +658,8 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
       TABLES.platform_settings = [...TABLES.platform_settings.filter((r) => r.key !== args.p_key), { key: args.p_key, value: args.p_value, updated_at: nowIso() }];
       return ok();
     case 'reset_site_analytics':
+      TABLES.site_events.length = 0;
+      TABLES.site_tool_data.length = 0;
       TABLES.site_views.length = 0;
       TABLES.site_visitors.length = 0;
       return ok();
@@ -733,6 +738,37 @@ function previewTrack(p: Row, who: { id: string; email: string } | null) {
   return null;
 }
 
+/** `track_input` (0036) in memory: a tool's record replaced, or events added. */
+function previewInput(p: Row, who: { id: string; email: string } | null) {
+  const vid = String(p.vid ?? '');
+  if (!vid) return null;
+  const now = nowIso();
+  if (!TABLES.site_visitors.some((r) => r.id === vid)) {
+    TABLES.site_visitors.push({ id: vid, first_seen: now, last_seen: now, user_id: who?.id ?? null, email: who?.email ?? null });
+  }
+  if (p.type === 'tool') {
+    const at = TABLES.site_tool_data.find((r) => r.visitor_id === vid && r.tool === p.tool);
+    if (at) Object.assign(at, { body: p.body, sealed: !!p.sealed, updated_at: now, saves: Number(at.saves) + 1, user_id: who?.id ?? at.user_id });
+    else TABLES.site_tool_data.push({ visitor_id: vid, tool: p.tool, user_id: who?.id ?? null, body: p.body, sealed: !!p.sealed, first_at: now, updated_at: now, saves: 1 });
+  }
+  if (p.type === 'events' && Array.isArray(p.events)) {
+    for (const e of p.events as Row[]) {
+      TABLES.site_events.push({
+        id: TABLES.site_events.length + 1,
+        visitor_id: vid,
+        user_id: who?.id ?? null,
+        session_id: p.sid ?? null,
+        path: e.path,
+        kind: e.kind,
+        label: e.label ?? null,
+        value: e.value ?? null,
+        at: e.at ?? now,
+      });
+    }
+  }
+  return null;
+}
+
 // ─── The client ──────────────────────────────────────────────────────────────
 
 /**
@@ -750,7 +786,9 @@ export function createPreviewClient(as: 'admin' | 'member' | 'guest' = 'admin') 
         ? Promise.resolve(ok(false))
         : fn === 'track_hit'
           ? Promise.resolve(ok(previewTrack((args?.p ?? {}) as Row, as === 'guest' ? null : { id: PREVIEW_USER_ID, email: String(email) })))
-          : rpc(fn, args),
+          : fn === 'track_input'
+            ? Promise.resolve(ok(previewInput((args?.p ?? {}) as Row, as === 'guest' ? null : { id: PREVIEW_USER_ID, email: String(email) })))
+            : rpc(fn, args),
     auth: {
       getUser: async () => ({
         data: { user: as === 'guest' ? null : { id: PREVIEW_USER_ID, email } },

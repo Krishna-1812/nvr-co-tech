@@ -24,7 +24,7 @@ import {
   motifFor,
 } from '@/components/marketing/bits';
 import { ArchScene as SceneArch } from '@/components/ui/Scene';
-import { serviceLd } from '@/lib/marketing/seo';
+import { faqLd, serviceLd } from '@/lib/marketing/seo';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { Reveal } from '@/components/marketing/Reveal';
@@ -310,6 +310,28 @@ export default async function AgentPage({ params }: Params) {
           </Reveal>
         </Container>
       </Section>
+
+      {agent.faq && agent.faq.length > 0 && (
+        <Section>
+          <JsonLd data={faqLd(agent.faq)} />
+          <Container wide>
+            <Reveal>
+              <Eyebrow>Questions</Eyebrow>
+              <h2 className="m-display mt-4 t-h3">What people ask first.</h2>
+            </Reveal>
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              {agent.faq.map((f, i) => (
+                <Reveal key={f.q} delay={Math.min(i, 4) * 40}>
+                  <div className="m-card h-full rounded-2xl px-5 py-5">
+                    <h3 className="t-4 font-semibold text-[var(--m-ink)]">{f.q}</h3>
+                    <p className="m-dim-2 mt-2 t-3">{f.a}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </Container>
+        </Section>
+      )}
 
       <Section>
         <Container wide>
