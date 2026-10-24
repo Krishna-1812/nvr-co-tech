@@ -11,19 +11,26 @@
  *   - Legal advice. It encodes the statute as the published guides read it and
  *     says so. `LAW.advocateSignOff` stays `null` until a named advocate has
  *     read the rules and the clause library and put that in writing
- *     (docs/will-maker/legal-review.md); the tool is not made public before
- *     then (docs/will-maker/02-plan.md, Phase 5).
+ *     (docs/will-maker/legal-review.md); the tool cannot be made public before
+ *     then (lib/will/flag), and a sign-off lapses if the text changes.
  *   - Clever. When the law is unsettled or depends on facts we cannot see, a
  *     rule here says "caution" or "out of scope" and names the reason. It never
  *     picks the likelier reading and carries on, because a will that is wrong
  *     is wrong on the day nobody can fix it.
  */
 
+import { SIGN_OFF } from './signoff';
+
 export const LAW = {
   /** The date the rules below were last read against the sources listed in docs/will-maker/01-research.md. */
   rulesCheckedOn: '2026-10-24',
-  /** Who has signed these rules off, and when. Null means nobody yet. */
-  advocateSignOff: null as string | null,
+  /**
+   * Who has signed these rules off, and what they signed (lib/will/signoff,
+   * kept out of this file so recording it does not change this file). Null
+   * means nobody yet, and the tool stays admin-only (lib/will/flag): no flag
+   * opens it to the public while this is null.
+   */
+  advocateSignOff: SIGN_OFF,
   /** An adult for the purposes of making a will. */
   adultAge: 18,
   /** Attesting witnesses a will needs. */

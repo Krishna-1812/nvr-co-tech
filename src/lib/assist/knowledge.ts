@@ -1,6 +1,7 @@
 import { AGENTS, JOBS, LIVE_AGENTS, STAGE_LABEL, TDS_SECTIONS } from '@/lib/marketing/content';
 import { ROLE_META, USER_ROLES } from '@/lib/domain/workflow';
-import { assistSection, landedSection, reconSection, voucherSection, wealthSection } from '@/lib/nav';
+import { assistSection, landedSection, reconSection, voucherSection, wealthSection, willSection } from '@/lib/nav';
+import { willMakerPublic } from '@/lib/will/flag';
 
 const LIVE_COUNT = LIVE_AGENTS.length;
 
@@ -87,6 +88,7 @@ function rosterDocs(): Doc[] {
       '',
       `What goes in: ${agent.inputs}.`,
       `What comes out: ${agent.outputs}.`,
+      ...(agent.faq?.length ? ['', 'Questions people ask:', ...agent.faq.flatMap((f) => [`- ${f.q} ${f.a}`])] : []),
     ].join('\n'),
   }));
 }
@@ -141,6 +143,7 @@ function screensDoc(): Doc {
     reconSection(),
     landedSection(),
     wealthSection(),
+    ...(willMakerPublic() ? [willSection()] : []),
     assistSection(),
   ];
 

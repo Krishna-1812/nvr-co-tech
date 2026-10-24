@@ -140,7 +140,9 @@ export function WillWorkbench({
   const perStep = (s: Step) => findings.filter((f) => f.step === s && f.severity !== 'note').length;
 
   return (
-    <div className="space-y-5">
+    // data-private: the site's field capture skips everything inside (and lib/analytics/private-paths
+    // skips the whole path, which also covers the dialogs drawn outside this element).
+    <div className="space-y-5" data-private>
       <WillSave userId={userId} signedIn={signedIn} />
       <Hero ready={ready} blocked={blocked} signedIn={signedIn} />
 
@@ -154,7 +156,7 @@ export function WillWorkbench({
         alert={{ checks: ready.act > 0 }}
       />
 
-      <div key={tab} className="animate-[rise_0.35s_cubic-bezier(0.22,1,0.36,1)_backwards]">
+      <div key={tab} id="wm-panel" role="tabpanel" aria-labelledby={`wm-tab-${tab}`} className="animate-[rise_0.35s_cubic-bezier(0.22,1,0.36,1)_backwards]">
         {tab === 'interview' && (
           <div className="grid gap-6 lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:gap-8">
             <StepNav step={step} blocked={blocked} perStep={perStep} onStep={(s) => (setFocus(null), setStep(s))} />
@@ -248,7 +250,7 @@ function Hero({ ready, blocked, signedIn }: { ready: ReturnType<typeof readiness
             <Chip icon={HardDrive}>{signedIn ? 'In this browser; encrypted in your account once locked' : 'Kept only in this browser'}</Chip>
             <Chip icon={Scale}>A drafting aid, not legal advice</Chip>
             <Chip icon={ShieldAlert} warn={!LAW.advocateSignOff}>
-              {LAW.advocateSignOff ? `Rules reviewed: ${LAW.advocateSignOff}` : 'In testing: not yet reviewed by an advocate'}
+              {LAW.advocateSignOff ? `Rules reviewed by ${LAW.advocateSignOff.by}, ${LAW.advocateSignOff.on}` : 'In testing: not yet reviewed by an advocate'}
             </Chip>
           </ul>
           <p
@@ -307,7 +309,22 @@ function Tabs({
   ];
   return (
     <div className="-mx-1 overflow-x-auto px-1 pb-1">
-      <div role="tablist" aria-label="Your will" className="surface-sunken inline-flex min-w-max gap-1 rounded-2xl border p-1">
+      <div
+        role="tablist"
+        aria-label="Your will"
+        className="surface-sunken inline-flex min-w-max gap-1 rounded-2xl border p-1"
+        onKeyDown={(e) => {
+          // The tabs pattern: arrows move between tabs (wrapping), Home and End go to the ends.
+          const all = [...e.currentTarget.querySelectorAll<HTMLButtonElement>('[role=tab]:not(:disabled)')];
+          const i = all.indexOf(document.activeElement as HTMLButtonElement);
+          if (i < 0) return;
+          const to = e.key === 'ArrowRight' ? (i + 1) % all.length : e.key === 'ArrowLeft' ? (i - 1 + all.length) % all.length : e.key === 'Home' ? 0 : e.key === 'End' ? all.length - 1 : -1;
+          if (to < 0) return;
+          e.preventDefault();
+          all[to].focus();
+          all[to].click();
+        }}
+      >
         {TABS.map((t) => {
           const on = tab === t.id;
           const n = counts[t.id];
@@ -316,7 +333,10 @@ function Tabs({
               key={t.id}
               type="button"
               role="tab"
+              id={`wm-tab-${t.id}`}
               aria-selected={on}
+              aria-controls={on ? 'wm-panel' : undefined}
+              tabIndex={on ? 0 : -1}
               disabled={disabled.includes(t.id)}
               onClick={() => onTab(t.id)}
               className={cn(

@@ -575,19 +575,48 @@ Every "where is it kept" sentence on the screens reads `SignedInContext`.
   record reading, real encrypt/decrypt round trips, per-user storage, backups, and both exports
   read back (PDF via pdf.js, workbook via SheetJS).
 
-## 10c. Will Maker (Phases 1–4 built, admin-only; 24 Oct 2026)
+## 10c. Will Maker (Phases 1–5 built; admin-only until an advocate signs off; 24 Oct 2026)
 
 The owner asked for a tool like willjini.com's online will. **Research is in
 `docs/will-maker/01-research.md`, the 5-phase plan in `docs/will-maker/02-plan.md`; read both
 before touching it.** Phase 1 (rules library), Phase 2 (the interview UI at `/will-maker`) and
 **Phase 3 (the files: PDF, Word, signing guide)** and **Phase 4 (after signing: register, review
-prompts, encrypted account copy, help request)** are built. Phase 5 (advocate sign-off, legal
-copy, launch) is not started.
+prompts, encrypted account copy, help request)** are built. **Phase 5 (launch readiness) is built**:
+the sign-off interlock, the generated advocate packet, the privacy/security audit, an accessibility
+pass, the public FAQ and registration. **What is left is people, not code: see
+`docs/will-maker/launch-runbook.md`** (choose the advocate, record `SIGN_OFF`, counsel on terms and
+DPDP, apply migration 0038, set `NEXT_PUBLIC_WILL_MAKER=1`).
 
-**It is admin-only.** `lib/will/flag.ts` `willMakerOpen(admin)`: the `(will)` layout 404s everybody
-who is not a platform admin unless `NEXT_PUBLIC_WILL_MAKER=1` (do **not** set that before an
-advocate has signed off). It is deliberately **not** in `AGENTS`, `OPEN_TOOLS`, the hub, the
-sitemap or any menu; `robots.ts` disallows `/will-maker`. Visible in preview mode (you are an admin).
+**It is admin-only until two things are true.** `lib/will/flag.ts`: `willMakerPublic()` =
+`NEXT_PUBLIC_WILL_MAKER=1` **and** `LAW.advocateSignOff !== null` (the record lives in
+`lib/will/signoff.ts`, outside the digested files); `willMakerOpen(admin) = admin || public`. The
+`(will)` layout 404s everybody else. **Never set the flag before an advocate has signed off**, and the
+flag alone does nothing. When public, `content.ts` adds Will Maker to `AGENTS`, which is what the hub,
+`/tools`, the sitemap, `llms.txt` and the assistant's knowledge read, and `OPEN_TOOLS`, the privacy
+page's Will Maker clause and the tool page's FAQ (+ FAQPage JSON-LD) appear with it; before that none
+of them mention it (`launch.test.ts`). `robots.ts` disallows `/will-maker` (the working screen);
+`/tools/will-maker` is the indexable page. Visible to admins in preview mode.
+
+- **Sign-off control (Phase 5)** `lib/will/review.ts`: `REVIEWED_FILES` (law, checks, clauses,
+  document, guide, **faq**, register) are hashed (`review-digest.ts`); `buildReviewPacket(digest)`
+  writes `docs/will-maker/legal-review.md` **from the code** (every clause under variants, every
+  check, every prompt, the guide and the public FAQ verbatim). `npm run will:packet` regenerates it;
+  `review.test.ts` fails if the committed packet is stale, if a check/prompt id is missing from it,
+  or if `SIGN_OFF.packet` is not the current digest. **Any edit to a reviewed file means regenerate the
+  packet and get a fresh sign-off.**
+- **Privacy/security (Phase 5)** `privacy.test.ts` statically forbids analytics imports, logging,
+  `fetch`/beacons, URL/cookie reads and stray storage in the will code. The site-wide tracker used to
+  be able to read will fields: `lib/analytics/private-paths.ts` (`NEVER_CAPTURE = ['/will-maker']`) now
+  stops it on the client (`capture.ts`) and the server (`input.ts`), and the workbench is `data-private`.
+  A browser audit (24 Oct 2026) found 61 requests, none cross-origin, none carrying will text, only a
+  page-view and a time-on-page ping. Details and what to tell counsel: `docs/will-maker/dpdp.md`;
+  draft terms: `terms-draft.md`.
+- **Accessibility (Phase 5)** axe (WCAG 2.2 AA + best practice) over every step, tab and dialog, light and
+  dark, 1280 and 390 wide: clean for Will Maker. Fixed along the way: heading order, a keyboard-focusable
+  scrolling schedule, the tabs now follow the ARIA pattern (arrows, Home, End, `tabpanel`), the shared
+  `ui/Modal` returns focus to what opened it (it had been dropping to the page top), and the header search
+  button has a name on phones. Two shell items remain, not Will Maker's: the avatar button's initials vs its
+  label, and the preview-mode banner outside a landmark.
 
 - **UI** `src/components/will/`: `WillWorkbench` (tabs Interview, Preview, Checks, Where it is
   kept; eight steps: About you, People, What you own, Who gets what, Everything else, Executor &

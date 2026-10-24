@@ -49,7 +49,7 @@ export function DataPanel({
       <section className="surface-lit a-ring flex gap-3 rounded-2xl border p-5">
         <HardDrive className="mt-0.5 size-5 shrink-0" aria-hidden />
         <div>
-          <h3 className="text-sm font-semibold">{signedIn && hasLock ? 'In this browser, and encrypted in your account' : 'Kept only in this browser'}</h3>
+          <h2 className="text-sm font-semibold">{signedIn && hasLock ? 'In this browser, and encrypted in your account' : 'Kept only in this browser'}</h2>
           <p className="text-muted mt-1 text-[13.5px] leading-relaxed text-pretty">
             {signedIn && hasLock
               ? 'The copy in your account is the draft as it is encrypted on this device with your passcode. We cannot read it, and it is not counted in our statistics. '
@@ -68,7 +68,7 @@ export function DataPanel({
       {message && <Notice tone="var(--status-approved)">{message}</Notice>}
 
       <section className="surface-lit a-ring rounded-2xl border p-5">
-        <h3 className="text-sm font-semibold">Backup</h3>
+        <h2 className="text-sm font-semibold">Backup</h2>
         <p className="text-muted mt-1 text-[13.5px]">
           A file you keep. {hasLock ? 'It is locked with the same passcode.' : 'It is not locked; anyone who has the file can read it.'}
         </p>
@@ -107,7 +107,7 @@ export function DataPanel({
       </section>
 
       <section className="surface-lit a-ring rounded-2xl border p-5">
-        <h3 className="text-sm font-semibold">Passcode</h3>
+        <h2 className="text-sm font-semibold">Passcode</h2>
         <p className="text-muted mt-1 text-[13.5px] leading-relaxed">
           {hasLock
             ? 'This draft is encrypted on this device. You are asked for the passcode each time the page opens.'
@@ -138,7 +138,7 @@ export function DataPanel({
       </section>
 
       <section className="surface-lit a-ring rounded-2xl border p-5">
-        <h3 className="text-sm font-semibold">Delete</h3>
+        <h2 className="text-sm font-semibold">Delete</h2>
         <p className="text-muted mt-1 text-[13.5px]">Removes this draft from this browser{signedIn ? ' and the encrypted copy from your account' : ''}. Anything you backed up stays in the file.</p>
         <Button className="mt-3" variant="danger" onClick={() => setWipeOpen(true)} disabled={people === 0 && assets === 0 && !record.testator.name}>
           <Trash2 className="size-4" aria-hidden />

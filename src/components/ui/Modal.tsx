@@ -2,7 +2,7 @@
 
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 
 /**
  * Radix handles focus trapping, Escape, scroll lock and the aria wiring — all of
@@ -21,6 +21,12 @@ export function Modal({
   description?: string;
   children: ReactNode;
 }) {
+  /*
+   * Radix gives focus back to a Dialog.Trigger, and this modal is opened by state
+   * with none, so on close focus fell to the top of the page. Remember what had
+   * focus as the modal opened and return it there.
+   */
+  const returnTo = useRef<HTMLElement | null>(null);
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
@@ -28,6 +34,13 @@ export function Modal({
         <Dialog.Content
           className="a-ring elev-4 animate-[pop_0.2s_cubic-bezier(0.34,1.56,0.64,1)] fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border bg-[var(--surface-raised)]"
           aria-describedby={description ? undefined : ''}
+          onOpenAutoFocus={() => {
+            returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          }}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+            returnTo.current?.focus();
+          }}
         >
           {/* Every modal in this app is a decision somebody cannot take back —
               approving, rejecting, deleting — so each one carries the brand

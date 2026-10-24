@@ -37,7 +37,7 @@ export function Preview({ record, findings, today }: { record: WillRecord; findi
         aria-label="Draft of your will"
         className="a-ring mx-auto max-w-3xl rounded-2xl border bg-[var(--surface-raised)] px-6 py-8 font-serif text-[15.5px] leading-[1.75] shadow-[var(--elev-2)] sm:px-14 sm:py-12"
       >
-        <h1 className="text-center text-2xl font-semibold tracking-[0.18em]">{doc.title}</h1>
+        <h2 className="text-center text-2xl font-semibold tracking-[0.18em]">{doc.title}</h2>
 
         <div className="mt-8 space-y-3">
           {doc.opening.map((p, i) => (
@@ -49,9 +49,9 @@ export function Preview({ record, findings, today }: { record: WillRecord; findi
 
         {doc.sections.map((s) => (
           <section key={s.id} className="mt-7">
-            <h2 className="font-semibold">
+            <h3 className="font-semibold">
               {s.number}. {s.heading}
-            </h2>
+            </h3>
             {s.paragraphs.map((p, i) => (
               <p key={i} className="mt-1.5 text-pretty">
                 {p}
@@ -72,8 +72,8 @@ export function Preview({ record, findings, today }: { record: WillRecord; findi
 
         {doc.schedule.length > 0 && (
           <section className="mt-9">
-            <h2 className="text-center font-semibold tracking-[0.18em]">SCHEDULE</h2>
-            <div className="mt-4 overflow-x-auto">
+            <h3 className="text-center font-semibold tracking-[0.18em]">SCHEDULE</h3>
+            <div className="mt-4 overflow-x-auto" role="region" aria-label="Schedule of assets" tabIndex={0}>
               <table className="w-full min-w-[32rem] border-collapse text-[14px]">
                 <thead>
                   <tr className="border-b text-left">

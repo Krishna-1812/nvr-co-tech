@@ -20,6 +20,8 @@
  * page tracker.
  */
 
+import { neverCaptured } from './private-paths';
+
 const ENDPOINT = '/api/track/input';
 const UUID = /(?:^|;\s*)fi_vid=([0-9a-f-]{36})/i;
 
@@ -121,6 +123,7 @@ function flushEvents(leaving = false) {
 
 function push(e: Omit<Captured, 'at' | 'path'>) {
   const path = location.pathname;
+  if (neverCaptured(path)) return;
   // Two changes to the same field in a row keep only the last.
   const last = queue.at(-1);
   if (e.kind === 'field' && last?.kind === 'field' && last.path === path && last.label === e.label) queue.pop();
@@ -174,7 +177,7 @@ function fieldValue(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectEleme
 function onChange(e: Event) {
   const el = e.target;
   if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement)) return;
-  if (under(location.pathname, TOOL_PATHS) || isPrivateField(el)) return;
+  if (neverCaptured(location.pathname) || under(location.pathname, TOOL_PATHS) || isPrivateField(el)) return;
   const value = fieldValue(el);
   if (value === null) return;
   // A radio button's label is its choice; the question is the group's legend.
@@ -183,6 +186,8 @@ function onChange(e: Event) {
 }
 
 function onClick(e: MouseEvent) {
+  // Not on a will: a button there can carry a person's name ("Remove Nisha Mehta").
+  if (neverCaptured(location.pathname)) return;
   const target = e.target instanceof Element ? e.target.closest('button, a, [role="button"], [role="tab"], [role="menuitem"], [role="option"], summary') : null;
   if (!target || target.closest('[data-private]')) return;
   const label = words(target.getAttribute('aria-label')) ?? words((target as HTMLElement).innerText) ?? words(target.getAttribute('title'));

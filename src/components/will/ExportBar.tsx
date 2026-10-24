@@ -47,7 +47,7 @@ export function ExportBar({ record, today }: { record: WillRecord; today: string
   return (
     <section aria-label="Download" className="surface-lit a-ring rounded-2xl border p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="text-sm font-semibold">Take it with you</h3>
+        <h2 className="text-sm font-semibold">Take it with you</h2>
         <Tag tone={tone}>{status.draft ? 'Draft' : 'Clean copy'}</Tag>
         <span className="text-subtle text-xs">Reference {status.reference}</span>
       </div>

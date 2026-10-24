@@ -92,7 +92,7 @@ export function HelpRequest({ open, onClose, name, email }: { open: boolean; onC
           <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--status-approved)] text-[var(--surface)]">
             <Check className="size-4" strokeWidth={3} />
           </span>
-          <span className="text-muted">Nothing about your will was sent. Only what you typed.</span>
+          <span className="text-muted">Nothing about your will was sent. Only what you typed, with the usual details of a visit to this site.</span>
           <Button className="ml-auto" onClick={onClose}>
             Close
           </Button>

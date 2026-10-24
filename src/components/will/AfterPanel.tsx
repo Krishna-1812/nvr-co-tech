@@ -167,7 +167,7 @@ export function AfterPanel({
           <h3 className="text-sm font-semibold">Want an advocate to look at it?</h3>
           <p className="text-muted mt-1 text-[13.5px] leading-relaxed text-pretty">
             We are setting up advocate review, registration help and full drafting. Tell us what you need and we will write
-            back. Only what you type in the request is sent, never your will.
+            back. Only what you type in the request is sent, with the usual details of a visit to this site. Never your will.
           </p>
         </div>
         <Button className="self-start sm:self-auto" onClick={() => setHelp(true)}>Ask for help</Button>

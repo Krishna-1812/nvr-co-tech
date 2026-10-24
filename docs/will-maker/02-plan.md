@@ -161,6 +161,8 @@ Scope
 - Later (not in this plan's scope): mirror/joint wills, codicils, living will & POA, NRI flows,
   Hindi/regional-language output, family-trust referral, bulk/partner (CA firm) mode.
 
+**As built (24 Oct 2026):** everything that does not need a person is done. (1) The advocate review is a **generated packet** (`legal-review.md`, from the code, with a digest) and a build-time interlock: the tool cannot be public without a recorded sign-off for exactly the current text. (2) Security and privacy: static guard tests, a fix for the site tracker reading will fields, and a browser network audit; `dpdp.md` and `terms-draft.md` are drafts **for counsel**, with the questions marked. (3) Accessibility: axe over every screen in both themes and sizes, plus keyboard fixes (tabs, shared modal focus). (4) Content: nine questions in `faq.ts` built from the signing guide's own sentences, reviewed with the rest, shown on `/tools/will-maker` with FAQPage JSON-LD, in `llms.txt` and the assistant's knowledge. Not "6–8 explainers on registration by city, what happens without a will": those need sources and a lawyer's read, and are not claims to make unreviewed. (5) Registration everywhere is automatic and inert until public. **Not done, needs people:** the advocate, counsel's terms and DPDP, migration 0038, the flag, and the social assets and funnel counts (`launch-runbook.md`).
+
 Exit: written advocate approval; flag off; production smoke test; owner sign-off.
 
 ## Decisions I need from the owner (defaults in bold; Phase 1 does not depend on them)

@@ -17,7 +17,8 @@
     "brand:icons": "vite-node --config vitest.config.mts scripts/build-brand.mts",
     "ingest:dry": "vite-node --config vitest.config.mts scripts/ingest-dry.mts",
     "finder:audit-filters": "vite-node --config vitest.config.mts scripts/finder-live-audit.mts",
-    "finder:audit-chat": "vite-node --config vitest.config.mts scripts/finder-chat-audit.mts"
+    "finder:audit-chat": "vite-node --config vitest.config.mts scripts/finder-chat-audit.mts",
+    "will:packet": "vite-node --config vitest.config.mts scripts/will-review-packet.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",

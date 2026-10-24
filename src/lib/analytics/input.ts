@@ -1,3 +1,4 @@
+import { neverCaptured } from './private-paths';
 import { isBot } from './ua';
 
 /**
@@ -49,6 +50,8 @@ export function buildInput(body: unknown, userAgent: string | null): Record<stri
         value: text(e.value, 4000),
         at: typeof e.at === 'string' && !Number.isNaN(Date.parse(e.at)) ? e.at : null,
       }))
+      // Nothing from a will, whatever the client claims (lib/analytics/private-paths).
+      .filter((e) => !neverCaptured(e.path))
       .filter((e) => e.label || e.value);
     return events.length ? { type: 'events', vid, sid, events } : null;
   }

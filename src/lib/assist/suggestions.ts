@@ -72,6 +72,20 @@ const BY_AGENT: Record<string, Suggestion[]> = {
       question: 'Where does Wealth Tracker keep what I enter, and who can see it?',
     },
   ],
+  'will-maker': [
+    {
+      label: 'Do I need stamp paper?',
+      question: 'Do I need stamp paper or a notary for a will in India?',
+    },
+    {
+      label: 'Who can witness?',
+      question: 'Who can be a witness to my will, and who cannot?',
+    },
+    {
+      label: 'Is my will kept private?',
+      question: 'Where does Will Maker keep what I enter, and who can see it?',
+    },
+  ],
   'true-property-cost': [
     {
       label: 'How is it worked out?',
