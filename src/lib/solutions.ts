@@ -13,7 +13,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
-import { AGENTS, type Agent, type AgentStage } from '@/lib/marketing/content';
+import { AGENTS, WILL_MAKER, type Agent, type AgentStage } from '@/lib/marketing/content';
 
 /**
  * The roster, as the signed-in hub needs it.
@@ -105,7 +105,7 @@ export type Solution = Agent & {
  * re-sort it, because the order is an editorial decision and it belongs with the
  * content.
  */
-export const SOLUTIONS: Solution[] = AGENTS.map((agent) => ({
+const solutionOf = (agent: Agent): Solution => ({
   ...agent,
   icon: ICON[agent.slug] ?? ReceiptIndianRupee,
   tone: ACCENT_VAR[agent.accent],
@@ -113,4 +113,14 @@ export const SOLUTIONS: Solution[] = AGENTS.map((agent) => ({
   // rather than repeated, so there is still one answer to "where does this open".
   open: agent.stage === 'live' ? agent.href : undefined,
   plan: `/tools/${agent.slug}`,
-}));
+});
+
+export const SOLUTIONS: Solution[] = AGENTS.map(solutionOf);
+
+/**
+ * Will Maker as a workspace card, for the admins' hub only. It is not in `SOLUTIONS`
+ * until it is public, because `SOLUTIONS` also feeds the roster meter, the open
+ * hub and the locked-tool screens that everybody sees (see content.ts). Its `plan`
+ * page does not exist before launch, and the card never links to it.
+ */
+export const WILL_SOLUTION: Solution = solutionOf(WILL_MAKER);

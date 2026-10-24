@@ -16,14 +16,15 @@ async function site(signOff: typeof SIGNED | null, env: string) {
     return { ...real, LAW: { ...real.LAW, advocateSignOff: signOff } };
   });
   vi.stubEnv('NEXT_PUBLIC_WILL_MAKER', env);
-  const [content, access, sitemap, llms, knowledge] = await Promise.all([
+  const [content, access, sitemap, llms, knowledge, solutions] = await Promise.all([
     import('@/lib/marketing/content'),
     import('@/lib/access'),
     import('@/app/sitemap'),
     import('@/app/llms.txt/route'),
     import('@/lib/assist/knowledge'),
+    import('@/lib/solutions'),
   ]);
-  return { content, access, sitemap: sitemap.default(), llms: await llms.GET().text(), knowledge };
+  return { content, access, sitemap: sitemap.default(), llms: await llms.GET().text(), knowledge, solutions };
 }
 
 afterEach(() => {
@@ -46,6 +47,9 @@ describe('before launch', () => {
       expect(s.access.OPEN_TOOLS).not.toContain('will-maker');
       expect(s.sitemap.map((e) => e.url).join('\n')).not.toMatch(/will-maker/);
       expect(mentions(s.llms)).toBe(false);
+      // The roster everybody sees leaves it out; only the admins' hub card (WILL_SOLUTION) has it.
+      expect(s.solutions.SOLUTIONS.map((x) => x.slug)).not.toContain('will-maker');
+      expect(s.solutions.WILL_SOLUTION).toMatchObject({ slug: 'will-maker', stage: 'live', open: '/will-maker' });
       expect(s.knowledge.DOCS.some((d) => mentions(d.title) || mentions(d.body))).toBe(false);
     });
   }

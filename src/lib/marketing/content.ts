@@ -339,7 +339,8 @@ const BASE_AGENTS: Agent[] = [
 ];
 
 /**
- * Will Maker, which is on the roster only when it is public.
+ * Will Maker, which is on the roster only when it is public. It is exported on its
+ * own so the admins' workspace can show a card for it before then (hub/page.tsx).
  *
  * Everything that lists tools (the hub, the sitemap, llms.txt, the assistant's
  * knowledge, the tool's own page) reads this roster, so leaving it out here
@@ -352,7 +353,7 @@ export const OPEN_NAMES = willMakerPublic()
   ? 'True Property Cost, Wealth Tracker and Will Maker are'
   : 'True Property Cost and Wealth Tracker are';
 
-const WILL_MAKER: Agent = {
+export const WILL_MAKER: Agent = {
   slug: 'will-maker',
   name: 'Will Maker',
   stage: 'live',
