@@ -45,6 +45,13 @@ describe('you', () => {
     expect(readiness(fs).ready).toBe(false);
   });
 
+  it('asks for the two declarations on the last step, where the person is about to sign, not before the first question', () => {
+    const fs = checkWill(blankWill(), EXAMPLE_TODAY);
+    expect(get(fs, 'declare-mind')?.step).toBe('sign');
+    expect(get(fs, 'declare-free')?.step).toBe('sign');
+    expect(get(fs, 'testator-name')?.step).toBe('you');
+  });
+
   it('turns a refusal from the scope verdict into something that holds the export', () => {
     const fs = run((w) => (w.testator.religion = 'Muslim'));
     expect(get(fs, 'scope-muslim')).toMatchObject({ severity: 'act', cite: expect.stringContaining('s.58(1)') });

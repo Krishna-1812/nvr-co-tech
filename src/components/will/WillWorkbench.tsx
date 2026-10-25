@@ -9,7 +9,9 @@ import { SEVERITY_TONE } from '@/components/wealth/shared';
 import { checkWill, readiness, STEPS, type Finding, type Step } from '@/lib/will/checks';
 import { LAW, scopeOf } from '@/lib/will/law';
 import { todayIso } from '@/lib/wealth/model';
-import { useWill, willActions } from '@/lib/will/store';
+import { useWill, willActions, type WillActions, type WillState } from '@/lib/will/store';
+import { importFromWealth } from '@/lib/will/fromWealth';
+import { isBlank } from '@/lib/will/progress';
 import { forgetAccountCopy } from '@/lib/will/account';
 import { afterPrompts } from '@/lib/will/register';
 import { useWealth, wealthActions } from '@/lib/wealth/store';
@@ -26,6 +28,7 @@ import { Preview } from './Preview';
 import { SignStep } from './SignStep';
 import { Notice, type StepProps } from './shared';
 import { WillSave } from './WillSave';
+import { Welcome } from './Welcome';
 import { YouStep } from './YouStep';
 
 /**
@@ -69,31 +72,7 @@ export function WillWorkbench({
   email?: string;
 }) {
   const state = useWill(userId, selfName);
-  // The person's Wealth Tracker record, to check the will against. Read-only here
-  // apart from the household profile the "After signing" tab may update.
-  const wealthState = useWealth(userId, selfName).state;
-  const wealth = wealthState.status === 'ready' && (wealthState.record.items.length > 0 || wealthState.record.profile.members.length > 1) ? wealthState.record : null;
   const actions = useMemo(() => willActions(userId), [userId]);
-  const today = useMemo(() => todayIso(), []);
-  const [tab, setTab] = useState<Tab>('interview');
-  const [step, setStep] = useState<Step>('you');
-  const [focus, setFocus] = useState<StepProps['focus']>(null);
-
-  const record = state.record;
-  const findings = useMemo(() => checkWill(record, today), [record, today]);
-  const ready = useMemo(() => readiness(findings), [findings]);
-  const scope = useMemo(() => scopeOf(record.testator, today), [record.testator, today]);
-  const blocked = scope.level === 'out';
-  const prompts = useMemo(() => afterPrompts(record, wealth, today), [record, wealth, today]);
-  const afterCount = prompts.filter((p) => p.severity !== 'note').length;
-
-  // A check's "Fix" sends us to a step and a card; scroll to the card once it is on screen.
-  const focusId = focus?.personId ?? focus?.assetId;
-  useEffect(() => {
-    if (!focusId || tab !== 'interview') return;
-    const t = window.setTimeout(() => document.getElementById(`f-${focusId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
-    return () => window.clearTimeout(t);
-  }, [focusId, step, tab]);
 
   if (state.status === 'loading') return <Loading />;
   if (state.status === 'unavailable') {
@@ -116,20 +95,85 @@ export function WillWorkbench({
       />;
   }
 
+  // The draft proper mounts only once it is loaded, so what it starts from (a blank draft, or one
+  // somebody has already been working on) is known on its first render.
+  return <Draft userId={userId} selfName={selfName} signedIn={signedIn} email={email} state={state} actions={actions} />;
+}
+
+function Draft({
+  userId,
+  selfName,
+  signedIn,
+  email,
+  state,
+  actions,
+}: {
+  userId: string;
+  selfName: string;
+  signedIn: boolean;
+  email: string;
+  state: WillState;
+  actions: WillActions;
+}) {
+  // The person's Wealth Tracker record, to check the will against. Read-only here
+  // apart from the household profile the "After signing" tab may update.
+  const wealthState = useWealth(userId, selfName).state;
+  const wealth = wealthState.status === 'ready' && (wealthState.record.items.length > 0 || wealthState.record.profile.members.length > 1) ? wealthState.record : null;
+  const today = useMemo(() => todayIso(), []);
+  const [tab, setTab] = useState<Tab>('interview');
+  const [step, setStep] = useState<Step>('you');
+  const [focus, setFocus] = useState<StepProps['focus']>(null);
+  // A blank draft opens on a welcome, not a form; one with work in it opens on the work.
+  const [began, setBegan] = useState(() => !isBlank(state.record));
+  // The steps the person has been through. A step stays quiet about what is missing until then, so
+  // nothing red greets somebody who has not had the chance to answer; a draft with work in it
+  // starts with every step counted, because its gaps are real.
+  const [visited, setVisited] = useState<ReadonlySet<Step>>(() => (isBlank(state.record) ? new Set<Step>() : new Set<Step>(STEPS)));
+  const seen = (s: Step) => setVisited((v) => (v.has(s) ? v : new Set(v).add(s)));
+
+  const record = state.record;
+  const findings = useMemo(() => checkWill(record, today), [record, today]);
+  const ready = useMemo(() => readiness(findings), [findings]);
+  const scope = useMemo(() => scopeOf(record.testator, today), [record.testator, today]);
+  const blocked = scope.level === 'out';
+  const prompts = useMemo(() => afterPrompts(record, wealth, today), [record, wealth, today]);
+  const afterCount = prompts.filter((p) => p.severity !== 'note').length;
+
+  // A check's "Fix" sends us to a step and a card; scroll to the card once it is on screen.
+  const focusId = focus?.personId ?? focus?.assetId;
+  useEffect(() => {
+    if (!focusId || tab !== 'interview') return;
+    const t = window.setTimeout(() => document.getElementById(`f-${focusId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+    return () => window.clearTimeout(t);
+  }, [focusId, step, tab]);
+
+  const quiet = !visited.has(step) && !focus;
+  const goStep = (s: Step) => {
+    seen(step);
+    setFocus(null);
+    setStep(s);
+  };
+  const onTab = (t: Tab) => {
+    if (tab === 'interview' && t !== 'interview') seen(step);
+    setTab(t);
+  };
+
   const stepProps: StepProps = {
     record,
     update: actions.update,
-    findings,
+    findings: quiet ? [] : findings,
     today,
     go: (s) => {
-      setFocus(null);
-      setStep(s);
+      goStep(s);
       setTab('interview');
     },
     focus,
+    quiet,
   };
 
   const fix = (f: Finding) => {
+    seen(step);
+    seen(f.step);
     setFocus(f.personId || f.assetId ? { personId: f.personId, assetId: f.assetId } : null);
     setStep(f.step);
     setTab('interview');
@@ -137,47 +181,72 @@ export function WillWorkbench({
   };
 
   const at = STEPS.indexOf(step);
-  const perStep = (s: Step) => findings.filter((f) => f.step === s && f.severity !== 'note').length;
+  const perStep = (s: Step) => (visited.has(s) ? findings.filter((f) => f.step === s && f.severity !== 'note').length : 0);
+  // The tally of what is wrong waits until there is a draft to be wrong about: the final step, the other tabs, or a refusal.
+  const showStatus = blocked || tab !== 'interview' || step === 'sign';
+
+  if (!began) {
+    return (
+      <div className="space-y-5" data-private>
+        <WillSave userId={userId} signedIn={signedIn} />
+        <Hero ready={ready} blocked={blocked} signedIn={signedIn} showStatus={false} compact />
+        <Welcome
+          onStart={() => setBegan(true)}
+          wealthCount={wealth ? wealth.items.length : 0}
+          onStartFromWealth={
+            wealth && wealth.items.length > 0
+              ? () => {
+                  actions.update((r) => importFromWealth(r, wealth).record);
+                  setBegan(true);
+                }
+              : null
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     // data-private: the site's field capture skips everything inside (and lib/analytics/private-paths
     // skips the whole path, which also covers the dialogs drawn outside this element).
     <div className="space-y-5" data-private>
       <WillSave userId={userId} signedIn={signedIn} />
-      <Hero ready={ready} blocked={blocked} signedIn={signedIn} />
+      <Hero ready={ready} blocked={blocked} signedIn={signedIn} showStatus={showStatus} />
 
       {state.saveError && <Notice tone="var(--status-rejected)">{state.saveError}</Notice>}
 
       <Tabs
         tab={tab}
-        onTab={setTab}
+        onTab={onTab}
         disabled={blocked ? ['preview'] : []}
-        counts={{ checks: ready.act + ready.review, after: afterCount }}
-        alert={{ checks: ready.act > 0 }}
+        counts={{ checks: visited.size > 0 ? ready.act + ready.review : 0, after: afterCount }}
+        alert={{ checks: ready.act > 0 && visited.size > 0 }}
       />
 
       <div key={tab} id="wm-panel" role="tabpanel" aria-labelledby={`wm-tab-${tab}`} className="animate-[rise_0.35s_cubic-bezier(0.22,1,0.36,1)_backwards]">
         {tab === 'interview' && (
           <div className="grid gap-6 lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:gap-8">
-            <StepNav step={step} blocked={blocked} perStep={perStep} onStep={(s) => (setFocus(null), setStep(s))} />
+            <StepNav step={step} blocked={blocked} perStep={perStep} onStep={goStep} />
             <div className="min-w-0">
+              <Progress at={at} />
               <section className="surface-lit a-ring rounded-[1.75rem] p-5 sm:p-8" aria-live="polite">
-                {blocked && step !== 'you' ? <Blocked reasons={scope.reasons} onBack={() => setStep('you')} /> : <CurrentStep step={step} props={stepProps} userId={userId} selfName={selfName} />}
+                {blocked && step !== 'you' ? <Blocked reasons={scope.reasons} onBack={() => goStep('you')} /> : <CurrentStep step={step} props={stepProps} userId={userId} selfName={selfName} />}
               </section>
 
               {!(blocked && step !== 'you') && (
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <Button variant="ghost" onClick={() => (setFocus(null), setStep(STEPS[at - 1]))} disabled={at === 0}>
+                // Sticky on a phone, above the app's bottom bar, so "Next" is always under the thumb.
+                <div className="sticky bottom-[5.25rem] z-10 mt-4 flex items-center justify-between gap-3 lg:static">
+                  <Button variant="ghost" className="bg-[var(--surface-raised)]/90 backdrop-blur lg:bg-transparent" onClick={() => goStep(STEPS[at - 1])} disabled={at === 0}>
                     <ChevronLeft className="size-4" aria-hidden />
                     Back
                   </Button>
                   {at < STEPS.length - 1 ? (
-                    <Button variant="primary" disabled={blocked} onClick={() => (setFocus(null), setStep(STEPS[at + 1]))}>
+                    <Button variant="primary" disabled={blocked} onClick={() => goStep(STEPS[at + 1])}>
                       Next: {STEP_LABEL[STEPS[at + 1]]}
                       <ChevronRight className="size-4" aria-hidden />
                     </Button>
                   ) : (
-                    <Button variant="primary" onClick={() => setTab('checks')}>
+                    <Button variant="primary" onClick={() => onTab('checks')}>
                       Review the checks
                       <ChevronRight className="size-4" aria-hidden />
                     </Button>
@@ -207,6 +276,21 @@ export function WillWorkbench({
   );
 }
 
+/** Where you are in the eight steps, as words and a bar. */
+function Progress({ at }: { at: number }) {
+  const n = STEPS.length;
+  return (
+    <div className="mb-3 flex items-center gap-3 px-1">
+      <p className="text-muted shrink-0 text-xs font-medium tabular-nums">
+        Step {at + 1} of {n}
+      </p>
+      <div role="progressbar" aria-label="Progress through the steps" aria-valuemin={1} aria-valuemax={n} aria-valuenow={at + 1} className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[var(--surface-sunken)]">
+        <div className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-300" style={{ width: `${((at + 1) / n) * 100}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function CurrentStep({ step, props, userId, selfName }: { step: Step; props: StepProps; userId: string; selfName: string }) {
   switch (step) {
     case 'you':
@@ -228,7 +312,20 @@ function CurrentStep({ step, props, userId, selfName }: { step: Step; props: Ste
   }
 }
 
-function Hero({ ready, blocked, signedIn }: { ready: ReturnType<typeof readiness>; blocked: boolean; signedIn: boolean }) {
+function Hero({
+  ready,
+  blocked,
+  signedIn,
+  showStatus,
+  compact = false,
+}: {
+  ready: ReturnType<typeof readiness>;
+  blocked: boolean;
+  signedIn: boolean;
+  showStatus: boolean;
+  /** The welcome screen: just the title, so the first screen of a phone holds the button. */
+  compact?: boolean;
+}) {
   return (
     <section aria-labelledby="wm-title" className="surface-lit a-ring relative isolate overflow-hidden rounded-[2rem]">
       <span
@@ -236,39 +333,41 @@ function Hero({ ready, blocked, signedIn }: { ready: ReturnType<typeof readiness
         className="a-orb -top-40 -left-24 size-[34rem] opacity-[0.16]"
         style={{ background: 'radial-gradient(circle, var(--h-amber), transparent 66%)' }}
       />
-      <div className="relative grid gap-6 p-6 sm:p-9 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-12">
+      <div className="relative grid gap-4 p-5 sm:gap-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-12">
         <div className="min-w-0">
           <p className="a-label">Will Maker</p>
-          <h1 id="wm-title" className="m-display mt-3 text-[clamp(1.8rem,4.2vw,2.9rem)] leading-[1.04] text-balance">
+          <h1 id="wm-title" className="m-display mt-2 text-[clamp(1.6rem,4vw,2.6rem)] leading-[1.06] text-balance">
             Put in writing who gets what.
           </h1>
-          <p className="text-muted mt-3 max-w-2xl text-[15px] leading-relaxed text-pretty">
-            Answer a few short questions, and see your will take shape as you go. Checks tell you what could make it fail,
-            with the section of the law behind each one.
-          </p>
-          <ul className="mt-5 flex flex-wrap gap-2">
+          {!compact && (
+            <p className="text-muted mt-2.5 max-w-2xl text-[15px] leading-relaxed text-pretty">
+              Answer a few plain questions and get a will you can print and sign. Every check names the section of the law behind it.
+            </p>
+          )}
+          <ul className={cn('mt-4 flex-wrap gap-2', compact ? 'hidden' : 'flex')}>
             <Chip icon={HardDrive}>{signedIn ? 'In this browser; encrypted in your account once locked' : 'Kept only in this browser'}</Chip>
-            <Chip icon={Scale}>A drafting aid, not legal advice</Chip>
             <Chip icon={ShieldAlert} warn={!LAW.advocateSignOff}>
-              {LAW.advocateSignOff ? `Rules reviewed by ${LAW.advocateSignOff.by}, ${LAW.advocateSignOff.on}` : 'In testing: not yet reviewed by an advocate'}
+              {LAW.advocateSignOff ? `Drafting aid, not legal advice. Rules reviewed by ${LAW.advocateSignOff.by}, ${LAW.advocateSignOff.on}` : 'Drafting aid, not legal advice. In testing: not yet reviewed by an advocate'}
             </Chip>
           </ul>
-          <p
-            style={{ '--tone': blocked || ready.act > 0 ? SEVERITY_TONE.act : ready.review > 0 ? SEVERITY_TONE.review : 'var(--status-approved)' } as CSSProperties}
-            className="tinted mt-5 inline-flex rounded-full border px-3.5 py-1.5 text-[13px] font-medium"
-            role="status"
-          >
-            {blocked
-              ? 'This tool cannot make your will. See the reason on the first step.'
-              : ready.act > 0
-                ? `${ready.act} to fix${ready.review > 0 ? `, ${ready.review} to review` : ''}`
-                : ready.review > 0
-                  ? `Nothing to fix. ${ready.review} to review.`
-                  : 'Nothing to fix or review.'}
-          </p>
+          {showStatus && (
+            <p
+              style={{ '--tone': blocked || ready.act > 0 ? SEVERITY_TONE.act : ready.review > 0 ? SEVERITY_TONE.review : 'var(--status-approved)' } as CSSProperties}
+              className="tinted mt-4 inline-flex rounded-full border px-3.5 py-1.5 text-[13px] font-medium"
+              role="status"
+            >
+              {blocked
+                ? 'This tool cannot make your will. See the reason on the first step.'
+                : ready.act > 0
+                  ? `${ready.act} to fix${ready.review > 0 ? `, ${ready.review} to review` : ''}`
+                  : ready.review > 0
+                    ? `Nothing to fix. ${ready.review} to review.`
+                    : 'Nothing to fix or review.'}
+            </p>
+          )}
         </div>
-        <div className="hidden lg:flex lg:flex-col lg:justify-center [&>*]:max-h-[22rem]">
-          <ArchScene motif="scales" className="h-full min-h-[17rem]" />
+        <div className="hidden lg:flex lg:flex-col lg:justify-center [&>*]:max-h-[18rem]">
+          <ArchScene motif="scales" className="h-full min-h-[14rem]" />
         </div>
       </div>
     </section>

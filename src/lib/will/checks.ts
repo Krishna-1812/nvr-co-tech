@@ -90,10 +90,10 @@ export function checkWill(r: WillRecord, today: string = todayIso()): Finding[] 
     push({ id: 'testator-address', severity: 'review', step: 'you', title: 'Add your address', detail: 'The will says where you live. It helps whoever reads it tell you from someone with the same name.' });
   }
   if (!t.soundMind) {
-    push({ id: 'declare-mind', severity: 'act', step: 'you', cite: CITE.whoMayMake, title: 'Confirm you are of sound mind', detail: 'A will is valid only if the person making it understands what they are doing. The draft says you are; tick it only if it is true.' });
+    push({ id: 'declare-mind', severity: 'act', step: 'sign', cite: CITE.whoMayMake, title: 'Confirm you are of sound mind', detail: 'A will is valid only if the person making it understands what they are doing. The draft says you are; tick it only if it is true.' });
   }
   if (!t.voluntary) {
-    push({ id: 'declare-free', severity: 'act', step: 'you', title: 'Confirm you are making this will freely', detail: 'A will made under pressure, fraud or undue influence can be set aside. Tick it only if it is true.' });
+    push({ id: 'declare-free', severity: 'act', step: 'sign', title: 'Confirm you are making this will freely', detail: 'A will made under pressure, fraud or undue influence can be set aside. Tick it only if it is true.' });
   }
 
   const scope = scopeOf(t, today);
