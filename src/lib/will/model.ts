@@ -178,6 +178,8 @@ export type Register = {
   registeredAt: string;
   /** ISO date to read the will again. */
   reviewBy: string;
+  /** The steps of signing day the person has ticked off, by the text of the step (lib/will/guide). */
+  signingChecks: string[];
 };
 
 export const blankRegister = (): Register => ({
@@ -188,6 +190,7 @@ export const blankRegister = (): Register => ({
   registered: false,
   registeredAt: '',
   reviewBy: '',
+  signingChecks: [],
 });
 
 export type WillRecord = {
@@ -393,6 +396,7 @@ function readRegister(raw: unknown): Register {
     registered: bool(o.registered),
     registeredAt: str(o.registeredAt),
     reviewBy: str(o.reviewBy),
+    signingChecks: strings(o.signingChecks),
   };
 }
 

@@ -629,6 +629,13 @@ never a name) to platform admins; everybody else gets `OpenHub`, which reads `SO
     `checkWill`, so the **detailed form** (tabs and eight steps) is one click away and nothing is lost either way.
     Which view was last used is kept by `useWillView` in `store.ts` (a display preference, not will content); with none
     saved, a blank draft is guided and one with work in it is detailed.
+  - **The finish (guided ending, `GuidedWill.tsx` `Ready`).** After the last question: "ready to print" or what to fix (each with a Fix that
+    goes to a question); the downloads; **signing day as a list to tick** (`SIGNING_STEPS` from the signing guide, ticks kept in
+    `register.signingChecks`, so they survive a reload and travel in the backup); **"Signed it?"** (sets `register.signedOn`, after which
+    the After-signing panel, `AfterPanel`, takes over inside the same screen); **"Keep it safe"** (passcode via the shared
+    `PasscodeModal`, and a backup file); and an advocate card that becomes a firm suggestion, listing the person's own words, when
+    they ticked anything on the **"Is anything unusual?"** question (`UnusualQ`, the six `CIRCUMSTANCES`; without it a guided user
+    would never have seen the cautions the detailed form shows on step 1). Old drafts read `signingChecks` as empty.
   - The two declarations moved from step 1 to the signing step (`checks.ts`, so the review packet digest changed and was regenerated).
     Extras (funeral, digital, pets) are not asked in the guided flow; they are in the detailed form.
 - **Accessibility (Phase 5)** axe (WCAG 2.2 AA + best practice) over every step, tab and dialog, light and

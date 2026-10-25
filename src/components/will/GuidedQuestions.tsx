@@ -15,7 +15,7 @@ import {
   residueOptions,
   type ResiduePreset,
 } from '@/lib/will/guided';
-import { RELIGIONS, scopeOf, type Religion } from '@/lib/will/law';
+import { CIRCUMSTANCES, CIRCUMSTANCE_LABELS, RELIGIONS, scopeOf, type Circumstance, type Religion } from '@/lib/will/law';
 import { ASSET_KIND_LABELS, ASSET_KINDS, blankAsset, blankPerson, isMinor, personName, RELATIONS, type AssetKind, type Person, type Relation, type WillRecord } from '@/lib/will/model';
 import type { WealthRecord } from '@/lib/wealth/model';
 import { SharesEditor } from './SharesEditor';
@@ -96,6 +96,33 @@ export function HomeQ({ record, update }: QProps) {
           <Input id="g-state" value={t.state} autoComplete="address-level1" onChange={(e) => set({ state: e.target.value })} className="sm:max-w-xs" />
         </Field>
       </div>
+    </div>
+  );
+}
+
+export function UnusualQ({ record, update }: QProps) {
+  const t = record.testator;
+  const toggle = (c: Circumstance) =>
+    update((r) => {
+      const has = r.testator.circumstances.includes(c);
+      return { ...r, testator: { ...r.testator, circumstances: has ? r.testator.circumstances.filter((x) => x !== c) : [...r.testator.circumstances, c] } };
+    });
+  return (
+    <div>
+      <Ask title="Is anything unusual about your situation?">
+        None of these stops you. They tell us where an advocate’s read-through is worth having. If none apply, just carry on.
+      </Ask>
+      <fieldset>
+        <legend className="sr-only">Does any of this apply to you?</legend>
+        <div className="space-y-2">
+          {CIRCUMSTANCES.map((c) => (
+            <label key={c} className="surface-sunken flex cursor-pointer items-start gap-2.5 rounded-xl border px-3.5 py-3.5 text-[15px]">
+              <input type="checkbox" checked={t.circumstances.includes(c)} onChange={() => toggle(c)} className="mt-1 size-4 shrink-0 accent-[var(--accent)]" />
+              <span>{CIRCUMSTANCE_LABELS[c]}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
     </div>
   );
 }
