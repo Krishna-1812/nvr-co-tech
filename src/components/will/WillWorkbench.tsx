@@ -229,7 +229,7 @@ function Draft({
         <WillSave userId={userId} signedIn={signedIn} />
         <Hero ready={ready} blocked={blocked} signedIn={signedIn} showStatus={false} compact />
         {state.saveError && <Notice tone="var(--status-rejected)">{state.saveError}</Notice>}
-        <GuidedWill record={record} update={actions.update} findings={findings} today={today} wealth={wealth} name={selfName} email={email} onDetailed={toDetailed} fresh={fresh} />
+        <GuidedWill record={record} update={actions.update} findings={findings} today={today} wealth={wealth} name={selfName} email={email} onDetailed={toDetailed} fresh={fresh} actions={actions} hasLock={state.hasLock} signedIn={signedIn} wealthLocked={wealthState.status === 'locked'} onWriteBack={(profile) => wealthActions(userId).setProfile(profile)} />
         <p className="text-subtle px-1 text-xs">
           {signedIn ? 'Kept in this browser, and encrypted in your account once you lock it.' : 'Kept only in this browser.'} A drafting aid, not legal advice.
           {!LAW.advocateSignOff && ' In testing: not yet reviewed by an advocate.'}

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { checkWill, readiness } from './checks';
+import { CIRCUMSTANCE_LABELS } from './law';
+import { readWill } from './model';
 import { setAsset, setPerson, setRole } from './edit';
 import { EXAMPLE_TODAY } from './example';
 import {
@@ -12,7 +14,11 @@ import {
   residueDone,
   residueOptions,
   resumeAt,
+  reasonsForAdvice,
   setSoleBackup,
+  SIGNING_STEPS,
+  signingProgress,
+  toggleSigningStep,
 } from './guided';
 import { blankAsset, blankPerson, blankWill, type Person, type WillRecord } from './model';
 
@@ -31,13 +37,13 @@ function answered(): WillRecord {
 describe('which questions are asked', () => {
   it('asks the same ten-ish questions of everybody, plus a guardian question only when a child is under 18', () => {
     const none = blankWill();
-    expect(questionsFor(none, TODAY)).toEqual(['name', 'born', 'home', 'family', 'everything', 'gifts', 'executor', 'witnesses', 'confirm']);
+    expect(questionsFor(none, TODAY)).toEqual(['name', 'born', 'home', 'unusual', 'family', 'everything', 'gifts', 'executor', 'witnesses', 'confirm']);
 
     const adults = setPerson(none, person('Aarav', 'Son', '1995-01-01'));
     expect(questionsFor(adults, TODAY)).not.toContain('guardian');
 
     const minor = setPerson(none, person('Aarav', 'Son', '2018-05-01'));
-    expect(questionsFor(minor, TODAY)).toEqual(['name', 'born', 'home', 'family', 'everything', 'gifts', 'executor', 'guardian', 'witnesses', 'confirm']);
+    expect(questionsFor(minor, TODAY)).toEqual(['name', 'born', 'home', 'unusual', 'family', 'everything', 'gifts', 'executor', 'guardian', 'witnesses', 'confirm']);
   });
 
   it('knows what each question needs, and treats the optional ones as done', () => {
@@ -47,7 +53,7 @@ describe('which questions are asked', () => {
     expect(isAnswered('home', r)).toBe(false);
     expect(isAnswered('everything', r)).toBe(false);
     expect(isAnswered('confirm', r)).toBe(false);
-    for (const q of ['family', 'gifts', 'executor', 'guardian', 'witnesses'] as const) expect(isAnswered(q, r), q).toBe(true);
+    for (const q of ['unusual', 'family', 'gifts', 'executor', 'guardian', 'witnesses'] as const) expect(isAnswered(q, r), q).toBe(true);
 
     const a = answered();
     expect(isAnswered('born', a)).toBe(true);
@@ -161,5 +167,47 @@ describe('the whole flow', () => {
     r = setRole(r, 'witnessIds', [r.people[1].id, r.people[2].id]);
     r.testator = { ...r.testator, soundMind: true, voluntary: true };
     expect(readiness(checkWill(r, TODAY)).ready).toBe(false);
+  });
+});
+
+describe('signing day', () => {
+  it('lists every step of the signing guide once, rules and good practice both', () => {
+    expect(SIGNING_STEPS.length).toBeGreaterThanOrEqual(8);
+    expect(new Set(SIGNING_STEPS.map((s) => s.key)).size).toBe(SIGNING_STEPS.length);
+    expect(SIGNING_STEPS.some((s) => s.kind === 'rule')).toBe(true);
+    expect(SIGNING_STEPS.some((s) => s.kind === 'tip')).toBe(true);
+  });
+
+  it('ticks and unticks a step, and counts them', () => {
+    let r = blankWill();
+    expect(signingProgress(r)).toEqual({ done: 0, total: SIGNING_STEPS.length });
+    r = toggleSigningStep(r, SIGNING_STEPS[0].key);
+    r = toggleSigningStep(r, SIGNING_STEPS[3].key);
+    expect(signingProgress(r).done).toBe(2);
+    r = toggleSigningStep(r, SIGNING_STEPS[0].key);
+    expect(signingProgress(r).done).toBe(1);
+    expect(r.register.signingChecks).toEqual([SIGNING_STEPS[3].key]);
+  });
+
+  it('drops a tick for a step the guide no longer has', () => {
+    const r = { ...blankWill(), register: { ...blankWill().register, signingChecks: ['a step that was removed'] } };
+    expect(toggleSigningStep(r, SIGNING_STEPS[0].key).register.signingChecks).toEqual([SIGNING_STEPS[0].key]);
+  });
+
+  it('keeps the ticks through a save and reload, and reads an older draft as nothing ticked', () => {
+    const r = toggleSigningStep(blankWill('Rohan'), SIGNING_STEPS[1].key);
+    expect(readWill(JSON.parse(JSON.stringify(r)))?.register.signingChecks).toEqual([SIGNING_STEPS[1].key]);
+    const old = JSON.parse(JSON.stringify(r));
+    delete old.register.signingChecks;
+    expect(readWill(old)?.register.signingChecks).toEqual([]);
+  });
+});
+
+describe('when an advocate is worth having', () => {
+  it('says what the person told us, in their own words', () => {
+    const r = blankWill();
+    expect(reasonsForAdvice(r)).toEqual([]);
+    r.testator.circumstances = ['second_marriage', 'assets_abroad'];
+    expect(reasonsForAdvice(r)).toEqual([CIRCUMSTANCE_LABELS.second_marriage, CIRCUMSTANCE_LABELS.assets_abroad]);
   });
 });

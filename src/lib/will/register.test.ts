@@ -20,6 +20,7 @@ function signed(): WillRecord {
     registered: false,
     registeredAt: '',
     reviewBy: '2027-09-01',
+    signingChecks: [],
   };
   return w;
 }

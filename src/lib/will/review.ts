@@ -103,7 +103,7 @@ function afterCatalog(): { id: string; severity: Severity; title: string; detail
 
   const signed = (): WillRecord => {
     const w = structuredClone(exampleWill());
-    w.register = { signedOn: '2026-09-01', originalKept: '', executorTold: false, alsoKnows: '', registered: true, registeredAt: '', reviewBy: '' };
+    w.register = { signedOn: '2026-09-01', originalKept: '', executorTold: false, alsoKnows: '', registered: true, registeredAt: '', reviewBy: '', signingChecks: [] };
     return w;
   };
   add(registerPrompts(exampleWill(), EXAMPLE_TODAY));

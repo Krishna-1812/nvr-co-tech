@@ -1,4 +1,6 @@
 import { equalPercents, setGift, setResidue } from './edit';
+import { GUIDE } from './guide';
+import { CIRCUMSTANCE_LABELS } from './law';
 import { findAsset, isMinor, type Person, type Share, type WillRecord } from './model';
 
 /**
@@ -14,12 +16,12 @@ import { findAsset, isMinor, type Person, type Share, type WillRecord } from './
  * things for particular people, who carries it out, and who watches you sign.
  */
 
-export type QuestionId = 'name' | 'born' | 'home' | 'family' | 'everything' | 'gifts' | 'executor' | 'guardian' | 'witnesses' | 'confirm';
+export type QuestionId = 'name' | 'born' | 'home' | 'unusual' | 'family' | 'everything' | 'gifts' | 'executor' | 'guardian' | 'witnesses' | 'confirm';
 
 /** The questions this person will be asked, in order. The guardian question exists only if a child is under 18. */
 export function questionsFor(r: WillRecord, today: string): QuestionId[] {
   const hasMinor = r.people.some((p) => isMinor(p, today));
-  const out: QuestionId[] = ['name', 'born', 'home', 'family', 'everything', 'gifts', 'executor'];
+  const out: QuestionId[] = ['name', 'born', 'home', 'unusual', 'family', 'everything', 'gifts', 'executor'];
   if (hasMinor) out.push('guardian');
   out.push('witnesses', 'confirm');
   return out;
@@ -121,4 +123,28 @@ export function recipientOf(r: WillRecord, assetId: string): string {
 export function giveTo(r: WillRecord, assetId: string, personId: string): WillRecord {
   if (!findAsset(r, assetId)) return r;
   return setGift(r, assetId, personId ? [{ personId, percent: 100, alternateId: '' }] : []);
+}
+
+// ── Signing day ─────────────────────────────────────────────────────────────
+
+/** Every step of signing day, in order, from the signing guide: the rules of the law and the good practice, kept apart. */
+export const SIGNING_STEPS = GUIDE.flatMap((part) => part.steps.map((s) => ({ part: part.heading, key: s.text, text: s.text, detail: s.detail ?? '', kind: s.kind })));
+
+/** Ticks or unticks one step of signing day. Ticks for steps the guide no longer has are dropped. */
+export function toggleSigningStep(r: WillRecord, key: string): WillRecord {
+  const have = r.register.signingChecks;
+  const next = have.includes(key) ? have.filter((k) => k !== key) : [...have, key];
+  return { ...r, register: { ...r.register, signingChecks: next.filter((k) => SIGNING_STEPS.some((s) => s.key === k)) } };
+}
+
+/** How many of signing day's steps are ticked, of how many. */
+export function signingProgress(r: WillRecord): { done: number; total: number } {
+  return { done: SIGNING_STEPS.filter((s) => r.register.signingChecks.includes(s.key)).length, total: SIGNING_STEPS.length };
+}
+
+// ── When a lawyer's read is worth having ────────────────────────────────────
+
+/** The things the person told us that make an advocate's read-through worth having, in their own words. */
+export function reasonsForAdvice(r: WillRecord): string[] {
+  return r.testator.circumstances.map((c) => CIRCUMSTANCE_LABELS[c]);
 }

@@ -1,17 +1,20 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, ChevronLeft, FileText, HandHelping, ListChecks, Scale } from 'lucide-react';
-import { Button } from '@/components/ui/primitives';
+import { ArrowRight, ChevronLeft, Download, FileText, HandHelping, KeyRound, ListChecks, PenLine, Scale, ShieldCheck } from 'lucide-react';
+import { Button, Field, Input } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/Modal';
+import { saveFile } from '@/components/wealth/Household';
 import { SEVERITY_TONE } from '@/components/wealth/shared';
 import { readiness, type Finding, type Step } from '@/lib/will/checks';
-import { GUIDE } from '@/lib/will/guide';
-import { isAnswered, questionsFor, REQUIRED, resumeAt, type QuestionId } from '@/lib/will/guided';
+import { isAnswered, questionsFor, reasonsForAdvice, REQUIRED, resumeAt, signingProgress, SIGNING_STEPS, toggleSigningStep, type QuestionId } from '@/lib/will/guided';
 import { isBlank } from '@/lib/will/progress';
 import { scopeOf } from '@/lib/will/law';
-import type { WillRecord } from '@/lib/will/model';
+import { willBackupFileName, type WillActions } from '@/lib/will/store';
+import type { Register, WillRecord } from '@/lib/will/model';
 import type { WealthRecord } from '@/lib/wealth/model';
+import { AfterPanel } from './AfterPanel';
+import { PasscodeModal } from './DataPanel';
 import { ExportBar } from './ExportBar';
 import {
   BornQ,
@@ -24,6 +27,7 @@ import {
   HomeQ,
   NameQ,
   outOfScopeReasons,
+  UnusualQ,
   WitnessesQ,
   type QProps,
 } from './GuidedQuestions';
@@ -62,6 +66,11 @@ export function GuidedWill({
   email,
   onDetailed,
   fresh = false,
+  actions,
+  hasLock,
+  signedIn,
+  wealthLocked,
+  onWriteBack,
 }: {
   record: WillRecord;
   update: QProps['update'];
@@ -74,6 +83,11 @@ export function GuidedWill({
   onDetailed: (tab?: 'after' | 'checks') => void;
   /** Just started from the welcome: begin at the first question, whatever the draft already holds (an import, the account's name). */
   fresh?: boolean;
+  actions: WillActions;
+  hasLock: boolean;
+  signedIn: boolean;
+  wealthLocked: boolean;
+  onWriteBack: (profile: WealthRecord['profile']) => void;
 }) {
   const qs = useMemo(() => questionsFor(record, today), [record, today]);
   const [at, setAt] = useState<QuestionId>(() => (fresh || isBlank(record) ? 'name' : resumeAt(record, today)));
@@ -120,6 +134,13 @@ export function GuidedWill({
         today={today}
         name={name}
         email={email}
+        actions={actions}
+        hasLock={hasLock}
+        signedIn={signedIn}
+        wealth={wealth}
+        wealthLocked={wealthLocked}
+        onWriteBack={onWriteBack}
+        update={update}
         onChange={() => go('confirm')}
         onFix={(f) => go(STEP_TO_QUESTION[f.step])}
         onDetailed={onDetailed}
@@ -207,6 +228,8 @@ export function GuidedWill({
 /** Whether an optional question has nothing in it yet, so the way on reads “Skip” and not “Next”. */
 function isOptionalEmpty(id: QuestionId, r: WillRecord): boolean {
   switch (id) {
+    case 'unusual':
+      return r.testator.circumstances.length === 0;
     case 'family':
       return r.people.length === 0;
     case 'gifts':
@@ -230,6 +253,8 @@ function Question({ id, q, findings, wealth }: { id: QuestionId; q: QProps; find
       return <BornQ {...q} />;
     case 'home':
       return <HomeQ {...q} />;
+    case 'unusual':
+      return <UnusualQ {...q} />;
     case 'family':
       return <FamilyQ {...q} />;
     case 'everything':
@@ -278,10 +303,17 @@ function OutOfScope({ reasons, onChange, onHelp }: { reasons: ReturnType<typeof 
 
 function Ready({
   record,
+  update,
   findings,
   today,
   name,
   email,
+  actions,
+  hasLock,
+  signedIn,
+  wealth,
+  wealthLocked,
+  onWriteBack,
   onChange,
   onFix,
   onDetailed,
@@ -289,10 +321,17 @@ function Ready({
   setSheet,
 }: {
   record: WillRecord;
+  update: QProps['update'];
   findings: Finding[];
   today: string;
   name: string;
   email: string;
+  actions: WillActions;
+  hasLock: boolean;
+  signedIn: boolean;
+  wealth: WealthRecord | null;
+  wealthLocked: boolean;
+  onWriteBack: (profile: WealthRecord['profile']) => void;
   onChange: () => void;
   onFix: (f: Finding) => void;
   onDetailed: (tab?: 'after' | 'checks') => void;
@@ -302,10 +341,36 @@ function Ready({
   const ready = readiness(findings);
   const todo = findings.filter((f) => f.severity !== 'note');
   const [help, setHelp] = useState(false);
-  const rules = GUIDE.flatMap((p) => p.steps).filter((s) => s.kind === 'rule');
+  const signed = record.register.signedOn !== '';
+  const advice = reasonsForAdvice(record);
   // Focus lands on the heading once, when this screen appears, so a screen reader starts at "ready".
   const top = useRef<HTMLDivElement>(null);
   useEffect(() => top.current?.focus(), []);
+
+  const adviceCard = (
+    <section aria-label="An advocate" className={advice.length > 0 ? 'tinted flex flex-col gap-3 rounded-2xl border p-5 sm:flex-row sm:items-center' : 'surface-sunken flex flex-col gap-3 rounded-2xl border p-5 sm:flex-row sm:items-center'} style={advice.length > 0 ? ({ '--tone': SEVERITY_TONE.review } as React.CSSProperties) : undefined}>
+      <Scale className="size-5 shrink-0" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <h3 className="text-sm font-semibold">{advice.length > 0 ? 'We would suggest an advocate reads this before you sign' : 'Want an advocate to read it first?'}</h3>
+        {advice.length > 0 ? (
+          <>
+            <p className="text-muted mt-0.5 text-[13.5px]">Because you told us:</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13.5px]">
+              {advice.map((a) => (
+                <li key={a}>{a}</li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="text-muted mt-0.5 text-[13.5px]">Most useful if anything about your family or what you own is out of the ordinary.</p>
+        )}
+      </div>
+      <Button variant={advice.length > 0 ? 'primary' : 'secondary'} onClick={() => setHelp(true)}>
+        <HandHelping className="size-4" aria-hidden />
+        Ask for help
+      </Button>
+    </section>
+  );
 
   return (
     <div className="space-y-5">
@@ -345,40 +410,21 @@ function Ready({
         )}
       </section>
 
+      {!signed && advice.length > 0 && adviceCard}
+
       <ExportBar record={record} today={today} />
 
-      <section aria-label="On the day" className="surface-lit a-ring rounded-[1.75rem] p-5 sm:p-8">
-        <div className="flex items-center gap-2">
-          <ListChecks className="size-5" aria-hidden />
-          <h3 className="text-lg font-semibold">On the day you sign</h3>
-        </div>
-        <ol className="mt-4 space-y-3">
-          {rules.map((s, i) => (
-            <li key={s.text} className="flex gap-3 text-[15px] leading-relaxed">
-              <span aria-hidden className="surface-sunken grid size-6 shrink-0 place-items-center rounded-full border text-[12px] font-semibold tabular-nums">
-                {i + 1}
-              </span>
-              <span>
-                <span className="font-medium">{s.text}</span>
-                {s.detail && <span className="text-muted block text-[13.5px]">{s.detail}</span>}
-              </span>
-            </li>
-          ))}
-        </ol>
-        <p className="text-subtle mt-4 text-xs">The “How to sign” PDF above has the full list, including good practice. A will needs no stamp paper and no notary.</p>
-      </section>
+      <SigningDay record={record} update={update} />
 
-      <section className="surface-sunken flex flex-col gap-3 rounded-2xl border p-5 sm:flex-row sm:items-center">
-        <Scale className="size-5 shrink-0" aria-hidden />
-        <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold">Want an advocate to read it first?</h3>
-          <p className="text-muted mt-0.5 text-[13.5px]">Most useful if anything about your family or what you own is out of the ordinary.</p>
-        </div>
-        <Button onClick={() => setHelp(true)}>
-          <HandHelping className="size-4" aria-hidden />
-          Ask for help
-        </Button>
-      </section>
+      {signed ? (
+        <AfterPanel record={record} update={update} wealth={wealth} wealthLocked={wealthLocked} onWriteBack={onWriteBack} today={today} name={name} email={email} />
+      ) : (
+        <SignedIt record={record} update={update} today={today} />
+      )}
+
+      <ProtectCard actions={actions} hasLock={hasLock} signedIn={signedIn} />
+
+      {!signed && advice.length === 0 && adviceCard}
 
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="secondary" onClick={onChange}>
@@ -387,9 +433,6 @@ function Ready({
         <Button variant="ghost" onClick={() => setSheet(true)}>
           <FileText className="size-4" aria-hidden />
           Read my will
-        </Button>
-        <Button variant="ghost" onClick={() => onDetailed('after')}>
-          After you sign: record where it is kept
         </Button>
         <Button variant="ghost" onClick={() => onDetailed()}>
           Detailed view
@@ -404,5 +447,116 @@ function Ready({
       <HelpRequest open={help} onClose={() => setHelp(false)} name={name} email={email} />
       {!ready.ready && todo.length === 0 && <Notice>Nothing to fix.</Notice>}
     </div>
+  );
+}
+
+/** Signing day as a list to tick off: the rules of the law and the good practice, in the order of the day. */
+function SigningDay({ record, update }: { record: WillRecord; update: QProps['update'] }) {
+  const { done, total } = signingProgress(record);
+  return (
+    <section aria-label="Signing day" className="surface-lit a-ring rounded-[1.75rem] p-5 sm:p-8">
+      <div className="flex flex-wrap items-center gap-2">
+        <ListChecks className="size-5" aria-hidden />
+        <h3 className="text-lg font-semibold">On the day you sign</h3>
+        <span className="text-muted ml-auto text-xs font-medium tabular-nums" aria-live="polite">
+          {done} of {total} done
+        </span>
+      </div>
+      <ul className="mt-4 space-y-2">
+        {SIGNING_STEPS.map((st, i) => {
+          const heading = i === 0 || SIGNING_STEPS[i - 1].part !== st.part ? st.part : null;
+          const on = record.register.signingChecks.includes(st.key);
+          return (
+            <li key={st.key}>
+              {heading && <p className="a-label mt-4 mb-2 first:mt-0">{heading}</p>}
+              <label className="surface-sunken flex cursor-pointer items-start gap-3 rounded-xl border px-3.5 py-3">
+                <input type="checkbox" checked={on} onChange={() => update((r) => toggleSigningStep(r, st.key))} className="mt-1 size-4 shrink-0 accent-[var(--accent)]" />
+                <span className="min-w-0">
+                  <span className={on ? 'text-muted font-medium line-through decoration-1' : 'font-medium'}>{st.text}</span>
+                  {st.detail && <span className="text-muted block text-[13.5px] leading-relaxed">{st.detail}</span>}
+                  <span className="text-subtle mt-0.5 block text-[10.5px] font-semibold tracking-wide uppercase">{st.kind === 'rule' ? 'Required by law' : 'Good practice'}</span>
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="text-subtle mt-4 text-xs">A will needs no stamp paper and no notary. The “How to sign” PDF above has the same list to take with you.</p>
+    </section>
+  );
+}
+
+/** The hand-off from writing the will to keeping it: say when it was signed, and the after-signing screen takes over. */
+function SignedIt({ record, update, today }: { record: WillRecord; update: QProps['update']; today: string }) {
+  const [day, setDay] = useState(today);
+  const set = (patch: Partial<Register>) => update((r) => ({ ...r, register: { ...r.register, ...patch } }));
+  return (
+    <section aria-label="After you sign" className="surface-sunken rounded-2xl border p-5">
+      <div className="flex items-center gap-2">
+        <PenLine className="size-5 shrink-0" aria-hidden />
+        <h3 className="text-sm font-semibold">Signed it?</h3>
+      </div>
+      <p className="text-muted mt-1 max-w-xl text-[13.5px] leading-relaxed text-pretty">
+        Tell us the day. Then we help you write down where the original is kept, who knows, and when to read it again, and we keep Wealth Tracker true.
+      </p>
+      <div className="mt-3 flex flex-wrap items-end gap-3">
+        <Field label="The day you signed" htmlFor="g-signed-on">
+          <Input id="g-signed-on" type="date" max={today} value={day} onChange={(e) => setDay(e.target.value)} />
+        </Field>
+        <Button variant="primary" disabled={!day || record.register.signedOn !== ''} onClick={() => set({ signedOn: day })}>
+          I have signed it
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+/** Keep it safe: a passcode so nobody using this browser can read it, and a file to keep. Offered once there is a will to protect. */
+function ProtectCard({ actions, hasLock, signedIn }: { actions: WillActions; hasLock: boolean; signedIn: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState('');
+  return (
+    <section aria-label="Keep it safe" className="surface-lit a-ring rounded-2xl border p-5">
+      <div className="flex items-center gap-2">
+        <ShieldCheck className="size-5 shrink-0" aria-hidden />
+        <h3 className="text-sm font-semibold">Keep it safe</h3>
+      </div>
+      <p className="text-muted mt-1 max-w-xl text-[13.5px] leading-relaxed text-pretty">
+        {hasLock
+          ? 'Your draft is locked with a passcode, so nobody using this browser can read it.'
+          : 'Your draft is kept in this browser. A passcode locks it so nobody else using this device can read it.'}{' '}
+        {signedIn ? 'A locked draft is also kept, encrypted, in your account, where we cannot read it.' : 'Sign in to also keep an encrypted copy in your account.'} A forgotten passcode cannot be recovered, so keep a backup file too.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button onClick={() => setOpen(true)}>
+          <KeyRound className="size-4" aria-hidden />
+          {hasLock ? 'Change the passcode' : 'Lock with a passcode'}
+        </Button>
+        <Button
+          onClick={async () => {
+            saveFile(new Blob([await actions.backup()], { type: 'application/json' }), willBackupFileName());
+            setNote('Backup downloaded.');
+          }}
+        >
+          <Download className="size-4" aria-hidden />
+          Download a backup
+        </Button>
+      </div>
+      {note && (
+        <p role="status" className="text-muted mt-2 text-[13px]">
+          {note}
+        </p>
+      )}
+      <PasscodeModal
+        open={open}
+        changing={hasLock}
+        onClose={() => setOpen(false)}
+        onSet={async (code) => {
+          await actions.setPasscode(code);
+          setOpen(false);
+          setNote('Locked. You will be asked for the passcode next time.');
+        }}
+      />
+    </section>
   );
 }

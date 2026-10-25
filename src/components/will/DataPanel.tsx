@@ -216,7 +216,7 @@ function WipeConfirm({ onCancel, onWipe }: { onCancel: () => void; onWipe: () =>
   );
 }
 
-function PasscodeModal({
+export function PasscodeModal({
   open,
   changing,
   onClose,
