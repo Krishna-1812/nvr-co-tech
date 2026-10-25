@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/primitives';
 import { saveFile } from '@/components/wealth/Household';
 import { SEVERITY_TONE, Tag } from '@/components/wealth/shared';
 import { exportStatus, type WillFileKind } from '@/lib/will/exports';
-import type { WillRecord } from '@/lib/will/model';
+import { blankWill, type WillRecord } from '@/lib/will/model';
+import { todayIso } from '@/lib/wealth/model';
 import { Notice } from './shared';
 
 /**
@@ -88,5 +89,39 @@ export function ExportBar({ record, today }: { record: WillRecord; today: string
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * A link-sized way to look at a finished will before making one: the labelled sample,
+ * with invented names. For the welcome screen, where there is no draft to export yet.
+ */
+export function SampleLink() {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  return (
+    <>
+      <Button
+        variant="ghost"
+        loading={busy}
+        onClick={async () => {
+          setBusy(true);
+          setError(false);
+          try {
+            const { willFile } = await import('@/lib/will/exports');
+            const f = await willFile('sample-pdf', blankWill(), todayIso());
+            saveFile(f.blob, f.name);
+          } catch {
+            setError(true);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <FileText className="size-4" aria-hidden />
+        See a sample will
+      </Button>
+      {error && <span className="text-xs text-[var(--status-rejected)]">The sample could not be made. Try again.</span>}
+    </>
   );
 }

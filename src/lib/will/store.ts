@@ -363,3 +363,50 @@ export function saved(user: string): Promise<void> {
 export function __resetForTests() {
   slots.clear();
 }
+
+// ── Which way through the will ─────────────────────────────────────────────
+
+/**
+ * Whether this person was last working in the guided questions or the detailed form.
+ * A display preference, not part of the will: it holds no word of it, and it is kept
+ * here (and not in the workbench) so every use of browser storage by Will Maker is in
+ * this one file.
+ */
+export type WillView = 'guided' | 'full';
+
+const VIEW_KEY = (user: string) => `tfi:will:view:${user}`;
+const viewListeners = new Set<() => void>();
+
+function readView(user: string): WillView | null {
+  try {
+    const v = localStorage.getItem(VIEW_KEY(user));
+    return v === 'guided' || v === 'full' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The saved choice, or null if they have not made one (the screen then picks by whether there is a draft). */
+export function useWillView(user: string): [WillView | null, (v: WillView) => void] {
+  const view = useSyncExternalStore(
+    (l) => {
+      viewListeners.add(l);
+      return () => viewListeners.delete(l);
+    },
+    () => readView(user),
+    () => null,
+  );
+  const set = (v: WillView) => {
+    try {
+      localStorage.setItem(VIEW_KEY(user), v);
+    } catch {
+      // Not remembered on this device; the choice still holds until the page is closed.
+      memory.set(user, v);
+    }
+    for (const l of viewListeners) l();
+  };
+  return [view ?? memory.get(user) ?? null, set];
+}
+
+/** The choice for a browser that will not store one. */
+const memory = new Map<string, WillView>();

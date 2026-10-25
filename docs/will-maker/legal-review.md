@@ -1,6 +1,6 @@
 # Will Maker: legal review packet
 
-**Packet digest: `89c5bc6e600ae423`**
+**Packet digest: `71def5d4c3b281c7`**
 
 Generated from the code (`npm run will:packet`); do not edit by hand. Rules last read against published sources on 2026-10-24. The digest covers these files, which carry every legal sentence the product says:
 

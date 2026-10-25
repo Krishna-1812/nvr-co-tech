@@ -613,6 +613,24 @@ never a name) to platform admins; everybody else gets `OpenHub`, which reads `SO
   A browser audit (24 Oct 2026) found 61 requests, none cross-origin, none carrying will text, only a
   page-view and a time-on-page ping. Details and what to tell counsel: `docs/will-maker/dpdp.md`;
   draft terms: `terms-draft.md`.
+- **Simpler to use (25 Oct 2026; critique and screens in the session that built it)**
+  - **Welcome, not a form.** A blank draft (`lib/will/progress.ts` `isBlank`: the account's name alone does not count) opens on
+    `Welcome.tsx`: one Start button, "Start from my Wealth Tracker" if there is a record, a sample, and a link to the
+    detailed form. Nothing is flagged as missing until it has been seen once (`quiet` in `StepProps`; a refusal such as
+    Muslim/Goa/minor is always immediate). The "N to fix" tally appears only on the last step and the other tabs.
+  - **Guided questions are the default for a new draft** (`GuidedWill.tsx`, `GuidedQuestions.tsx`, pure logic in
+    `lib/will/guided.ts` with tests): name; born + religion (the scope gate, with "Ask an advocate" if it refuses);
+    where you live; family; **who gets everything** (ready-made answers: all to spouse, spouse and children equally, children
+    equally, or custom with `SharesEditor`); optional particular gifts (assets from Wealth Tracker or typed); executor;
+    guardian (asked only if a child is under 18); witnesses (can be added on the spot, can be left for the day);
+    the two declarations. The live will (`WillPaper`, shared with the Preview tab) sits beside the questions on desktop and
+    behind "My will" on a phone. The ending (`Ready`) says "ready to print" or lists what to fix (each with a Fix that goes to a
+    question), the downloads, and "On the day you sign". It edits the same `WillRecord` and answers to the same
+    `checkWill`, so the **detailed form** (tabs and eight steps) is one click away and nothing is lost either way.
+    Which view was last used is kept by `useWillView` in `store.ts` (a display preference, not will content); with none
+    saved, a blank draft is guided and one with work in it is detailed.
+  - The two declarations moved from step 1 to the signing step (`checks.ts`, so the review packet digest changed and was regenerated).
+    Extras (funeral, digital, pets) are not asked in the guided flow; they are in the detailed form.
 - **Accessibility (Phase 5)** axe (WCAG 2.2 AA + best practice) over every step, tab and dialog, light and
   dark, 1280 and 390 wide: clean for Will Maker. Fixed along the way: heading order, a keyboard-focusable
   scrolling schedule, the tabs now follow the ARIA pattern (arrows, Home, End, `tabpanel`), the shared
