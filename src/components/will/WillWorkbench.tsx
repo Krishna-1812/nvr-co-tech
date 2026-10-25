@@ -9,7 +9,7 @@ import { SEVERITY_TONE } from '@/components/wealth/shared';
 import { checkWill, readiness, STEPS, type Finding, type Step } from '@/lib/will/checks';
 import { LAW, scopeOf } from '@/lib/will/law';
 import { todayIso } from '@/lib/wealth/model';
-import { useWill, willActions, type WillActions, type WillState } from '@/lib/will/store';
+import { useWill, useWillView, willActions, type WillActions, type WillState, type WillView } from '@/lib/will/store';
 import { importFromWealth } from '@/lib/will/fromWealth';
 import { isBlank } from '@/lib/will/progress';
 import { forgetAccountCopy } from '@/lib/will/account';
@@ -28,6 +28,7 @@ import { Preview } from './Preview';
 import { SignStep } from './SignStep';
 import { Notice, type StepProps } from './shared';
 import { WillSave } from './WillSave';
+import { GuidedWill } from './GuidedWill';
 import { Welcome } from './Welcome';
 import { YouStep } from './YouStep';
 
@@ -121,6 +122,19 @@ function Draft({
   const wealth = wealthState.status === 'ready' && (wealthState.record.items.length > 0 || wealthState.record.profile.members.length > 1) ? wealthState.record : null;
   const today = useMemo(() => todayIso(), []);
   const [tab, setTab] = useState<Tab>('interview');
+  // Guided questions or the detailed form. What they chose last wins; otherwise a blank draft is guided
+  // and one with work in it is detailed. Fixed when the draft opens, so typing the first answer does not
+  // swap the screen out from under somebody.
+  // Set when they press a start button on the welcome, so the guided questions begin at the first one.
+  const [fresh, setFresh] = useState(false);
+  const [saved, setSaved] = useWillView(userId);
+  const [firstView] = useState<WillView>(() => (isBlank(state.record) ? 'guided' : 'full'));
+  const view: WillView = saved ?? firstView;
+  const toDetailed = (t?: Tab) => {
+    setFresh(false);
+    setSaved('full');
+    setTab(t ?? 'interview');
+  };
   const [step, setStep] = useState<Step>('you');
   const [focus, setFocus] = useState<StepProps['focus']>(null);
   // A blank draft opens on a welcome, not a form; one with work in it opens on the work.
@@ -191,17 +205,35 @@ function Draft({
         <WillSave userId={userId} signedIn={signedIn} />
         <Hero ready={ready} blocked={blocked} signedIn={signedIn} showStatus={false} compact />
         <Welcome
-          onStart={() => setBegan(true)}
+          onStart={() => (setSaved('guided'), setFresh(true), setBegan(true))}
+          onDetailed={() => (setSaved('full'), setBegan(true))}
           wealthCount={wealth ? wealth.items.length : 0}
           onStartFromWealth={
             wealth && wealth.items.length > 0
               ? () => {
                   actions.update((r) => importFromWealth(r, wealth).record);
+                  setSaved('guided');
+                  setFresh(true);
                   setBegan(true);
                 }
               : null
           }
         />
+      </div>
+    );
+  }
+
+  if (view === 'guided') {
+    return (
+      <div className="space-y-5" data-private>
+        <WillSave userId={userId} signedIn={signedIn} />
+        <Hero ready={ready} blocked={blocked} signedIn={signedIn} showStatus={false} compact />
+        {state.saveError && <Notice tone="var(--status-rejected)">{state.saveError}</Notice>}
+        <GuidedWill record={record} update={actions.update} findings={findings} today={today} wealth={wealth} name={selfName} email={email} onDetailed={toDetailed} fresh={fresh} />
+        <p className="text-subtle px-1 text-xs">
+          {signedIn ? 'Kept in this browser, and encrypted in your account once you lock it.' : 'Kept only in this browser.'} A drafting aid, not legal advice.
+          {!LAW.advocateSignOff && ' In testing: not yet reviewed by an advocate.'}
+        </p>
       </div>
     );
   }
@@ -212,6 +244,11 @@ function Draft({
     <div className="space-y-5" data-private>
       <WillSave userId={userId} signedIn={signedIn} />
       <Hero ready={ready} blocked={blocked} signedIn={signedIn} showStatus={showStatus} />
+      <div className="-mb-2 flex justify-end">
+        <Button size="sm" variant="ghost" onClick={() => setSaved('guided')}>
+          Switch to the guided questions
+        </Button>
+      </div>
 
       {state.saveError && <Notice tone="var(--status-rejected)">{state.saveError}</Notice>}
 
@@ -333,7 +370,7 @@ function Hero({
         className="a-orb -top-40 -left-24 size-[34rem] opacity-[0.16]"
         style={{ background: 'radial-gradient(circle, var(--h-amber), transparent 66%)' }}
       />
-      <div className="relative grid gap-4 p-5 sm:gap-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-12">
+      <div className={cn('relative grid gap-4 p-5 sm:gap-6 sm:p-8', compact ? 'sm:py-6' : 'lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-12')}>
         <div className="min-w-0">
           <p className="a-label">Will Maker</p>
           <h1 id="wm-title" className="m-display mt-2 text-[clamp(1.6rem,4vw,2.6rem)] leading-[1.06] text-balance">
@@ -366,9 +403,11 @@ function Hero({
             </p>
           )}
         </div>
-        <div className="hidden lg:flex lg:flex-col lg:justify-center [&>*]:max-h-[18rem]">
-          <ArchScene motif="scales" className="h-full min-h-[14rem]" />
-        </div>
+        {!compact && (
+          <div className="hidden lg:flex lg:flex-col lg:justify-center [&>*]:max-h-[18rem]">
+            <ArchScene motif="scales" className="h-full min-h-[14rem]" />
+          </div>
+        )}
       </div>
     </section>
   );

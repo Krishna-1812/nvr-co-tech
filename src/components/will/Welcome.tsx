@@ -14,7 +14,18 @@ import { SampleLink } from './ExportBar';
  * family and what they own come across, and the questions that follow only have to
  * be checked.
  */
-export function Welcome({ onStart, onStartFromWealth, wealthCount }: { onStart: () => void; onStartFromWealth: (() => void) | null; wealthCount: number }) {
+export function Welcome({
+  onStart,
+  onStartFromWealth,
+  onDetailed,
+  wealthCount,
+}: {
+  onStart: () => void;
+  onStartFromWealth: (() => void) | null;
+  /** Start in the detailed form instead of the guided questions. */
+  onDetailed: () => void;
+  wealthCount: number;
+}) {
   return (
     <section aria-labelledby="wm-welcome" className="surface-lit a-ring rounded-[1.75rem] p-6 sm:p-9">
       <h2 id="wm-welcome" className="text-xl font-semibold tracking-tight sm:text-2xl">
@@ -32,6 +43,13 @@ export function Welcome({ onStart, onStartFromWealth, wealthCount }: { onStart: 
         )}
         <SampleLink />
       </div>
+      <p className="text-subtle mt-3 text-[13px]">
+        Rather see every question at once?{' '}
+        <button type="button" className="font-medium underline underline-offset-2 hover:text-[var(--text-c)]" onClick={onDetailed}>
+          Use the detailed form
+        </button>
+        .
+      </p>
 
       <ul className="mt-7 grid gap-4 sm:grid-cols-3">
         <Point icon={Clock} title="About ten minutes">
