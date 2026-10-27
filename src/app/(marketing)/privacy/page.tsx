@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/marketing/seo';
 import { BRAND, CONTACT } from '@/lib/marketing/content';
 import { LegalPage, type Clause } from '@/components/marketing/LegalPage';
 import { willMakerPublic } from '@/lib/will/flag';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Privacy',
   description: `How ${BRAND.name} collects, uses and protects information.`,
-  alternates: { canonical: '/privacy' },
-};
+  path: '/privacy',
+});
 
 const TRAIL = [
   { label: 'Home', href: '/' },

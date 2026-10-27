@@ -59,6 +59,7 @@ export function GET(): Response {
     `- [Tools](${absolute('/tools')}): the whole roster, grouped by what is built and what is not.`,
     `- [About](${absolute('/about')}): who is building this, and the four rules it is built to.`,
     `- [Book a walkthrough](${absolute('/contact')}): half an hour with the people who built it.`,
+    `- [Every tool in full](${absolute('/llms-full.txt')}): each tool's page as plain text, with its questions and answers.`,
     '',
     '## Terms and privacy',
     '',

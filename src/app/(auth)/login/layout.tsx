@@ -12,7 +12,12 @@ import type { Metadata } from 'next';
  * files across the four auth routes rather than splitting four carefully built
  * forms into a server shell and a client body each.
  */
-export const metadata: Metadata = { title: 'Sign in' };
+/*
+ * Not for search results: a sign-in form answers no question anybody searches
+ * for, and an indexed one competes with the pages that do. `follow` stays on so
+ * the links out of it still count.
+ */
+export const metadata: Metadata = { title: 'Sign in', robots: { index: false, follow: true } };
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return children;

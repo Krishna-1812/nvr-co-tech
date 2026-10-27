@@ -31,6 +31,39 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : 'https://www.thefinanceintelligence.com';
 
+/**
+ * The one address search engines are told every public page lives at.
+ *
+ * Not SITE_URL. On Vercel that comes from the project's production domain,
+ * which is the bare thefinanceintelligence.com, and the bare domain answers with
+ * a permanent redirect to www. A canonical tag, a sitemap and structured data
+ * that all name the address that redirects away tell Google two different
+ * things about every page. So the address that answers is written down here,
+ * and only what is read by a search engine or an assistant uses it. Sign-in
+ * links and email links keep SITE_URL, because the auth provider's allow list
+ * is keyed to it and the redirect costs them nothing.
+ *
+ * Override with NEXT_PUBLIC_CANONICAL_URL if the primary domain ever changes.
+ */
+export const CANONICAL_URL = (process.env.NEXT_PUBLIC_CANONICAL_URL || 'https://www.thefinanceintelligence.com').replace(/\/+$/, '');
+
+/**
+ * The home page in a search result. Brand first, because the home page is the
+ * one people reach by name; the description names the jobs, because nobody
+ * searches for a brand they have not heard of.
+ */
+export const HOME_SEARCH = {
+  title: 'The Finance Intelligence · AI tools for finance teams in India',
+  description:
+    'Bank and ledger reconciliation, payment vouchers with approvals, income tax notice alerts, valuation comps and personal finance tools for Indian finance teams.',
+} as const;
+
+/**
+ * Where the firm is on other sites, for the Organization's `sameAs`. Empty until
+ * there is a profile to point at: an invented handle is worse than none.
+ */
+export const PROFILES: readonly string[] = [];
+
 export const BRAND = {
   /** The platform. */
   name: 'The Finance Intelligence',
@@ -64,6 +97,14 @@ export type Agent = {
   accent: 'indigo' | 'cyan' | 'emerald' | 'amber' | 'violet' | 'rose' | 'lime' | 'magenta';
   /** Plain questions and answers, shown on the tool's page and described to search engines. */
   faq?: readonly { q: string; a: string }[];
+  /**
+   * How the page is named in a search result: in the words somebody types into a
+   * search box, not the product's name, which nobody searches for yet. The title
+   * is short enough that the site name after it still fits (seo.test.ts), and the
+   * description stays under the length a result shows. Both say only what the
+   * page does, and a tool that is not built says so in both.
+   */
+  search: { title: string; description: string };
 };
 
 export const STAGE_LABEL: Record<AgentStage, string> = {
@@ -109,6 +150,29 @@ const BASE_AGENTS: Agent[] = [
     inputs: 'Invoice, event, chapter, payee, amounts',
     outputs: 'Numbered voucher, PDF, Excel, full history',
     href: '/dashboard',
+    search: {
+      title: 'Payment Voucher Software with Approvals',
+      description:
+        'Raise payment vouchers with optional approval that nobody can give themselves. GST split checked, figures locked on submit, PDF and Excel export, full history.',
+    },
+    faq: [
+      {
+        q: 'Can the person who raised a payment voucher also approve it?',
+        a: 'No. With approval switched on, a voucher needs one approval and it can never come from the person who raised it. The rule sits in the database, so it holds however the request arrives.',
+      },
+      {
+        q: 'Does it check CGST, SGST and IGST?',
+        a: 'Yes, before you can submit: CGST and SGST inside a state, IGST between states, and never both at once.',
+      },
+      {
+        q: 'Can a voucher be changed after it is submitted?',
+        a: 'No. Submitting closes the figures for everyone, including whoever raised it. Sending it back is the only way to reopen one, and that is recorded as a new line in its history.',
+      },
+      {
+        q: 'What can I export?',
+        a: 'Searchable PDFs, and an Excel export with the same thirty-two columns your team already works from.',
+      },
+    ],
   },
   {
     slug: 'ledger-reconciliation',
@@ -133,6 +197,29 @@ const BASE_AGENTS: Agent[] = [
     inputs: 'Two ledgers, as Excel, CSV or a text PDF',
     outputs: 'A reconciliation statement, and the lines to look at',
     href: '/reconcile',
+    search: {
+      title: 'Bank & Ledger Reconciliation Tool',
+      description:
+        'Reconcile a bank statement with your cash book, or any two ledgers, from Excel, CSV or PDF. It matches entries, explains the rest and builds the statement.',
+    },
+    faq: [
+      {
+        q: 'How do I make a bank reconciliation statement with it?',
+        a: 'Load your cash book and the bank statement as Excel, CSV or a text PDF. It matches the entries, lists the ones that do not agree with the reason for each, and builds the statement in the usual Add and Less form, saying whether the two balances tie.',
+      },
+      {
+        q: 'How does it match entries?',
+        a: 'On the reference first, then on the description and the amount, then on the amount alone. It also copes with a bank statement that mirrors your cash book, where every debit in one is a credit in the other.',
+      },
+      {
+        q: 'Are my files uploaded anywhere?',
+        a: 'No. The two files are read inside your browser and never uploaded. What is kept is the statement you produced, in a history only you can open.',
+      },
+      {
+        q: 'What do I get at the end?',
+        a: 'A PDF for the file, an Excel workbook for the follow up, and a plain note on why each remaining line is there, including the likely cause of an amount difference such as rounding or a misplaced decimal point.',
+      },
+    ],
   },
   {
     slug: 'valuation-desk',
@@ -156,6 +243,25 @@ const BASE_AGENTS: Agent[] = [
     inputs: 'A company, or an industry',
     outputs: 'Peer set, multiples, implied value, and the filing behind each figure',
     href: '/comps',
+    search: {
+      title: 'Comparable Company Valuation Tool',
+      description:
+        'Find comparable companies, their EV/Revenue, EV/EBITDA and P/E multiples, and the value they imply for an unlisted company, each figure linked to its filing.',
+    },
+    faq: [
+      {
+        q: 'Which valuation multiples does it work out?',
+        a: 'EV/Revenue, EV/EBITDA and P/E. Each is computed from figures in the same row, so a quoted multiple cannot drift from the figures it was built from.',
+      },
+      {
+        q: 'How are the comparable companies chosen?',
+        a: 'By what a company says it does, not by the industry code it was filed under. The size band, geography and profitability screen are shown, and every company left out is listed with the reason.',
+      },
+      {
+        q: 'Where do the figures come from?',
+        a: 'The free public record: the stock exchanges, the MCA register, and the SEC for American companies. Every figure links to the filing it came from.',
+      },
+    ],
   },
   {
     slug: 'contact-finder',
@@ -180,6 +286,25 @@ const BASE_AGENTS: Agent[] = [
     inputs: 'A role, a company, an industry, or a size band',
     outputs: 'People and companies, with what was removed and why',
     href: '/contacts',
+    search: {
+      title: 'B2B Contact Finder by Role & Industry',
+      description:
+        'Find decision-makers by role, seniority, industry and company size, with every result checked against the source and every removed row counted with the reason.',
+    },
+    faq: [
+      {
+        q: 'What can I search by?',
+        a: 'Around forty filters across people and companies: title, seniority, industry, headcount, revenue, location, technology, funding, hiring signals and classification codes.',
+      },
+      {
+        q: 'Why are some results removed?',
+        a: 'Industry, company size, revenue, head office, technology and domain are re-checked against the record itself. Rows that do not really match are removed and counted with the reason, and each reason is a button that drops that filter and runs the search again.',
+      },
+      {
+        q: 'Does a search cost anything?',
+        a: 'It says before you run it. Finding people is free; describing their employers spends one credit for a whole page, and answers are kept for thirty days so most pages spend nothing.',
+      },
+    ],
   },
   {
     slug: 'tax-notices',
@@ -204,6 +329,29 @@ const BASE_AGENTS: Agent[] = [
     inputs: 'A Google Sheet of client logins, and who to tell',
     outputs: 'New notices with their files and due dates, and an email the day one arrives',
     href: '/tax-notices',
+    search: {
+      title: 'Income Tax Notice Tracker for CA Firms',
+      description:
+        'Checks each client’s e-Proceedings on the Income Tax portal every morning, downloads new notices and emails your team the same day, with the response date.',
+    },
+    faq: [
+      {
+        q: 'How does it find new income tax notices?',
+        a: 'Every morning it logs in to each account listed in the firm’s Google Sheet and reads both tabs of Pending Actions → e-Proceedings. Anything new since the day before is opened, its files downloaded and its response date read where the portal gives one.',
+      },
+      {
+        q: 'Who gets told?',
+        a: 'The client’s addresses and the team, by email, with the files attached, plus one short summary for the team on mornings when something is new, due within a week, or could not be checked.',
+      },
+      {
+        q: 'Does it get past an OTP or a CAPTCHA?',
+        a: 'No. It never gets past an OTP or a CAPTCHA and never retries a password. An account that asks for one is reported as not checked, with a picture of what the portal showed.',
+      },
+      {
+        q: 'Are client passwords stored?',
+        a: 'No. They stay in the firm’s sheet and pass through the check only for the length of one login.',
+      },
+    ],
   },
   {
     slug: 'true-property-cost',
@@ -231,6 +379,29 @@ const BASE_AGENTS: Agent[] = [
     inputs: 'Instalment dates and amounts, own or borrowed, the OC date, and the expected rent',
     outputs: 'True cost at possession, the cash cost, and the rental yield on it',
     href: '/true-property-cost',
+    search: {
+      title: 'Under-Construction Flat Cost Calculator',
+      description:
+        'Work out what an under-construction flat really costs by possession, with pre-EMI interest and lost returns, and its true rental yield. Runs in your browser.',
+    },
+    faq: [
+      {
+        q: 'How do I work out the true cost of an under-construction flat?',
+        a: 'Enter the down payment and each instalment with its date, its amount and whether it came from your own money or a loan. It adds what that money cost from the day it was paid until the OC date, which it treats as possession: interest on the loan, and the return your own funds gave up.',
+      },
+      {
+        q: 'Does it include pre-EMI interest?',
+        a: 'Yes. Loan-funded payments carry interest from the day they were paid until possession, simple interest by default, which is how a lender charges pre-EMI interest during construction. Compounding is there if you reinvest.',
+      },
+      {
+        q: 'Can it work out rental yield?',
+        a: 'Yes, on the true cost rather than the price: net of vacancy, maintenance and owner costs, set beside what the money costs a year, with the break-even rent and the payback period.',
+      },
+      {
+        q: 'Do I need an account?',
+        a: 'No. It runs in your browser, and without an account your schedules stay in that browser and are never sent to a server. Sign in and they are also saved to your account, readable only by you.',
+      },
+    ],
   },
   {
     slug: 'wealth-tracker',
@@ -256,6 +427,29 @@ const BASE_AGENTS: Agent[] = [
     inputs: 'Your accounts, investments, property, policies and loans, with as much detail as you have',
     outputs: 'Net worth, a nominee check on every account, and a record your family can use',
     href: '/wealth-tracker',
+    search: {
+      title: 'Net Worth Tracker & Nominee Check',
+      description:
+        'Track everything you own and owe: bank accounts, FDs, shares, mutual funds, PF, PPF, property, gold and loans. See your net worth and check every nominee.',
+    },
+    faq: [
+      {
+        q: 'How does it work out my net worth?',
+        a: 'From every asset and liability you enter, at your share of anything held jointly. It also shows liquid assets, monthly EMIs and what you owe as a share of what you own.',
+      },
+      {
+        q: 'How do I check that every account has a nominee?',
+        a: 'It asks whether a nominee is registered on every account that takes one, and records who, with their share and a guardian for a minor. The checks flag missing or unconfirmed nominees, shares that do not add up to 100% and minors without a guardian.',
+      },
+      {
+        q: 'Is my financial information safe?',
+        a: 'It runs in your browser with no account needed, and without one the record never leaves that browser. A passcode encrypts it in the browser before it is saved anywhere. Sign in and it is also saved to your account, readable only by you.',
+      },
+      {
+        q: 'Can I share it with my family?',
+        a: 'Yes. It exports a PDF for your family with every detail, or with account numbers hidden for an adviser, and an Excel workbook.',
+      },
+    ],
   },
   {
     slug: 'gst-reconciliation',
@@ -275,6 +469,11 @@ const BASE_AGENTS: Agent[] = [
     ],
     inputs: 'GSTR-2B, purchase register',
     outputs: 'Credit you can claim, and a follow up list',
+    search: {
+      title: 'GSTR-2B Reconciliation Tool (Planned)',
+      description:
+        'Planned: checks GSTR-2B against your purchase register, works out the input tax credit line by line, and sorts the problems by how much money is involved.',
+    },
   },
   {
     slug: 'tds-compliance',
@@ -295,6 +494,11 @@ const BASE_AGENTS: Agent[] = [
     ],
     inputs: 'Payments, payee PAN and status',
     outputs: 'The right rate at the time, and the quarterly returns',
+    search: {
+      title: 'TDS Section, Rate & Return Tool (Planned)',
+      description:
+        'Planned: works out the right TDS section and rate before the payment goes out, then builds the quarterly return from the payments you actually made.',
+    },
   },
   {
     slug: 'invoice-intake',
@@ -315,6 +519,11 @@ const BASE_AGENTS: Agent[] = [
     ],
     inputs: 'PDFs, scans, photographs, email',
     outputs: 'A draft that is mostly filled in, with the invoice attached',
+    search: {
+      title: 'Invoice Reader for Vouchers (Planned)',
+      description:
+        'Planned: reads an invoice from email, a scan or a photo, pulls out the supplier, GSTIN, amounts and tax split, and starts the voucher for you.',
+    },
   },
   {
     slug: 'audit-copilot',
@@ -335,6 +544,11 @@ const BASE_AGENTS: Agent[] = [
     ],
     inputs: 'The whole history',
     outputs: 'Answers with their sources, and sampling packs',
+    search: {
+      title: 'Audit Trail Questions in Plain English (Planned)',
+      description:
+        'Planned: answers questions about your records, such as who approved what, when and on what basis, and shows the rows it read.',
+    },
   },
 ];
 
@@ -376,6 +590,11 @@ export const WILL_MAKER: Agent = {
   inputs: 'Your details, your family, what you own and who should have it',
   outputs: 'A print-ready will, a Word copy, a signing guide and a list of what still needs fixing',
   href: '/will-maker',
+  search: {
+    title: 'Online Will Maker for India',
+    description:
+      'Answer plain questions and get a print-ready will, a Word copy and a signing guide for an Indian will, each check tied to its section of the law.',
+  },
   faq: FAQ,
 };
 

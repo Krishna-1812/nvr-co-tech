@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/marketing/seo';
 import { BRAND, CONTACT } from '@/lib/marketing/content';
 import { LegalPage, type Clause } from '@/components/marketing/LegalPage';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Terms',
   description: `The terms that apply to using ${BRAND.name} and its tools.`,
-  alternates: { canonical: '/terms' },
-};
+  path: '/terms',
+});
 
 const TRAIL = [
   { label: 'Home', href: '/' },

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { AGENTS, NAV, SITE_URL } from '@/lib/marketing/content';
+import { AGENTS, CANONICAL_URL, NAV } from '@/lib/marketing/content';
 
 /**
  * Only the public pages. The signed-in routes are deliberately absent — they
@@ -10,11 +10,14 @@ import { AGENTS, NAV, SITE_URL } from '@/lib/marketing/content';
  * from, so a new agent appears here without anyone remembering to add it.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticPages = ['/', ...NAV.map((n) => n.href), '/login', '/signup', '/privacy', '/terms'];
+  // Sign-in and sign-up are left out: they ask not to be indexed (their layouts),
+  // and a sitemap that lists a page marked noindex is a contradiction Search
+  // Console reports as an error.
+  const staticPages = ['/', ...NAV.map((n) => n.href), '/privacy', '/terms'];
   const agentPages = AGENTS.map((a) => `/tools/${a.slug}`);
 
   return [...staticPages, ...agentPages].map((path) => ({
-    url: new URL(path, SITE_URL).toString(),
+    url: new URL(path, CANONICAL_URL).toString(),
     changeFrequency: 'monthly',
     priority: path === '/' ? 1 : path.startsWith('/tools') ? 0.8 : 0.5,
   }));

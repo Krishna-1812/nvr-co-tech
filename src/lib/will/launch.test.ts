@@ -62,7 +62,7 @@ describe('after launch (sign-off and flag)', () => {
     expect(wm?.stage).toBe('live');
     expect(wm?.href).toBe('/will-maker');
     expect(s.access.OPEN_TOOLS).toContain('will-maker');
-    expect(s.sitemap.map((e) => e.url)).toContain(new URL('/tools/will-maker', s.content.SITE_URL).toString());
+    expect(s.sitemap.map((e) => e.url)).toContain(new URL('/tools/will-maker', s.content.CANONICAL_URL).toString());
     expect(s.llms).toContain('Will Maker');
     const doc = s.knowledge.DOCS.find((d) => d.id === 'agent-will-maker');
     expect(doc?.body).toContain('Do I need a notary?');

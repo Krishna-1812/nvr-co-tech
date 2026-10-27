@@ -1,4 +1,5 @@
-import { BRAND, CONTACT, SITE_URL, type Agent } from './content';
+import type { Metadata } from 'next';
+import { BRAND, CANONICAL_URL, CONTACT, PROFILES, type Agent } from './content';
 
 /**
  * What a machine reads about this site.
@@ -26,7 +27,50 @@ import { BRAND, CONTACT, SITE_URL, type Agent } from './content';
 
 /** A path on this site, as the absolute URL structured data has to use. */
 export function absolute(path: string): string {
-  return new URL(path, SITE_URL).toString();
+  return new URL(path, CANONICAL_URL).toString();
+}
+
+/**
+ * Everything a public page says about itself in its head, from one call.
+ *
+ * Each page used to set a title, a description and a canonical, and inherit the
+ * rest from the root layout, which meant every page's link preview was the home
+ * page's: its title, its description and `og:url` pointing at /. A link to a
+ * tool shared on WhatsApp or LinkedIn showed up as the home page, and a crawler
+ * that reads `og:url` was told the same. Next replaces `openGraph` as a whole
+ * rather than merging it, so a page that sets any of it has to set all of it,
+ * and this is where that happens. The share image still comes from the nearest
+ * opengraph-image file, which outranks anything set here.
+ *
+ * `absoluteTitle` is for a title that already carries the brand (the home page),
+ * which would otherwise get it twice from the root layout's template.
+ */
+export function pageMeta({
+  title,
+  description,
+  path,
+  absoluteTitle = false,
+}: {
+  title: string;
+  description: string;
+  path: string;
+  absoluteTitle?: boolean;
+}): Metadata {
+  const shown = absoluteTitle ? title : `${title} · ${BRAND.name}`;
+  return {
+    title: absoluteTitle ? { absolute: title } : title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: 'website',
+      siteName: BRAND.name,
+      locale: 'en_IN',
+      title: shown,
+      description,
+      url: path,
+    },
+    twitter: { card: 'summary_large_image', title: shown, description },
+  };
 }
 
 /*
@@ -35,9 +79,9 @@ export function absolute(path: string): string {
  * and again as a breadcrumb's publisher should understand those as one entity,
  * and an @id is the only thing that tells it so.
  */
-const ORG_ID = `${SITE_URL}/#organization`;
-const SITE_ID = `${SITE_URL}/#website`;
-const PLACE_ID = `${SITE_URL}/#business`;
+const ORG_ID = `${CANONICAL_URL}/#organization`;
+const SITE_ID = `${CANONICAL_URL}/#website`;
+const PLACE_ID = `${CANONICAL_URL}/#business`;
 
 /**
  * Where the business is.
@@ -81,6 +125,7 @@ function organization() {
     email: CONTACT.email,
     address: ADDRESS,
     areaServed: { '@type': 'Country', name: 'India' },
+    ...(PROFILES.length > 0 ? { sameAs: [...PROFILES] } : {}),
     logo: {
       '@type': 'ImageObject',
       url: absolute('/brand/icon-512.png'),
@@ -156,6 +201,26 @@ export function serviceLd(agent: Agent) {
       provider: { '@id': ORG_ID },
       areaServed: { '@type': 'Country', name: 'India' },
       audience: { '@type': 'BusinessAudience', name: 'Finance and accounts teams' },
+    },
+    /*
+     * The same tool as the thing you open. Every live tool is a page in a
+     * browser, so `WebApplication` is the plain truth, and it is the type
+     * assistants and search engines use to answer "is there a tool that…".
+     * No `offers`: there is no published price, and a made-up one is the kind
+     * of claim this file exists to refuse.
+     */
+    {
+      '@type': 'WebApplication',
+      '@id': absolute(`/tools/${agent.slug}#app`),
+      name: agent.name,
+      description: agent.search.description,
+      url: absolute(`/tools/${agent.slug}`),
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'Any (runs in a web browser)',
+      browserRequirements: 'Requires JavaScript',
+      inLanguage: 'en-IN',
+      featureList: agent.does,
+      publisher: { '@id': ORG_ID },
     },
   ]);
 }
