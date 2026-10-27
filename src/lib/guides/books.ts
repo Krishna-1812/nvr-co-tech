@@ -1,0 +1,189 @@
+import type { Guide } from './types';
+
+/*
+ * The reconciliation example is small enough to check by hand, and
+ * guides.test.ts checks it: the cash book balance plus the additions less the
+ * deductions has to equal the bank balance quoted.
+ *
+ *   Cash book balance (Dr)                       1,25,000
+ *   + cheques issued, not yet presented   18,000 + 7,500
+ *   + interest credited by the bank, not in the cash book   1,240
+ *   + NEFT from a customer, not in the cash book            9,000
+ *   − cheque deposited, not yet credited                   12,000
+ *   − bank charges, not in the cash book                      590
+ *   = balance as per bank statement (Cr)         1,48,150
+ */
+
+export const BANK_RECONCILIATION: Guide = {
+  slug: 'bank-reconciliation-statement',
+  status: 'draft',
+  title: 'How to prepare a bank reconciliation statement',
+  search: {
+    title: 'Bank Reconciliation Statement: How to Prepare',
+    description:
+      'What a bank reconciliation statement is, why the cash book and bank statement differ, and how to prepare one step by step, with a format and a worked example.',
+  },
+  tool: 'ledger-reconciliation',
+  updated: '2026-10-27',
+  lead:
+    'Your cash book and your bank statement record the same money, but rarely agree on the same day. A bank reconciliation statement explains every difference between them.',
+  answer:
+    'Start from the balance in your cash book. Add cheques you have issued that the bank has not yet paid, and credits the bank has given you that you have not recorded. Take off cheques you have deposited that the bank has not yet credited, and charges the bank has taken that you have not recorded. The result should equal the balance on the bank statement.',
+  blocks: [
+    { t: 'h2', text: 'Why the two balances differ' },
+    {
+      t: 'p',
+      text: 'Most differences are timing: one side has recorded something the other has not caught up with yet. A few are omissions that need an entry in your books, and occasionally one is a mistake on one side or the other.',
+    },
+    {
+      t: 'ul',
+      items: [
+        'Cheques issued but not yet presented: you have written them and recorded the payment, but the payee has not cashed them.',
+        'Cheques deposited but not yet credited: you have recorded the receipt, but the bank has not finished clearing them.',
+        'Bank charges, interest and direct debits: the bank has recorded them and you have not, usually because you learn of them only from the statement.',
+        'Direct credits: money a customer sent by NEFT, RTGS or UPI that reached the bank before it reached your books.',
+        'Errors: an amount typed wrongly, a transposed figure or an entry made twice, on either side.',
+      ],
+    },
+    { t: 'h2', text: 'One thing to know before you start' },
+    {
+      t: 'p',
+      text: 'Your cash book and the bank’s statement are mirror images. Money in your account is an asset to you, so a deposit is a debit in your cash book. To the bank it is money it owes you, so the same deposit is a credit on its statement. A debit balance in your cash book and a credit balance on the bank statement are the same healthy position.',
+    },
+    { t: 'h2', text: 'Step by step' },
+    {
+      t: 'ol',
+      items: [
+        'Take the cash book and the bank statement for the same period, ending on the same date.',
+        'Tick off every entry that appears in both, matching on cheque number or reference first, then on date and amount.',
+        'List what is left on each side. Those unticked lines are the reconciling items.',
+        'Put through your books anything the bank has recorded correctly that you have not, such as bank charges, interest and direct credits. Those are now in both records.',
+        'Start the statement from one balance, add and deduct the items that are still timing differences, and check that you arrive at the other balance.',
+        'If it does not tie, look for an amount entered twice, a figure with its digits swapped, or a decimal point in the wrong place.',
+      ],
+    },
+    { t: 'h2', text: 'A worked example' },
+    {
+      t: 'p',
+      text: 'On 31 March the cash book shows ₹1,25,000 in the bank. The bank statement for the same date shows ₹1,48,150. Ticking the two off against each other leaves six items unmatched.',
+    },
+    {
+      t: 'table',
+      caption: 'Bank reconciliation statement as at 31 March',
+      head: ['', '₹', '₹'],
+      rows: [
+        ['Balance as per cash book', '', '1,25,000'],
+        ['Add: cheque no. 456 issued, not yet presented', '18,000', ''],
+        ['Add: cheque no. 459 issued, not yet presented', '7,500', ''],
+        ['Add: interest credited by the bank, not in the cash book', '1,240', ''],
+        ['Add: NEFT received from a customer, not in the cash book', '9,000', '35,740'],
+        ['Less: cheque deposited, not yet credited by the bank', '12,000', ''],
+        ['Less: bank charges, not in the cash book', '590', '(12,590)'],
+        ['Balance as per bank statement', '', '1,48,150'],
+      ],
+    },
+    {
+      t: 'p',
+      text: 'The interest, the NEFT receipt and the bank charges should now be entered in the cash book, which brings its balance to ₹1,34,650. After that, the only differences left are the two cheques not yet presented and the one deposit not yet cleared, which will clear on their own in the next few days.',
+    },
+    { t: 'h2', text: 'The same method, for any two ledgers' },
+    {
+      t: 'p',
+      text: 'Reconciling a customer’s ledger with their statement of account, or a supplier’s ledger with the supplier’s statement, works the same way: match the entries, list what is left, and explain each one as timing, omission or error.',
+    },
+  ],
+  faq: [
+    {
+      q: 'Can I start from the bank statement balance instead of the cash book?',
+      a: 'Yes. Starting from the bank statement, you reverse every adjustment: deduct what you would have added and add what you would have deducted, and you should arrive at the cash book balance.',
+    },
+    {
+      q: 'What if the bank statement shows an overdraft?',
+      a: 'The method is the same, but start from the overdraft and remember that it is a debit balance on the bank statement and a credit balance in the cash book. Additions and deductions swap round.',
+    },
+    {
+      q: 'How often should I reconcile the bank?',
+      a: 'At least once a month, when the statement arrives. The longer you leave it, the more items there are to match and the harder an error is to find.',
+    },
+    {
+      q: 'Which differences need an entry in my books?',
+      a: 'Anything the bank recorded correctly and you did not: bank charges, interest, direct debits and direct credits. Cheques not yet presented or not yet cleared need no entry; they clear on their own.',
+    },
+  ],
+};
+
+export const PAYMENT_VOUCHER: Guide = {
+  slug: 'payment-voucher-format-and-approvals',
+  status: 'draft',
+  title: 'Payment vouchers: what goes on one, and who should approve it',
+  search: {
+    title: 'Payment Voucher: Format, Fields and Approvals',
+    description:
+      'What a payment voucher is, the fields it needs, how to number vouchers, how GST is split, and why the person who raises a voucher should never approve it.',
+  },
+  tool: 'voucher-desk',
+  updated: '2026-10-27',
+  lead:
+    'A payment voucher is the record that a payment was asked for, checked and authorised before the money went out. Done properly, it is also the first thing an auditor asks to see.',
+  answer:
+    'A payment voucher records who is being paid, how much, for what, and against which invoice, together with the account it is charged to, the tax on it and who approved it. Number vouchers in an unbroken series for each financial year, keep the invoice with the voucher, and make sure the person who raises a voucher is never the person who approves it.',
+  blocks: [
+    { t: 'h2', text: 'What a payment voucher is for' },
+    {
+      t: 'p',
+      text: 'A voucher sits between an invoice and a payment. It says that somebody looked at the invoice, decided it should be paid, charged it to the right account, worked out the tax, and that somebody else with the authority to do so agreed. The bank statement says money left; the voucher says why, and who said it could.',
+    },
+    { t: 'h2', text: 'The fields a payment voucher needs' },
+    {
+      t: 'ul',
+      items: [
+        'Voucher number and date.',
+        'Payee: the name, and for a business, its GSTIN and PAN.',
+        'What the payment is for, in words someone else would understand a year later.',
+        'The invoice it pays: invoice number, date and amount, with a copy attached.',
+        'The account or cost centre it is charged to.',
+        'The amount before tax, the GST on it, any TDS deducted, and the net amount payable.',
+        'How it is paid: cheque number, or the bank reference of the transfer.',
+        'Who prepared it and who approved it, with dates.',
+      ],
+    },
+    { t: 'h2', text: 'Numbering vouchers' },
+    {
+      t: 'p',
+      text: 'Number vouchers in one unbroken series for each financial year, with a prefix that says which year, for example 26-27/0001 onwards for April 2026 to March 2027. A gap in the series is the first thing a reviewer looks for, because it can mean a voucher was destroyed. If you keep separate series for different units or books, give each its own prefix so the numbers cannot collide.',
+    },
+    { t: 'h2', text: 'Getting the GST split right' },
+    {
+      t: 'p',
+      text: 'Whether an invoice carries CGST and SGST or IGST depends on whether the supply is within one state or between two. A supply within a state carries CGST and SGST in equal halves; a supply between states carries IGST. An invoice never carries both. A voucher that records the wrong pair puts the credit in the wrong ledger, so the split is worth checking before the voucher is approved, not after.',
+    },
+    { t: 'h2', text: 'Who should approve a voucher' },
+    {
+      t: 'p',
+      text: 'The rule that matters most is that the person who raises a voucher does not approve it. Splitting the two jobs between different people, often called maker and checker, means no single person can both create a payment and authorise it. It is the simplest control there is against error and against fraud, and the first one an auditor tests.',
+    },
+    {
+      t: 'ul',
+      items: [
+        'Set limits: who may approve up to what amount, and what needs a second approval.',
+        'Approve against the invoice, not against the voucher alone.',
+        'Once a voucher is approved, do not edit it. Send it back and record that it was sent back, so the history shows what changed and who changed it.',
+        'Keep every voucher, approved or rejected, with its supporting papers.',
+      ],
+    },
+  ],
+  faq: [
+    {
+      q: 'What is the difference between a payment voucher and an invoice?',
+      a: 'The invoice comes from the supplier and says what you owe. The payment voucher is your own record that the invoice was checked, charged to an account and approved for payment.',
+    },
+    {
+      q: 'Can the same person prepare and approve a payment voucher?',
+      a: 'They should not. Keeping the person who prepares a voucher separate from the person who approves it is the basic control against error and fraud in payments.',
+    },
+    {
+      q: 'Should payment vouchers be numbered by financial year?',
+      a: 'Yes. One unbroken series for each financial year, with the year in the prefix, makes a missing voucher easy to spot and keeps two years from sharing a number.',
+    },
+  ],
+};

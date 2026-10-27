@@ -1272,6 +1272,17 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   price). Organization takes `sameAs` from `PROFILES` (empty until the owner gives real profile URLs).
 - **`/llms-full.txt`** is every tool page as plain text with its Q&A; linked from `/llms.txt`.
 - **Sign-in and sign-up** are `noindex, follow` and out of the sitemap.
+- **Guides** (`/guides`, `src/lib/guides`, 27 Oct 2026): seven guides, one or two per live tool
+  (true cost of an under-construction flat, rental yield, bank reconciliation statement, net worth,
+  income tax notices on the portal, comparables valuation, payment vouchers). Content is data
+  (`types.ts`), each with a short answer, sections, worked example, FAQ, and the tool it leads to.
+  **All are `status: 'draft'`**: shown only where `VERCEL_ENV !== 'production'` (preview deploys,
+  local), always `noindex`, never in the sitemap or llms files; `/guides` 404s in production while
+  none is published. `guides.test.ts` recomputes every worked example (property ones through
+  `lib/landed/calc`) and fails if a quoted figure drifts. **To publish one:** owner reads it on the
+  preview, set `status: 'published'`; then it enters the sitemap, `llms.txt`/`llms-full.txt`, gets
+  Article JSON-LD, and is linked from its tool's page. Add `{ href: '/guides', label: 'Guides' }`
+  to `NAV` (content.ts) once the first is published.
 - **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
   prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
   `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).
