@@ -55,7 +55,7 @@
 | Owner | Krishna Ladha (GitHub `Krishna-1812`). Platform admin emails: `krishna.ladha18@gmail.com`, `vivekgaggarnvr@gmail.com` |
 | Local path (owner's machine) | `C:\Users\krish\NVR Tech\nvr-voucher-v2` (Windows 11; note the space in "NVR Tech") |
 | Remote | `https://github.com/Krishna-1812/nvr-co-tech.git`, branch `main` |
-| Production | `https://www.thefinanceintelligence.com` (`SITE_URL` in `src/lib/marketing/content.ts`; override with `NEXT_PUBLIC_SITE_URL`) |
+| Production | `https://www.thefinanceintelligence.com` (`CANONICAL_URL` in `src/lib/marketing/content.ts` for search; `SITE_URL` for sign-in links) |
 | Hosting | Vercel, functions pinned to `bom1` by `vercel.json` |
 | Database | Supabase, project in `ap-south-1` (Mumbai). **Free tier — it pauses after ~a week of inactivity**, which breaks sign-in (DNS NXDOMAIN on the project URL). Fix: restore it in the Supabase dashboard |
 | Mailbox | `team@thefinanceintelligence.com` (GoDaddy; one address, also used as the security contact) |
@@ -1195,7 +1195,10 @@ keys into chat.
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | everything with a DB | app can't sign in (preview mode still works) |
 | `NEXT_PUBLIC_PREVIEW_MODE` | local fixture mode | keep `0` in any file; set via process env |
-| `NEXT_PUBLIC_SITE_URL` | canonical URLs, sitemap | falls back to the production domain |
+| `NEXT_PUBLIC_SITE_URL` | sign-in, invite and email links | falls back to Vercel's production domain (the bare apex) |
+| `NEXT_PUBLIC_CANONICAL_URL` | canonical tags, `og:url`, sitemap, robots, structured data, `llms.txt` | `https://www.thefinanceintelligence.com`, the host that answers (the apex 308s to it) |
+| `GOOGLE_SITE_VERIFICATION` | Search Console HTML-tag verification (the `content` value only) | no tag; verify by DNS instead |
+| `BING_SITE_VERIFICATION` | Bing Webmaster Tools (`msvalidate.01`) | no tag |
 | `ANTHROPIC_API_KEY` (+ `ANTHROPIC_MODEL`, `ANTHROPIC_BASE_URL`) | Ask, company briefs, Contact Finder chat/verification | those features say they're off |
 | `FINDER_VERIFY_MODEL` | model override for Contact Finder's verification pass | default model |
 | `APOLLO_API_KEY` | Contact Finder search/enrich; analytics "Enrich further" | those features inert |
@@ -1245,6 +1248,33 @@ Context file:
 
 **State right now:** working tree clean apart from untracked `.claude/`. Nothing in progress. The
 last request ("check the website in dark mode and fix errors") is done, pushed and reported.
+
+---
+
+## 19b. Search and answer engines (27 Oct 2026)
+
+- **One canonical host.** `CANONICAL_URL` (content.ts) is `https://www.thefinanceintelligence.com`,
+  the host that answers; the apex 308s to it. Everything a crawler reads uses it (metadataBase,
+  sitemap, robots, `seo.ts`, `llms.txt`). `SITE_URL` still drives sign-in and email links, because
+  Supabase's redirect allow list is keyed to it. Before this, every canonical, the sitemap and
+  `og:url` named the apex, i.e. a URL that redirects away.
+- **`pageMeta()`** (seo.ts) builds title, description, canonical, Open Graph and Twitter for every
+  public page. Next replaces `openGraph` whole, so before this every page's link preview was the
+  home page's (`og:url` "/", home title and description). Pages that set their own `openGraph` no
+  longer inherit the folder's share image, hence `privacy/` and `terms/` now have their own.
+- **Search titles.** Each agent has `search: { title, description }`, phrased as people search
+  ("Bank & Ledger Reconciliation Tool", "Under-Construction Flat Cost Calculator"); the H1 keeps the
+  product name. Unbuilt tools end in "(Planned)" and start "Planned:" (seo.test enforces it).
+- **FAQs.** Every live tool has 3–4 questions on its page (rendered and as FAQPage JSON-LD), written
+  only from its `does` list. Unbuilt tools have none (tested). Google shows FAQ rich results only
+  for a few site types now; the value is answer engines quoting them.
+- **Structured data.** Live tools emit `Service` + `WebApplication` (no `offers`: no published
+  price). Organization takes `sameAs` from `PROFILES` (empty until the owner gives real profile URLs).
+- **`/llms-full.txt`** is every tool page as plain text with its Q&A; linked from `/llms.txt`.
+- **Sign-in and sign-up** are `noindex, follow` and out of the sitemap.
+- **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
+  prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
+  `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).
 
 ---
 

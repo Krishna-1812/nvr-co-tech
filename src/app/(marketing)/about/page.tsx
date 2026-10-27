@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/marketing/seo';
 import { AGENTS, BRAND, ROSTER, STAGE_LABEL } from '@/lib/marketing/content';
 import {
   ArchScene,
@@ -17,12 +18,12 @@ import { Roost } from '@/components/brand/Owl';
 import { RoadmapList } from '@/components/marketing/about/RoadmapList';
 import { HabitDeck } from '@/components/marketing/about/HabitDeck';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'About',
   description:
     'Why a team of chartered accountants is building software for finance teams, why the rules sit in the database, and how we go from one working tool to several.',
-  alternates: { canonical: '/about' },
-};
+  path: '/about',
+});
 
 const TRAIL = [
   { label: 'Home', href: '/' },

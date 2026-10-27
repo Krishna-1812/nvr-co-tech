@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { faqLd, pageMeta, serviceLd } from '@/lib/marketing/seo';
 import { notFound } from 'next/navigation';
 import { ArrowRight, Check, CircleDashed, Hammer } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,7 +25,6 @@ import {
   motifFor,
 } from '@/components/marketing/bits';
 import { ArchScene as SceneArch } from '@/components/ui/Scene';
-import { faqLd, serviceLd } from '@/lib/marketing/seo';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { Reveal } from '@/components/marketing/Reveal';
@@ -54,11 +54,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const agent = agentBySlug((await params).slug);
   if (!agent) return { title: 'Tool not found' };
 
-  return {
-    title: agent.name,
-    description: agent.summary,
-    alternates: { canonical: `/tools/${agent.slug}` },
-  };
+  return pageMeta({ title: agent.search.title, description: agent.search.description, path: `/tools/${agent.slug}` });
 }
 
 export default async function AgentPage({ params }: Params) {

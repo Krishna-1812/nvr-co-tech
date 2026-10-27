@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { BRAND, SITE_URL } from '@/lib/marketing/content';
+import { BRAND, CANONICAL_URL } from '@/lib/marketing/content';
 import { SKY_SCRIPT } from '@/lib/sky';
 import { DESERT_FONTS } from '@/lib/brand/fonts';
 import './globals.css';
@@ -14,7 +14,8 @@ import { Tracker } from '@/components/Tracker';
 
 export const metadata: Metadata = {
   // Makes every relative URL below — and in each page's own metadata — absolute.
-  metadataBase: new URL(SITE_URL),
+  // CANONICAL_URL rather than SITE_URL: see the note on it in content.ts.
+  metadataBase: new URL(CANONICAL_URL),
   title: {
     default: `${BRAND.name} · ${BRAND.tagline}`,
     template: `%s · ${BRAND.name}`,
@@ -33,6 +34,16 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${BRAND.name} · ${BRAND.tagline}`,
     description: BRAND.blurb,
+  },
+  /*
+   * Ownership proof for Google Search Console and Bing Webmaster Tools, set in
+   * the host's environment rather than here, so the token is the owner's to add
+   * and change. Bing matters beyond Bing: its index is what several assistants
+   * search when they answer with sources. Either is left out when it is not set.
+   */
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : {}),
+    ...(process.env.BING_SITE_VERIFICATION ? { other: { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } } : {}),
   },
   /*
    * No robots tag. Absence already means "index, follow" to every crawler, so

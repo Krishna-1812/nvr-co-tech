@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { AGENTS, BRAND, SITE_URL, STAGE_LABEL } from './content';
-import { absolute, breadcrumbLd, ldJson, serviceLd, siteLd } from './seo';
+import { AGENTS, BRAND, CANONICAL_URL, HOME_SEARCH, STAGE_LABEL } from './content';
+import { absolute, breadcrumbLd, ldJson, pageMeta, serviceLd, siteLd } from './seo';
 
 /**
  * Structured data is a set of claims made to a machine that will never read the
@@ -28,11 +28,11 @@ const byType = (graph: Graph, type: string): Node =>
 
 describe('absolute', () => {
   it('resolves a path against the production origin', () => {
-    expect(absolute('/tools')).toBe(`${SITE_URL}/tools`);
+    expect(absolute('/tools')).toBe(`${CANONICAL_URL}/tools`);
   });
 
   it('leaves the origin itself with its root path', () => {
-    expect(absolute('/')).toBe(`${SITE_URL}/`);
+    expect(absolute('/')).toBe(`${CANONICAL_URL}/`);
   });
 });
 
@@ -125,7 +125,7 @@ describe('serviceLd', () => {
   it('points the service at its own page and at the organisation', () => {
     const service = byType(serviceLd(live), 'Service') as Record<string, unknown>;
     expect(service.url).toBe(absolute(`/tools/${live.slug}`));
-    expect(service.provider).toEqual({ '@id': `${SITE_URL}/#organization` });
+    expect(service.provider).toEqual({ '@id': `${CANONICAL_URL}/#organization` });
   });
 
   it('describes the agent in the words the roster uses', () => {
@@ -160,9 +160,9 @@ describe('breadcrumbLd', () => {
       itemListElement: { item: string }[];
     };
     expect(list.itemListElement.map((i) => i.item)).toEqual([
-      `${SITE_URL}/`,
-      `${SITE_URL}/tools`,
-      `${SITE_URL}/tools/voucher-desk`,
+      `${CANONICAL_URL}/`,
+      `${CANONICAL_URL}/tools`,
+      `${CANONICAL_URL}/tools/voucher-desk`,
     ]);
   });
 
@@ -181,5 +181,81 @@ describe('the roster, as machines see it', () => {
     for (const agent of AGENTS) {
       expect(STAGE_LABEL[agent.stage]).toBeTruthy();
     }
+  });
+});
+
+describe('the canonical origin', () => {
+  it('is the host that answers, not the one that redirects to it', () => {
+    // The bare domain answers with a permanent redirect to www. A canonical
+    // naming it tells Google every page lives somewhere that sends it away.
+    expect(CANONICAL_URL).toBe('https://www.thefinanceintelligence.com');
+  });
+});
+
+describe('how each tool is named in a search result', () => {
+  // The root layout adds " · The Finance Intelligence" (27 characters), and a
+  // result shows about sixty before it cuts the title off.
+  const SUFFIX = ` · ${BRAND.name}`.length;
+
+  it('gives every tool a search title that still fits with the site name after it', () => {
+    for (const a of AGENTS) {
+      expect(a.search.title.length + SUFFIX, a.slug).toBeLessThanOrEqual(76);
+      expect(a.search.title.length, a.slug).toBeLessThanOrEqual(49);
+    }
+  });
+
+  it('keeps every description inside what a result shows', () => {
+    for (const a of AGENTS) expect(a.search.description.length, a.slug).toBeLessThanOrEqual(160);
+    expect(HOME_SEARCH.description.length).toBeLessThanOrEqual(160);
+  });
+
+  it('says in the result itself when a tool is not built', () => {
+    // Someone who searches "GSTR-2B reconciliation" and lands on a plan has
+    // been misled unless the result told them first.
+    for (const a of AGENTS.filter((x) => x.stage !== 'live')) {
+      expect(a.search.title, a.slug).toMatch(/\(Planned\)$/);
+      expect(a.search.description, a.slug).toMatch(/^Planned: /);
+    }
+    for (const a of AGENTS.filter((x) => x.stage === 'live')) {
+      expect(a.search.title, a.slug).not.toMatch(/Planned/);
+    }
+  });
+
+  it('gives every live tool questions to answer, and no tool that is not built any', () => {
+    for (const a of AGENTS.filter((x) => x.stage === 'live')) expect(a.faq?.length ?? 0, a.slug).toBeGreaterThanOrEqual(3);
+    for (const a of AGENTS.filter((x) => x.stage !== 'live')) expect(a.faq, a.slug).toBeUndefined();
+  });
+});
+
+describe('pageMeta', () => {
+  const meta = pageMeta({ title: 'Tools', description: 'Every tool.', path: '/tools' });
+
+  it('points the link preview at the page, not the home page', () => {
+    // Every page used to inherit the root layout's og:url of "/", so a shared
+    // link to a tool previewed as the home page.
+    expect(meta.openGraph).toMatchObject({ url: '/tools', title: `Tools · ${BRAND.name}`, description: 'Every tool.' });
+    expect(meta.twitter).toMatchObject({ title: `Tools · ${BRAND.name}`, description: 'Every tool.' });
+    expect(meta.alternates).toEqual({ canonical: '/tools' });
+  });
+
+  it('does not add the brand twice to a title that already has it', () => {
+    const home = pageMeta({ title: HOME_SEARCH.title, description: HOME_SEARCH.description, path: '/', absoluteTitle: true });
+    expect(home.title).toEqual({ absolute: HOME_SEARCH.title });
+    expect(home.openGraph).toMatchObject({ title: HOME_SEARCH.title });
+  });
+});
+
+describe('the web application node', () => {
+  const live = AGENTS.find((a) => a.stage === 'live')!;
+  const app = byType(serviceLd(live), 'WebApplication') as Record<string, unknown>;
+
+  it('describes the live tool as something opened in a browser, with what it does', () => {
+    expect(app.url).toBe(absolute(`/tools/${live.slug}`));
+    expect(app.applicationCategory).toBe('FinanceApplication');
+    expect(app.featureList).toEqual(live.does);
+  });
+
+  it('states no price, because there is none published', () => {
+    expect(app).not.toHaveProperty('offers');
   });
 });

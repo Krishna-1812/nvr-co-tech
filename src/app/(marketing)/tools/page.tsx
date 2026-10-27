@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/marketing/seo';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { AGENTS, OPEN_NAMES, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
@@ -19,12 +20,12 @@ import { Reveal } from '@/components/marketing/Reveal';
 import { Spotlight, Tilt } from '@/components/marketing/motion';
 import { Roost } from '@/components/brand/Owl';
 
-export const metadata: Metadata = {
-  title: 'Tools',
+export const metadata: Metadata = pageMeta({
+  title: 'Finance tools for Indian teams',
   description:
-    'Every tool in one place: what each one does, and whether you can use it today.',
-  alternates: { canonical: '/tools' },
-};
+    'Every tool in one place, for reconciliation, vouchers, tax notices, valuation, property cost and net worth: what each one does, and whether you can use it today.',
+  path: '/tools',
+});
 
 /**
  * Stage order is the reading order: what you can have, what is being built,

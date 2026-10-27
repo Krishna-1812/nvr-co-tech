@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { SITE_URL } from '@/lib/marketing/content';
+import { CANONICAL_URL } from '@/lib/marketing/content';
 import { PROTECTED_PREFIXES } from '@/lib/routes';
 
 /**
@@ -19,6 +19,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: [...[...PROTECTED_PREFIXES, ...WORKSPACE].map((p) => `${p}/`), ...WORKSPACE, '/auth/'],
     },
-    sitemap: new URL('/sitemap.xml', SITE_URL).toString(),
+    sitemap: new URL('/sitemap.xml', CANONICAL_URL).toString(),
   };
 }

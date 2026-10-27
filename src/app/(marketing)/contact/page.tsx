@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CalendarClock, LogIn, ShieldCheck, type LucideIcon } from 'lucide-react';
 import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/marketing/seo';
 import { CONTACT } from '@/lib/marketing/content';
 import { ArchScene, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
@@ -8,12 +9,12 @@ import { Reveal } from '@/components/marketing/Reveal';
 import { RequestForm } from '@/components/marketing/RequestForm';
 import { Roost } from '@/components/brand/Owl';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Book a walkthrough',
   description:
     'Thirty minutes with the people who built it. Tell us which tool interests you and what your month currently looks like.',
-  alternates: { canonical: '/contact' },
-};
+  path: '/contact',
+});
 
 const TRAIL = [
   { label: 'Home', href: '/' },

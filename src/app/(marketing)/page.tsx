@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { BRAND } from '@/lib/marketing/content';
-import { siteLd } from '@/lib/marketing/seo';
+import { HOME_SEARCH } from '@/lib/marketing/content';
+import { pageMeta, siteLd } from '@/lib/marketing/seo';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { Hero } from '@/components/marketing/home/Hero';
 import { WorkCalendar } from '@/components/marketing/home/WorkCalendar';
@@ -8,21 +8,21 @@ import { FinalCTA } from '@/components/marketing/home/FinalCTA';
 import { Ticker } from '@/components/marketing/play/Ticker';
 import { KineticBand } from '@/components/marketing/play/KineticBand';
 
-export const metadata: Metadata = {
-  // `absolute` opts out of the root layout's "%s · The Finance Intelligence" template,
-  // which would otherwise render the brand name twice on the home page.
-  title: { absolute: `${BRAND.name} · ${BRAND.tagline}` },
-  description: BRAND.blurb,
+export const metadata: Metadata = pageMeta({
   /*
-   * This page answers on more than one URL. The apex and the www host both
-   * resolve, a preview deployment serves the whole site under its own name, and
-   * anything with a campaign parameter on the end is a fourth. Without this,
-   * each of those is a separate page as far as a search engine is concerned,
-   * competing with the others for the same words. metadataBase makes the path
-   * absolute against the real production origin.
+   * Absolute, because the title already carries the brand and the root layout's
+   * template would add it again.
+   *
+   * The canonical matters more here than anywhere: this page answers on the
+   * apex, on www, on every preview deployment and on anything with a campaign
+   * parameter on the end, and without it each of those is a separate page as far
+   * as a search engine is concerned.
    */
-  alternates: { canonical: '/' },
-};
+  title: HOME_SEARCH.title,
+  absoluteTitle: true,
+  description: HOME_SEARCH.description,
+  path: '/',
+});
 
 /*
  * The order is an argument, in this sequence: here is the claim, here is the

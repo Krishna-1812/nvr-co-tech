@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AGENTS, BRAND, CONTACT, STAGE_LABEL } from '@/lib/marketing/content';
-import { SITE_URL } from '@/lib/marketing/content';
+import { CANONICAL_URL } from '@/lib/marketing/content';
 import { GET } from './route';
 
 const read = async () => {
@@ -25,7 +25,7 @@ describe('/llms.txt', () => {
     const { body } = await read();
     for (const agent of AGENTS) {
       expect(body, `${agent.name} is missing`).toContain(agent.name);
-      expect(body, `${agent.slug} has no link`).toContain(`${SITE_URL}/tools/${agent.slug}`);
+      expect(body, `${agent.slug} has no link`).toContain(`${CANONICAL_URL}/tools/${agent.slug}`);
     }
   });
 
