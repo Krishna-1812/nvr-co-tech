@@ -18,6 +18,7 @@ import type { Guide } from './types';
 
 export const TRUE_COST: Guide = {
   slug: 'true-cost-of-an-under-construction-flat',
+  short: 'True cost of a flat',
   figure: { value: '₹68,76,912', label: 'True cost of a ₹60 lakh flat' },
   motif: 'tower',
   status: 'published',
@@ -139,6 +140,7 @@ export const TRUE_COST: Guide = {
 
 export const RENTAL_YIELD: Guide = {
   slug: 'rental-yield-on-property',
+  short: 'Rental yield',
   figure: { value: '3.36%', label: 'Net yield on the true cost' },
   motif: 'sundial',
   status: 'published',

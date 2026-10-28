@@ -800,6 +800,10 @@ export function createPreviewClient(as: 'admin' | 'member' | 'guest' = 'admin') 
       signUp: async () => ({ data: null, error: { message: 'Preview mode is already signed in.' } }),
       signInWithOAuth: async () => ({ data: null, error: { message: 'Preview mode is already signed in.' } }),
       exchangeCodeForSession: async () => ({ data: null, error: { message: 'Preview mode is already signed in.' } }),
+      // The password screens call these; without them the forgotten-password
+      // form threw in preview instead of answering.
+      resetPasswordForEmail: async () => ({ data: {}, error: null }),
+      updateUser: async () => ({ data: { user: null }, error: { message: 'Preview mode cannot change a password.' } }),
     },
     storage: {
       from: () => ({

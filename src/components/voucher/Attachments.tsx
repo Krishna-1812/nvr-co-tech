@@ -205,6 +205,7 @@ export function Attachments({
             type="file"
             multiple
             accept={ACCEPT_ATTR}
+            aria-label="Attach the invoice or supporting files"
             className="sr-only"
             onChange={(e) => e.target.files && void upload(e.target.files)}
           />

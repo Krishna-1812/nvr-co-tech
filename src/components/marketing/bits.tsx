@@ -93,6 +93,8 @@ export function LineRise({
       >
         {children}
       </span>
+      {/* A space after each line, so a heading set over two lines reads as
+          words to anything reading its text, not "Answers,worked through". */}{' '}
     </span>
   );
 }

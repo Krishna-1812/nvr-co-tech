@@ -522,6 +522,44 @@ export const LIVE_AGENTS = AGENTS.filter((a) => a.stage === 'live');
  * were. Typing one out is how the platform section spent a while saying "Buy 8
  * tools from 8 companies and you get 8 logins".
  */
+/**
+ * The home page's questions, for a reader deciding whether this is for them and
+ * for the answer engines that quote a site to its searchers.
+ *
+ * Every answer is something another page already says (the tool pages, the
+ * privacy page, the terms), and the tool names are read from the roster, so
+ * nothing here can promise a tool that is not on it. Ordered the way the
+ * questions come: what is it, can I try it, what about the rest, is my data
+ * safe, is it advice.
+ */
+export const HOME_FAQ: readonly { q: string; a: string }[] = [
+  {
+    q: `What is ${BRAND.name}?`,
+    a: `A set of web tools for finance work in India, built by chartered accountants. Each one takes a job a finance team or a household repeats, does the routine part and the arithmetic, and leaves the decision with you. The tools are ${listOf(LIVE_AGENTS.map((a) => a.name))}.`,
+  },
+  {
+    q: 'Can I use any of it for free, without an account?',
+    a: `Yes. ${OPEN_NAMES} open to anybody, with no account. They run in your browser, and what you enter stays there unless you sign in to keep a copy in your account.`,
+  },
+  {
+    q: 'How do I get the other tools?',
+    a: 'The others are used by our own team today. Each tool’s page has a short form to request access, and a person reads every request and replies.',
+  },
+  {
+    q: 'Is my financial data safe?',
+    a: 'The open tools keep what you enter in your browser and send nothing to a server unless you sign in. Ledger Reconciliation reads both files in your browser and never uploads them. The privacy page sets out what is collected and why.',
+  },
+  {
+    q: 'Is this financial, tax or legal advice?',
+    a: 'No. The tools do the arithmetic and the paperwork, and the guides explain the method with worked examples, but all of it is general information. Check anything you file, pay or sign against your own case, or with a professional.',
+  },
+];
+
+/** "A, B and C". */
+function listOf(names: readonly string[]): string {
+  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+}
+
 export const ROSTER = {
   /** Agreement, so the sentence survives the roster shrinking to one. */
   liveVerb: LIVE_AGENTS.length === 1 ? 'is' : 'are',

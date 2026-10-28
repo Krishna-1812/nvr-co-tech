@@ -78,13 +78,17 @@ export function Hero() {
               </LineRise>
             </Springy>
 
-            <Rise delay={380}>
+            {/* Moves without fading: see rise-solid in globals.css. */}
+            <div
+              className="animate-[rise-solid_0.7s_cubic-bezier(0.22,1,0.36,1)_backwards] motion-reduce:animate-none"
+              style={{ animationDelay: 'calc(var(--intro-wait, 0ms) + 380ms)' }}
+            >
               <p className="m-dim mt-7 max-w-lg t-4 sm:t-5">
                 One tool for each job your team repeats every month. Raising payments, agreeing the
-                bank, matching GST, working out TDS. They fill in the forms, do the arithmetic and
-                pass the work to the right person, then you decide.
+                bank, catching tax notices the day they land. They fill in the forms, do the
+                arithmetic and pass the work to the right person, then you decide.
               </p>
-            </Rise>
+            </div>
 
             <Rise delay={450}>
               <div className="mt-9 flex flex-wrap items-center gap-3">

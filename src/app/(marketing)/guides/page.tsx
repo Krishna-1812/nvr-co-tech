@@ -13,13 +13,14 @@ import { GuideDeck } from '@/components/marketing/guides/GuideDeck';
 import { StepRail } from '@/components/marketing/rich/StepRail';
 import { toCard } from '@/components/marketing/guides/summary';
 import { Roost } from '@/components/brand/Owl';
-import { pageMeta } from '@/lib/marketing/seo';
+import { collectionLd, pageMeta } from '@/lib/marketing/seo';
+import { JsonLd } from '@/components/marketing/JsonLd';
 import { publishedGuides, visibleGuides } from '@/lib/guides';
 
 const meta = pageMeta({
   title: 'Guides',
   description:
-    'Plain answers to the questions finance teams and households ask: the true cost of a flat, rental yield, bank reconciliation, net worth, tax notices and valuation.',
+    'Plain answers with worked examples: the true cost of a flat, rental yield, bank reconciliation, net worth, income tax notices and valuing a company.',
   path: '/guides',
 });
 
@@ -53,6 +54,16 @@ export default function GuidesPage() {
 
   return (
     <>
+      {publishedGuides().length > 0 && (
+        <JsonLd
+          data={collectionLd({
+            path: '/guides',
+            name: 'Guides',
+            description: meta.description as string,
+            items: publishedGuides().map((g) => ({ name: g.title, path: `/guides/${g.slug}`, description: g.lead })),
+          })}
+        />
+      )}
       <section className="relative overflow-hidden">
         <Roost seed="guides-rafter" band="top-right" />
         <Container wide className="relative pt-12 pb-16 sm:pt-16 sm:pb-24">

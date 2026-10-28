@@ -199,6 +199,9 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
               key={j.id}
               type="button"
               aria-pressed={on}
+              // The caption is hidden on a phone and the day is drawn aria-hidden,
+              // so the button carries its own name.
+              aria-label={`${MARK[j.id]}, on the ${j.day}th`}
               onClick={() => onPick(j.id)}
               className="group absolute bottom-0 flex -translate-x-1/2 flex-col items-center focus-visible:outline-none"
               style={{ left: at(j.day!) }}
@@ -227,6 +230,8 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
                 aria-hidden
                 className={cn(
                   'mt-1.5 grid size-7 place-items-center rounded-full border t-1 font-semibold transition-all',
+                  // The button drops the browser's outline, so the dot shows focus.
+                  'group-focus-visible:outline-2 group-focus-visible:outline-offset-4 group-focus-visible:outline-[var(--m-ink)]',
                   on ? undefined : 'm-dim border-[var(--m-line-2)] bg-[var(--m-bg)]',
                 )}
                 style={

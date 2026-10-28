@@ -157,8 +157,11 @@ export function NoticeRow({ item, urls, showClient = false }: { item: NoticeItem
             {item.facts.dins.map((din) => (
               <div key={din} className="flex min-w-0 items-center gap-1.5">
                 <dt className="text-subtle">DIN</dt>
-                <dd className="min-w-0 truncate font-mono text-[12px] text-[var(--text-c)]">{din}</dd>
-                <CopyButton value={din} label="Copy DIN" />
+                {/* The copy button inside the dd: a dl's groups may hold only dt and dd. */}
+                <dd className="flex min-w-0 items-center gap-1.5">
+                  <span className="min-w-0 truncate font-mono text-[12px] text-[var(--text-c)]">{din}</span>
+                  <CopyButton value={din} label="Copy DIN" />
+                </dd>
               </div>
             ))}
           </dl>

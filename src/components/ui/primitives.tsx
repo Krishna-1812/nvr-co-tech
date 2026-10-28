@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import type { ComponentProps, ReactNode } from 'react';
+import { cloneElement, isValidElement, useId, type ComponentProps, type ReactNode } from 'react';
 import { Roost, cornerFor } from '@/components/brand/Owl';
 
 // ─── Button ──────────────────────────────────────────────────────────────────
@@ -287,8 +287,21 @@ export function Field({
   className,
   action,
 }: FieldProps) {
+  /*
+   * A field given no htmlFor still names its control. Thirty-odd fields were
+   * written without one, so their labels sat beside the inputs without being
+   * attached to them: a screen reader announced "edit text" for TDS, Advance,
+   * Tips, the chapter dropdown. When the one child is an element, it is given
+   * an id (its own, if it has one) and the label points at it.
+   */
+  const auto = useId();
+  let forId = htmlFor;
+  if (!forId && isValidElement<{ id?: string }>(children) && LABELLABLE.has(children.type)) {
+    forId = children.props.id ?? auto;
+    if (!children.props.id) children = cloneElement(children, { id: auto });
+  }
   const labelEl = (
-    <label htmlFor={htmlFor} className="text-sm font-medium">
+    <label htmlFor={forId} className="text-sm font-medium">
       {label}
       {required && (
         <span className="ml-0.5 text-[var(--status-rejected)]" aria-label="required">
@@ -386,6 +399,9 @@ export function Select({ className, children, ...props }: ComponentProps<'select
     </select>
   );
 }
+
+/** The controls a Field may attach its label to when it is given no htmlFor. */
+const LABELLABLE = new Set<unknown>(['input', 'select', 'textarea', Input, Textarea, Select]);
 
 /** A read-only computed value (Net Total, Grand Total). Visibly not an input. */
 export function ComputedField({

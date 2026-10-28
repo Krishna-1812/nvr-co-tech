@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { pageMeta } from '@/lib/marketing/seo';
+import { collectionLd, pageMeta } from '@/lib/marketing/seo';
+import { JsonLd } from '@/components/marketing/JsonLd';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { AGENTS, LIVE_AGENTS, OPEN_NAMES, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
@@ -26,7 +27,7 @@ import { Roost } from '@/components/brand/Owl';
 export const metadata: Metadata = pageMeta({
   title: 'Finance tools for Indian teams',
   description:
-    'Every tool in one place, for reconciliation, vouchers, tax notices, valuation, property cost and net worth: what each one does, and whether you can use it today.',
+    'Finance tools for reconciliation, payment vouchers, tax notices, valuation, property cost and net worth: what each does, and whether you can use it today.',
   path: '/tools',
 });
 
@@ -58,6 +59,14 @@ const GROUPS: { stage: AgentStage; lead: string }[] = [
 export default function AgentsPage() {
   return (
     <>
+      <JsonLd
+        data={collectionLd({
+          path: '/tools',
+          name: 'Finance tools',
+          description: metadata.description as string,
+          items: AGENTS.map((a) => ({ name: a.name, path: `/tools/${a.slug}`, description: a.summary })),
+        })}
+      />
       <section className="relative overflow-hidden">
         <Roost seed="agents-roost" band="top-right" />
         <Container wide className="relative pt-12 pb-16 sm:pt-16 sm:pb-24">

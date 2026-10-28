@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_TOOLS } from '@/lib/access';
 import { BRAND, CANONICAL_URL, CONTACT, PROFILES, type Agent } from './content';
 
 /**
@@ -56,9 +57,15 @@ export function pageMeta({
   path: string;
   absoluteTitle?: boolean;
 }): Metadata {
-  const shown = absoluteTitle ? title : `${title} · ${BRAND.name}`;
+  // The brand goes on the end only while the whole title still fits in what a
+  // results page shows (about 60 characters). Past that, Google cut it off
+  // anyway, mid-name ("… · The Finance Intellig…"), and the words that match
+  // the search are the part worth keeping.
+  const branded = `${title} · ${BRAND.name}`;
+  const bare = absoluteTitle || branded.length > TITLE_FITS;
+  const shown = bare ? title : branded;
   return {
-    title: absoluteTitle ? { absolute: title } : title,
+    title: bare ? { absolute: title } : title,
     description,
     alternates: { canonical: path },
     openGraph: {
@@ -72,6 +79,9 @@ export function pageMeta({
     twitter: { card: 'summary_large_image', title: shown, description },
   };
 }
+
+/** Roughly what a results page shows of a title before it cuts it off. */
+export const TITLE_FITS = 62;
 
 /*
  * Stable @id values, so the nodes below can point at each other instead of
@@ -159,12 +169,15 @@ function localBusiness() {
     address: ADDRESS,
     areaServed: { '@type': 'Country', name: 'India' },
     parentOrganization: { '@id': ORG_ID },
+    // What the live tools and the guides are about, and nothing they are not.
     knowsAbout: [
       'Payment vouchers and approvals',
       'Bank reconciliation',
+      'Income tax notices',
+      'Company valuation using comparable companies',
+      'Under-construction property cost and rental yield',
+      'Net worth and nominee records',
       'Goods and Services Tax',
-      'Tax deducted at source',
-      'Statutory audit support',
     ],
   };
 }
@@ -221,6 +234,54 @@ export function serviceLd(agent: Agent) {
       inLanguage: 'en-IN',
       featureList: agent.does,
       publisher: { '@id': ORG_ID },
+      // True of the tools anybody can open without an account, and said of
+      // nothing else: the rest are opened on request, which is not "free".
+      ...(OPEN_TOOLS.includes(agent.slug) ? { isAccessibleForFree: true } : {}),
+    },
+  ]);
+}
+
+/**
+ * An index page, and what it lists, in order.
+ *
+ * The tools page and the guides page are each a list of pages that already
+ * describe themselves; this says the list itself is one, so a search engine or
+ * an assistant can tell "the guides on this site" from a page that happens to
+ * mention several of them.
+ */
+export function collectionLd({
+  path,
+  name,
+  description,
+  items,
+}: {
+  path: string;
+  name: string;
+  description: string;
+  items: readonly { name: string; path: string; description?: string }[];
+}) {
+  const url = absolute(path);
+  return graph([
+    {
+      '@type': 'CollectionPage',
+      '@id': `${url}#page`,
+      url,
+      name,
+      description,
+      inLanguage: 'en-IN',
+      isPartOf: { '@id': SITE_ID },
+      publisher: { '@id': ORG_ID },
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: items.length,
+        itemListElement: items.map((item, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: absolute(item.path),
+          name: item.name,
+          ...(item.description ? { description: item.description } : {}),
+        })),
+      },
     },
   ]);
 }
@@ -258,6 +319,7 @@ export function articleLd(guide: {
   title: string;
   search: { description: string };
   updated: string;
+  published?: string;
   tool: string;
 }) {
   const url = absolute(`/guides/${guide.slug}`);
@@ -269,6 +331,9 @@ export function articleLd(guide: {
       description: guide.search.description,
       url,
       mainEntityOfPage: url,
+      // Each guide was written and published on the date it carries; a later
+      // edit moves `updated` and leaves the first publication where it was.
+      datePublished: guide.published ?? guide.updated,
       dateModified: guide.updated,
       inLanguage: 'en-IN',
       // Named in full, not only by @id: the Organization node itself is only on

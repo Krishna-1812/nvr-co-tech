@@ -73,7 +73,7 @@ export default async function AdminPeoplePage() {
         it. Every figure is from the rows this page already reads.
       */}
       <Card className="p-4 sm:p-5">
-        <dl className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <HeroStat
             label="Accounts"
             value={rows.length}
@@ -104,7 +104,7 @@ export default async function AdminPeoplePage() {
             note={invites.length === 0 ? 'Nobody waiting to join' : 'Waiting to be accepted'}
             tone={invites.length > 0 ? 'var(--status-pending)' : undefined}
           />
-        </dl>
+        </div>
       </Card>
 
       <InviteForm emailEnabled={emailConfigured()} />

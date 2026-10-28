@@ -31,6 +31,11 @@ import { useInView } from '../scroll';
  * Columns are matched from the right, so a total that gains a digit grows a new
  * column on the left and every existing one keeps its place.
  *
+ * The digits on the strips, the sizing digit and the separators are drawn by
+ * CSS from `data-ch` rather than written as text, for the reason Letters gives:
+ * as text, every figure read to a search engine as its value followed by twenty
+ * digits per column ("₹1,48,150" became "₹101234567890123456789,4…").
+ *
  * Each column is sized by an invisible copy of its own final digit, so a "1"
  * is as narrow as a "1" set in plain type — the counter does not space a figure
  * out into a row of equal-width cells.
@@ -77,15 +82,13 @@ export function Odometer({
           const key = chars.length - k;
           if (!/\d/.test(c)) {
             return (
-              <span key={`s${key}`} className="m-odo-sep">
-                {c}
-              </span>
+              <span key={`s${key}`} className="m-odo-sep" data-ch={c} />
             );
           }
           const lead = digits - d++;
           return (
             <span key={`d${key}`} className="m-odo-col">
-              <span className="m-odo-size">{c}</span>
+              <span className="m-odo-size" data-ch={c} />
               <span
                 className="m-odo-strip"
                 style={
@@ -105,4 +108,4 @@ export function Odometer({
   );
 }
 
-const STRIP = Array.from({ length: 20 }, (_, n) => <span key={n}>{n % 10}</span>);
+const STRIP = Array.from({ length: 20 }, (_, n) => <span key={n} data-ch={n % 10} />);

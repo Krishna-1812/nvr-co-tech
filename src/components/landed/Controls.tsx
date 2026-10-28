@@ -51,9 +51,17 @@ export function NumberInput({
         {...rest}
         inputMode="decimal"
         autoComplete="off"
+        spellCheck={false}
         value={editing ? text : show(value)}
         onFocus={() => {
-          setText(value === undefined ? '' : String(value));
+          // The field keeps the figure exactly as shown, commas and all, when
+          // it is focused (parseAmount reads commas). Rewriting it to bare
+          // digits on focus replaced the text under the browser's selection:
+          // reached by Tab, the whole figure is selected so that typing
+          // replaces it, and after the rewrite the new digits were added to
+          // the end of the old ones instead (7,50,000 then 900000 became
+          // 7,50,00,09,00,000).
+          setText(show(value));
           setEditing(true);
         }}
         onBlur={() => {

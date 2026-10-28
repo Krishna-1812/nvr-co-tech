@@ -1320,6 +1320,32 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   plays when scrolled to (count pops, letters rise, rule draws). The voucher status filters have one
   tint that slides between pills (`.w-pill`). CSS block "WORKSPACE" at the end of globals.css; all of
   it is off under reduced motion and hides nothing without scripting.
+- **Site-wide audit (28 Oct 2026):** every public page crawled at 1440 and 390 (links, console
+  errors, overflow, axe, metadata, structured data), every tool walked as a new guest and as an
+  admin in preview. Fixed:
+  - *Headings and figures read twice by crawlers.* `Letters` and `Odometer` wrote each letter and a
+    0–9 strip per digit as text beside the hidden copy, so an h1 read "Voucher DeskVoucher Desk" and
+    figures read "₹101234567890…". The glyphs are now drawn by CSS from `data-ch` (`.m-ch::before`,
+    `.m-odo-*::before`); `play/text-once.test.tsx` holds it. `LineRise` adds a space after each line.
+  - *Amounts appended instead of replaced (True Property Cost).* `NumberInput` stripped commas on
+    focus, which dropped the browser's select-all on Tab, so typing 900000 over 7,50,000 gave
+    7,50,00,09,00,000. It now keeps the shown text on focus (parseAmount reads commas).
+  - *True Property Cost first visit* opened on a warning list for two untouched rows; it now shows
+    three steps and "See it with an example", and lists problems only once something is typed.
+  - *Accessibility:* `Field` attaches its label to its control when given no htmlFor (TDS, Advance,
+    Tips, Discount, VAT, the chapter select…); HeroStat groups were `<dl>` without dt/dd (now div);
+    the DIN copy button moved inside its dd; the home calendar's day buttons have names; wide guide
+    tables are keyboard-scrollable regions; the attachments file input is labelled.
+  - *SEO/AEO:* titles drop the brand when it would not fit (`TITLE_FITS` = 62); fuller Privacy and
+    Terms descriptions; `CollectionPage` + `ItemList` on /tools and /guides; `isAccessibleForFree` on
+    the open tools only; `datePublished` on guides; sitemap `lastmod` from guide dates; a Guides
+    column in the footer (each guide's `short` name); a home FAQ (`HOME_FAQ`, roster-derived) with
+    FAQPage data and in llms-full.txt; `knowsAbout` matches the live tools; home hero paragraph no
+    longer fades in behind the curtain (LCP 2.8s → 0.4s). Home copy no longer promises GST/TDS work.
+  - Footer wordmark 9.05 → 8.7cqw (last letter was clipped on phones); money fields spellCheck off;
+    preview client gained `resetPasswordForEmail`/`updateUser` stubs.
+  - Not bugs, noted: preview-mode Approve says "Invalid request." because sample voucher ids are not
+    UUIDs (real ids are); the hub has no command palette (by design, it lists every tool).
 - **Roadmap tools removed (28 Oct 2026, owner's request):** GST Reconciliation, TDS Compliance,
   Invoice Intake and Audit Copilot are gone from `AGENTS` and everything that reads it (hub, /tools,
   /about, sitemap, llms.txt, llms-full.txt, the assistant's knowledge and prompt, icons, motifs).
