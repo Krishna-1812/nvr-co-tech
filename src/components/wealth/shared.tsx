@@ -161,6 +161,7 @@ export function MoneyInput({
           id={id}
           inputMode="decimal"
           autoComplete="off"
+          spellCheck={false}
           value={text}
           placeholder={placeholder}
           aria-invalid={bad || undefined}

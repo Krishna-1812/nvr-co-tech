@@ -32,6 +32,10 @@ export type Guide = {
   tool: string;
   /** ISO date the content was last checked. */
   updated: string;
+  /** ISO date it was first published, when that differs from `updated`. */
+  published?: string;
+  /** A name of a few words, for lists short on room (the footer). */
+  short: string;
   /** One or two sentences under the heading. */
   lead: string;
   /**

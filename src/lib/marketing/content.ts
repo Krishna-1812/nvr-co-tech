@@ -451,105 +451,6 @@ const BASE_AGENTS: Agent[] = [
       },
     ],
   },
-  {
-    slug: 'gst-reconciliation',
-    name: 'GST Reconciliation',
-    stage: 'planned',
-    category: 'Indirect tax',
-    accent: 'cyan',
-    summary:
-      'Checks GSTR-2B against your purchase register, works out the input tax credit line by line, and sorts the problems by how much money is involved.',
-    pitch:
-      'Credit you forget to claim is money left on the table. Credit you claim wrongly brings a notice. Both come out of the same check, so it is worth doing every month.',
-    does: [
-      'Pulls GSTR-2B and matches it to the purchase register on GSTIN, invoice number and value.',
-      'Tells the difference between a real mismatch and the same invoice number written two ways.',
-      'Works out how much credit you can claim on each line, including the blocked ones.',
-      'Sorts what is outstanding by rupee value, so your follow up list starts with the biggest.',
-    ],
-    inputs: 'GSTR-2B, purchase register',
-    outputs: 'Credit you can claim, and a follow up list',
-    search: {
-      title: 'GSTR-2B Reconciliation Tool (Planned)',
-      description:
-        'Planned: checks GSTR-2B against your purchase register, works out the input tax credit line by line, and sorts the problems by how much money is involved.',
-    },
-  },
-  {
-    slug: 'tds-compliance',
-    name: 'TDS Compliance',
-    stage: 'planned',
-    category: 'Direct tax',
-    accent: 'amber',
-    summary:
-      'Works out the right section and rate before the payment goes out, then builds the quarterly return from the payments you actually made.',
-    pitch:
-      'Deduct at the wrong rate and you usually find out a quarter later, when putting it right costs interest. The time to get it right is while the voucher is still a draft.',
-    does: [
-      'Works out which section applies from the nature of the payment and who is being paid.',
-      'Uses the current rate, including the higher one when a PAN is missing or inoperative.',
-      'Tells you while the voucher can still be edited, not after the money has gone out.',
-      'Builds 26Q and 24Q from the payments on record, with the challan details attached.',
-      'Keeps track of deposit and filing dates against what has actually been paid.',
-    ],
-    inputs: 'Payments, payee PAN and status',
-    outputs: 'The right rate at the time, and the quarterly returns',
-    search: {
-      title: 'TDS Section, Rate & Return Tool (Planned)',
-      description:
-        'Planned: works out the right TDS section and rate before the payment goes out, then builds the quarterly return from the payments you actually made.',
-    },
-  },
-  {
-    slug: 'invoice-intake',
-    name: 'Invoice Intake',
-    stage: 'planned',
-    category: 'Document capture',
-    accent: 'magenta',
-    summary:
-      'Reads an invoice, whether it comes by email, as a scan or as a photo, pulls out the details and starts the voucher for you.',
-    pitch:
-      'The slowest part of raising a voucher is copying numbers off a PDF. If the software reads the document instead, a five minute form becomes a thirty second check.',
-    does: [
-      'Takes invoices by email, by upload, or as a photo from your phone.',
-      'Pulls out the supplier, GSTIN, invoice number and date, the line values and the tax split.',
-      'Checks that the GSTIN is valid and that the PAN inside it matches the one on file, before you see the draft.',
-      'Opens a draft with everything it filled in clearly marked, so you are checking rather than typing.',
-      'Keeps the original document attached to the voucher, so the proof stays with the record.',
-    ],
-    inputs: 'PDFs, scans, photographs, email',
-    outputs: 'A draft that is mostly filled in, with the invoice attached',
-    search: {
-      title: 'Invoice Reader for Vouchers (Planned)',
-      description:
-        'Planned: reads an invoice from email, a scan or a photo, pulls out the supplier, GSTIN, amounts and tax split, and starts the voucher for you.',
-    },
-  },
-  {
-    slug: 'audit-copilot',
-    name: 'Audit Copilot',
-    stage: 'planned',
-    category: 'Assurance & reporting',
-    accent: 'rose',
-    summary:
-      'Answers questions about your records. Who approved what, when, and on what basis. It shows you the rows it read.',
-    pitch:
-      'A history is only useful if you can ask it something. This one answers in ordinary sentences and shows its working, so you can check the answer rather than take it on trust.',
-    does: [
-      'Answers questions in plain language across vouchers, approvals and attachments.',
-      'Points at the records behind every answer, so you can go and check it yourself.',
-      'Puts together sampling packs and exception reports for a period.',
-      'Flags things worth a look, like the same pair of approvers, odd timings, or a payee that keeps coming back.',
-      'Reads only. It can never change anything it reports on.',
-    ],
-    inputs: 'The whole history',
-    outputs: 'Answers with their sources, and sampling packs',
-    search: {
-      title: 'Audit Trail Questions in Plain English (Planned)',
-      description:
-        'Planned: answers questions about your records, such as who approved what, when and on what basis, and shows the rows it read.',
-    },
-  },
 ];
 
 /**
@@ -621,6 +522,44 @@ export const LIVE_AGENTS = AGENTS.filter((a) => a.stage === 'live');
  * were. Typing one out is how the platform section spent a while saying "Buy 8
  * tools from 8 companies and you get 8 logins".
  */
+/**
+ * The home page's questions, for a reader deciding whether this is for them and
+ * for the answer engines that quote a site to its searchers.
+ *
+ * Every answer is something another page already says (the tool pages, the
+ * privacy page, the terms), and the tool names are read from the roster, so
+ * nothing here can promise a tool that is not on it. Ordered the way the
+ * questions come: what is it, can I try it, what about the rest, is my data
+ * safe, is it advice.
+ */
+export const HOME_FAQ: readonly { q: string; a: string }[] = [
+  {
+    q: `What is ${BRAND.name}?`,
+    a: `A set of web tools for finance work in India, built by chartered accountants. Each one takes a job a finance team or a household repeats, does the routine part and the arithmetic, and leaves the decision with you. The tools are ${listOf(LIVE_AGENTS.map((a) => a.name))}.`,
+  },
+  {
+    q: 'Can I use any of it for free, without an account?',
+    a: `Yes. ${OPEN_NAMES} open to anybody, with no account. They run in your browser, and what you enter stays there unless you sign in to keep a copy in your account.`,
+  },
+  {
+    q: 'How do I get the other tools?',
+    a: 'The others are used by our own team today. Each tool’s page has a short form to request access, and a person reads every request and replies.',
+  },
+  {
+    q: 'Is my financial data safe?',
+    a: 'The open tools keep what you enter in your browser and send nothing to a server unless you sign in. Ledger Reconciliation reads both files in your browser and never uploads them. The privacy page sets out what is collected and why.',
+  },
+  {
+    q: 'Is this financial, tax or legal advice?',
+    a: 'No. The tools do the arithmetic and the paperwork, and the guides explain the method with worked examples, but all of it is general information. Check anything you file, pay or sign against your own case, or with a professional.',
+  },
+];
+
+/** "A, B and C". */
+function listOf(names: readonly string[]): string {
+  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+}
+
 export const ROSTER = {
   /** Agreement, so the sentence survives the roster shrinking to one. */
   liveVerb: LIVE_AGENTS.length === 1 ? 'is' : 'are',
@@ -688,9 +627,15 @@ export type Job = {
    * about the roster).
    */
   good: string;
-  /** The part we take on. Read by the assistant (lib/assist), not the home page. */
-  ours: string;
-  agent: string;
+  /**
+   * The part we take on, and the tool that does it, for the jobs a live tool
+   * does. Read by the assistant (lib/assist), not the home page. A job no tool
+   * takes on has neither: the four roadmap tools that covered the rest were
+   * taken off the site on 28 Oct, at the owner's request, and a job left
+   * pointing at one would have the assistant offer work nobody is doing.
+   */
+  ours?: string;
+  agent?: string;
 };
 
 export const JOBS: readonly Job[] = [
@@ -700,8 +645,6 @@ export const JOBS: readonly Job[] = [
     title: 'Bills turn up from everywhere',
     now: 'One by email, one on WhatsApp, one as a photo somebody took in a taxi. Each one gets typed into a form by hand, and the numbers get typed wrong often enough to matter.',
     good: 'Every bill captured once, the day it arrives, with the original kept beside the entry so nobody has to retype it or hunt for it later.',
-    ours: 'The invoice is read for you. The supplier, the GSTIN, the invoice number and the values come back already filled in, with the original document attached to the record.',
-    agent: 'invoice-intake',
   },
   {
     id: 'pay',
@@ -719,8 +662,6 @@ export const JOBS: readonly Job[] = [
     title: 'Last month’s TDS has to be in the bank',
     now: 'Somebody goes back through every payment working out which section applied to it, after the money has already gone out. Getting it wrong now costs interest.',
     good: 'The section and the rate settled when the payment is made, not reconstructed a month later from memory and bank statements.',
-    ours: 'The section and the rate are worked out while the voucher is still a draft. By the 7th the figure is already there, with the payments behind it listed.',
-    agent: 'tds-compliance',
   },
   {
     id: 'gst-match',
@@ -729,8 +670,6 @@ export const JOBS: readonly Job[] = [
     title: 'GSTR-2B lands and has to be matched',
     now: 'Two spreadsheets side by side, sorted by amount, hoping the invoice numbers were typed the same way twice.',
     good: 'Every line of 2B matched to the purchase register, with the real mismatches told apart from the ones that are only typed differently.',
-    ours: 'Every line of 2B matched to your purchase register on GSTIN, invoice number and value, with the near misses told apart from the real mismatches.',
-    agent: 'gst-reconciliation',
   },
   {
     id: 'gst-claim',
@@ -739,8 +678,6 @@ export const JOBS: readonly Job[] = [
     title: 'The credit you claim has to be the credit you have',
     now: 'Settled in a rush the night before. Anything that would not match gets left for next month, and next month it is somebody else’s problem.',
     good: 'Credit claimed only where it is actually available, and a follow-up list for what is missing that starts with the largest amounts.',
-    ours: 'What you can claim, what is blocked and what is still missing, line by line and sorted by rupee value, so the follow up list starts with the biggest.',
-    agent: 'gst-reconciliation',
   },
   {
     id: 'bank',
@@ -757,8 +694,6 @@ export const JOBS: readonly Job[] = [
     title: 'The quarterly return has to be built',
     now: 'Payments, challans and PANs pulled back together from three places, a quarter after the fact.',
     good: 'The return built from payments already on record, with the challans attached, well before the due date rather than on it.',
-    ours: '26Q and 24Q put together from the payments already on record, with the challan details attached and the filing dates tracked.',
-    agent: 'tds-compliance',
   },
   {
     id: 'audit',
@@ -766,8 +701,6 @@ export const JOBS: readonly Job[] = [
     title: 'The auditor asks who approved what',
     now: 'A week of pulling files, and an awkward gap wherever the person who signed has since left.',
     good: 'Any approval traced to a person, a date and the papers behind it in minutes, even when the person who signed has since left.',
-    ours: 'Ask the question in plain words and get the answer with the records behind it, so you can check it rather than take it on trust.',
-    agent: 'audit-copilot',
   },
 ];
 

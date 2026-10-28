@@ -93,6 +93,8 @@ export function LineRise({
       >
         {children}
       </span>
+      {/* A space after each line, so a heading set over two lines reads as
+          words to anything reading its text, not "Answers,worked through". */}{' '}
     </span>
   );
 }
@@ -242,9 +244,7 @@ export function Section({
  * The live tools use the motif their own screen opens on (components/ui/Scene),
  * so the arch on /tools/true-property-cost is the same tower a visitor meets
  * after signing in, and the public page and the product read as one thing.
- * The roadmap ones borrow the nearest picture of the job: a ledger for matching
- * GST, a sundial for the TDS calendar, the gate for documents coming in, and
- * the owl for the one that answers questions.
+ * A tool added without one gets the doorways (motifFor, below).
  */
 export const AGENT_MOTIF: Record<string, SceneMotif> = {
   'voucher-desk': 'voucher',
@@ -254,10 +254,6 @@ export const AGENT_MOTIF: Record<string, SceneMotif> = {
   'tax-notices': 'sundial',
   'true-property-cost': 'tower',
   'wealth-tracker': 'nest',
-  'gst-reconciliation': 'ledger',
-  'tds-compliance': 'sundial',
-  'invoice-intake': 'gate',
-  'audit-copilot': 'owl',
 };
 
 /** A slug added to the roster without a motif still gets a doorway. */

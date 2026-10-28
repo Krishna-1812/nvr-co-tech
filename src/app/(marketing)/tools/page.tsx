@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { pageMeta } from '@/lib/marketing/seo';
+import { collectionLd, pageMeta } from '@/lib/marketing/seo';
+import { JsonLd } from '@/components/marketing/JsonLd';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { AGENTS, LIVE_AGENTS, OPEN_NAMES, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
@@ -26,7 +27,7 @@ import { Roost } from '@/components/brand/Owl';
 export const metadata: Metadata = pageMeta({
   title: 'Finance tools for Indian teams',
   description:
-    'Every tool in one place, for reconciliation, vouchers, tax notices, valuation, property cost and net worth: what each one does, and whether you can use it today.',
+    'Finance tools for reconciliation, payment vouchers, tax notices, valuation, property cost and net worth: what each does, and whether you can use it today.',
   path: '/tools',
 });
 
@@ -58,6 +59,14 @@ const GROUPS: { stage: AgentStage; lead: string }[] = [
 export default function AgentsPage() {
   return (
     <>
+      <JsonLd
+        data={collectionLd({
+          path: '/tools',
+          name: 'Finance tools',
+          description: metadata.description as string,
+          items: AGENTS.map((a) => ({ name: a.name, path: `/tools/${a.slug}`, description: a.summary })),
+        })}
+      />
       <section className="relative overflow-hidden">
         <Roost seed="agents-roost" band="top-right" />
         <Container wide className="relative pt-12 pb-16 sm:pt-16 sm:pb-24">
@@ -114,11 +123,21 @@ export default function AgentsPage() {
 
       <Section id="roster" divider={false} className="scroll-mt-16">
         <Container wide>
-          <SectionHeading
-            eyebrow="The roster"
-            title="Live, and on the way."
-            lead="Filter by whether you can use it today. Every card says which it is."
-          />
+          {/* The roadmap tools were taken off the site on 28 Oct, at the owner's
+              request, so while every tool is live the heading says so. */}
+          {LIVE_AGENTS.length === AGENTS.length ? (
+            <SectionHeading
+              eyebrow="The roster"
+              title="Every one of them, live."
+              lead="Each card says what goes in, what comes out, and whether it is open to you."
+            />
+          ) : (
+            <SectionHeading
+              eyebrow="The roster"
+              title="Live, and on the way."
+              lead="Filter by whether you can use it today. Every card says which it is."
+            />
+          )}
           <div className="mt-10">
             <StageBrowser
               label="Filter tools by stage"
@@ -141,7 +160,7 @@ export default function AgentsPage() {
           <DuneCta
             eyebrow="Where to start"
             title="One of these is already costing you a day a month."
-            body="Tell us which job is the worst one and we will show you the tool that covers it. If it is not built yet, we will say so, and tell you when it should be."
+            body="Tell us which job is the worst one and we will show you the tool that covers it. If none of them covers it, we will say so."
             href="/contact"
             label="Book a walkthrough"
           >

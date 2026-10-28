@@ -216,15 +216,23 @@ export default function AboutPage() {
         <Container wide>
           <Reveal>
             <SectionHeading
-              eyebrow="The roadmap"
+              eyebrow={STAGES_IN_WAITING ? 'The roadmap' : 'The tools'}
               title="One that works, then the next one."
-              lead="The plan is a set of tools that covers the jobs your team does every month. The order is on purpose. Payments come first, because that is where approvals and proof matter most. The audit tool comes last, because it reads everything the others write."
+              lead={
+                STAGES_IN_WAITING
+                  ? 'The plan is a set of tools that covers the jobs your team does every month. The order is on purpose. Payments come first, because that is where approvals and proof matter most.'
+                  : 'A set of tools for the jobs your team does every month, built one at a time and in that order on purpose. Payments came first, because that is where approvals and proof matter most.'
+              }
             />
           </Reveal>
 
           {/* Read down a spine that fills as you scroll; see about/RoadmapList. */}
           <RoadmapList agents={AGENTS} />
 
+          {/* Only while something is not built. The roadmap tools were taken off
+              the site on 28 Oct, at the owner's request, and with every tool
+              live this sentence would have ended "marked ." */}
+          {STAGES_IN_WAITING && (
           <Reveal delay={80}>
             <p className="m-dim-2 mt-8 max-w-2xl t-3">
               {/*
@@ -243,6 +251,7 @@ export default function AboutPage() {
               have the conversation after you have signed something.
             </p>
           </Reveal>
+          )}
         </Container>
       </Section>
 

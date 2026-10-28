@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { AGENTS, BRAND, CANONICAL_URL, HOME_SEARCH, STAGE_LABEL } from './content';
-import { absolute, breadcrumbLd, ldJson, pageMeta, serviceLd, siteLd } from './seo';
+import { AGENTS, BRAND, CANONICAL_URL, HOME_FAQ, HOME_SEARCH, LIVE_AGENTS, STAGE_LABEL } from './content';
+import { OPEN_TOOLS } from '@/lib/access';
+import { ALL_GUIDES } from '@/lib/guides';
+import { TITLE_FITS, absolute, breadcrumbLd, collectionLd, ldJson, pageMeta, serviceLd, siteLd } from './seo';
 
 /**
  * Structured data is a set of claims made to a machine that will never read the
@@ -257,5 +259,72 @@ describe('the web application node', () => {
 
   it('states no price, because there is none published', () => {
     expect(app).not.toHaveProperty('offers');
+  });
+});
+
+describe('titles as a results page shows them', () => {
+  const shown = (title: string) => {
+    const t = pageMeta({ title, description: 'x', path: '/x' }).title;
+    return typeof t === 'string' ? `${t} · ${BRAND.name}` : (t as { absolute: string }).absolute;
+  };
+
+  it('keeps the brand on a title that fits with it', () => {
+    expect(pageMeta({ title: 'Tools', description: 'x', path: '/x' }).title).toBe('Tools');
+  });
+
+  it('drops the brand rather than let it be cut off mid-name', () => {
+    const long = 'Payment Voucher Software with Approvals';
+    expect(pageMeta({ title: long, description: 'x', path: '/x' }).title).toEqual({ absolute: long });
+  });
+
+  it('fits every tool and guide title in what a result shows', () => {
+    for (const a of AGENTS) expect(shown(a.search.title).length, a.slug).toBeLessThanOrEqual(TITLE_FITS);
+    for (const g of ALL_GUIDES) expect(shown(g.search.title).length, g.slug).toBeLessThanOrEqual(TITLE_FITS);
+  });
+});
+
+describe('the home page questions', () => {
+  it('name every live tool and no other', () => {
+    const answer = HOME_FAQ[0].a;
+    for (const a of LIVE_AGENTS) expect(answer).toContain(a.name);
+    for (const a of AGENTS.filter((x) => x.stage !== 'live')) expect(answer).not.toContain(a.name);
+  });
+
+  it('call free only the tools that are open to anybody', () => {
+    const free = HOME_FAQ.find((f) => /free/i.test(f.q))!.a;
+    for (const a of LIVE_AGENTS) {
+      if (OPEN_TOOLS.includes(a.slug)) expect(free, a.slug).toContain(a.name);
+      else expect(free, a.slug).not.toContain(a.name);
+    }
+  });
+});
+
+describe('collectionLd', () => {
+  const ld = collectionLd({
+    path: '/tools',
+    name: 'Tools',
+    description: 'All of them.',
+    items: [
+      { name: 'A', path: '/tools/a' },
+      { name: 'B', path: '/tools/b' },
+    ],
+  });
+  const page = byType(ld, 'CollectionPage');
+
+  it('lists the items in order, numbered from one, with absolute links', () => {
+    const list = page.mainEntity as { numberOfItems: number; itemListElement: { position: number; url: string }[] };
+    expect(list.numberOfItems).toBe(2);
+    expect(list.itemListElement.map((i) => i.position)).toEqual([1, 2]);
+    expect(list.itemListElement[1].url).toBe(absolute('/tools/b'));
+  });
+});
+
+describe('free, said of the open tools only', () => {
+  it('marks a tool free only when anybody can open it', () => {
+    for (const a of AGENTS.filter((x) => x.stage === 'live')) {
+      const app = byType(serviceLd(a), 'WebApplication');
+      if (OPEN_TOOLS.includes(a.slug)) expect(app.isAccessibleForFree, a.slug).toBe(true);
+      else expect(app, a.slug).not.toHaveProperty('isAccessibleForFree');
+    }
   });
 });

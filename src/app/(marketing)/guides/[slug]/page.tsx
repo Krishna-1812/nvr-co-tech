@@ -319,7 +319,11 @@ function GuideBlock({ block: b, number, color }: { block: Block; number: number;
             {/* relative: the odometer's screen-reader copy is absolutely placed,
                 and without a positioned scroller it would escape the scroll box
                 and widen the whole page on a phone. */}
-            <div className="relative overflow-x-auto">
+            {/* Focusable when it can scroll, so a keyboard can move it too. */}
+            <div
+              className="relative overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--m-ink)]"
+              {...(wide ? { tabIndex: 0, role: 'region', 'aria-label': `${b.caption} (scrolls sideways)` } : {})}
+            >
               <table className={`w-full border-collapse t-3 ${wide ? 'min-w-[40rem] whitespace-nowrap' : ''}`}>
                 <thead>
                   <tr className="border-b border-[var(--m-line)] bg-[var(--m-bg)]">

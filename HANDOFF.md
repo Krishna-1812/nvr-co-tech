@@ -1320,9 +1320,66 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   plays when scrolled to (count pops, letters rise, rule draws). The voucher status filters have one
   tint that slides between pills (`.w-pill`). CSS block "WORKSPACE" at the end of globals.css; all of
   it is off under reduced motion and hides nothing without scripting.
-- **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
-  prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
-  `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).
+- **Owner instruction (28 Oct 2026): merge without asking.** Once the checks and the Vercel build
+  are green on a PR from the working branch, merge it into `main`; do not ask first.
+- **Site-wide audit (28 Oct 2026):** every public page crawled at 1440 and 390 (links, console
+  errors, overflow, axe, metadata, structured data), every tool walked as a new guest and as an
+  admin in preview. Fixed:
+  - *Headings and figures read twice by crawlers.* `Letters` and `Odometer` wrote each letter and a
+    0–9 strip per digit as text beside the hidden copy, so an h1 read "Voucher DeskVoucher Desk" and
+    figures read "₹101234567890…". The glyphs are now drawn by CSS from `data-ch` (`.m-ch::before`,
+    `.m-odo-*::before`); `play/text-once.test.tsx` holds it. `LineRise` adds a space after each line.
+  - *Amounts appended instead of replaced (True Property Cost).* `NumberInput` stripped commas on
+    focus, which dropped the browser's select-all on Tab, so typing 900000 over 7,50,000 gave
+    7,50,00,09,00,000. It now keeps the shown text on focus (parseAmount reads commas).
+  - *True Property Cost first visit* opened on a warning list for two untouched rows; it now shows
+    three steps and "See it with an example", and lists problems only once something is typed.
+  - *Accessibility:* `Field` attaches its label to its control when given no htmlFor (TDS, Advance,
+    Tips, Discount, VAT, the chapter select…); HeroStat groups were `<dl>` without dt/dd (now div);
+    the DIN copy button moved inside its dd; the home calendar's day buttons have names; wide guide
+    tables are keyboard-scrollable regions; the attachments file input is labelled.
+  - *SEO/AEO:* titles drop the brand when it would not fit (`TITLE_FITS` = 62); fuller Privacy and
+    Terms descriptions; `CollectionPage` + `ItemList` on /tools and /guides; `isAccessibleForFree` on
+    the open tools only; `datePublished` on guides; sitemap `lastmod` from guide dates; a Guides
+    column in the footer (each guide's `short` name); a home FAQ (`HOME_FAQ`, roster-derived) with
+    FAQPage data and in llms-full.txt; `knowsAbout` matches the live tools; home hero paragraph no
+    longer fades in behind the curtain (LCP 2.8s → 0.4s). Home copy no longer promises GST/TDS work.
+  - Footer wordmark 9.05 → 8.7cqw (last letter was clipped on phones); money fields spellCheck off;
+    preview client gained `resetPasswordForEmail`/`updateUser` stubs.
+  - Preview-mode Approve, Send back, Mark paid and role changes failed with "Invalid request." because
+    the sample ids are not UUIDs. The actions now take ids through `lib/domain/ids` (`recordId`):
+    any non-empty id in preview, a UUID otherwise, and never relaxed in a production build
+    (`ids.test.ts`). The hub has no command palette, by design (it lists every tool).
+  - Three draft guides for the owner to read (status `draft`, preview deployments only, never in
+    the sitemap, footer or llms files until published): *Pre-EMI or full EMI* (True Property Cost),
+    *Supplier statement reconciliation* (Ledger Reconciliation) and *EV/EBITDA explained*
+    (Valuation Desk). Each worked example is recalculated in guides.test.ts. The pre-EMI guide's
+    section 24(b) paragraph is the one to read most carefully before publishing.
+  - `PageHeader` (Settings, Vouchers, Comparables, Tax Notice Watch, histories…) gains the dotted
+    ground the heroes stand on and, where no action sits on the right, a small doorway with the
+    tool's colour and a rising sun (lg and up).
+  - Security headers on every response (next.config `headers()`): nosniff, referrer policy,
+    SAMEORIGIN framing, and camera/microphone/geolocation refused. HSTS comes from the host.
+  - The home calendar now says the tools take on some of its jobs, not all (the TDS and GST jobs
+    stay as a description of the month; no tool is named there, at the owner's earlier request).
+- **Roadmap tools removed (28 Oct 2026, owner's request):** GST Reconciliation, TDS Compliance,
+  Invoice Intake and Audit Copilot are gone from `AGENTS` and everything that reads it (hub, /tools,
+  /about, sitemap, llms.txt, llms-full.txt, the assistant's knowledge and prompt, icons, motifs).
+  Their `/tools/<slug>` and `/agents/<slug>` addresses 308 to `/tools` (next.config), because Google
+  had indexed them. The finance-month jobs those tools covered stay on the home page (they name no
+  tool), with `agent`/`ours` dropped so the assistant says no tool takes them on. Every screen that
+  lists non-live tools now hides that part while there are none (hub "On the way" section and stat,
+  the /tools stage filter, the about page's "not all of this is built" line, the llms "Not built
+  yet" lists), so adding a tool at another stage brings them back. Assistant runs that were counted
+  under `audit-copilot` are aliased to `assistant` (`lib/analytics/aliases`).
+- **Search Console status (28 Oct 2026):** done by the owner. *Domain* property
+  `thefinanceintelligence.com` verified; `/sitemap.xml` submitted (25 URLs); the home page, tools
+  and guides inspected and showing "URL is on Google". **Still to do, owner deferred:** Bing
+  Webmaster Tools (import from Search Console); a Google Business Profile for the firm linking to
+  the site; send the LinkedIn / X / Instagram / YouTube URLs so they go into `PROFILES` in
+  `lib/marketing/content.ts` (the Organization's `sameAs`). In 2–4 weeks, read Search Console →
+  Performance → Queries and strengthen the pages sitting at positions 8–20. The signed-in routes
+  showing as "Blocked by robots.txt" is intended.
 
 ---
 

@@ -1,12 +1,8 @@
 import {
   Building,
   GitCompareArrows,
-  Landmark,
-  MessagesSquare,
-  Percent,
   Scale,
   ReceiptIndianRupee,
-  ScanText,
   ScrollText,
   Layers,
   UserSearch,
@@ -45,10 +41,6 @@ const ICON: Record<string, LucideIcon> = {
   'true-property-cost': Building,
   'wealth-tracker': Wallet,
   'will-maker': Scale,
-  'gst-reconciliation': Percent,
-  'tds-compliance': Landmark,
-  'invoice-intake': ScanText,
-  'audit-copilot': MessagesSquare,
 };
 
 /**

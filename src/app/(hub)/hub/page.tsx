@@ -569,7 +569,11 @@ export default async function HubPage() {
           in prose, a few pixels from a meter that works the same number out
           for itself.
         */
-        sub="Everything the firm runs is here. The ones open for work today are marked, and the rest are written down in the order they will be built."
+        sub={
+          rest.length > 0
+            ? 'Everything the firm runs is here. The ones open for work today are marked, and the rest are written down in the order they will be built.'
+            : 'Everything the firm runs is here, and every one of them is open for work today.'
+        }
         scene={
           <ArchScene
             motif="doorways"
@@ -610,12 +614,15 @@ export default async function HubPage() {
           SOLUTIONS list the cards below are.
         */}
         <div className="surface-sunken a-inner mt-8 rounded-2xl border p-4 sm:p-5">
-          <div className="grid gap-2.5 sm:grid-cols-3">
+          {/* "On the way" only while something is: a zero there read as a stall. */}
+          <div className={cn('grid gap-2.5', rest.length > 0 ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
             <HeroStat
               strong
               label="Open to you"
               value={<Figure value={openToYou} delay={120} />}
-              note={`Of ${SOLUTIONS.length} on the roster`}
+              // Will Maker is shown to admins before it is on the public roster,
+              // so it is counted in the total here the same way liveTotal counts it.
+              note={`Of ${liveTotal + rest.length} on the roster`}
             />
             <HeroStat
               label="Waiting on you"
@@ -627,12 +634,14 @@ export default async function HubPage() {
                   : 'Sent back to you, or not tying out'
               }
             />
-            <HeroStat
-              label="On the way"
-              tone="var(--status-draft)"
-              value={<Figure value={rest.length} delay={280} />}
-              note="Written down, in build order"
-            />
+            {rest.length > 0 && (
+              <HeroStat
+                label="On the way"
+                tone="var(--status-draft)"
+                value={<Figure value={rest.length} delay={280} />}
+                note="Written down, in build order"
+              />
+            )}
           </div>
 
           <p className="a-label mt-5">The roster</p>
@@ -813,7 +822,10 @@ export default async function HubPage() {
         </div>
       </section>
 
-      {/* ── The rest of the roster ── */}
+      {/* ── The rest of the roster, while there is one. The four roadmap tools
+          were taken off the site on 28 Oct; a tool added at another stage
+          brings this back. ── */}
+      {rest.length > 0 && (
       <section aria-labelledby="hub-roadmap">
         <SectionHead
           id="hub-roadmap"
@@ -841,6 +853,7 @@ export default async function HubPage() {
           </li>
         </ul>
       </section>
+      )}
     </div>
   );
 }

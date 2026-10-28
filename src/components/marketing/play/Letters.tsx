@@ -15,6 +15,13 @@ import { cn } from '@/lib/utils';
  * but never in the middle of one. `--i` numbers the letters across the whole
  * line, which is what the staggered entrances count on.
  *
+ * The letters themselves are drawn by CSS from `data-ch` (`.m-ch::before` in
+ * globals.css) rather than written into the boxes as text. Written as text,
+ * every heading appeared twice to anything reading the page's text, the hidden
+ * copy and then the letters run together ("Voucher DeskVoucher Desk"), which
+ * is what a search engine took a page's main heading to be. Drawn by CSS, the
+ * sentence is in the markup exactly once.
+ *
  * Kerning between letters is lost by putting each in its own box. At display
  * sizes in Gloock that is a hair's difference, and it is the price of letters
  * that can rise, lean and answer the pointer one at a time.
@@ -44,9 +51,7 @@ export function Letters({
               {Array.from(part).map((ch) => {
                 const n = i++;
                 return (
-                  <span key={n} className="m-ch" style={{ '--i': n } as React.CSSProperties}>
-                    {ch}
-                  </span>
+                  <span key={n} className="m-ch" data-ch={ch} style={{ '--i': n } as React.CSSProperties} />
                 );
               })}
             </span>

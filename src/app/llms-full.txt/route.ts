@@ -1,4 +1,4 @@
-import { AGENTS, BRAND, CONTACT, STAGE_LABEL, type Agent } from '@/lib/marketing/content';
+import { AGENTS, BRAND, CONTACT, HOME_FAQ, STAGE_LABEL, type Agent } from '@/lib/marketing/content';
 import { absolute } from '@/lib/marketing/seo';
 import { blockText, publishedGuides, type Guide } from '@/lib/guides';
 
@@ -67,12 +67,14 @@ export function GET(): Response {
     '',
     `The short index is ${absolute('/llms.txt')}. Contact: ${CONTACT.email}.`,
     '',
+    // The home page's questions, in the same words the page and its FAQ data use.
+    '# Questions',
+    '',
+    ...HOME_FAQ.flatMap((f) => [`Q: ${f.q}`, `A: ${f.a}`, '']),
     '# Live today',
     '',
     ...live.flatMap(section),
-    '# Not built yet',
-    '',
-    ...coming.flatMap(section),
+    ...(coming.length > 0 ? ['# Not built yet', '', ...coming.flatMap(section)] : []),
     ...(publishedGuides().length > 0 ? ['# Guides', '', ...publishedGuides().flatMap(guideSection)] : []),
   ].join('\n');
 

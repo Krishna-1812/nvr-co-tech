@@ -1,9 +1,9 @@
 import { agentBySlug } from '@/lib/marketing/content';
-import { BANK_RECONCILIATION, PAYMENT_VOUCHER } from './books';
+import { BANK_RECONCILIATION, PAYMENT_VOUCHER, SUPPLIER_RECONCILIATION } from './books';
 import { NET_WORTH, TAX_NOTICES } from './people';
-import { RENTAL_YIELD, TRUE_COST } from './property';
+import { PRE_EMI, RENTAL_YIELD, TRUE_COST } from './property';
 import type { Guide } from './types';
-import { COMPARABLES } from './value';
+import { COMPARABLES, EV_EBITDA } from './value';
 
 export type { Block, Guide } from './types';
 
@@ -16,6 +16,11 @@ export const ALL_GUIDES: readonly Guide[] = [
   TAX_NOTICES,
   COMPARABLES,
   PAYMENT_VOUCHER,
+  // Drafts written in the site audit (28 Oct), for the owner to read before
+  // they are published: shown on preview deployments only until then.
+  PRE_EMI,
+  SUPPLIER_RECONCILIATION,
+  EV_EBITDA,
 ];
 
 /**

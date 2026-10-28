@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { createClient, toolRefusal } from '@/lib/supabase/server';
 import { USER_ROLES, type UserRole } from '@/lib/domain/workflow';
 import { SITE_URL } from '@/lib/marketing/content';
+import { recordId } from '@/lib/domain/ids';
 import type { ActionResult } from './workflow';
 
 /**
@@ -30,7 +31,7 @@ function refreshAdmin() {
 // ─── Roles ───────────────────────────────────────────────────────────────────
 
 const roleSchema = z.object({
-  userId: z.uuid(),
+  userId: recordId,
   role: z.enum(USER_ROLES),
 });
 

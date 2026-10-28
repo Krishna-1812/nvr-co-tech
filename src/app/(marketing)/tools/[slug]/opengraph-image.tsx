@@ -48,7 +48,7 @@ export default async function Image({ params }: Params) {
   const c = card((await params).slug) ?? {
     eyebrow: 'All tools',
     headline: 'Every tool, in one place.',
-    chips: ['Live and on the roadmap'],
+    chips: ['Live today'],
   };
 
   return socialCard(c);

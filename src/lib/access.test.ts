@@ -21,7 +21,7 @@ describe('access', () => {
       expect(canUseTool(slug, false)).toBe(false);
       expect(canUseTool(slug, true)).toBe(true);
     }
-    expect(canUseTool('gst-reconciliation', true)).toBe(false);
+    expect(canUseTool('not-a-tool', true)).toBe(false);
   });
 
   it('opens a locked tool for one person when an admin has granted it, except Contact Finder', () => {

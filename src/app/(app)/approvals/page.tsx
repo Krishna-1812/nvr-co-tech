@@ -162,7 +162,7 @@ export default async function ApprovalsPage() {
             />
           }
         >
-          <dl className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+          <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
             <HeroStat
               label="Waiting"
               value={count}
@@ -188,7 +188,7 @@ export default async function ApprovalsPage() {
               strong
               className="col-span-2 sm:col-span-1"
             />
-          </dl>
+          </div>
 
           {/* What the money has been waiting, in one bar: 2px gaps, and a legend
               under it with each band's value and count in words. */}

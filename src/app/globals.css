@@ -633,6 +633,14 @@
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: none; }
 }
+/* The same movement with nothing faded: for the largest block of text above
+   the fold, which a browser counts as the page's main content (LCP) only from
+   the moment it is visible. Faded in behind the opening curtain, the home
+   page's took almost three seconds to count. */
+@keyframes rise-solid {
+  from { transform: translateY(10px); }
+  to   { transform: none; }
+}
 @keyframes fade {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -2640,6 +2648,8 @@ body:has([data-skin='desert']) {
 /* ── Letters (play/Letters.tsx) ── */
 .m-wd { display: inline-block; white-space: nowrap; }
 .m-ch { display: inline-block; }
+/* Drawn from data-ch so the page's text holds each heading once; see Letters. */
+.m-ch::before { content: attr(data-ch); }
 
 /* ── Springy type (play/Springy.tsx) ──
    --lift is 0 at rest and up to 1 under the pointer. The overshooting curve on
@@ -2704,6 +2714,10 @@ body:has([data-skin='desert']) {
   transition: transform 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.06);
 }
 .m-odo-strip > span { display: block; height: 1.2em; }
+/* Drawn from data-ch so the page's text holds each figure once; see Odometer. */
+.m-odo-size::before,
+.m-odo-sep::before,
+.m-odo-strip > span::before { content: attr(data-ch); }
 @keyframes m-odo-in { from { transform: translateY(0); } }
 .m-odo.is-rolling .m-odo-strip {
   animation: m-odo-in var(--t, 1s) cubic-bezier(0.2, 0.75, 0.15, 1) backwards;
@@ -2761,7 +2775,9 @@ body:has([data-skin='desert']) {
 .m-footword .m-ch { transform-origin: 50% 85%; }
 .m-footword {
   display: block;
-  font-size: 9.05cqw;
+  /* A little short of filling the width: each letter in its own box loses the
+     face's kerning, and at 9.05cqw the last "e" was cut off on phones. */
+  font-size: 8.7cqw;
   line-height: 1;
   white-space: nowrap;
   padding: 0.2em 0 0.08em;

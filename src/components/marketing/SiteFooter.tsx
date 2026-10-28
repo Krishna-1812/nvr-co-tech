@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { AGENTS, BRAND, CONTACT } from '@/lib/marketing/content';
+import { publishedGuides } from '@/lib/guides';
 import { Container } from './bits';
 import { Logo } from './Logo';
 import { Parliament } from '@/components/brand/Owl';
@@ -11,9 +12,9 @@ import { FootToys, FootWord } from './play/Footplay';
  * ── What was wrong with it ──────────────────────────────────────────────────
  *
  * The agents column was `AGENTS.slice(0, 5)`, which is five of six chosen by
- * arithmetic rather than by anybody. It dropped Audit Copilot for the whole life
- * of the site, and it would silently drop whichever agent happened to be last
- * the next time one was added. If a column is too long, the fix is a shorter
+ * arithmetic rather than by anybody. It dropped the last tool on the roster for
+ * the whole life of the site, and it would silently drop whichever agent
+ * happened to be last the next time one was added. If a column is too long, the fix is a shorter
  * column and not a truncated one.
  *
  * There was also no closing bar at all. The page simply stopped, with the legal
@@ -57,7 +58,7 @@ export function SiteFooter() {
       */}
       <Parliament seed="footer-parliament" className="top-0" />
       <Container wide className="pt-16 pb-10">
-        <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
           <div className="max-w-xs">
             <Logo id="footer-mark" />
             <p className="m-dim-2 mt-5 t-3">{BRAND.blurb}</p>
@@ -85,6 +86,20 @@ export function SiteFooter() {
               </FooterLink>
             ))}
           </FooterCol>
+
+          {/* Every published guide from every page: the guides are what people
+              search for, and a link from each page is how a crawler learns
+              they matter to the site as a whole. */}
+          {publishedGuides().length > 0 && (
+            <FooterCol title="Guides">
+              {publishedGuides().map((g) => (
+                <FooterLink key={g.slug} href={`/guides/${g.slug}`}>
+                  {g.short}
+                </FooterLink>
+              ))}
+              <FooterLink href="/guides">All guides</FooterLink>
+            </FooterCol>
+          )}
 
           <FooterCol title="Company">
             {COMPANY.map((n) => (

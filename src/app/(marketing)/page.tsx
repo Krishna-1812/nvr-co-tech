@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
-import { HOME_SEARCH } from '@/lib/marketing/content';
-import { pageMeta, siteLd } from '@/lib/marketing/seo';
+import { HOME_FAQ, HOME_SEARCH } from '@/lib/marketing/content';
+import { faqLd, pageMeta, siteLd } from '@/lib/marketing/seo';
+import { Container, Section, SectionHeading } from '@/components/marketing/bits';
+import { FaqAccordion } from '@/components/marketing/rich/FaqAccordion';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { Hero } from '@/components/marketing/home/Hero';
 import { WorkCalendar } from '@/components/marketing/home/WorkCalendar';
@@ -75,6 +77,22 @@ export default function HomePage() {
       <Ticker />
       <WorkCalendar />
       <KineticBand />
+      {/* The questions a first visit asks, answered in words an assistant can
+          quote, with the same words as FAQ data (HOME_FAQ in content.ts). */}
+      <Section>
+        <Container>
+          <SectionHeading
+            eyebrow="Questions"
+            title="Before you start."
+            lead="What it is, what it costs, and what happens to what you type in."
+            center
+          />
+          <div className="mx-auto mt-12 max-w-3xl">
+            <FaqAccordion faq={HOME_FAQ} />
+          </div>
+        </Container>
+      </Section>
+      <JsonLd data={faqLd(HOME_FAQ)} />
       <FinalCTA />
     </>
   );

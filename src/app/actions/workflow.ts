@@ -10,6 +10,7 @@ import {
   approved as approvedMail,
 } from '@/lib/notify/templates';
 import { fmtRupees } from '@/lib/domain/voucher';
+import { recordId } from '@/lib/domain/ids';
 
 /**
  * Workflow actions.
@@ -126,7 +127,7 @@ async function tellApprovers(id: string): Promise<void> {
 // ─── Approve ─────────────────────────────────────────────────────────────────
 
 const approveSchema = z.object({
-  id: z.string().uuid(),
+  id: recordId,
   note: z.string().trim().max(500).optional(),
 });
 
@@ -211,7 +212,7 @@ async function tellRaiser(id: string, event: 'approved' | 'rejected'): Promise<v
 // ─── Reject ──────────────────────────────────────────────────────────────────
 
 const rejectSchema = z.object({
-  id: z.string().uuid(),
+  id: recordId,
   // A reason is mandatory: the whole point is that the voucher can be corrected.
   reason: z.string().trim().min(3, 'Please say what needs fixing.').max(500),
 });
@@ -291,7 +292,7 @@ export async function reopenVoucher(input: {
 // ─── Mark paid ───────────────────────────────────────────────────────────────
 
 const paidSchema = z.object({
-  id: z.string().uuid(),
+  id: recordId,
   utr: z.string().trim().min(3, 'Enter the UTR or reference number.').max(64),
   paymentDate: z.string().optional(),
 });

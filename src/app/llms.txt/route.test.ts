@@ -31,10 +31,9 @@ describe('/llms.txt', () => {
 
   it('says of every agent whether it is built', async () => {
     /*
-     * The one claim in this file that can do real damage. Six of the eight are
-     * not built; an assistant that reads a confident summary with no stage on
-     * it will tell somebody they can go and use Audit Copilot today, and that
-     * misdirection came from us.
+     * The one claim in this file that can do real damage: an assistant that
+     * reads a confident summary with no stage on it will tell somebody they
+     * can use a tool that is not built, and that misdirection came from us.
      */
     const { body } = await read();
     for (const agent of AGENTS) {

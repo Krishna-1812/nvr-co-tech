@@ -70,6 +70,11 @@ function Editor({ schedule, all, userId }: { schedule: SavedSchedule; all: Saved
   const points = useMemo(() => timeline(schedule), [schedule]);
   const issues = useMemo(() => problems(schedule), [schedule]);
   const ready = result.rows.length > 0 && !!schedule.ocDate && !issues.some((p) => !p.id);
+  // Whether anything has been typed yet. A new property opens with two blank
+  // rows, and listing what is wrong with rows nobody has touched read as
+  // errors on a first visit; until something is entered, the hero says how to
+  // start instead.
+  const started = !!schedule.ocDate || schedule.instalments.some((i) => i.amount > 0 || !!i.date);
 
   const [exporting, setExporting] = useState(false);
   const [printing, setPrinting] = useState(false);
@@ -145,7 +150,7 @@ function Editor({ schedule, all, userId }: { schedule: SavedSchedule; all: Saved
       {ready ? (
         <Hero name={schedule.name} ocDate={schedule.ocDate} result={result} />
       ) : (
-        <EmptyHero hasPayments={schedule.instalments.length > 0} />
+        <EmptyHero started={started} onExample={() => landedStore.createExample()} />
       )}
 
       {ready && points.length > 1 && (
@@ -164,7 +169,7 @@ function Editor({ schedule, all, userId }: { schedule: SavedSchedule; all: Saved
         <Payments
           instalments={schedule.instalments}
           result={result}
-          issues={issues}
+          issues={started ? issues : []}
           onChange={(instalments) => save({ instalments })}
         />
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-1">
@@ -268,21 +273,46 @@ function PropertyStrip({ all, activeId }: { all: SavedSchedule[]; activeId: stri
   );
 }
 
-/** Before there is an answer: what is missing, beside the same arch the answer will stand next to. */
-function EmptyHero({ hasPayments }: { hasPayments: boolean }) {
+/**
+ * Before there is an answer. On a first visit it says how to start and offers
+ * the example as the main thing to press; once something has been typed it
+ * says what is still missing. Beside the same arch the answer will stand next to.
+ */
+function EmptyHero({ started, onExample }: { started: boolean; onExample: () => void }) {
   return (
     <section className="surface-lit a-ring relative overflow-hidden rounded-[2rem]">
       <div className="grid items-center gap-6 p-6 sm:p-9 md:grid-cols-[minmax(0,1fr)_12rem]">
         <div>
           <p className="a-label">True cost at possession</p>
           <h2 className="m-display mt-3 text-[clamp(1.8rem,4vw,2.6rem)] text-balance">
-            {hasPayments ? 'Almost there.' : 'Start with the booking amount.'}
+            {started ? 'Almost there.' : 'What will this flat really cost?'}
           </h2>
           <p className="text-muted mt-3 max-w-lg text-[15px] text-pretty">
-            {hasPayments
+            {started
               ? 'Give each payment a date and an amount, and the property its OC date. The true cost appears here the moment there is enough to work it out.'
-              : 'Add the down payment and each instalment below, with where the money came from. The true cost appears here as you type.'}
+              : 'Enter each payment below as you make it, or as the builder\'s schedule says you will. The true cost, with what the money cost while it was tied up, appears here as you type.'}
           </p>
+          {!started && (
+            <>
+              <ol className="mt-5 grid max-w-xl gap-2 text-[13.5px] sm:grid-cols-3">
+                {['Each payment: its date and amount', 'Where it came from: own money or a loan', 'The possession (OC) date'].map((t, i) => (
+                  <li key={t} className="surface-sunken flex items-start gap-2.5 rounded-xl border px-3 py-2.5">
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[var(--action)] text-[11px] font-semibold text-[var(--on-action)] tabular-nums">
+                      {i + 1}
+                    </span>
+                    <span className="text-pretty">{t}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Button variant="primary" onClick={onExample}>
+                  <Lightbulb className="size-4" aria-hidden />
+                  See it with an example
+                </Button>
+                <span className="text-subtle text-[13px]">Opens a sample flat beside yours. Nothing of yours changes.</span>
+              </div>
+            </>
+          )}
         </div>
         <div aria-hidden className="relative mx-auto hidden h-44 w-36 md:block">
           <div className="m-arch m-arch-open absolute inset-0 overflow-hidden bg-[var(--surface-sunken)]">

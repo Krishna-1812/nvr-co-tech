@@ -57,7 +57,9 @@ export const CTA_ALIASES: Record<string, string> = {
  * is checked, not only when it is later charted.
  */
 export const AGENT_ALIASES: Record<string, string> = {
-  // 'nvr-recon': 'ledger-reconciliation',
+  // The assistant's questions were counted under Audit Copilot, a roadmap tool
+  // taken off the site on 28 Oct; they are the assistant's, under its own name.
+  'audit-copilot': 'assistant',
 };
 
 export function aliasPage(page: string): string {

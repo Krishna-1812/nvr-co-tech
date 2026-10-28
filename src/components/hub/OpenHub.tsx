@@ -97,7 +97,7 @@ export function OpenHub({
         </div>
 
         <div className="surface-sunken a-inner mt-8 rounded-2xl border p-4 sm:p-5">
-          <div className="grid gap-2.5 sm:grid-cols-3">
+          <div className={cn('grid gap-2.5', rest.length > 0 ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
             <HeroStat
               strong
               label="Open to you"
@@ -110,12 +110,14 @@ export function OpenHub({
               value={<Figure value={locked.length} delay={200} />}
               note="Live, opened for you when you ask"
             />
-            <HeroStat
-              label="On the way"
-              tone="var(--status-draft)"
-              value={<Figure value={rest.length} delay={280} />}
-              note="Written down, in build order"
-            />
+            {rest.length > 0 && (
+              <HeroStat
+                label="On the way"
+                tone="var(--status-draft)"
+                value={<Figure value={rest.length} delay={280} />}
+                note="Written down, in build order"
+              />
+            )}
           </div>
           <p className="a-label mt-5">The roster</p>
           <RosterMeter className="mt-2.5" />
@@ -199,6 +201,7 @@ export function OpenHub({
         )}
       </section>
 
+      {rest.length > 0 && (
       <section aria-labelledby="hub-roadmap">
         <SectionHead
           id="hub-roadmap"
@@ -217,6 +220,7 @@ export function OpenHub({
           </li>
         </ul>
       </section>
+      )}
     </div>
   );
 }

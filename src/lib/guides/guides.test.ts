@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { landedCost, rentalYield, type Schedule } from '@/lib/landed/calc';
 import { agentBySlug, BRAND } from '@/lib/marketing/content';
 import { ALL_GUIDES, blockText, publishedGuides, visibleGuides, type Guide } from '.';
-import { BANK_RECONCILIATION } from './books';
+import { BANK_RECONCILIATION, SUPPLIER_RECONCILIATION } from './books';
 import { NET_WORTH } from './people';
-import { RENTAL_YIELD, TRUE_COST } from './property';
-import { COMPARABLES } from './value';
+import { PRE_EMI, RENTAL_YIELD, TRUE_COST } from './property';
+import { COMPARABLES, EV_EBITDA } from './value';
 
 /**
  * A guide is a claim made in public by a firm of chartered accountants, and the
@@ -120,6 +120,68 @@ describe('the comparables example', () => {
     expect(t).toContain(`Enterprise value ₹${ev * 8} crore`);
     expect(t).toContain(`₹${ev * 8 - 15} crore`); // less net debt
     expect(t).toContain(`Equity value ₹${pe * 4.5} crore`); // P/E needs no debt taken off
+  });
+});
+
+describe('the supplier reconciliation example', () => {
+  const table = SUPPLIER_RECONCILIATION.blocks.find((b) => b.t === 'table')!;
+  if (table.t !== 'table') throw new Error('no table');
+  const rows = table.rows;
+  const last = (row: string[]) => amount(row[row.length - 1]);
+
+  it('ties: our balance plus additions less deductions is the supplier’s', () => {
+    const adds = rows.filter((r) => r[0].startsWith('Add:')).reduce((s, r) => s + amount(r[1]), 0);
+    const less = rows.filter((r) => r[0].startsWith('Less:')).reduce((s, r) => s + amount(r[1]), 0);
+    expect(adds).toBe(amount(rows.find((r) => r[0].startsWith('Add:') && r[2])![2]));
+    expect(last(rows[0]) + adds - less).toBe(last(rows[rows.length - 1]));
+  });
+
+  it('agrees on one balance once each side records what it missed', () => {
+    const ours = 198_400 + 38_000 - 4_800;
+    const theirs = 262_600 - 25_000 - 6_000;
+    expect(ours).toBe(theirs);
+    expect(text(SUPPLIER_RECONCILIATION)).toContain(rupees(ours));
+  });
+});
+
+describe('the EV/EBITDA example', () => {
+  const ev = 1_200 + 300 - 60;
+  const ebitda = 110 + 40;
+
+  it('works out enterprise value, EBITDA and the multiple', () => {
+    const t = text(EV_EBITDA);
+    expect(t).toContain(`₹${ev.toLocaleString('en-IN')} crore`);
+    expect(t).toContain(`₹${ebitda} crore`);
+    expect(t).toContain(`${(ev / ebitda).toFixed(1)}x`);
+  });
+
+  it('applies a peer multiple and takes off net debt', () => {
+    const t = text(EV_EBITDA);
+    const peerEv = 11 * ebitda;
+    expect(t).toContain(`₹${peerEv.toLocaleString('en-IN')} crore`);
+    expect(t).toContain(`₹${(peerEv - (300 - 60)).toLocaleString('en-IN')} crore`);
+  });
+});
+
+describe('the pre-EMI example', () => {
+  const P = 1_800_000;
+  const r = 0.085 / 12;
+  const n = 240;
+  const emi = (P * r * (1 + r) ** n) / ((1 + r) ** n - 1);
+
+  it('quotes the pre-EMI and what it adds up to', () => {
+    const t = text(PRE_EMI);
+    expect(t).toContain(rupees(P * r));
+    expect(t).toContain(rupees(P * r * 24));
+  });
+
+  it('quotes the full EMI and how much of it repays the loan', () => {
+    const t = text(PRE_EMI);
+    expect(t).toContain(rupees(emi));
+    expect(t).toContain(rupees(emi - P * r));
+    let balance = P;
+    for (let m = 0; m < 24; m++) balance -= emi - balance * r;
+    expect(t).toContain(rupees(P - balance));
   });
 });
 

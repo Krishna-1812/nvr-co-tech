@@ -6,7 +6,7 @@ import { willMakerPublic } from '@/lib/will/flag';
 
 export const metadata: Metadata = pageMeta({
   title: 'Privacy',
-  description: `How ${BRAND.name} collects, uses and protects information.`,
+  description: `What ${BRAND.name} collects, what you enter into its tools, cookies, how it is used, shared and stored, how long it is kept, and your choices.`,
   path: '/privacy',
 });
 

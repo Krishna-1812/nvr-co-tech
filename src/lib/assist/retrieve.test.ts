@@ -108,8 +108,13 @@ describe('finding the right documents', () => {
     expect(ids('is my bank statement uploaded anywhere')).toContain('platform-privacy');
   });
 
-  it('finds a roadmap tool by name, so its status can be given', () => {
-    expect(ids('tell me about GST Reconciliation')).toContain('agent-gst-reconciliation');
+  it('finds a tool by name, so its status can be given', () => {
+    expect(ids('tell me about Wealth Tracker')).toContain('agent-wealth-tracker');
+  });
+
+  it('has no document for a tool taken off the site', () => {
+    expect(ids('tell me about GST Reconciliation')).not.toContain('agent-gst-reconciliation');
+    expect(ids('what does Audit Copilot do')).not.toContain('agent-audit-copilot');
   });
 });
 

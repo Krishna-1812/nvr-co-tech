@@ -26,7 +26,7 @@ const SHARED: Suggestion[] = [
   },
   {
     label: 'Which tools are live?',
-    question: 'Which tools on this platform are built and which are still on the roadmap?',
+    question: 'Which tools on this platform are live, and what does each one do?',
   },
   {
     label: 'Check a GSTIN',

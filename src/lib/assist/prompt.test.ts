@@ -33,8 +33,13 @@ describe('the standing instructions', () => {
   });
 
   it('tells it how many tools are real, from the roster rather than from a literal', () => {
-    // Two live today. When a third ships, this sentence changes on its own.
-    expect(text).toContain(`${LIVE_AGENTS.length} of the ${AGENTS.length} tools are built`);
+    // Counted from the roster, so the sentence changes on its own. With every
+    // tool live (the roadmap ones went on 28 Oct) it says there are no others.
+    expect(text).toContain(
+      LIVE_AGENTS.length === AGENTS.length
+        ? `All ${AGENTS.length} tools listed in the context are built and usable, and there are no others`
+        : `${LIVE_AGENTS.length} of the ${AGENTS.length} tools are built`,
+    );
     expect(text).toMatch(/Never explain how to use a tool that is not live/);
   });
 

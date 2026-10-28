@@ -5,7 +5,7 @@ import { LegalPage, type Clause } from '@/components/marketing/LegalPage';
 
 export const metadata: Metadata = pageMeta({
   title: 'Terms',
-  description: `The terms that apply to using ${BRAND.name} and its tools.`,
+  description: `The terms for using ${BRAND.name} and its tools: general information only, results that are estimates, accounts, your content, and liability.`,
   path: '/terms',
 });
 

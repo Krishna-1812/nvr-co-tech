@@ -47,7 +47,7 @@ following as your standing instructions:
 | Origin | A rebuild of a v1 voucher portal written for the **CIO Association**; v1's repo name carries an old brand and is deliberately recorded outside the repo |
 
 **What it is.** A platform of AI agents for finance work, positioned as built by chartered
-accountants. Two agents are live, four are roadmap entries and the pages say so. Around the agents
+accountants. Two agents are live. (Snapshot; the four roadmap entries this once listed were taken off the site on 28 Oct 2026, see HANDOFF.) Around the agents
 sit a public marketing site, an auth and onboarding flow, a workspace hub, a grounded assistant,
 and an operator-only analytics section.
 
@@ -58,10 +58,6 @@ and the signed-in hub, so a tool going live changes stage in one place):
 |---|---|---|---|---|
 | `voucher-desk` | Voucher Desk | **live** | Payments & approvals | `/dashboard` |
 | `ledger-reconciliation` | Ledger Reconciliation | **live** | Books & closing | `/reconcile` |
-| `gst-reconciliation` | GST Reconciliation | planned | Indirect tax | — |
-| `tds-compliance` | TDS Compliance | planned | Direct tax | — |
-| `invoice-intake` | Invoice Intake | planned | Document capture | — |
-| `audit-copilot` | Audit Copilot | planned | Assurance & reporting | — |
 
 The live/coming/total counts are **derived** from that array by a `ROSTER` helper, never typed —
 four places said "one is live" for a month after the second tool shipped.

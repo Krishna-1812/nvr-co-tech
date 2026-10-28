@@ -16,6 +16,7 @@ import type { Guide } from './types';
 
 export const BANK_RECONCILIATION: Guide = {
   slug: 'bank-reconciliation-statement',
+  short: 'Bank reconciliation statement',
   figure: { value: '₹1,48,150', label: 'The bank balance it ties to' },
   motif: 'ledger',
   status: 'published',
@@ -116,6 +117,7 @@ export const BANK_RECONCILIATION: Guide = {
 
 export const PAYMENT_VOUCHER: Guide = {
   slug: 'payment-voucher-format-and-approvals',
+  short: 'Payment voucher format',
   figure: { value: '26-27/0001', label: 'One unbroken series a year' },
   motif: 'voucher',
   status: 'published',
@@ -188,6 +190,119 @@ export const PAYMENT_VOUCHER: Guide = {
     {
       q: 'Should payment vouchers be numbered by financial year?',
       a: 'Yes. One unbroken series for each financial year, with the year in the prefix, makes a missing voucher easy to spot and keeps two years from sharing a number.',
+    },
+  ],
+};
+
+/*
+ * The supplier example, checked by guides.test.ts: our balance plus the
+ * additions less the deductions is the supplier's, and each side's balance
+ * after its own corrections is the same figure.
+ *
+ *   Our ledger (we owe)                               1,98,400
+ *   + invoice 1187, not yet in our books                38,000
+ *   + our NEFT of 31 March, not yet on their statement  25,000
+ *   + our debit note DN-09, not yet in their books       6,000
+ *   − their credit note CN-42, not yet in our books      4,800
+ *   = their statement                                 2,62,600
+ *   Ours after booking 1187 and CN-42:   1,98,400 + 38,000 − 4,800  = 2,31,600
+ *   Theirs after booking NEFT and DN-09: 2,62,600 − 25,000 − 6,000 = 2,31,600
+ */
+export const SUPPLIER_RECONCILIATION: Guide = {
+  slug: 'supplier-statement-reconciliation',
+  short: 'Supplier reconciliation',
+  figure: { value: '₹2,31,600', label: 'The balance both sides agree on' },
+  motif: 'scales',
+  status: 'draft',
+  title: 'How to reconcile a supplier statement with your ledger',
+  search: {
+    title: 'Supplier Statement Reconciliation: How to Do It',
+    description:
+      'How to match a supplier’s statement of account to their ledger in your books, explain every difference and agree the balance, with a worked example.',
+  },
+  tool: 'ledger-reconciliation',
+  updated: '2026-10-28',
+  lead:
+    'A supplier’s statement and your ledger for that supplier should show the same balance. When they do not, the difference is almost always a short list of entries one side has recorded and the other has not.',
+  answer:
+    'Take your ledger for the supplier and their statement of account to the same date. Tick off the invoices, payments, credit notes and debit notes that appear in both. List what is left on each side, start from your balance, add or take off each item, and you should arrive at theirs. Then each side records what it has missed, and both balances agree.',
+  blocks: [
+    { t: 'h2', text: 'Why the two balances differ' },
+    {
+      t: 'p',
+      text: 'The supplier and you record the same dealings from opposite sides, on different days. Most differences are timing, a few are entries one side never received, and now and then one is a mistake.',
+    },
+    {
+      t: 'ul',
+      items: [
+        'Invoices the supplier has raised that have not reached your books yet.',
+        'Payments you have made that the supplier has not received or recorded yet.',
+        'Credit notes the supplier has issued, for a discount or a rate difference, that you have not booked.',
+        'Debit notes you have raised, for goods returned or short supplied, that the supplier has not accepted yet.',
+        'Errors: an invoice booked twice, a wrong amount, or an entry posted to the wrong supplier.',
+      ],
+    },
+    { t: 'h2', text: 'Step by step' },
+    {
+      t: 'ol',
+      items: [
+        'Ask the supplier for a statement of account to a date, usually the month end or the year end.',
+        'Take your ledger for the same supplier to the same date.',
+        'Match the entries that appear in both, by invoice number first, then by date and amount.',
+        'List what is left on each side, and say for each one which side has it and why.',
+        'Start from your balance, add and take off the items, and check that you arrive at the supplier’s balance.',
+        'Record what you have missed, and send the supplier the items they have missed, so both sides end on the same figure.',
+      ],
+    },
+    { t: 'h2', text: 'A worked example' },
+    {
+      t: 'p',
+      text: 'On 31 March your ledger shows ₹1,98,400 owed to the supplier. Their statement for the same date says you owe ₹2,62,600. Matching the two leaves four items.',
+    },
+    {
+      t: 'table',
+      caption: 'Supplier reconciliation as at 31 March',
+      head: ['', '₹', '₹'],
+      rows: [
+        ['Balance as per our ledger (we owe)', '', '1,98,400'],
+        ['Add: their invoice 1187 of 29 March, not yet in our books', '38,000', ''],
+        ['Add: our NEFT payment of 31 March, not yet on their statement', '25,000', ''],
+        ['Add: our debit note DN-09 for goods returned, not yet in their books', '6,000', '69,000'],
+        ['Less: their credit note CN-42 for a rate difference, not yet in our books', '4,800', '(4,800)'],
+        ['Balance as per supplier statement', '', '2,62,600'],
+      ],
+    },
+    {
+      t: 'p',
+      text: 'You book invoice 1187 and credit note CN-42, which takes your balance to ₹2,31,600. The supplier records your payment and the debit note, which takes theirs to the same ₹2,31,600. The two sides now agree, and the confirmation you send them can say so.',
+    },
+    { t: 'h2', text: 'Who corrects what' },
+    {
+      t: 'p',
+      text: 'Each side records only what it has genuinely missed. An invoice you have received but not booked is yours to book. A payment the supplier has not yet credited is theirs to record, and the bank reference is what you send them. A difference neither side can explain is not written off; it is raised with the supplier until one of you finds the entry behind it.',
+    },
+    { t: 'h2', text: 'How often to do it' },
+    {
+      t: 'p',
+      text: 'For the suppliers you pay most often, every month. For the rest, at least at the year end, when auditors often ask for balance confirmations. A difference found a month after it arose is a phone call; found a year later it is a search through a year of invoices.',
+    },
+  ],
+  faq: [
+    {
+      q: 'What is a supplier statement of account?',
+      a: 'A list the supplier sends of every invoice, payment, credit note and adjustment on your account with them, ending in the balance they say you owe.',
+    },
+    {
+      q: 'Should I start from my balance or the supplier’s?',
+      a: 'Either works. Starting from your own balance and arriving at theirs is the usual way, because the reconciliation then explains their figure in terms of your books.',
+    },
+    {
+      q: 'What if a difference cannot be explained?',
+      a: 'Do not write it off. Ask the supplier for the documents behind the entries you cannot match; most unexplained differences turn out to be an invoice or payment recorded against the wrong account.',
+    },
+    {
+      q: 'Is this the same as a bank reconciliation?',
+      a: 'The method is the same: match the entries, list what is left, and explain each item as timing, omission or error. Only the other party changes.',
     },
   ],
 };
