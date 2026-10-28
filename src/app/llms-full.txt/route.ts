@@ -1,5 +1,6 @@
 import { AGENTS, BRAND, CONTACT, STAGE_LABEL, type Agent } from '@/lib/marketing/content';
 import { absolute } from '@/lib/marketing/seo';
+import { blockText, publishedGuides, type Guide } from '@/lib/guides';
 
 /**
  * /llms-full.txt: everything /llms.txt links to, in one file.
@@ -41,6 +42,20 @@ function section(a: Agent): string[] {
   return out;
 }
 
+/** A published guide as plain text: the answer, every section, its questions. */
+function guideSection(g: Guide): string[] {
+  const out = [`## ${g.title}`, '', absolute(`/guides/${g.slug}`), '', g.answer, ''];
+  for (const b of g.blocks) {
+    if (b.t === 'h2') out.push(`### ${b.text}`, '');
+    else if (b.t === 'ul' || b.t === 'ol') out.push(...b.items.map((i) => `- ${i}`), '');
+    else if (b.t === 'table') out.push(`${b.caption}:`, ...b.rows.map((r) => `- ${r.filter(Boolean).join(': ')}`), '');
+    else out.push(...blockText(b), '');
+  }
+  out.push('Questions:', '');
+  for (const f of g.faq) out.push(`Q: ${f.q}`, `A: ${f.a}`, '');
+  return out;
+}
+
 export function GET(): Response {
   const live = AGENTS.filter((a) => a.stage === 'live');
   const coming = AGENTS.filter((a) => a.stage !== 'live');
@@ -58,6 +73,7 @@ export function GET(): Response {
     '# Not built yet',
     '',
     ...coming.flatMap(section),
+    ...(publishedGuides().length > 0 ? ['# Guides', '', ...publishedGuides().flatMap(guideSection)] : []),
   ].join('\n');
 
   return new Response(body, {

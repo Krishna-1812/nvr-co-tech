@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { faqLd, pageMeta, serviceLd } from '@/lib/marketing/seo';
+import { guidesForTool } from '@/lib/guides';
 import { notFound } from 'next/navigation';
 import { ArrowRight, Check, CircleDashed, Hammer } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -306,6 +307,26 @@ export default async function AgentPage({ params }: Params) {
           </Reveal>
         </Container>
       </Section>
+
+      {guidesForTool(agent.slug).length > 0 && (
+        <Section>
+          <Container wide>
+            <Reveal>
+              <Eyebrow>Guides</Eyebrow>
+            </Reveal>
+            <ul className="mt-6 grid gap-4 md:grid-cols-2">
+              {guidesForTool(agent.slug).map((g) => (
+                <li key={g.slug}>
+                  <Link href={`/guides/${g.slug}`} className="m-card block h-full rounded-2xl px-5 py-5 transition hover:-translate-y-0.5">
+                    <p className="t-4 font-semibold text-[var(--m-ink)]">{g.title}</p>
+                    <p className="m-dim-2 mt-2 t-3">{g.lead}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </Section>
+      )}
 
       {agent.faq && agent.faq.length > 0 && (
         <Section>

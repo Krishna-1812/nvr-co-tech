@@ -245,6 +245,48 @@ export function faqLd(faq: readonly { q: string; a: string }[]) {
   ]);
 }
 
+/**
+ * A guide, as an article the firm published.
+ *
+ * The author is the organisation, not a named person: no person's name is in
+ * this repository to put there, and a made-up byline is exactly the kind of
+ * claim this file refuses. `about` points at the tool the guide leads to, so a
+ * reader of the data can tell what the article is in service of.
+ */
+export function articleLd(guide: {
+  slug: string;
+  title: string;
+  search: { description: string };
+  updated: string;
+  tool: string;
+}) {
+  const url = absolute(`/guides/${guide.slug}`);
+  return graph([
+    {
+      '@type': 'Article',
+      '@id': `${url}#article`,
+      headline: guide.title,
+      description: guide.search.description,
+      url,
+      mainEntityOfPage: url,
+      dateModified: guide.updated,
+      inLanguage: 'en-IN',
+      // Named in full, not only by @id: the Organization node itself is only on
+      // the home page, and a reader of this page alone should not have to go
+      // there to learn who wrote it.
+      author: { '@type': 'Organization', '@id': ORG_ID, name: BRAND.name, url: absolute('/') },
+      publisher: {
+        '@type': 'Organization',
+        '@id': ORG_ID,
+        name: BRAND.name,
+        url: absolute('/'),
+        logo: { '@type': 'ImageObject', url: absolute('/brand/icon-512.png') },
+      },
+      about: { '@id': absolute(`/tools/${guide.tool}#service`) },
+    },
+  ]);
+}
+
 /** The home page's claim about who is behind all of this. */
 export function siteLd() {
   return graph([organization(), localBusiness(), website()]);

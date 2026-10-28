@@ -1,5 +1,6 @@
 import { AGENTS, BRAND, CONTACT, STAGE_LABEL } from '@/lib/marketing/content';
 import { absolute } from '@/lib/marketing/seo';
+import { publishedGuides } from '@/lib/guides';
 
 /**
  * /llms.txt — the site, written for something that is going to read it rather
@@ -53,6 +54,15 @@ export function GET(): Response {
     '',
     ...coming.map(line),
     '',
+    // Published guides only; drafts are never described to an assistant.
+    ...(publishedGuides().length > 0
+      ? [
+          '## Guides',
+          '',
+          ...publishedGuides().map((g) => `- [${g.title}](${absolute(`/guides/${g.slug}`)}): ${g.answer}`),
+          '',
+        ]
+      : []),
     '## The site',
     '',
     `- [Home](${absolute('/')}): what the platform is and who it is for.`,
