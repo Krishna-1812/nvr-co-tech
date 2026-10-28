@@ -12,6 +12,8 @@ import type { Guide } from './types';
 
 export const COMPARABLES: Guide = {
   slug: 'value-an-unlisted-company-with-comparables',
+  figure: { value: '12.5x', label: 'Median EV/EBITDA of the peers' },
+  motif: 'columns',
   status: 'published',
   title: 'How to value an unlisted company using comparable companies',
   search: {

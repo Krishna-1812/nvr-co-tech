@@ -14,6 +14,8 @@ import type { Guide } from './types';
 
 export const NET_WORTH: Guide = {
   slug: 'how-to-calculate-net-worth',
+  figure: { value: '₹63,95,000', label: 'Net worth, worked through' },
+  motif: 'nest',
   status: 'published',
   title: 'How to calculate your net worth',
   search: {
@@ -117,6 +119,8 @@ export const NET_WORTH: Guide = {
 
 export const TAX_NOTICES: Guide = {
   slug: 'check-income-tax-notices-e-proceedings',
+  figure: { value: 'DIN', label: 'What a genuine notice carries' },
+  motif: 'gate',
   status: 'published',
   title: 'How to check for income tax notices on the e-Filing portal',
   search: {

@@ -3289,3 +3289,155 @@ html[data-sky='night'] .m-stars { opacity: 0.85; }
 @media (prefers-reduced-motion: no-preference) {
   html[data-sky='night'] .m-stars { animation: m-twinkle 4.5s ease-in-out infinite; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Guides (/guides and /guides/[slug]; components/marketing/guides)
+
+   The guides borrow the site's own pieces (the arch, the sun, the odometer,
+   the stepped scroll entrances) and add four of their own: a deck of cards
+   that deals itself into the hero and fans under the pointer, cards that light
+   their doorway when hovered, a contents rail that follows the reader, and an
+   accordion for the questions. Everything here is decoration over content that
+   is already in the markup, and under reduced motion all of it sits still.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── The deck in the index hero ── */
+.g-deck { position: relative; height: 27rem; }
+.g-deck-card {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: min(19rem, 86%);
+  margin-left: calc(min(19rem, 86%) / -2);
+  transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r, 0deg));
+  transition: transform 0.7s cubic-bezier(0.2, 0.9, 0.25, 1.15), box-shadow 0.5s ease;
+  box-shadow: 0 30px 50px -28px rgb(60 30 15 / 0.55);
+}
+.g-deck:hover .g-deck-card { transform: translate(var(--hx, 0), var(--hy, 0)) rotate(var(--hr, 0deg)); }
+.g-deck-card:hover { box-shadow: 0 40px 60px -26px rgb(60 30 15 / 0.65); }
+@keyframes g-deal {
+  from { transform: translate(0, 140%) rotate(0deg); opacity: 0; }
+}
+@media not (prefers-reduced-motion: reduce) {
+  .g-deck-card {
+    animation: g-deal 1s cubic-bezier(0.2, 0.85, 0.25, 1) backwards;
+    animation-delay: calc(var(--intro-wait, 0ms) + var(--d, 300ms));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-deck-card, .g-deck:hover .g-deck-card { transition: none; }
+}
+
+/* ── Cards on the index ──
+   The doorway in the corner lights: its sun rises and the card's foot draws
+   a line in the tool's colour, left to right. */
+.g-card { position: relative; isolation: isolate; }
+.g-card .g-door { transition: background-color 0.5s ease; }
+.g-card .g-door-sun { transform: translateY(70%); transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.25, 1.1); }
+.g-card:hover .g-door-sun, .g-card:focus-visible .g-door-sun { transform: translateY(8%); }
+.g-card .g-foot-line {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.g-card:hover .g-foot-line, .g-card:focus-visible .g-foot-line { transform: scaleX(1); }
+.g-card .g-arrow { transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.25, 1.2); }
+.g-card:hover .g-arrow { transform: translateX(0.4rem); }
+@keyframes g-card-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+}
+@media not (prefers-reduced-motion: reduce) {
+  .g-card-in { animation: g-card-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) backwards; animation-delay: var(--d, 0ms); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-card .g-door-sun, .g-card .g-foot-line, .g-card .g-arrow { transition: none; }
+}
+
+/* ── Topic chips: one pill slides under whichever is chosen ── */
+.g-chips { position: relative; }
+.g-chip-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--m-ink);
+  transform: translateX(var(--px, 0));
+  width: var(--pw, 0);
+  transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.25, 1.1), width 0.5s cubic-bezier(0.2, 0.9, 0.25, 1.1);
+}
+@media (prefers-reduced-motion: reduce) { .g-chip-pill { transition: none; } }
+
+/* ── The figure band: two rows that slide apart with the scroll ── */
+.g-band-row { display: flex; width: max-content; gap: 3rem; will-change: transform; }
+
+/* ── How a guide is built: the rail draws itself between the four stops ── */
+.g-rail-line { transform: scaleX(0); transform-origin: left; transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.2s; }
+.is-in .g-rail-line { transform: scaleX(1); }
+.g-rail-stop { opacity: 0; transform: translateY(14px) scale(0.9); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.9, 0.25, 1.2); }
+.is-in .g-rail-stop { opacity: 1; transform: none; transition-delay: var(--d, 0ms); }
+@media (prefers-reduced-motion: reduce) {
+  .g-rail-line, .g-rail-stop { transform: none; opacity: 1; transition: none; }
+}
+
+/* ── A guide's own page ── */
+
+/* The formula: a band of light runs across it every few seconds. */
+.g-formula { position: relative; overflow: hidden; }
+.g-formula::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(233 180 76 / 0.28) 50%, transparent 70%);
+  transform: translateX(-100%);
+}
+@keyframes g-sheen { 0%, 55% { transform: translateX(-100%); } 85%, 100% { transform: translateX(100%); } }
+@media not (prefers-reduced-motion: reduce) {
+  .g-formula::after { animation: g-sheen 5.5s ease-in-out infinite; }
+}
+
+/* The contents rail: a marker slides to the section being read. */
+.g-toc-marker {
+  position: absolute;
+  left: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--m-gold);
+  transform: translateY(var(--ty, 0));
+  height: var(--th, 0);
+  transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.1), height 0.45s ease;
+}
+.g-ring { transition: stroke-dashoffset 0.2s linear; }
+@media (prefers-reduced-motion: reduce) { .g-toc-marker { transition: none; } }
+
+/* The questions: each opens with its height animated where the browser can. */
+.g-faq summary { list-style: none; cursor: pointer; }
+.g-faq summary::-webkit-details-marker { display: none; }
+.g-faq .g-plus { transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.25, 1.2); }
+.g-faq[open] .g-plus { transform: rotate(45deg); }
+@supports (interpolate-size: allow-keywords) {
+  .g-faq { interpolate-size: allow-keywords; }
+  .g-faq::details-content {
+    height: 0;
+    overflow: clip;
+    transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1), content-visibility 0.45s allow-discrete;
+  }
+  .g-faq[open]::details-content { height: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-faq .g-plus, .g-faq::details-content { transition: none; }
+}
+
+/* The short answer's quotation mark swings in once the card arrives. */
+@keyframes g-quote { from { transform: translateY(-30%) rotate(-18deg); opacity: 0; } }
+@media not (prefers-reduced-motion: reduce) {
+  .is-in .g-quote { animation: g-quote 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.3) 0.15s backwards; }
+}
+
+/* The call to action: its sun climbs out of the dune as the band arrives. */
+.g-cta-sun { transform: translateY(55%); transition: transform 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s; }
+.is-in .g-cta-sun { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .g-cta-sun { transform: none; transition: none; } }
+
+/* A guide's title is a sentence, not a name: set smaller on its door. */
+.m-door-name.is-long { font-size: clamp(1.9rem, 4.6vw, 4.25rem); line-height: 1.05; }

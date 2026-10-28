@@ -1283,6 +1283,18 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   `lib/landed/calc`) and fails if a quoted figure drifts. **To publish one:** owner reads it on the
   preview, set `status: 'published'`; then it enters the sitemap, `llms.txt`/`llms-full.txt`, gets
   Article JSON-LD, and is linked from its tool's page.
+- **Guides redesign** (28 Oct 2026, `components/marketing/guides`, CSS block "Guides" at the end of
+  globals.css): index hero with a dealt-and-fanning deck of guide cards in the arch window
+  (`GuideDeck`, HeroStage), counters, a scroll-scrubbed band of figures (`FigureBand`), a topic
+  filter with a sliding pill and re-dealt cards (`GuideBrowser`; Tilt + Spotlight, odometer
+  figures, lighting doorways), a self-drawing "four stops" rail (`GuideRail`) and a dark CTA band
+  whose sun climbs (`GuideCta`). Guide pages: Springy letter-set title, figure card in a HeroStage
+  arch with an odometer roll, short answer read into ink (ScrollWords), contents rail with a
+  sliding marker and reading ring (`GuideContents`), numbered section heads, dealt list cards,
+  table figures on odometers, a sheen across the formula, an animated FAQ accordion
+  (`details`, still fully in the HTML), prev/next cards, and a door transition per guide
+  (`guides/template.tsx` passes titles to PageCurtain). Each guide has a `figure` (tested to be
+  quoted from its own text) and `motif`. Only `toCard` summaries reach client components.
 - **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
   prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
   `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).

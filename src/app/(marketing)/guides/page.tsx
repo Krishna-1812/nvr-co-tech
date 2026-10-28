@@ -1,12 +1,20 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArchScene, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
+import { Container, LineRise, Rise, Section, SectionHeading } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
-import { Reveal } from '@/components/marketing/Reveal';
-import { agentBySlug } from '@/lib/marketing/content';
+import { Counter } from '@/components/marketing/motion';
+import { Letters } from '@/components/marketing/play/Letters';
+import { Springy } from '@/components/marketing/play/Springy';
+import { FigureBand } from '@/components/marketing/guides/FigureBand';
+import { GuideBrowser } from '@/components/marketing/guides/GuideBrowser';
+import { GuideCta } from '@/components/marketing/guides/GuideCta';
+import { GuideDeck } from '@/components/marketing/guides/GuideDeck';
+import { GuideRail } from '@/components/marketing/guides/GuideRail';
+import { toCard } from '@/components/marketing/guides/summary';
+import { Roost } from '@/components/brand/Owl';
 import { pageMeta } from '@/lib/marketing/seo';
-import { publishedGuides, readingMinutes, visibleGuides } from '@/lib/guides';
+import { publishedGuides, visibleGuides } from '@/lib/guides';
 
 const meta = pageMeta({
   title: 'Guides',
@@ -30,47 +38,120 @@ export default function GuidesPage() {
   // In production with nothing published there is no index to show.
   if (guides.length === 0) notFound();
 
+  const cards = guides.map(toCard);
+  const minutes = cards.reduce((n, c) => n + c.minutes, 0);
+  const tools = new Set(cards.map((c) => c.toolSlug)).size;
+  const toolList = Array.from(new Map(cards.map((c) => [c.toolSlug, c])).values());
+
   return (
     <>
       <section className="relative overflow-hidden">
-        <ArchScene color="var(--m-gold)" motif="ledger" />
-        <Container className="relative pt-16 pb-14 sm:pt-24 sm:pb-16 lg:pr-[25rem] xl:pr-[28rem]">
+        <Roost seed="guides-rafter" band="top-right" />
+        <Container wide className="relative pt-12 pb-16 sm:pt-16 sm:pb-24">
           <Rise>
-            <Breadcrumbs trail={TRAIL} className="mb-7" />
+            <Breadcrumbs trail={TRAIL} className="mb-8" />
           </Rise>
-          <Rise>
-            <Eyebrow>Guides</Eyebrow>
-          </Rise>
-          <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-3xl t-h1">Answers, worked through.</h1>
-          </Rise>
-          <Rise delay={120}>
-            <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
-              Each guide answers one question in full, with a worked example you can check, and then
-              points to the tool that does the work.
-            </p>
-          </Rise>
+          <div className="grid items-center gap-14 lg:grid-cols-[1.08fr_1fr] lg:gap-16">
+            <div>
+              <Rise>
+                <span className="flex items-center gap-3.5">
+                  <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
+                  <span className="m-mono t-1 font-medium t-caps text-[var(--m-gold)] uppercase">Guides</span>
+                </span>
+              </Rise>
+              <Springy as="h1" className="m-display mt-7 t-hero" delay={1400}>
+                <LineRise delay={60}>
+                  <Letters text="Answers," />
+                </LineRise>
+                <LineRise delay={160}>
+                  <span className="m-mark" style={{ '--mark-delay': '900ms' } as React.CSSProperties}>
+                    <Letters text="worked through." start={8} />
+                  </span>
+                </LineRise>
+              </Springy>
+              <Rise delay={320}>
+                <p className="m-dim mt-7 max-w-xl t-4 sm:t-5">
+                  Each guide answers one question people search for, in plain words, with a worked
+                  example in rupees you can check line by line. Then it points to the tool that
+                  does the work.
+                </p>
+              </Rise>
+              <Rise delay={420}>
+                <dl className="mt-10 grid max-w-lg grid-cols-3 gap-3">
+                  <Stat value={cards.length} label="Guides" />
+                  <Stat value={minutes} label="Minutes of reading" />
+                  <Stat value={tools} label="Tools they lead to" />
+                </dl>
+              </Rise>
+            </div>
+            <Rise delay={200} className="lg:pl-4">
+              <GuideDeck cards={cards} />
+            </Rise>
+          </div>
         </Container>
       </section>
 
+      <FigureBand cards={cards} />
+
+      <Section divider={false}>
+        <Container wide>
+          <SectionHeading
+            eyebrow="Every guide"
+            title="Pick a question."
+            lead="Filter by the kind of work. Every figure on a card is quoted from its guide."
+          />
+          <div className="mt-10">
+            <GuideBrowser cards={cards} />
+          </div>
+        </Container>
+      </Section>
+
       <Section>
-        <Container>
-          <ul className="grid gap-4 md:grid-cols-2">
-            {guides.map((g, i) => (
-              <Reveal as="li" key={g.slug} delay={Math.min(i, 6) * 40}>
-                <Link href={`/guides/${g.slug}`} className="m-card block h-full rounded-3xl p-6 transition hover:-translate-y-0.5 sm:p-7">
-                  <p className="m-eyebrow">
-                    {agentBySlug(g.tool)?.name} · {readingMinutes(g)} min read
-                    {g.status === 'draft' ? ' · Draft' : ''}
-                  </p>
-                  <h2 className="m-display mt-3 t-5">{g.title}</h2>
-                  <p className="m-dim-2 mt-3 t-3">{g.lead}</p>
-                </Link>
-              </Reveal>
+        <Container wide>
+          <SectionHeading
+            eyebrow="How they are built"
+            title="Four stops, every time."
+            lead="Every guide is laid out the same way, so you always know where the answer is."
+            center
+          />
+          <div className="mt-14">
+            <GuideRail />
+          </div>
+        </Container>
+      </Section>
+
+      <Section>
+        <Container wide>
+          <GuideCta
+            eyebrow="Rather not do it by hand?"
+            title="Let the tool do the working."
+            body="Every guide leads to a tool that does the same job: the same rules, the same arithmetic, on your own figures."
+            href="/tools"
+            label="See every tool"
+          >
+            {toolList.slice(0, 3).map((c) => (
+              <Link
+                key={c.toolSlug}
+                href={`/tools/${c.toolSlug}`}
+                className="rounded-full border border-[rgb(251_246_238_/_0.35)] px-4 py-2 t-3 transition hover:bg-[rgb(251_246_238_/_0.12)]"
+              >
+                {c.tool}
+              </Link>
             ))}
-          </ul>
+          </GuideCta>
         </Container>
       </Section>
     </>
+  );
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="m-card flex flex-col-reverse justify-end rounded-2xl px-4 py-4 shadow-[0_10px_24px_-18px_rgb(80_40_20_/_0.5)]">
+      <dt className="m-dim-2 mt-1 t-2">{label}</dt>
+      <dd className="m-display t-h3 tabular-nums text-[var(--m-ink)]">
+        <Counter to={value} />
+      </dd>
+    </div>
   );
 }

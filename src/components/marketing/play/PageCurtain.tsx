@@ -42,6 +42,7 @@ let mounted = false;
 export function PageCurtain({
   children,
   scope = 'site',
+  doors,
 }: {
   children: React.ReactNode;
   /**
@@ -51,17 +52,26 @@ export function PageCurtain({
    * a second curtain that does, and the site's stands aside anywhere under
    * /tools so the two never play at once.
    */
-  scope?: 'site' | 'tools';
+  scope?: 'site' | 'tools' | 'guides';
+  /**
+   * The doors for the guides' own template, by slug: a guide arrives through a
+   * door in its tool's colour with its title on it. Passed in by the template,
+   * a server component, so no guide's text has to be bundled here to find it.
+   */
+  doors?: Record<string, { name: string; color: string; on: string }>;
 }) {
   const [entering] = useState(() => mounted);
   const path = usePathname() ?? '';
-  const tool = agentBySlug(/^\/tools\/([^/]+)\/?$/.exec(path)?.[1] ?? '');
+  const agent = agentBySlug(/^\/tools\/([^/]+)\/?$/.exec(path)?.[1] ?? '');
+  const tool = agent
+    ? { name: agent.name, color: ACCENT[agent.accent], on: ON_ACCENT[agent.accent] }
+    : doors?.[/^\/guides\/([^/]+)\/?$/.exec(path)?.[1] ?? ''];
 
   useEffect(() => {
     mounted = true;
   }, []);
 
-  if (scope === 'site' && /^\/tools(\/|$)/.test(path)) return <>{children}</>;
+  if (scope === 'site' && /^\/(tools|guides)(\/|$)/.test(path)) return <>{children}</>;
 
   return (
     <>
@@ -71,11 +81,11 @@ export function PageCurtain({
         <div
           aria-hidden
           className="m-door"
-          style={{ '--door': ACCENT[tool.accent], '--door-on': ON_ACCENT[tool.accent] } as React.CSSProperties}
+          style={{ '--door': tool.color, '--door-on': tool.on } as React.CSSProperties}
         >
           <div className="m-door-arch">
             <span className="m-door-sun" />
-            <span className="m-door-name m-display">{tool.name}</span>
+            <span className={`m-door-name m-display${tool.name.length > 24 ? ' is-long' : ''}`}>{tool.name}</span>
           </div>
         </div>
       )}
