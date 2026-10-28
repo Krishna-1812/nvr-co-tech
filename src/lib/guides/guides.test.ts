@@ -172,3 +172,12 @@ describe('drafts', () => {
     expect(publishedGuides().every((g) => g.status === 'published')).toBe(true);
   });
 });
+
+describe('the sitemap', () => {
+  it('lists every published guide once, and nothing twice', async () => {
+    const { default: sitemap } = await import('@/app/sitemap');
+    const urls = sitemap().map((e) => e.url);
+    expect(new Set(urls).size).toBe(urls.length);
+    for (const g of publishedGuides()) expect(urls.filter((u) => u.endsWith(`/guides/${g.slug}`))).toHaveLength(1);
+  });
+});

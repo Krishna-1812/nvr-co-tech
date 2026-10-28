@@ -12,7 +12,7 @@ import type { Guide } from './types';
 
 export const COMPARABLES: Guide = {
   slug: 'value-an-unlisted-company-with-comparables',
-  status: 'draft',
+  status: 'published',
   title: 'How to value an unlisted company using comparable companies',
   search: {
     title: 'Value a Company with Comparable Multiples',

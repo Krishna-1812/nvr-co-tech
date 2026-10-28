@@ -634,6 +634,7 @@ export function agentBySlug(slug: string): Agent | undefined {
 /** Primary navigation for the public site. */
 export const NAV = [
   { href: '/tools', label: 'Tools' },
+  { href: '/guides', label: 'Guides' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ] as const;

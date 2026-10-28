@@ -16,7 +16,7 @@ import type { Guide } from './types';
 
 export const BANK_RECONCILIATION: Guide = {
   slug: 'bank-reconciliation-statement',
-  status: 'draft',
+  status: 'published',
   title: 'How to prepare a bank reconciliation statement',
   search: {
     title: 'Bank Reconciliation Statement: How to Prepare',
@@ -114,7 +114,7 @@ export const BANK_RECONCILIATION: Guide = {
 
 export const PAYMENT_VOUCHER: Guide = {
   slug: 'payment-voucher-format-and-approvals',
-  status: 'draft',
+  status: 'published',
   title: 'Payment vouchers: what goes on one, and who should approve it',
   search: {
     title: 'Payment Voucher: Format, Fields and Approvals',

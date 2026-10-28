@@ -1276,13 +1276,13 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   (true cost of an under-construction flat, rental yield, bank reconciliation statement, net worth,
   income tax notices on the portal, comparables valuation, payment vouchers). Content is data
   (`types.ts`), each with a short answer, sections, worked example, FAQ, and the tool it leads to.
-  **All are `status: 'draft'`**: shown only where `VERCEL_ENV !== 'production'` (preview deploys,
-  local), always `noindex`, never in the sitemap or llms files; `/guides` 404s in production while
+  **All seven published 28 Oct 2026 at the owner's request**, and "Guides" is in `NAV`. A guide
+  set to `status: 'draft'` is shown only where `VERCEL_ENV !== 'production'` (preview deploys,
+  local), always `noindex`, never in the sitemap or llms files; `/guides` 404s in production if
   none is published. `guides.test.ts` recomputes every worked example (property ones through
   `lib/landed/calc`) and fails if a quoted figure drifts. **To publish one:** owner reads it on the
   preview, set `status: 'published'`; then it enters the sitemap, `llms.txt`/`llms-full.txt`, gets
-  Article JSON-LD, and is linked from its tool's page. Add `{ href: '/guides', label: 'Guides' }`
-  to `NAV` (content.ts) once the first is published.
+  Article JSON-LD, and is linked from its tool's page.
 - **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
   prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
   `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).

@@ -21,7 +21,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const guides = publishedGuides();
   const guidePages = guides.length > 0 ? ['/guides', ...guides.map((g) => `/guides/${g.slug}`)] : [];
 
-  return [...staticPages, ...agentPages, ...guidePages].map((path) => ({
+  // A Set, because /guides is both in NAV and the head of the guide pages.
+  return [...new Set([...staticPages, ...agentPages, ...guidePages])].map((path) => ({
     url: new URL(path, CANONICAL_URL).toString(),
     changeFrequency: 'monthly',
     priority: path === '/' ? 1 : path.startsWith('/tools') || path.startsWith('/guides') ? 0.8 : 0.5,

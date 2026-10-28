@@ -18,7 +18,7 @@ import type { Guide } from './types';
 
 export const TRUE_COST: Guide = {
   slug: 'true-cost-of-an-under-construction-flat',
-  status: 'draft',
+  status: 'published',
   title: 'The true cost of an under-construction flat',
   search: {
     title: 'True Cost of an Under-Construction Flat',
@@ -137,7 +137,7 @@ export const TRUE_COST: Guide = {
 
 export const RENTAL_YIELD: Guide = {
   slug: 'rental-yield-on-property',
-  status: 'draft',
+  status: 'published',
   title: 'How to calculate rental yield on a property',
   search: {
     title: 'How to Calculate Rental Yield on Property',
