@@ -16,6 +16,8 @@ import type { Guide } from './types';
 
 export const BANK_RECONCILIATION: Guide = {
   slug: 'bank-reconciliation-statement',
+  figure: { value: '₹1,48,150', label: 'The bank balance it ties to' },
+  motif: 'ledger',
   status: 'published',
   title: 'How to prepare a bank reconciliation statement',
   search: {
@@ -114,6 +116,8 @@ export const BANK_RECONCILIATION: Guide = {
 
 export const PAYMENT_VOUCHER: Guide = {
   slug: 'payment-voucher-format-and-approvals',
+  figure: { value: '26-27/0001', label: 'One unbroken series a year' },
+  motif: 'voucher',
   status: 'published',
   title: 'Payment vouchers: what goes on one, and who should approve it',
   search: {

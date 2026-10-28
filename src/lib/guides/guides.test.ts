@@ -181,3 +181,9 @@ describe('the sitemap', () => {
     for (const g of publishedGuides()) expect(urls.filter((u) => u.endsWith(`/guides/${g.slug}`))).toHaveLength(1);
   });
 });
+
+describe('each guide’s headline figure', () => {
+  it('is quoted from the guide itself', () => {
+    for (const g of ALL_GUIDES) expect(text(g), g.slug).toContain(g.figure.value);
+  });
+});

@@ -41,4 +41,12 @@ export type Guide = {
   answer: string;
   blocks: Block[];
   faq: { q: string; a: string }[];
+  /**
+   * The one figure the guide is remembered by, rolled in on its card and in its
+   * hero. Quoted from the guide itself (guides.test.ts checks it appears in the
+   * text), so the headline number can never say something the page does not.
+   */
+  figure: { value: string; label: string };
+  /** Which scene stands in the guide's doorway. */
+  motif: 'tower' | 'voucher' | 'scales' | 'columns' | 'sundial' | 'ledger' | 'gate' | 'nest';
 };
