@@ -159,7 +159,7 @@ export function MoneyChart({
         {LAYERS.map((l) => (
           <span key={l.key} className="text-muted inline-flex items-center gap-2">
             <span aria-hidden className="size-2.5 rounded-[3px]" style={{ background: TONE[l.key] }} />
-            {l.label}
+            {l.label}{' '}
           </span>
         ))}
         <span className="text-subtle inline-flex items-center gap-2">

@@ -2650,6 +2650,14 @@ body:has([data-skin='desert']) {
 .m-ch { display: inline-block; }
 /* Drawn from data-ch so the page's text holds each heading once; see Letters. */
 .m-ch::before { content: attr(data-ch); }
+/*
+ * A decorative number (a section's 01, a step's 3) drawn from data-n, so the
+ * page's text does not run it into the words beside it. Read as bare HTML,
+ * <span>01</span><span>Why the price…</span> is "01Why the price…", which is
+ * what a crawler that does not lay the page out quotes. The list or heading
+ * already says what the number did.
+ */
+.m-n::before { content: attr(data-n); }
 
 /* ── Springy type (play/Springy.tsx) ──
    --lift is 0 at rest and up to 1 under the pointer. The overshooting curve on

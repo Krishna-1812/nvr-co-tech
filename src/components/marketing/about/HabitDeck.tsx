@@ -95,16 +95,17 @@ function Card({ index, title, body, deck = false }: { index: number; title: stri
       )}
     >
       {deck ? (
-        <span aria-hidden className="m-display shrink-0 t-h1 leading-none text-[var(--m-gold)] tabular-nums">
-          {String(index + 1).padStart(2, '0')}
-        </span>
+        <span
+          aria-hidden
+          data-n={String(index + 1).padStart(2, '0')}
+          className="m-n m-display shrink-0 t-h1 leading-none text-[var(--m-gold)] tabular-nums"
+        />
       ) : (
         <span
           aria-hidden
-          className="m-arch m-mono mb-5 grid h-10 w-8 place-items-center bg-[var(--m-gold)] pt-1 t-2 font-bold text-[var(--m-on-grad)] tabular-nums"
-        >
-          {index + 1}
-        </span>
+          data-n={index + 1}
+          className="m-n m-arch m-mono mb-5 grid h-10 w-8 place-items-center bg-[var(--m-gold)] pt-1 t-2 font-bold text-[var(--m-on-grad)] tabular-nums"
+        />
       )}
       <div className="min-w-0">
         <h3 className={cn('m-display', deck ? 't-h4' : 't-5')}>{title}</h3>

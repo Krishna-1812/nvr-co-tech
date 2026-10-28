@@ -19,7 +19,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Published guides only. A draft is readable on a preview deployment and
   // nowhere a crawler is pointed.
   const guides = publishedGuides();
-  const guidePages = guides.length > 0 ? ['/guides', ...guides.map((g) => `/guides/${g.slug}`)] : [];
+  // The glossary defines the guides' terms and links to them, so it stands or
+  // falls with them.
+  const guidePages = guides.length > 0 ? ['/guides', ...guides.map((g) => `/guides/${g.slug}`), '/glossary'] : [];
 
   // A Set, because /guides is both in NAV and the head of the guide pages.
   // A guide's own date, and the newest of them for the guides index. The other
@@ -27,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // a crawler that finds it wrong learns to ignore it.
   const dated = new Map<string, string>(guides.map((g) => [`/guides/${g.slug}`, g.updated]));
   if (guides.length > 0) dated.set('/guides', guides.map((g) => g.updated).sort().at(-1)!);
+  if (guides.length > 0) dated.set('/glossary', dated.get('/guides')!);
 
   return [...new Set([...staticPages, ...agentPages, ...guidePages])].map((path) => ({
     url: new URL(path, CANONICAL_URL).toString(),

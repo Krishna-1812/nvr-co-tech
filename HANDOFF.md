@@ -1434,6 +1434,88 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
 
 ---
 
+## 19c. Search and answer engines, round 2 (28 Oct 2026)
+
+The owner asked for the site to rank high in search and in AI answers. What the primary sources
+say, and what was built from it:
+
+- **The rules this follows.** Google's "AI features and your website": no extra requirements or
+  special markup for AI Overviews / AI Mode; a page must be indexed and snippet-eligible; content
+  in text; structured data must match the visible page; llms.txt and "AI files" are not needed.
+  Microsoft (Bing/Copilot, Oct 2025): titles, H1 and description aligned; descriptive H2s; Q&A
+  pairs; lists and tables; self-contained one-to-two sentence answers; nothing important hidden
+  in tabs, images or PDFs. OpenAI: `OAI-SearchBot` decides ChatGPT search inclusion, `GPTBot` is
+  training only. Anthropic: `Claude-SearchBot`, `Claude-User`, `ClaudeBot`. The AI crawlers fetch
+  HTML and do **not** run JavaScript, so what matters is the server HTML read as plain text.
+- **Words run together in the bare HTML (fixed site-wide).** Read without layout, the HTML said
+  "The Finance IntelligenceAI tools…", "01Why the two balances differ", "1Take the cash book",
+  "Open itBook a walkthrough". Decorative numbers are now drawn by CSS from `data-n`
+  (`.m-n::before`, globals.css, beside `.m-ch`); sibling inline elements in flex rows get a
+  `{' '}` (ignored by the flex layout); `CTA`, `ArrowLink` and `StageBadge` end with a trailing
+  space for the same reason. The decorative repeats (guides `FigureBand`, the home `Ticker`'s
+  echo copies) are drawn from `data-n` too, so their text is not in the page four times. Any new
+  component that puts two inline elements side by side needs the same space.
+- **Tool pages.** Each live agent has a `definition` ("X is a … that …", content.ts) shown under
+  "What X does." and asked first as "What is X?" (`toolFaq()`, also in llms-full and the FAQPage
+  data). The eyebrow above the H1 is now the search title (the page title and heading agree), and
+  the H2s name the tool ("What goes into X…", "What people ask about X.").
+- **Structured data (seo.ts).** Article: `abstract` (the short answer), `image` (a stable
+  `/guides/<slug>/card.png`, same picture as the OG card, whose own path carries a hash),
+  `isPartOf`, `articleSection`, `wordCount`, `citation` (the guide's sources). WebApplication:
+  `image` (`/tools/<slug>/card.png`), `alternateName` (search title), `abstract` (definition).
+  Organization: `contactPoint` (email + /contact). About and Contact: `AboutPage`/`ContactPage`
+  (`profilePageLd`) carrying the Organization. Glossary: `DefinedTermSet` (`glossaryLd`).
+- **Sources on guides.** `Guide.sources` (name, publisher, url), rendered as "Sources" at the foot
+  of the article and as the Article `citation`; only where the guide rests on a rule (the Act, the
+  portal manual, ICAI, CBIC, GST Council, RERA). Arithmetic-only guides list none on purpose.
+  Every URL was opened before it went in. Every guide ends with "How this guide is checked" (who
+  writes it, the worked-example test where there is one, the last-checked date, a link to report
+  an error).
+- **Pre-EMI guide corrected for the Income-tax Act, 2025.** From tax year 2026-27 the
+  pre-construction interest rule is section 22 (22(1)(c), cap in 22(2)), not section 24(b);
+  the guide now says both. `guides.test.ts` fails if any guide cites "section 24(b)" without
+  naming the 2025 Act.
+- **Three new guides, published (28 Oct):** *Carpet area vs built-up vs super built-up*
+  (RERA s.2(k) and 4(2)(h), loading, price per sq ft of carpet), *GST on an under-construction
+  flat* (1%/5% effective, affordable = 60/90 sq m and ₹45 lakh, none after the completion
+  certificate; GST Council FAQ and 34th-meeting release), *Types of vouchers in accounting*
+  (payment, receipt, contra, journal, trading vouchers). Worked examples recalculated in
+  guides.test. These were published on the strength of the owner's "take all the necessary
+  steps"; set `status: 'draft'` to pull any back.
+- **Glossary** (`/glossary`, data `lib/guides/glossary.ts`, 32 terms in five topics), each term
+  linked to its guide, `<dl>/<dfn>` markup, in the sitemap, llms.txt, llms-full, the footer's
+  Guides column, the guides index and the chat's site knowledge (`site-glossary`). Tests: unique
+  ids, links to real guides, ≤ 60 words, no em-dash.
+- **Crawlers (robots.ts).** The search and answer crawlers are named in their own group with the
+  same rules as `*` (explicit welcome). Training crawlers are allowed too, deliberately; the
+  comment there says how to opt out of training without leaving AI search.
+- **IndexNow (Bing, and through it Copilot, ChatGPT search, DuckDuckGo; also Yandex, Seznam,
+  Naver).** Key file `public/e6fa1342913153260eba182c32dc904c.txt`; `scripts/indexnow.mjs` reads
+  the live sitemap, hashes each page's text, and submits only pages whose words changed since the
+  last run (state kept by the workflow's cache; first run submits all). Runs from
+  `.github/workflows/indexnow.yml` on every successful **Production** `deployment_status` that
+  Vercel reports, or by hand (Actions → IndexNow → Run workflow). Google does not use IndexNow;
+  it reads the sitemap.
+- **RSS** `/guides/feed.xml` (published guides, newest first, the short answer as description),
+  announced from every page's head through `pageMeta` (`alternates.types`).
+- **Titles.** About is now "About The Finance Intelligence"; the guides index "Finance guides for
+  India".
+- **Measurement.** Admin analytics now names ChatGPT, Perplexity, Gemini, Copilot, Claude,
+  DeepSeek, Meta AI and DuckDuckGo as sources (by referrer, or ChatGPT's `utm_source=chatgpt.com`)
+  instead of raw hosts (`lib/analytics/report.ts`).
+- **Not done, worth doing (owner):** Bing Webmaster Tools now matters more than before, because
+  ChatGPT search and Copilot answer from Bing's index: import the site from Search Console, then
+  check IndexNow submissions there. Google Business Profile; the profile URLs for `sameAs`;
+  mentions and links from ICAI branches, CA communities and Reddit/Quora answers (the sources AI
+  answers cite most). A *nominee vs legal heir* guide would rank well but is legal content; write
+  it only with an advocate's review, like Will Maker.
+- **Not done, worth doing (code):** the home page is the slowest on Lighthouse mobile (perf 79,
+  TBT ~740 ms from hydrating a large DOM; every other page 94–96). Fewer client components on the
+  home page is the fix. The home's one a11y failure in Lighthouse is the intro bars still over the
+  header when it samples, not a real contrast problem.
+
+---
+
 ## 20. Open items & ideas (none started; ask before doing)
 
 Needing the owner (dashboard / decisions):

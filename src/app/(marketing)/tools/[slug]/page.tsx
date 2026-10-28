@@ -17,6 +17,7 @@ import {
   STAGE_NOTE,
   agentBySlug,
   type Agent,
+  toolFaq,
 } from '@/lib/marketing/content';
 import {
   ACCENT,
@@ -68,6 +69,7 @@ export default async function AgentPage({ params }: Params) {
   if (!agent) notFound();
 
   const accent = ACCENT[agent.accent];
+  const faq = toolFaq(agent);
   const index = AGENTS.findIndex((a) => a.slug === agent.slug);
   const next = AGENTS[(index + 1) % AGENTS.length];
 
@@ -101,10 +103,13 @@ export default async function AgentPage({ params }: Params) {
           <div className="mt-10 grid gap-14 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:gap-16">
             <div className="min-w-0">
               <Rise delay={60}>
+                {/* The search title, under the name: what the tool is, in the
+                    words people type, so the heading a reader meets says the same
+                    thing as the title that brought them here. */}
                 <div className="flex flex-wrap items-center gap-3">
                   <StageBadge stage={agent.stage} />
                   <span className="m-mono t-1 t-caps text-[var(--m-olive)] uppercase">
-                    {agent.category}
+                    {agent.search.title}
                   </span>
                 </div>
               </Rise>
@@ -166,7 +171,7 @@ export default async function AgentPage({ params }: Params) {
               </div>
               <div className="m-card absolute -bottom-6 left-1/2 flex max-w-[calc(100%+2rem)] -translate-x-1/2 items-center gap-3 rounded-2xl px-4 py-3 whitespace-nowrap shadow-[0_18px_34px_-20px_rgb(80_40_20_/_0.6)]">
                 <span aria-hidden className="m-arch h-6 w-5 shrink-0" style={{ background: accent }} />
-                <span className="truncate t-3 font-semibold text-[var(--m-ink)]">{agent.name}</span>
+                <span className="truncate t-3 font-semibold text-[var(--m-ink)]">{agent.name}</span>{' '}
                 <span className="m-mono m-dim-2 t-1 t-caps uppercase">
                   {STAGE_LABEL[agent.stage]}
                 </span>
@@ -248,8 +253,9 @@ export default async function AgentPage({ params }: Params) {
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1.5fr] lg:gap-16">
             <Reveal>
               <div className="lg:sticky lg:top-28">
-                <Eyebrow>What it does</Eyebrow>
-                <h2 className="m-display mt-4 t-h3">The specifics.</h2>
+                <Eyebrow>The specifics</Eyebrow>
+                <h2 className="m-display mt-4 t-h3">What {agent.name} does.</h2>
+                {agent.definition && <p className="mt-5 max-w-sm t-4 text-[var(--m-ink)]">{agent.definition}</p>}
                 {/* A live agent's list is a description, not a plan, and saying
                     so is the point of writing these down to this level. */}
                 <p className="m-dim mt-5 max-w-sm t-3">
@@ -276,11 +282,10 @@ export default async function AgentPage({ params }: Params) {
                 >
                   <span
                     aria-hidden
-                    className="m-arch m-mono grid h-9 w-7 shrink-0 place-items-center pt-1 t-1 font-bold tabular-nums"
+                    data-n={i + 1}
+                    className="m-n m-arch m-mono grid h-9 w-7 shrink-0 place-items-center pt-1 t-1 font-bold tabular-nums"
                     style={{ background: accent, color: ON_ACCENT[agent.accent] }}
-                  >
-                    {i + 1}
-                  </span>
+                  />
                   <p className="min-w-0 t-3 text-[var(--m-ink)]">{item}</p>
                 </Reveal>
               ))}
@@ -293,7 +298,7 @@ export default async function AgentPage({ params }: Params) {
         <Container wide>
           <Reveal>
             <Eyebrow>Where it fits</Eyebrow>
-            <h2 className="m-display mt-4 t-h3">What goes in, and what you get back.</h2>
+            <h2 className="m-display mt-4 t-h3">What goes into {agent.name}, and what you get back.</h2>
           </Reveal>
 
           <Reveal delay={70}>
@@ -316,7 +321,7 @@ export default async function AgentPage({ params }: Params) {
           <Container wide>
             <Reveal>
               <Eyebrow>Guides</Eyebrow>
-              <h2 className="m-display s-settle mt-4 t-h3">Read how it works, by hand.</h2>
+              <h2 className="m-display s-settle mt-4 t-h3">How to do it by hand, step by step.</h2>
             </Reveal>
             <ul className="mt-8 grid gap-4 md:grid-cols-2">
               {guidesForTool(agent.slug).map((g) => {
@@ -345,16 +350,16 @@ export default async function AgentPage({ params }: Params) {
         </Section>
       )}
 
-      {agent.faq && agent.faq.length > 0 && (
+      {faq.length > 0 && (
         <Section>
-          <JsonLd data={faqLd(agent.faq)} />
+          <JsonLd data={faqLd(faq)} />
           <Container wide>
             <Reveal>
               <Eyebrow>Questions</Eyebrow>
-              <h2 className="m-display mt-4 t-h3">What people ask first.</h2>
+              <h2 className="m-display mt-4 t-h3">What people ask about {agent.name}.</h2>
             </Reveal>
             <div className="mt-8 max-w-3xl">
-              <FaqAccordion faq={agent.faq} />
+              <FaqAccordion faq={faq} />
             </div>
           </Container>
         </Section>
@@ -422,12 +427,12 @@ export default async function AgentPage({ params }: Params) {
                 <span className="absolute bottom-0 left-1/2 size-10 -translate-x-1/2 translate-y-1/3 rounded-full bg-[var(--m-sun)] transition-transform duration-500 group-hover:translate-y-0" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="m-eyebrow block">Next tool</span>
+                <span className="m-eyebrow block">Next tool</span>{' '}
                 <span className="m-display mt-2 block t-h4 transition-colors group-hover:text-[var(--m-gold)]">
                   {next.name}
-                </span>
+                </span>{' '}
                 <span className="m-dim-2 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 t-3">
-                  {next.category}
+                  {next.category}{' '}
                   <StageBadge stage={next.stage} />
                 </span>
               </span>

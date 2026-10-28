@@ -159,8 +159,7 @@ export function RequestForm() {
           {!busy && (
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
           )}
-        </button>
-
+        </button>{' '}
         <a
           href={`mailto:${CONTACT.email}`}
           className="m-mono m-dim inline-flex items-center gap-2 t-2 t-caps uppercase transition hover:text-[var(--m-ink)]"

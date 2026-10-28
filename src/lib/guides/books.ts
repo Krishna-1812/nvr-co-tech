@@ -95,6 +95,13 @@ export const BANK_RECONCILIATION: Guide = {
       text: 'Reconciling a customer’s ledger with their statement of account, or a supplier’s ledger with the supplier’s statement, works the same way: match the entries, list what is left, and explain each one as timing, omission or error.',
     },
   ],
+  sources: [
+    {
+      name: 'Principles and Practice of Accounting, Module 1, chapter 3: Bank Reconciliation Statement',
+      publisher: 'The Institute of Chartered Accountants of India (Foundation course study material)',
+      url: 'https://resource.cdn.icai.org/61784bos50279mod1-ipages.pdf',
+    },
+  ],
   faq: [
     {
       q: 'Can I start from the bank statement balance instead of the cash book?',
@@ -176,6 +183,13 @@ export const PAYMENT_VOUCHER: Guide = {
         'Once a voucher is approved, do not edit it. Send it back and record that it was sent back, so the history shows what changed and who changed it.',
         'Keep every voucher, approved or rejected, with its supporting papers.',
       ],
+    },
+  ],
+  sources: [
+    {
+      name: 'Integrated Goods and Services Tax Act, 2017, section 7: inter-State supply',
+      publisher: 'Central Board of Indirect Taxes and Customs',
+      url: 'https://taxinformation.cbic.gov.in/content/html/tax_repository/gst/acts/2017_IGST_Act/active/chapteriv/section7_v1.00.html',
     },
   ],
   faq: [
@@ -303,6 +317,104 @@ export const SUPPLIER_RECONCILIATION: Guide = {
     {
       q: 'Is this the same as a bank reconciliation?',
       a: 'The method is the same: match the entries, list what is left, and explain each item as timing, omission or error. Only the other party changes.',
+    },
+  ],
+};
+
+/*
+ * The week of vouchers, checked by guides.test.ts:
+ *
+ *   Bank  1,00,000 − 25,000 (rent) + 59,000 (receipt) − 10,000 (to petty cash) = ₹1,24,000
+ *   Cash      2,000 + 10,000 (from the bank) − 1,200 (courier)                  = ₹10,800
+ *   Sale  1,00,000 + 18% GST 18,000                                              = ₹1,18,000
+ */
+export const VOUCHER_TYPES: Guide = {
+  slug: 'types-of-vouchers-in-accounting',
+  short: 'Types of vouchers',
+  figure: { value: '₹1,24,000', label: 'The bank balance the week ends on' },
+  motif: 'voucher',
+  status: 'published',
+  title: 'Types of vouchers in accounting: payment, receipt, contra and journal',
+  search: {
+    title: 'Types of Vouchers in Accounting, with Examples',
+    description:
+      'Payment, receipt, contra and journal vouchers, and the sales, purchase and note vouchers: what each records, with a week of entries sorted into the right one.',
+  },
+  tool: 'voucher-desk',
+  updated: '2026-10-28',
+  lead:
+    'Every entry in the books should rest on a voucher. Which kind of voucher depends on one question: does money move, and if it does, where to?',
+  answer:
+    'A voucher is the document behind an entry in the books. A payment voucher records money leaving your cash or bank, a receipt voucher money coming in, a contra voucher money moving between your own cash and bank accounts, and a journal voucher an entry that touches neither, such as depreciation or a provision. Sales, purchase, credit note and debit note vouchers record trading on credit.',
+  blocks: [
+    { t: 'h2', text: 'What a voucher is for' },
+    {
+      t: 'p',
+      text: 'A voucher is the evidence for an entry: what happened, for how much, which accounts it touches, and who agreed to it, with the bill, invoice or bank advice behind it attached. An auditor tests the books by picking entries and tracing each one back to its voucher, so an entry without one is an entry nobody can check.',
+    },
+    { t: 'h2', text: 'The four every business uses' },
+    {
+      t: 'ul',
+      items: [
+        'Payment voucher: money going out of cash or a bank account to somebody else, such as rent, a supplier or salaries. The bank or cash account is credited.',
+        'Receipt voucher: money coming in to cash or a bank account from somebody else, such as a customer paying an invoice. The bank or cash account is debited.',
+        'Contra voucher: money moving between your own cash and bank accounts, or between two of your bank accounts, such as a cash withdrawal or a deposit. Both sides are your own cash or bank.',
+        'Journal voucher: an entry that involves no cash or bank at all, such as depreciation, a provision, a correction or a transfer between two ledger accounts.',
+      ],
+    },
+    { t: 'h2', text: 'The trading vouchers' },
+    {
+      t: 'ul',
+      items: [
+        'Sales voucher: a sale, with the customer or cash debited and sales and the tax on them credited.',
+        'Purchase voucher: a purchase, with the purchase and the input tax debited and the supplier or cash credited.',
+        'Credit note and debit note: a change to an invoice already issued. A credit note reduces what the customer owes, for a return or an overcharge, and a debit note increases it. In GST both are issued by the supplier, though many businesses also raise a debit note to their supplier when they return goods.',
+      ],
+    },
+    { t: 'h2', text: 'A worked example' },
+    {
+      t: 'p',
+      text: 'A small business starts the week with ₹1,00,000 in the bank and ₹2,000 in petty cash. Six things happen.',
+    },
+    {
+      t: 'table',
+      caption: 'One week, each entry on its voucher',
+      head: ['What happened', 'Voucher', 'Debit', 'Credit', '₹'],
+      rows: [
+        ['Office rent paid by NEFT', 'Payment', 'Rent', 'Bank', '25,000'],
+        ['A customer pays an invoice by UPI', 'Receipt', 'Bank', 'Customer', '59,000'],
+        ['Cash drawn from the bank for petty cash', 'Contra', 'Cash', 'Bank', '10,000'],
+        ['A courier paid in cash', 'Payment', 'Courier', 'Cash', '1,200'],
+        ['Depreciation on office furniture', 'Journal', 'Depreciation', 'Furniture', '4,500'],
+        ['Goods sold on credit, with 18% GST', 'Sales', 'Customer', 'Sales and GST', '1,18,000'],
+      ],
+    },
+    {
+      t: 'p',
+      text: 'Only the payment, receipt and contra vouchers move cash or the bank. The bank ends the week at ₹1,24,000: ₹1,00,000 less ₹25,000 of rent, plus ₹59,000 received, less ₹10,000 drawn for petty cash. Petty cash ends at ₹10,800. The depreciation and the credit sale change no balance of money at all, which is why they sit on a journal and a sales voucher.',
+    },
+    { t: 'h2', text: 'Numbering, and who approves' },
+    {
+      t: 'p',
+      text: 'Give each type of voucher its own unbroken series of numbers for each financial year, so a gap in the series is noticed. For payment vouchers above all, the person who raises the voucher should never be the person who approves it.',
+    },
+  ],
+  faq: [
+    {
+      q: 'What is the difference between a contra voucher and a payment voucher?',
+      a: 'A contra voucher moves money between your own cash and bank accounts. A payment voucher sends money to somebody else.',
+    },
+    {
+      q: 'Can a journal voucher record a cash payment?',
+      a: 'No. Any entry that involves cash or a bank account goes on a payment, receipt or contra voucher. A journal voucher is for entries that touch neither.',
+    },
+    {
+      q: 'Who should approve a payment voucher?',
+      a: 'Somebody other than the person who raised it, with the authority to agree to the payment.',
+    },
+    {
+      q: 'Does every entry need a voucher?',
+      a: 'Yes. Every entry should trace back to a voucher and the document behind it, which is how the books are checked.',
     },
   ],
 };

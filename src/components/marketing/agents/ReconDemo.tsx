@@ -353,9 +353,9 @@ function Book({
               {/* The date over the description rather than beside it, so the
                   description keeps the width to be read in full on a phone. */}
               <span className="min-w-0">
-                <span className="m-dim-2 block t-1 tabular-nums">{formatLedgerDate(t.date)}</span>
+                <span className="m-dim-2 block t-1 tabular-nums">{formatLedgerDate(t.date)}</span>{' '}
                 <span className="block t-3 text-[var(--m-ink)]">{t.particular}</span>
-              </span>
+              </span>{' '}
               <span className="t-3 tabular-nums">{amountOf(t)}</span>
               {/* On a phone there is no gutter to draw a line across, so the
                   row says what became of it instead. */}
@@ -370,7 +370,7 @@ function Book({
         })}
       </ol>
       <footer className="flex items-baseline justify-between gap-3 border-t border-[var(--m-line)] px-4 py-3 sm:px-5">
-        <span className="m-mono m-dim-2 t-1 t-caps uppercase">Closing per file</span>
+        <span className="m-mono m-dim-2 t-1 t-caps uppercase">Closing per file</span>{' '}
         <span className="t-3 font-semibold tabular-nums">
           {ledger.closingBalance === null
             ? '—'

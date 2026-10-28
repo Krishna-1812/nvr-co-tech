@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
-import { pageMeta } from '@/lib/marketing/seo';
+import { JsonLd } from '@/components/marketing/JsonLd';
+import { pageMeta, profilePageLd } from '@/lib/marketing/seo';
 import { AGENTS, BRAND, ROSTER, STAGE_LABEL } from '@/lib/marketing/content';
 import {
   ArchScene,
@@ -19,11 +20,16 @@ import { Roost } from '@/components/brand/Owl';
 import { RoadmapList } from '@/components/marketing/about/RoadmapList';
 import { HabitDeck } from '@/components/marketing/about/HabitDeck';
 
+const DESCRIPTION =
+  'Why a team of chartered accountants is building software for finance teams, why the rules sit in the database, and how we go from one working tool to several.';
+
+// The brand in the title, which is what somebody looking for who is behind the
+// site types; "About · …" said nothing a result page could match.
 export const metadata: Metadata = pageMeta({
-  title: 'About',
-  description:
-    'Why a team of chartered accountants is building software for finance teams, why the rules sit in the database, and how we go from one working tool to several.',
+  title: `About ${BRAND.name}`,
+  description: DESCRIPTION,
   path: '/about',
+  absoluteTitle: true,
 });
 
 const TRAIL = [
@@ -66,6 +72,7 @@ const STAGES_IN_WAITING = [
 export default function AboutPage() {
   return (
     <>
+      <JsonLd data={profilePageLd({ type: 'AboutPage', path: '/about', name: `About ${BRAND.name}`, description: DESCRIPTION })} />
       <section className="relative overflow-hidden">
         <ArchScene motif="owl" />
 

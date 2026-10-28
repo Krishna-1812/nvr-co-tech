@@ -290,12 +290,24 @@ export const PRE_EMI: Guide = {
     { t: 'h2', text: 'Interest before possession and tax' },
     {
       t: 'p',
-      text: 'Interest paid before possession is not lost for tax purposes. Under section 24(b) it is claimed in five equal parts, starting from the year construction is completed, within the limit that applies to the property for that year. Whether it can be claimed at all depends on the tax regime you choose, so check your own position before relying on it.',
+      text: 'Interest paid before possession is not lost for tax purposes. It is claimed in five equal parts, starting from the tax year in which construction is completed, within the limit that applies to the property for that year. From tax year 2026-27 the rule is in section 22 of the Income-tax Act, 2025; for earlier years it was section 24(b) of the 1961 Act. Whether it can be claimed at all depends on the tax regime you choose, so check your own position before relying on it.',
     },
     { t: 'h2', text: 'What it does to the flat’s true cost' },
     {
       t: 'p',
       text: 'Pre-EMI is a real cost of owning the flat before you can live in it or let it. Added to every instalment and charge, it is part of what the flat cost by possession, which is usually well above the agreement value.',
+    },
+  ],
+  sources: [
+    {
+      name: 'Income-tax Act, 2025, section 22: deductions from income from house property',
+      publisher: 'Income Tax Department',
+      url: 'https://www.incometaxindia.gov.in/w/section-22-218',
+    },
+    {
+      name: 'Income-tax Act, 2025, section 22, full text',
+      publisher: 'Indian Kanoon',
+      url: 'https://indiankanoon.org/doc/26891583/',
     },
   ],
   faq: [
@@ -309,7 +321,251 @@ export const PRE_EMI: Guide = {
     },
     {
       q: 'Can I claim pre-EMI interest in my tax return?',
-      a: 'Interest for the period before possession is claimed under section 24(b) in five equal parts from the year construction is completed, within the limit for the property, and only under a tax regime that allows it.',
+      a: 'Interest for the period before possession is claimed in five equal parts from the tax year construction is completed, within the limit for the property, and only under a tax regime that allows it. From tax year 2026-27 that is section 22 of the Income-tax Act, 2025, which took the place of section 24(b) of the 1961 Act.',
+    },
+  ],
+};
+
+/*
+ * The carpet area example, checked by guides.test.ts:
+ *
+ *   Flat A  1,000 sq ft super built-up at ₹8,000  = ₹80,00,000   carpet 700 sq ft
+ *           per sq ft of carpet 80,00,000 ÷ 700  = ₹11,429        loading 1,000 ÷ 700 − 1 = 42.9%
+ *   Flat B    950 sq ft super built-up at ₹8,400  = ₹79,80,000   carpet 720 sq ft
+ *           per sq ft of carpet 79,80,000 ÷ 720  = ₹11,083        loading   950 ÷ 720 − 1 = 31.9%
+ *   65 sq m × 10.7639                             = 699.65 sq ft
+ */
+export const CARPET_AREA: Guide = {
+  slug: 'carpet-area-vs-built-up-vs-super-built-up',
+  short: 'Carpet vs super built-up',
+  figure: { value: '42.9%', label: 'Loading on flat A’s carpet area' },
+  motif: 'tower',
+  status: 'published',
+  title: 'Carpet area, built-up area and super built-up area: what you are paying for',
+  search: {
+    title: 'Carpet Area vs Built-Up vs Super Built-Up Area',
+    description:
+      'What carpet, built-up and super built-up area mean under RERA, how loading works, and how to compare flats on the price per square foot you can use.',
+  },
+  tool: 'true-property-cost',
+  updated: '2026-10-28',
+  lead:
+    'A flat is sold in square feet, but not always the same square feet. Which area the price is quoted on can make a cheaper-looking flat the dearer one.',
+  answer:
+    'Carpet area is the floor area you can actually use inside a flat’s walls, as section 2(k) of RERA defines it: it leaves out the external walls, service shafts, exclusive balconies and open terraces. Built-up area adds the walls and, usually, the balcony. Super built-up area also adds a share of the lobby, lifts, staircases and other common areas, which is called loading. To compare two flats, divide each total price by its carpet area.',
+  blocks: [
+    { t: 'h2', text: 'The three areas, from smallest to largest' },
+    {
+      t: 'ul',
+      items: [
+        'Carpet area: the net usable floor area inside the flat. It includes the area under the internal partition walls, and leaves out the external walls, the service shafts, any balcony or verandah for the flat’s exclusive use and any exclusive open terrace.',
+        'Built-up area: the carpet area plus the area the flat’s walls stand on, and in most quotations its balcony as well.',
+        'Super built-up area: the built-up area plus the flat’s share of the building’s common areas, such as the entrance lobby, lift wells, staircases, corridors and sometimes the clubhouse. It is also called super area or saleable area.',
+      ],
+    },
+    { t: 'h2', text: 'What RERA changed' },
+    {
+      t: 'p',
+      text: 'Before the Real Estate (Regulation and Development) Act, 2016, carpet area had no definition in law, and each builder measured it its own way. Section 2(k) of the Act now defines it in the words above, and section 4(2)(h) requires a builder registering a project to state the number, type and carpet area of the flats for sale, with the areas of exclusive balconies, verandahs and open terraces given separately.',
+    },
+    {
+      t: 'p',
+      text: 'Some state authorities have gone further. Haryana’s, for example, requires flats in registered projects to be sold on carpet area only, with the rate inclusive of all charges, rather than on super area.',
+    },
+    { t: 'h2', text: 'Loading, and why it matters' },
+    {
+      t: 'p',
+      text: 'Loading is how much bigger the area you are charged for is than the area you can use. It is quoted in two ways, as a share of the carpet area or as a share of the super built-up area, so check which before comparing two figures.',
+    },
+    { t: 'formula', text: 'Loading = super built-up area ÷ carpet area − 1' },
+    {
+      t: 'p',
+      text: 'A rate per square foot on super built-up area tells you little on its own, because the same rate on a building with heavy loading buys much less usable space. The rate that compares like with like is the total price divided by the carpet area.',
+    },
+    { t: 'h2', text: 'A worked example' },
+    {
+      t: 'p',
+      text: 'Two flats in the same area. Flat A is offered at ₹8,000 a square foot on 1,000 square feet of super built-up area, so ₹80,00,000, and its carpet area is 700 square feet. Flat B is offered at ₹8,400 a square foot on 950 square feet, so ₹79,80,000, and its carpet area is 720 square feet.',
+    },
+    {
+      t: 'table',
+      caption: 'The same two flats, on the area you can use',
+      head: ['', 'Flat A', 'Flat B'],
+      rows: [
+        ['Super built-up area', '1,000 sq ft', '950 sq ft'],
+        ['Rate quoted', '₹8,000', '₹8,400'],
+        ['Price', '₹80,00,000', '₹79,80,000'],
+        ['Carpet area', '700 sq ft', '720 sq ft'],
+        ['Loading on carpet area', '42.9%', '31.9%'],
+        ['Price per sq ft of carpet', '₹11,429', '₹11,083'],
+      ],
+    },
+    {
+      t: 'p',
+      text: 'Flat B is quoted at the higher rate, yet it gives you 20 more square feet to live in for ₹20,000 less, and costs ₹11,083 for each square foot you can use against ₹11,429 for flat A.',
+    },
+    { t: 'h2', text: 'Square metres and square feet' },
+    {
+      t: 'p',
+      text: 'RERA registrations and agreements often state areas in square metres. One square metre is 10.7639 square feet, so a carpet area of 65 square metres is 699.65 square feet, about 700.',
+    },
+    { t: 'h2', text: 'What to ask before you book' },
+    {
+      t: 'ol',
+      items: [
+        'The carpet area, as section 2(k) of RERA defines it, written into the agreement for sale.',
+        'The areas of any exclusive balcony, verandah or open terrace, stated separately.',
+        'What the price includes: parking, preferential location charges, clubhouse and other charges.',
+        'The super built-up area the rate is quoted on, so you can work out the loading yourself.',
+      ],
+    },
+  ],
+  sources: [
+    {
+      name: 'Sale of apartments and floors in a real estate project on the basis of carpet area: regulations, 2021 (quoting RERA sections 2(k) and 4(2)(h))',
+      publisher: 'Haryana Real Estate Regulatory Authority, Gurugram',
+      url: 'https://haryanarera.gov.in/regulations/Sale_of_ApartmentsFloors_in_a_Real_Estate_Project_on_the_basis_of_Carpet_Area.pdf',
+    },
+  ],
+  faq: [
+    {
+      q: 'Is the balcony part of the carpet area?',
+      a: 'No. Under section 2(k) of RERA, a balcony, verandah or open terrace for the flat’s exclusive use is left out of the carpet area, and its area is stated separately.',
+    },
+    {
+      q: 'Are internal walls included in the carpet area?',
+      a: 'Yes. The area under the internal partition walls is part of the carpet area. The external walls are not.',
+    },
+    {
+      q: 'What is a normal loading?',
+      a: 'There is no fixed figure. It depends on how much common area the building has, such as lobbies, lifts and amenities. Work it out from the carpet area in the agreement rather than relying on a typical percentage.',
+    },
+    {
+      q: 'Which area should I compare flats on?',
+      a: 'Carpet area. Divide each flat’s total price by its carpet area and compare those figures.',
+    },
+  ],
+};
+
+/*
+ * The GST example, checked by guides.test.ts:
+ *
+ *   Pune is not one of the metropolitan areas in the definition; Thane is in
+ *   the Mumbai Metropolitan Region, which is.
+ *
+ *   ₹60,00,000, Pune,  75 sq m   over ₹45 lakh             → 5%  = ₹3,00,000
+ *   ₹40,00,000, Pune,  85 sq m   ≤ 90 sq m and ≤ ₹45 lakh  → 1%  = ₹40,000
+ *   ₹40,00,000, Thane, 62 sq m   over 60 sq m in a metro   → 5%  = ₹2,00,000
+ */
+export const GST_ON_FLATS: Guide = {
+  slug: 'gst-on-under-construction-flat',
+  short: 'GST on a flat',
+  figure: { value: '₹3,00,000', label: 'GST on a ₹60 lakh flat' },
+  motif: 'tower',
+  status: 'published',
+  title: 'GST on an under-construction flat: 1%, 5%, or none',
+  search: {
+    title: 'GST on Under-Construction Flats: 1% or 5%',
+    description:
+      'GST on a flat bought under construction is 5% of the price, or 1% for an affordable home. What counts as affordable, and when a flat carries no GST at all.',
+  },
+  tool: 'true-property-cost',
+  updated: '2026-10-28',
+  lead:
+    'GST is one of the larger charges on a flat bought off plan, and it is paid in step with the instalments. Whether it is 1%, 5% or nothing depends on three facts about the flat.',
+  answer:
+    'A flat bought before its completion certificate carries GST of 5% of the total price, or 1% if it is an affordable home, with no input tax credit for the builder. Affordable means a carpet area of up to 60 square metres in the metropolitan areas named in the rules, or 90 elsewhere, and a price of no more than ₹45 lakh. A flat sold after the completion certificate, with the whole price received after it, carries no GST.',
+  blocks: [
+    { t: 'h2', text: 'The two rates' },
+    {
+      t: 'table',
+      caption: 'GST on residential flats from 1 April 2019',
+      head: ['Flat', 'GST on the total price'],
+      rows: [
+        ['Affordable residential apartment', '1%'],
+        ['Any other residential apartment', '5%'],
+      ],
+    },
+    {
+      t: 'p',
+      text: 'Both are effective rates on the whole price. The law treats a third of the price as the value of the land, which carries no GST, and taxes the rest at a higher rate that works out to 1% or 5% of the total. The builder cannot set input tax credit against either, which is why they are lower than the 8% and 12% charged before April 2019.',
+    },
+    { t: 'h2', text: 'What counts as an affordable home' },
+    {
+      t: 'p',
+      text: 'Both conditions have to be met.',
+    },
+    {
+      t: 'ul',
+      items: [
+        'A carpet area of up to 60 square metres in a metropolitan area, or up to 90 square metres anywhere else, villages included.',
+        'A price charged by the builder of no more than ₹45 lakh.',
+        'The metropolitan areas are Bengaluru, Chennai, Delhi NCR (Delhi, Noida, Greater Noida, Ghaziabad, Gurgaon and Faridabad), Hyderabad, Kolkata and the whole Mumbai Metropolitan Region.',
+      ],
+    },
+    { t: 'h2', text: 'When there is no GST' },
+    {
+      t: 'p',
+      text: 'GST applies to the construction of a flat for sale. Once the completion certificate is issued, or the building is first occupied if that comes sooner, a flat sold with the whole price received after that date is the sale of a building, which GST does not reach. A completed flat resold by its owner carries no GST for the same reason.',
+    },
+    {
+      t: 'note',
+      title: 'Stamp duty is separate',
+      text: 'Stamp duty and registration are charged by the state on the agreement, not by the builder, and are not part of GST. Budget for both on top of the price and the GST.',
+    },
+    { t: 'h2', text: 'A worked example' },
+    {
+      t: 'p',
+      text: 'Three flats, each bought under construction. Pune is not one of the named metropolitan areas; Thane is part of the Mumbai Metropolitan Region, which is.',
+    },
+    {
+      t: 'table',
+      caption: 'Which rate applies, and what it comes to',
+      head: ['Flat', 'Carpet area', 'Price', 'Rate', 'GST'],
+      rows: [
+        ['Pune', '75 sq m', '₹60,00,000', '5%', '₹3,00,000'],
+        ['Pune', '85 sq m', '₹40,00,000', '1%', '₹40,000'],
+        ['Thane', '62 sq m', '₹40,00,000', '5%', '₹2,00,000'],
+      ],
+    },
+    {
+      t: 'p',
+      text: 'The first flat costs more than ₹45 lakh, so it is not affordable whatever its size. The second is under both limits. The third costs the same as the second but is two square metres over the 60 square metre limit for a metropolitan area, which moves it from 1% to 5% and adds ₹1,60,000 of GST.',
+    },
+    { t: 'h2', text: 'How it is paid, and what it does to the true cost' },
+    {
+      t: 'p',
+      text: 'GST is charged on each demand the builder raises, so it is paid in step with a construction-linked plan rather than in one sum at the end. Like every instalment, the GST paid years before possession ties up money that would otherwise earn a return or reduce a loan, which is part of a flat’s true cost.',
+    },
+  ],
+  sources: [
+    {
+      name: 'Frequently asked questions on the real estate sector (GST rates from 1 April 2019)',
+      publisher: 'GST Council',
+      url: 'https://www.gstcouncil.gov.in/sites/default/files/2024-02/faq-real-estate-sector.pdf',
+    },
+    {
+      name: 'Press release on the 34th meeting of the GST Council: rates for residential real estate',
+      publisher: 'GST Council and the Press Information Bureau',
+      url: 'https://gstcouncil.gov.in/sites/default/files/2024-10/34th_gst_press_information_bureau.pdf',
+    },
+  ],
+  faq: [
+    {
+      q: 'Is GST charged on stamp duty and registration?',
+      a: 'No. Stamp duty and registration are state charges on the agreement, paid separately. GST is charged on the price the builder charges for the flat.',
+    },
+    {
+      q: 'Is there GST on a ready-to-move flat?',
+      a: 'Not if the completion certificate has been issued, or the building first occupied, and the whole price is received after that. If any part of the price was received before, the sale is taxed.',
+    },
+    {
+      q: 'Is there GST on a resale flat?',
+      a: 'Not on a completed flat sold by its owner. That is the sale of a building, which is outside GST.',
+    },
+    {
+      q: 'Why did GST on flats fall from 12% to 5%?',
+      a: 'From 1 April 2019 the rates were cut to 5%, and 1% for affordable homes, with the condition that the builder takes no input tax credit. Before that the rates were 12% and 8% with credit.',
     },
   ],
 };

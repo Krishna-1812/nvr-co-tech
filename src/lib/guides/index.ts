@@ -1,7 +1,7 @@
 import { agentBySlug } from '@/lib/marketing/content';
-import { BANK_RECONCILIATION, PAYMENT_VOUCHER, SUPPLIER_RECONCILIATION } from './books';
+import { BANK_RECONCILIATION, PAYMENT_VOUCHER, SUPPLIER_RECONCILIATION, VOUCHER_TYPES } from './books';
 import { NET_WORTH, TAX_NOTICES } from './people';
-import { PRE_EMI, RENTAL_YIELD, TRUE_COST } from './property';
+import { CARPET_AREA, GST_ON_FLATS, PRE_EMI, RENTAL_YIELD, TRUE_COST } from './property';
 import type { Guide } from './types';
 import { COMPARABLES, EV_EBITDA } from './value';
 
@@ -20,6 +20,11 @@ export const ALL_GUIDES: readonly Guide[] = [
   PRE_EMI,
   SUPPLIER_RECONCILIATION,
   EV_EBITDA,
+  // Written for the search and answer-engine pass (28 Oct), each from its
+  // cited primary source, with the worked examples recalculated in the tests.
+  CARPET_AREA,
+  GST_ON_FLATS,
+  VOUCHER_TYPES,
 ];
 
 /**
@@ -50,13 +55,17 @@ export function guidesForTool(slug: string): Guide[] {
   return publishedGuides().filter((g) => g.tool === slug);
 }
 
-/** Minutes to read, at 220 words a minute, rounded up. */
-export function readingMinutes(g: Guide): number {
-  const words = [g.lead, g.answer, ...g.blocks.flatMap(blockText), ...g.faq.flatMap((f) => [f.q, f.a])]
+/** Words in the guide's own text: lead, answer, sections and questions. */
+export function guideWords(g: Guide): number {
+  return [g.lead, g.answer, ...g.blocks.flatMap(blockText), ...g.faq.flatMap((f) => [f.q, f.a])]
     .join(' ')
     .split(/\s+/)
     .filter(Boolean).length;
-  return Math.max(1, Math.ceil(words / 220));
+}
+
+/** Minutes to read, at 220 words a minute, rounded up. */
+export function readingMinutes(g: Guide): number {
+  return Math.max(1, Math.ceil(guideWords(g) / 220));
 }
 
 export function blockText(b: Guide['blocks'][number]): string[] {

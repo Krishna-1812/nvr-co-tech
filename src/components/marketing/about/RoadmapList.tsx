@@ -86,10 +86,9 @@ export function RoadmapList({ agents }: { agents: readonly Agent[] }) {
           >
             <span
               aria-hidden
-              className="m-road-num m-mono absolute top-6 left-0 grid size-8 place-items-center rounded-full border t-1 font-semibold tabular-nums"
-            >
-              {String(i + 1).padStart(2, '0')}
-            </span>
+              data-n={String(i + 1).padStart(2, '0')}
+              className="m-n m-road-num m-mono absolute top-6 left-0 grid size-8 place-items-center rounded-full border t-1 font-semibold tabular-nums"
+            />
 
             <Link
               href={`/tools/${agent.slug}`}
@@ -98,11 +97,10 @@ export function RoadmapList({ agents }: { agents: readonly Agent[] }) {
               <span className="min-w-0 flex-1">
                 <span className="m-display block t-5 transition-colors group-hover:text-[var(--m-cyan)]">
                   {agent.name}
-                </span>
+                </span>{' '}
                 <span className="m-dim-2 mt-1 block t-3">{agent.category}</span>
-              </span>
-
-              <span className="m-dim hidden max-w-md flex-1 t-3 lg:block">{agent.summary}</span>
+              </span>{' '}
+              <span className="m-dim hidden max-w-md flex-1 t-3 lg:block">{agent.summary}</span>{' '}
 
               <span className="flex shrink-0 items-center gap-4">
                 <StageBadge stage={agent.stage} />

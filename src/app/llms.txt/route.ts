@@ -70,6 +70,13 @@ export function GET(): Response {
     '',
     `- [Home](${absolute('/')}): what the platform is and who it is for.`,
     `- [Tools](${absolute('/tools')}): every tool, what it does and whether it is open to you.`,
+    ...(publishedGuides().length > 0
+      ? [
+          `- [Guides](${absolute('/guides')}): every guide, with its worked example.`,
+          `- [Glossary](${absolute('/glossary')}): every finance term the guides and tools use, defined in a sentence or two.`,
+          `- [Guides feed](${absolute('/guides/feed.xml')}): the guides as RSS, newest first.`,
+        ]
+      : []),
     `- [About](${absolute('/about')}): who is building this, and the four rules it is built to.`,
     `- [Book a walkthrough](${absolute('/contact')}): half an hour with the people who built it.`,
     `- [Every tool in full](${absolute('/llms-full.txt')}): each tool's page as plain text, with its questions and answers.`,

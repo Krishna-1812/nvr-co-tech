@@ -75,7 +75,9 @@ function KinRow({ words, dir, outline = false }: { words: string[]; dir: number;
     >
       {words.map((w, k) => (
         <span key={k} className="flex items-center gap-[0.4em]">
-          <span className="m-display">{w}</span>
+          {/* Drawn from data-n (.m-n): the band is decoration, and the roster
+              twice over would otherwise be read as the page's text. */}
+          <span className="m-n m-display" data-n={w} />
           <KinShape n={k + (outline ? 1 : 0)} />
         </span>
       ))}

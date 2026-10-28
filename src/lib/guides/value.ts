@@ -89,6 +89,13 @@ export const COMPARABLES: Guide = {
       text: 'Shares in a listed company can be sold in a day; shares in a private company usually cannot. Valuers often reflect that with a discount for lack of marketability, and its size depends on the facts of the case. A valuation for a regulatory purpose may also have to follow a prescribed method, so check what the purpose requires.',
     },
   ],
+  sources: [
+    {
+      name: 'ICAI Valuation Standards 2018, including Valuation Standard 103: Valuation Approaches and Methods',
+      publisher: 'The Institute of Chartered Accountants of India',
+      url: 'https://www.icai.org/post/icai-valuation-standards-2018',
+    },
+  ],
   faq: [
     {
       q: 'Why use the median multiple instead of the average?',
@@ -187,6 +194,18 @@ export const EV_EBITDA: Guide = {
         'One-off income or costs in the year distort EBITDA; use a normalised or average figure.',
         'Banks and insurers are not valued this way, because for them interest is the business itself.',
       ],
+    },
+  ],
+  sources: [
+    {
+      name: 'EV/EBITDA and other value multiples by industry (data set, US companies)',
+      publisher: 'Aswath Damodaran, NYU Stern School of Business',
+      url: 'https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/vebitda.html',
+    },
+    {
+      name: 'ICAI Valuation Standards 2018, including Valuation Standard 103: Valuation Approaches and Methods',
+      publisher: 'The Institute of Chartered Accountants of India',
+      url: 'https://www.icai.org/post/icai-valuation-standards-2018',
     },
   ],
   faq: [

@@ -79,6 +79,14 @@ describe('helpers', () => {
   it('reads days in India, sources in a word, durations plainly', () => {
     expect(istDay('2026-10-17T19:00:00Z')).toBe('2026-10-18');
     expect(sourceOf({ utm_source: null, first_referrer: 'https://www.google.co.in/' })).toBe('Google');
+    // Answer engines, by the page they link from or the tag they add.
+    expect(sourceOf({ utm_source: 'chatgpt.com', first_referrer: null })).toBe('ChatGPT');
+    expect(sourceOf({ utm_source: null, first_referrer: 'https://chatgpt.com/' })).toBe('ChatGPT');
+    expect(sourceOf({ utm_source: null, first_referrer: 'https://www.perplexity.ai/search?q=x' })).toBe('Perplexity');
+    expect(sourceOf({ utm_source: null, first_referrer: 'https://gemini.google.com/app' })).toBe('Gemini');
+    expect(sourceOf({ utm_source: null, first_referrer: 'https://copilot.microsoft.com/' })).toBe('Copilot');
+    expect(sourceOf({ utm_source: null, first_referrer: 'https://claude.ai/chat/1' })).toBe('Claude');
+    expect(sourceOf({ utm_source: null, first_referrer: 'https://duckduckgo.com/' })).toBe('DuckDuckGo');
     expect(sourceOf({ utm_source: 'newsletter', first_referrer: 'https://x.com' })).toBe('newsletter');
     expect(sourceOf({ utm_source: null, first_referrer: 'https://www.thefinanceintelligence.com/tools' }, 'www.thefinanceintelligence.com')).toBe('Direct');
     expect(duration(35)).toBe('35s');
