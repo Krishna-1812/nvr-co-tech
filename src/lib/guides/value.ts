@@ -104,3 +104,103 @@ export const COMPARABLES: Guide = {
     },
   ],
 };
+
+/*
+ * The EV/EBITDA example, checked by guides.test.ts:
+ *
+ *   Market capitalisation ₹1,200 crore + debt ₹300 crore − cash ₹60 crore
+ *                                                  = enterprise value ₹1,440 crore
+ *   Operating profit ₹110 crore + depreciation and amortisation ₹40 crore
+ *                                                  = EBITDA ₹150 crore
+ *   1,440 ÷ 150                                    = 9.6x
+ *   Peer median 11x × ₹150 crore = ₹1,650 crore, less net debt ₹240 crore = ₹1,410 crore
+ */
+export const EV_EBITDA: Guide = {
+  slug: 'ev-ebitda-multiple-explained',
+  short: 'EV/EBITDA explained',
+  figure: { value: '9.6x', label: 'The company’s EV/EBITDA' },
+  motif: 'columns',
+  status: 'draft',
+  title: 'EV/EBITDA: what the multiple means and how to use it',
+  search: {
+    title: 'EV/EBITDA Multiple Explained, with an Example',
+    description:
+      'What EV/EBITDA measures, how to work out enterprise value and EBITDA, why it compares companies with different debt fairly, and a worked example in rupees.',
+  },
+  tool: 'valuation-desk',
+  updated: '2026-10-28',
+  lead:
+    'EV/EBITDA is the multiple most valuers reach for first. It prices the whole business against what the business earns from its operations, before the cost of how it is financed.',
+  answer:
+    'EV/EBITDA divides a company’s enterprise value, which is its market capitalisation plus debt less cash, by its EBITDA, which is earnings before interest, tax, depreciation and amortisation. It says how many times its yearly operating earnings the whole business is priced at. Because it counts debt in the price and leaves interest out of the earnings, it compares companies that borrow differently more fairly than a P/E ratio does.',
+  blocks: [
+    { t: 'h2', text: 'The two halves of the multiple' },
+    {
+      t: 'formula',
+      text: 'EV/EBITDA = (market capitalisation + debt − cash) ÷ (operating profit + depreciation and amortisation)',
+    },
+    {
+      t: 'ul',
+      items: [
+        'Enterprise value is what it would cost to buy the whole business: the shares, plus the debt you would take on, less the cash you would get with it.',
+        'EBITDA is the profit from operations before interest, tax, depreciation and amortisation. It is close to the cash the business makes before it pays for its financing and its tax.',
+      ],
+    },
+    { t: 'h2', text: 'A worked example' },
+    {
+      t: 'table',
+      caption: 'EV/EBITDA of a listed company, ₹ crore',
+      head: ['', '₹ crore'],
+      rows: [
+        ['Market capitalisation', '1,200'],
+        ['Add: debt', '300'],
+        ['Less: cash', '(60)'],
+        ['Enterprise value', '1,440'],
+        ['Operating profit (EBIT)', '110'],
+        ['Add: depreciation and amortisation', '40'],
+        ['EBITDA', '150'],
+      ],
+    },
+    {
+      t: 'p',
+      text: 'Enterprise value of ₹1,440 crore divided by EBITDA of ₹150 crore gives an EV/EBITDA of 9.6x: the market is paying 9.6 times one year of the business’s operating earnings.',
+    },
+    { t: 'h2', text: 'Using it to value another company' },
+    {
+      t: 'p',
+      text: 'The multiple becomes a valuation when you take it from similar companies and apply it to the one you are valuing. If comparable listed companies trade at a median of 11x, a company with the same ₹150 crore of EBITDA is worth an enterprise value of ₹1,650 crore. Take off its net debt of ₹240 crore and the shares are worth ₹1,410 crore.',
+    },
+    { t: 'h2', text: 'Why it is preferred to P/E for comparing companies' },
+    {
+      t: 'ul',
+      items: [
+        'Debt is in the price and interest is out of the earnings, so a company that borrows heavily and one that borrows nothing are compared on the same footing.',
+        'Depreciation is left out, so two companies with different depreciation policies or ages of assets are not set apart by an accounting choice.',
+        'It can be used for a company making a loss after interest, where a P/E ratio means nothing.',
+      ],
+    },
+    { t: 'h2', text: 'Where it misleads' },
+    {
+      t: 'ul',
+      items: [
+        'A business that must keep spending heavily on equipment looks cheaper than it is, because EBITDA ignores that spending.',
+        'One-off income or costs in the year distort EBITDA; use a normalised or average figure.',
+        'Banks and insurers are not valued this way, because for them interest is the business itself.',
+      ],
+    },
+  ],
+  faq: [
+    {
+      q: 'What is a good EV/EBITDA?',
+      a: 'There is no single good number. It depends on the industry, growth and risk, which is why the multiple is compared with similar companies rather than with a fixed figure.',
+    },
+    {
+      q: 'Is a lower EV/EBITDA better?',
+      a: 'A lower multiple means the business is priced at fewer times its operating earnings, which can mean it is cheap, or that the market expects less growth or more risk. Compare it with close peers before reading anything into it.',
+    },
+    {
+      q: 'Why is cash taken off enterprise value?',
+      a: 'Because a buyer of the whole business gets the cash with it, which reduces what the business really costs them.',
+    },
+  ],
+};

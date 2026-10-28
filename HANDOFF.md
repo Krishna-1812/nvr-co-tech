@@ -1348,6 +1348,11 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
     the sample ids are not UUIDs. The actions now take ids through `lib/domain/ids` (`recordId`):
     any non-empty id in preview, a UUID otherwise, and never relaxed in a production build
     (`ids.test.ts`). The hub has no command palette, by design (it lists every tool).
+  - Three draft guides for the owner to read (status `draft`, preview deployments only, never in
+    the sitemap, footer or llms files until published): *Pre-EMI or full EMI* (True Property Cost),
+    *Supplier statement reconciliation* (Ledger Reconciliation) and *EV/EBITDA explained*
+    (Valuation Desk). Each worked example is recalculated in guides.test.ts. The pre-EMI guide's
+    section 24(b) paragraph is the one to read most carefully before publishing.
   - Security headers on every response (next.config `headers()`): nosniff, referrer policy,
     SAMEORIGIN framing, and camera/microphone/geolocation refused. HSTS comes from the host.
   - The home calendar now says the tools take on some of its jobs, not all (the TDS and GST jobs

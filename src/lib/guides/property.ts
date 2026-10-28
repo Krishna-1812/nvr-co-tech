@@ -219,3 +219,97 @@ export const RENTAL_YIELD: Guide = {
     },
   ],
 };
+
+/*
+ * The pre-EMI example, checked by guides.test.ts:
+ *
+ *   ₹18,00,000 disbursed at 8.5% a year
+ *   Pre-EMI (interest only)        18,00,000 × 8.5% ÷ 12        = ₹12,750 a month
+ *   Over 24 months of construction 12,750 × 24                   = ₹3,06,000, loan still ₹18,00,000
+ *   Full EMI over 20 years         standard EMI formula, n = 240 = ₹15,621 a month
+ *   Of the first full EMI          15,621 − 12,750               = ₹2,871 repays the loan
+ *   After 24 full EMIs             principal repaid               ≈ ₹74,815
+ */
+export const PRE_EMI: Guide = {
+  slug: 'pre-emi-vs-full-emi-under-construction',
+  short: 'Pre-EMI or full EMI',
+  figure: { value: '₹12,750', label: 'Pre-EMI a month on ₹18 lakh disbursed' },
+  motif: 'tower',
+  status: 'draft',
+  title: 'Pre-EMI or full EMI on an under-construction flat?',
+  search: {
+    title: 'Pre-EMI vs Full EMI on an Under-Construction Flat',
+    description:
+      'What pre-EMI is, how it differs from paying full EMI while a flat is built, what each costs with a worked example, and how to choose between them.',
+  },
+  tool: 'true-property-cost',
+  updated: '2026-10-28',
+  lead:
+    'While a flat is being built, the bank pays the builder in stages and you pay interest on what has been paid out. Whether you also start repaying the loan then is the choice between pre-EMI and full EMI.',
+  answer:
+    'Pre-EMI is interest only, on the part of the loan the bank has disbursed so far; the loan itself does not go down, and your regular EMIs start after possession or the final disbursement. Full EMI means paying EMIs on the disbursed amount from the start, so part of each payment repays the loan. Pre-EMI costs less each month during construction; full EMI costs less in total.',
+  blocks: [
+    { t: 'h2', text: 'How pre-EMI works' },
+    {
+      t: 'formula',
+      text: 'Pre-EMI a month = amount disbursed × annual interest rate ÷ 12',
+    },
+    {
+      t: 'p',
+      text: 'Each time the builder raises a demand and the bank pays it, the amount disbursed goes up, and so does the pre-EMI. None of it reduces what you owe: at possession the loan is exactly the amount disbursed, and the full term of EMIs is still ahead of you.',
+    },
+    { t: 'h2', text: 'A worked example' },
+    {
+      t: 'p',
+      text: 'Say ₹18,00,000 of the loan has been disbursed at 8.5% a year. The pre-EMI is ₹12,750 a month. If the flat takes another 24 months to finish at that stage, you pay ₹3,06,000 in pre-EMI and still owe the full ₹18,00,000 at possession.',
+    },
+    {
+      t: 'p',
+      text: 'On full EMI over 20 years, the same ₹18,00,000 costs ₹15,621 a month. Of the first payment, ₹12,750 is interest and ₹2,871 repays the loan, and after 24 payments about ₹74,815 of the loan has been repaid. You pay more each month during construction, and less interest over the life of the loan.',
+    },
+    {
+      t: 'table',
+      caption: 'Pre-EMI and full EMI on ₹18,00,000 at 8.5%',
+      head: ['', 'Pre-EMI', 'Full EMI'],
+      rows: [
+        ['Paid each month during construction', '₹12,750', '₹15,621'],
+        ['Of the first payment, repays the loan', 'Nil', '₹2,871'],
+        ['Loan repaid after 24 months', 'Nil', 'About ₹74,815'],
+      ],
+    },
+    { t: 'h2', text: 'Which to choose' },
+    {
+      t: 'ul',
+      items: [
+        'Pre-EMI suits you if you are also paying rent, or the builder’s schedule is long and the lower monthly outgo matters more.',
+        'Full EMI suits you if you can afford it: the loan starts coming down at once and the total interest is lower.',
+        'Ask the bank whether you can switch from pre-EMI to full EMI part way through; many allow it.',
+        'Either way, if possession is delayed, pre-EMI keeps running for every extra month, which is the cost a delayed project adds.',
+      ],
+    },
+    { t: 'h2', text: 'Interest before possession and tax' },
+    {
+      t: 'p',
+      text: 'Interest paid before possession is not lost for tax purposes. Under section 24(b) it is claimed in five equal parts, starting from the year construction is completed, within the limit that applies to the property for that year. Whether it can be claimed at all depends on the tax regime you choose, so check your own position before relying on it.',
+    },
+    { t: 'h2', text: 'What it does to the flat’s true cost' },
+    {
+      t: 'p',
+      text: 'Pre-EMI is a real cost of owning the flat before you can live in it or let it. Added to every instalment and charge, it is part of what the flat cost by possession, which is usually well above the agreement value.',
+    },
+  ],
+  faq: [
+    {
+      q: 'Does pre-EMI reduce my home loan?',
+      a: 'No. Pre-EMI is interest only. The loan at possession is the full amount disbursed, and the regular EMIs start after that.',
+    },
+    {
+      q: 'Is pre-EMI or full EMI cheaper?',
+      a: 'Pre-EMI is cheaper each month during construction. Full EMI is cheaper overall, because the loan starts coming down from the first payment.',
+    },
+    {
+      q: 'Can I claim pre-EMI interest in my tax return?',
+      a: 'Interest for the period before possession is claimed under section 24(b) in five equal parts from the year construction is completed, within the limit for the property, and only under a tax regime that allows it.',
+    },
+  ],
+};
