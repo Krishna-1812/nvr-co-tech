@@ -1320,9 +1320,14 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   plays when scrolled to (count pops, letters rise, rule draws). The voucher status filters have one
   tint that slides between pills (`.w-pill`). CSS block "WORKSPACE" at the end of globals.css; all of
   it is off under reduced motion and hides nothing without scripting.
-- **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
-  prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
-  `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).
+- **Search Console status (28 Oct 2026):** done by the owner. *Domain* property
+  `thefinanceintelligence.com` verified; `/sitemap.xml` submitted (25 URLs); the home page, tools
+  and guides inspected and showing "URL is on Google". **Still to do, owner deferred:** Bing
+  Webmaster Tools (import from Search Console); a Google Business Profile for the firm linking to
+  the site; send the LinkedIn / X / Instagram / YouTube URLs so they go into `PROFILES` in
+  `lib/marketing/content.ts` (the Organization's `sameAs`). In 2–4 weeks, read Search Console →
+  Performance → Queries and strengthen the pages sitting at positions 8–20. The signed-in routes
+  showing as "Blocked by robots.txt" is intended.
 
 ---
 
