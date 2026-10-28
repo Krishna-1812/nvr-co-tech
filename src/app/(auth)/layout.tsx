@@ -7,6 +7,9 @@ import { BRAND } from '@/lib/marketing/content';
 import { createClient } from '@/lib/supabase/server';
 import { DESERT_FONTS } from '@/lib/brand/fonts';
 import { ArchScene as SceneArch } from '@/components/ui/Scene';
+import { HeroStage } from '@/components/marketing/play/HeroStage';
+import { agentBySlug } from '@/lib/marketing/content';
+import { OPEN_TOOLS } from '@/lib/access';
 
 /**
  * Shell for /login and /signup.
@@ -91,44 +94,50 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
  * standing in its arch.
  */
 function Gate() {
+  /*
+   * The gate stands in an arch window that answers the pointer (HeroStage):
+   * the scene drifts against its frame, and two notes float either side of it
+   * naming the tools that need no account, read from the same list the
+   * workspace uses, so the picture never claims more is open than is.
+   */
+  const open = OPEN_TOOLS.map((slug) => agentBySlug(slug)?.name).filter(Boolean) as string[];
   return (
     <div className="hidden w-full max-w-[24rem] flex-col items-center text-center lg:flex">
-      <div
-        aria-hidden
-        className="m-arch m-arch-open w-full p-3.5 shadow-[var(--m-shadow)]"
-        style={{ background: 'var(--m-gold)' }}
-      >
-        <SceneArch motif="gate" className="h-[min(30rem,58vh)] min-h-[20rem]" />
+      <div className="relative w-full animate-[rise_0.9s_cubic-bezier(0.22,1,0.36,1)_backwards]">
+        <HeroStage className="m-arch m-arch-open w-full bg-[var(--m-gold)] p-3.5 shadow-[var(--m-shadow)]">
+          <div aria-hidden className="m-drift-near">
+            <SceneArch motif="gate" className="h-[min(30rem,58vh)] min-h-[20rem]" />
+          </div>
+        </HeroStage>
+        {open.slice(0, 2).map((name, i) => (
+          <span
+            key={name}
+            aria-hidden
+            className={`a-float m-card absolute flex items-center gap-2 rounded-full px-3.5 py-2 t-2 font-semibold whitespace-nowrap text-[var(--m-ink)] shadow-[0_16px_30px_-18px_rgb(60_30_15_/_0.6)] ${
+              i === 0 ? '-left-10 top-[38%]' : '-right-8 top-[62%]'
+            }`}
+            style={{ '--fd': `${i * 1.6}s`, animationDelay: `${0.6 + i * 0.25}s` } as React.CSSProperties}
+          >
+            <span className="size-2 rounded-full bg-[var(--m-emerald)]" />
+            {name} · open
+          </span>
+        ))}
       </div>
-      <p className="m-eyebrow mt-10">Optional, and free</p>
-      <p className="m-display mt-3 max-w-[20rem] text-[1.6rem] leading-[1.2] text-[var(--m-ink)]">
+      <p className="m-eyebrow mt-10 animate-[rise_0.8s_cubic-bezier(0.22,1,0.36,1)_0.35s_backwards]">Optional, and free</p>
+      <p className="m-display mt-3 max-w-[20rem] animate-[rise_0.8s_cubic-bezier(0.22,1,0.36,1)_0.45s_backwards] text-[1.6rem] leading-[1.2] text-[var(--m-ink)]">
         The workspace is open without one. An account keeps your work.
       </p>
     </div>
   );
 }
 
-/**
- * What the sign-in card stands in front of: one tall arch, centred behind it.
- *
- * The card is the doorway's occupant, the same way the voucher is on the home
- * page, so arriving here from the public site is walking through the same
- * door rather than into a different building. The arch is wider than the card
- * by a little over its own margin, so its walls show either side of it and its
- * crown shows above it.
- *
- * No sun in this one. Every other arch on the site has one, but here the crown
- * is where the logo and the screen's title sit, and a disc behind a headline
- * is a disc through it.
- *
- * It replaced a blurred light source, two colour fields at the far corners, a
- * hairline grid and a vignette: five layers whose whole job was to stop a
- * near-black page reading as flat. Sand does not need lighting.
- */
 function Backdrop() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-      <div className="m-arch m-arch-open absolute top-[6vh] left-1/2 h-[120vh] w-[min(40rem,92vw)] -translate-x-1/2 bg-[var(--m-bg-2)] lg:left-[calc(50%+min(19rem,25vw))] lg:w-[31rem]" />
+      <div className="m-arch m-arch-open absolute top-[6vh] left-1/2 h-[120vh] w-[min(40rem,92vw)] -translate-x-1/2 overflow-hidden bg-[var(--m-bg-2)] lg:left-[calc(50%+min(19rem,25vw))] lg:w-[31rem]">
+        {/* A sun climbs slowly behind the card as the page opens. */}
+        <span className="a-sunrise absolute top-[30vh] left-1/2 size-56 -translate-x-1/2 rounded-full bg-[var(--m-sun)] opacity-35" />
+      </div>
     </div>
   );
 }

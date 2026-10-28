@@ -78,11 +78,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="animate-[pop_0.4s_cubic-bezier(0.34,1.56,0.64,1)_backwards]">
         <AuthHeading
-          title={
-            <>
-              That link has <span className="m-serif m-grad-text">expired.</span>
-            </>
-          }
+          title={[[{ text: 'That link has' }, { text: 'expired.', tint: true }]]}
           lead="Password reset links only work once, and only for a little while."
         />
         <AuthCard>
@@ -102,11 +98,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="animate-[pop_0.4s_cubic-bezier(0.34,1.56,0.64,1)_backwards]">
         <AuthHeading
-          title={
-            <>
-              Password <span className="m-serif m-grad-text">updated.</span>
-            </>
-          }
+          title={[[{ text: 'Password' }, { text: 'updated.', tint: true }]]}
         />
         <AuthCard>
           <button
@@ -128,11 +120,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
       <AuthHeading
-        title={
-          <>
-            Set a new <span className="m-serif m-grad-text">password.</span>
-          </>
-        }
+        title={[[{ text: 'Set a new' }, { text: 'password.', tint: true }]]}
       />
 
       <AuthCard>

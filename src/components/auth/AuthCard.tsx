@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { MotionTitle, type TitlePart } from '@/components/marketing/rich/MotionTitle';
 
 /**
  * The single object the sign-in screens are built around.
@@ -26,10 +27,10 @@ export function AuthCard({
 }) {
   return (
     <div
-      className={cn('relative overflow-hidden rounded-[1.75rem] bg-[var(--m-card)]', className)}
+      className={cn('a-unfold relative overflow-hidden rounded-[1.75rem] bg-[var(--m-card)]', className)}
       style={{ boxShadow: '0 40px 70px -40px rgb(80 40 20 / 0.5), 0 2px 6px rgb(80 40 20 / 0.06)' }}
     >
-      <div className="px-6 py-8 sm:px-8">{children}</div>
+      <div className="a-deal px-6 py-8 sm:px-8">{children}</div>
 
       {footer && (
         <div className="border-t border-[var(--m-line)] bg-[var(--m-bg)] px-6 py-4 text-center sm:px-8">
@@ -52,13 +53,14 @@ export function AuthHeading({
   lead,
   className,
 }: {
-  title: React.ReactNode;
+  /** Lines of parts, set letter by letter (MotionTitle). A tinted part is the terracotta phrase. */
+  title: TitlePart[][];
   lead?: React.ReactNode;
   className?: string;
 }) {
   return (
     <div className={cn('mb-8 text-center', className)}>
-      <h1 className="m-display text-[clamp(1.95rem,6vw,2.5rem)]">{title}</h1>
+      <MotionTitle className="text-[clamp(1.95rem,6vw,2.5rem)]" lines={title} delay={120} />
       {lead && <p className="m-dim mx-auto mt-3.5 max-w-[22rem] text-[14.5px] leading-relaxed">{lead}</p>}
     </div>
   );

@@ -64,11 +64,7 @@ function LoginForm() {
   return (
     <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
       <AuthHeading
-        title={
-          <>
-            Welcome <span className="m-serif m-grad-text">back.</span>
-          </>
-        }
+        title={[[{ text: 'Welcome' }, { text: 'back.', tint: true }]]}
         lead="Sign in to keep your work in your account, on any device. The tools open to you are the same either way."
       />
 
