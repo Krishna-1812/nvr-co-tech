@@ -16,8 +16,7 @@ export const ALL_GUIDES: readonly Guide[] = [
   TAX_NOTICES,
   COMPARABLES,
   PAYMENT_VOUCHER,
-  // Drafts written in the site audit (28 Oct), for the owner to read before
-  // they are published: shown on preview deployments only until then.
+  // Written in the site audit and published at the owner's word (28 Oct).
   PRE_EMI,
   SUPPLIER_RECONCILIATION,
   EV_EBITDA,

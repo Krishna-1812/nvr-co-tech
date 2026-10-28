@@ -213,7 +213,7 @@ export const SUPPLIER_RECONCILIATION: Guide = {
   short: 'Supplier reconciliation',
   figure: { value: '₹2,31,600', label: 'The balance both sides agree on' },
   motif: 'scales',
-  status: 'draft',
+  status: 'published',
   title: 'How to reconcile a supplier statement with your ledger',
   search: {
     title: 'Supplier Statement Reconciliation: How to Do It',

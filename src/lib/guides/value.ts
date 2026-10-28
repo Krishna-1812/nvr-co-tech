@@ -120,7 +120,7 @@ export const EV_EBITDA: Guide = {
   short: 'EV/EBITDA explained',
   figure: { value: '9.6x', label: 'The company’s EV/EBITDA' },
   motif: 'columns',
-  status: 'draft',
+  status: 'published',
   title: 'EV/EBITDA: what the multiple means and how to use it',
   search: {
     title: 'EV/EBITDA Multiple Explained, with an Example',
