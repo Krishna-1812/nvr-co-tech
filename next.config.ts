@@ -16,6 +16,27 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
 
   /*
+   * The headers a browser and an audit (Lighthouse, Search Console's security
+   * report) look for, on every response. HSTS is already sent by the host.
+   * Nothing on this site embeds itself in a frame or asks for the camera,
+   * microphone or location, so those are refused outright; the referrer is
+   * trimmed to the origin when a link leaves the site.
+   */
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()' },
+        ],
+      },
+    ];
+  },
+
+  /*
    * Landed Cost was renamed True Property Cost. Its two old addresses forward
    * for good, so a bookmark, a shared link or an indexed page still arrives.
    * These run before the proxy, so the signed-in one then asks for a session

@@ -1344,8 +1344,14 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
     longer fades in behind the curtain (LCP 2.8s → 0.4s). Home copy no longer promises GST/TDS work.
   - Footer wordmark 9.05 → 8.7cqw (last letter was clipped on phones); money fields spellCheck off;
     preview client gained `resetPasswordForEmail`/`updateUser` stubs.
-  - Not bugs, noted: preview-mode Approve says "Invalid request." because sample voucher ids are not
-    UUIDs (real ids are); the hub has no command palette (by design, it lists every tool).
+  - Preview-mode Approve, Send back, Mark paid and role changes failed with "Invalid request." because
+    the sample ids are not UUIDs. The actions now take ids through `lib/domain/ids` (`recordId`):
+    any non-empty id in preview, a UUID otherwise, and never relaxed in a production build
+    (`ids.test.ts`). The hub has no command palette, by design (it lists every tool).
+  - Security headers on every response (next.config `headers()`): nosniff, referrer policy,
+    SAMEORIGIN framing, and camera/microphone/geolocation refused. HSTS comes from the host.
+  - The home calendar now says the tools take on some of its jobs, not all (the TDS and GST jobs
+    stay as a description of the month; no tool is named there, at the owner's earlier request).
 - **Roadmap tools removed (28 Oct 2026, owner's request):** GST Reconciliation, TDS Compliance,
   Invoice Intake and Audit Copilot are gone from `AGENTS` and everything that reads it (hub, /tools,
   /about, sitemap, llms.txt, llms-full.txt, the assistant's knowledge and prompt, icons, motifs).

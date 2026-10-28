@@ -66,7 +66,10 @@ export function WorkCalendar() {
               {/* Read into ink as it scrolls past; see play/ScrollWords. */}
               <ScrollWords
                 className="mt-5 max-w-2xl t-4 text-[var(--m-ink)] sm:t-5"
-                text="None of this is new work. It is the list every finance team gets through between the 1st and the 31st, whatever the size of the business. Pick a job to see how it usually goes, and what it looks like done well."
+                // The last sentence since the GST and TDS tools came off the
+                // roster (28 Oct): the month still has those jobs, and a reader
+                // should not take the list for a list of what we do.
+                text="None of this is new work. It is the list every finance team gets through between the 1st and the 31st, whatever the size of the business. Pick a job to see how it usually goes, and what it looks like done well. Our tools take on some of these jobs, not all of them; each tool’s page says which."
               />
             </div>
             {/*
