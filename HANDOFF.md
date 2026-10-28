@@ -1353,6 +1353,9 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
     *Supplier statement reconciliation* (Ledger Reconciliation) and *EV/EBITDA explained*
     (Valuation Desk). Each worked example is recalculated in guides.test.ts. The pre-EMI guide's
     section 24(b) paragraph is the one to read most carefully before publishing.
+  - `PageHeader` (Settings, Vouchers, Comparables, Tax Notice Watch, histories…) gains the dotted
+    ground the heroes stand on and, where no action sits on the right, a small doorway with the
+    tool's colour and a rising sun (lg and up).
   - Security headers on every response (next.config `headers()`): nosniff, referrer policy,
     SAMEORIGIN framing, and camera/microphone/geolocation refused. HSTS comes from the host.
   - The home calendar now says the tools take on some of its jobs, not all (the TDS and GST jobs

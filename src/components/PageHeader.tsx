@@ -78,6 +78,32 @@ export function PageHeader({
         aria-hidden
         className="pointer-events-none absolute -top-20 -left-16 -z-10 h-56 w-[28rem] max-w-full rounded-full bg-[var(--tone)] opacity-[0.09] blur-3xl"
       />
+      {/* The dotted ground the heroes stand on, fading out from the title, so
+          a screen without a hero is still made of the same material. */}
+      <span
+        aria-hidden
+        className="a-grid pointer-events-none absolute -inset-x-4 -top-6 bottom-0 -z-10 opacity-35 [mask-image:radial-gradient(50%_110%_at_0%_10%,#000,transparent)]"
+      />
+      {/* Where nothing stands on the right, a small doorway does: the tool's
+          colour in the sky and the sun coming up in it, the same picture the
+          tool heroes open on, in miniature. */}
+      {!action && (
+        <span aria-hidden className="pointer-events-none absolute right-1 bottom-5 hidden h-[6.5rem] w-[5.25rem] lg:block">
+          <span
+            className="m-arch m-arch-open absolute inset-0 overflow-hidden"
+            style={{ background: 'color-mix(in oklab, var(--tone) 12%, var(--surface-sunken))' }}
+          >
+            <span
+              className="m-sun absolute top-4 left-1/2 size-12 -translate-x-1/2"
+              style={{ background: 'var(--scene-sun)', ['--sun-from' as string]: '48px' }}
+            />
+            <span
+              className="absolute inset-x-0 bottom-0 h-7 bg-[var(--tone)] opacity-30"
+              style={{ borderRadius: '60% 40% 0 0 / 45% 35% 0 0' }}
+            />
+          </span>
+        </span>
+      )}
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
           {eyebrow && (
