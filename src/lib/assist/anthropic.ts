@@ -31,13 +31,39 @@ export type Turn = { role: 'user' | 'assistant'; content: string };
 
 type ToolUseBlock = { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> };
 type ToolResultBlock = { type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean };
+type TextBlock = { type: 'text'; text: string };
+type ThinkingBlock = { type: 'thinking'; thinking: string; signature: string };
+type RedactedThinkingBlock = { type: 'redacted_thinking'; data: string };
+
+/** What the model wrote in one reply, block for block, as it goes back to it. */
+type AssistantBlock = TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock;
 
 /** A message in the conversation, in the shape the API takes it. */
-type Message = { role: 'user' | 'assistant'; content: string | (ToolUseBlock | ToolResultBlock)[] };
+type Message = { role: 'user' | 'assistant'; content: string | (AssistantBlock | ToolResultBlock)[] };
+
+/**
+ * The instructions, as one string or as blocks.
+ *
+ * Blocks are for a caller whose instructions have a large part that never
+ * changes and a small part that does: the large part carries a cache marker and
+ * is read from the cache on every question after the first, and the part that
+ * changes comes after it, where changing it cannot spoil the cache.
+ */
+export type System = string | { type: 'text'; text: string; cache_control?: { type: 'ephemeral' } }[];
+
+/** What a caller may change about one answer. Everything defaults to the signed-in assistant's. */
+export type RunOptions = {
+  model?: string;
+  maxTokens?: number;
+  /** How hard to think, as the API names it. Omitted when empty. */
+  effort?: string;
+  /** Rounds of calculator calls allowed before the model is told to answer. */
+  toolRounds?: number;
+};
 
 type PendingCall = { id: string; name: string; args: Record<string, unknown> };
 
-type Round = { calls: PendingCall[]; stop: string | null };
+type Round = { calls: PendingCall[]; stop: string | null; content: AssistantBlock[] };
 
 /**
  * One streamed event, in the small part of Anthropic's shape this code reads.
@@ -50,21 +76,30 @@ type Round = { calls: PendingCall[]; stop: string | null };
  */
 type StreamEvent =
   | { type: 'message_start' }
-  | { type: 'content_block_start'; index: number; content_block: { type: string; id?: string; name?: string } }
-  | { type: 'content_block_delta'; index: number; delta: { type: string; text?: string; partial_json?: string } }
+  | {
+      type: 'content_block_start';
+      index: number;
+      content_block: { type: string; id?: string; name?: string; signature?: string; data?: string };
+    }
+  | {
+      type: 'content_block_delta';
+      index: number;
+      delta: { type: string; text?: string; partial_json?: string; thinking?: string; signature?: string };
+    }
   | { type: 'content_block_stop'; index: number }
   | { type: 'message_delta'; delta: { stop_reason?: string } }
   | { type: 'message_stop' }
   | { type: 'ping' }
   | { type: 'error'; error?: { message?: string } };
 
-function requestBody(instructions: string, messages: Message[]) {
+function requestBody(instructions: System, messages: Message[], options: RunOptions) {
   return {
-    model: MODEL,
-    max_tokens: MAX_OUTPUT_TOKENS,
+    model: options.model ?? MODEL,
+    max_tokens: options.maxTokens ?? MAX_OUTPUT_TOKENS,
     system: instructions,
     messages,
     tools: toolSchemas(),
+    ...(options.effort ? { output_config: { effort: options.effort } } : {}),
     stream: true,
   };
 }
@@ -88,9 +123,10 @@ function retryAfterSeconds(response: Response): number | null {
  * arrive in one reply.
  */
 async function* streamOnce(
-  instructions: string,
+  instructions: System,
   messages: Message[],
   signal: AbortSignal,
+  options: RunOptions,
 ): AsyncGenerator<{ text: string }, Round> {
   const key = apiKey();
   if (!key) throw new AssistFailure(NO_KEY);
@@ -106,7 +142,7 @@ async function* streamOnce(
         'x-api-key': key,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify(requestBody(instructions, messages)),
+      body: JSON.stringify(requestBody(instructions, messages, options)),
       signal,
     });
   } catch (error) {
@@ -125,7 +161,17 @@ async function* streamOnce(
   const decoder = new TextDecoder();
   const reader = response.body.getReader();
 
-  const blocks = new Map<number, { type: string; id?: string; name?: string; json: string }>();
+  /*
+   * Every block of the reply is kept, not only the calls: the reply goes back
+   * to the model whole, ahead of the calculators' results. A thinking block
+   * carries a signature the API checks when it comes back, and leaving it out
+   * of a tool round is refused by a model that thought before it asked, so it
+   * is returned exactly as it arrived, empty text and all.
+   */
+  const blocks = new Map<
+    number,
+    { type: string; id?: string; name?: string; json: string; text: string; signature: string; data?: string }
+  >();
   const calls: PendingCall[] = [];
   let stop: string | null = null;
 
@@ -152,6 +198,9 @@ async function* streamOnce(
             id: event.content_block.id,
             name: event.content_block.name,
             json: '',
+            text: '',
+            signature: event.content_block.signature ?? '',
+            data: event.content_block.data,
           });
           continue;
         }
@@ -161,7 +210,16 @@ async function* streamOnce(
           if (!block) continue;
 
           if (event.delta.type === 'text_delta' && typeof event.delta.text === 'string') {
+            block.text += event.delta.text;
             yield { text: event.delta.text };
+          }
+
+          if (event.delta.type === 'thinking_delta' && typeof event.delta.thinking === 'string') {
+            block.text += event.delta.thinking;
+          }
+
+          if (event.delta.type === 'signature_delta' && typeof event.delta.signature === 'string') {
+            block.signature += event.delta.signature;
           }
 
           if (event.delta.type === 'input_json_delta' && typeof event.delta.partial_json === 'string') {
@@ -202,7 +260,25 @@ async function* streamOnce(
     reader.cancel().catch(() => {});
   }
 
-  return { calls, stop };
+  /*
+   * The reply in the order it was written. An empty text block is left out:
+   * the API refuses one on the way back in, and it says nothing anyway.
+   */
+  const content: AssistantBlock[] = [];
+  for (const index of [...blocks.keys()].sort((a, b) => a - b)) {
+    const block = blocks.get(index)!;
+    if (block.type === 'text' && block.text) content.push({ type: 'text', text: block.text });
+    else if (block.type === 'thinking') {
+      content.push({ type: 'thinking', thinking: block.text, signature: block.signature });
+    } else if (block.type === 'redacted_thinking' && block.data) {
+      content.push({ type: 'redacted_thinking', data: block.data });
+    } else if (block.type === 'tool_use') {
+      const call = calls.find((c) => c.id === block.id);
+      if (call) content.push({ type: 'tool_use', id: call.id, name: call.name, input: call.args });
+    }
+  }
+
+  return { calls, stop, content };
 }
 
 /**
@@ -219,10 +295,12 @@ async function* streamOnce(
  * sentence around it.
  */
 export async function* runAssist(
-  instructions: string,
+  instructions: System,
   turns: Turn[],
   outerSignal?: AbortSignal,
+  options: RunOptions = {},
 ): AsyncGenerator<AssistEvent> {
+  const toolRounds = options.toolRounds ?? MAX_TOOL_ROUNDS;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const onAbort = () => controller.abort();
@@ -240,8 +318,8 @@ export async function* runAssist(
      * it has none left. Without it, exhausting the budget ends the answer
      * mid-thought, which is the one outcome worse than a slow one.
      */
-    for (let round = 0; round <= MAX_TOOL_ROUNDS + 1; round++) {
-      const stream = streamOnce(instructions, messages, controller.signal);
+    for (let round = 0; round <= toolRounds + 1; round++) {
+      const stream = streamOnce(instructions, messages, controller.signal, options);
 
       let result = await stream.next();
       while (!result.done) {
@@ -250,22 +328,20 @@ export async function* runAssist(
         result = await stream.next();
       }
 
-      const { calls, stop } = result.value;
+      const { calls, stop, content } = result.value;
       lastStop = stop;
       if (calls.length === 0) break;
 
-      const exhausted = round >= MAX_TOOL_ROUNDS;
+      const exhausted = round >= toolRounds;
 
       /*
-       * Every call the model made goes back in one `assistant` turn, and every
-       * result in one `user` turn after it. Splitting them into a turn each
-       * would interleave calls and results, which the API rejects when the
-       * model asked for several at once.
+       * The whole reply goes back in one `assistant` turn (its thinking, any
+       * words before the calls, and every call), and every result in one
+       * `user` turn after it. Splitting them into a turn each would interleave
+       * calls and results, which the API rejects when the model asked for
+       * several at once.
        */
-      messages.push({
-        role: 'assistant',
-        content: calls.map((call) => ({ type: 'tool_use', id: call.id, name: call.name, input: call.args })),
-      });
+      messages.push({ role: 'assistant', content });
 
       const results: ToolResultBlock[] = [];
 

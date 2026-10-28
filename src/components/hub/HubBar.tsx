@@ -4,7 +4,7 @@ import type { Fiscal } from '@/lib/fiscal';
 import { BRAND } from '@/lib/marketing/content';
 import { LogoMark } from '../marketing/Logo';
 import { UserMenu } from '../UserMenu';
-import { AssistPanel } from '../assist/AssistPanel';
+import { AskButton } from '../chat/AskButton';
 import { SignInButton } from '../access/SignInButton';
 
 /**
@@ -87,7 +87,7 @@ export function HubBar({
               decides what the answer is built from. */}
           {user ? (
             <>
-              <AssistPanel agent={null} agentName={null} />
+              <AskButton />
               <UserMenu user={user} analyticsAdmin={analyticsAdmin} admin={admin} />
             </>
           ) : (

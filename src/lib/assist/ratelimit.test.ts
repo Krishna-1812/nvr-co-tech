@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { RATE_LIMIT, RATE_WINDOW_MS } from './config';
-import { checkRate, resetRates } from './ratelimit';
+import { CHAT_HOURLY_BUDGET, CHAT_RATE_LIMIT, RATE_LIMIT, RATE_WINDOW_MS } from './config';
+import { checkRate, checkVisitorRate, resetRates } from './ratelimit';
 
 /**
  * The rate limit.
@@ -89,5 +89,32 @@ describe('not leaking memory', () => {
     // only happen if its entry was dropped or its window expired. Either is the
     // behaviour wanted here.
     expect(checkRate('user-1', NOW + RATE_WINDOW_MS * 2).allowed).toBe(true);
+  });
+});
+
+describe('counting a visitor’s questions', () => {
+  it('stops one address after its allowance', () => {
+    for (let i = 0; i < CHAT_RATE_LIMIT; i++) expect(checkVisitorRate('203.0.113.7', NOW).allowed).toBe(true);
+    expect(checkVisitorRate('203.0.113.7', NOW).allowed).toBe(false);
+  });
+
+  it('keeps visitors and accounts in separate counts', () => {
+    for (let i = 0; i < CHAT_RATE_LIMIT; i++) checkVisitorRate('same', NOW);
+    expect(checkRate('same', NOW).allowed).toBe(true);
+  });
+
+  it('stops everybody together at the hourly budget', () => {
+    for (let i = 0; i < CHAT_HOURLY_BUDGET; i++) {
+      expect(checkVisitorRate(`198.51.100.${i % 250}-${i}`, NOW).allowed).toBe(true);
+    }
+    expect(checkVisitorRate('a-new-address', NOW).allowed).toBe(false);
+  });
+
+  it('does not spend the shared budget on somebody already turned away', () => {
+    for (let i = 0; i < CHAT_RATE_LIMIT; i++) checkVisitorRate('busy', NOW);
+    for (let i = 0; i < 50; i++) checkVisitorRate('busy', NOW);
+    for (let i = 0; i < CHAT_HOURLY_BUDGET - CHAT_RATE_LIMIT; i++) {
+      expect(checkVisitorRate(`v-${i}`, NOW).allowed).toBe(true);
+    }
   });
 });

@@ -10,6 +10,7 @@ import { ArchScene as SceneArch } from '@/components/ui/Scene';
 import { HeroStage } from '@/components/marketing/play/HeroStage';
 import { agentBySlug } from '@/lib/marketing/content';
 import { OPEN_TOOLS } from '@/lib/access';
+import { ChatDock } from '@/components/chat/ChatDock';
 
 /**
  * Shell for /login and /signup.
@@ -74,6 +75,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           </div>
         </div>
       </div>
+
+      {/* The public chat, for a question asked before signing in. */}
+      <ChatDock mode="visitor" skin="desert" placement="site" open={OPEN_TOOLS} />
     </div>
   );
 }

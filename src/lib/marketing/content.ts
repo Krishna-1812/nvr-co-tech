@@ -749,3 +749,15 @@ export const CONTACT = {
   email: 'team@thefinanceintelligence.com',
   security: 'team@thefinanceintelligence.com',
 } as const;
+
+/**
+ * What happens after a walkthrough is booked on /contact, as four stops on a
+ * rail. Here rather than in the page so the assistant tells it the same way.
+ */
+export const WALKTHROUGH_STEPS = [
+  { t: 'A person writes back', d: 'Within one working day. Not a ticket number.' },
+  { t: 'Half an hour, together', d: 'On a shared screen, using the tool that is actually running.' },
+  { t: 'Bring the hard case', d: 'The one that broke your last system. We answer it, or say we cannot.' },
+  { t: 'Nothing to pay', d: 'No charge for a trial, and nothing to install before the call.' },
+];
+

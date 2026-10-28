@@ -726,6 +726,57 @@ never a name) to platform admins; everybody else gets `OpenHub`, which reads `SO
 
 ## 11. Ask — the assistant
 
+### 11a. The chat in the corner, on every page (28 Oct 2026)
+
+The owner asked for a chatbot on the public pages and the signed-in pages that answers questions
+about the website, using the Anthropic key on the server. It is one component,
+`src/components/chat/ChatDock.tsx`, mounted in `PublicShell` (every public page and the 404), the
+auth layout (sign in / sign up / reset), `AppShell` (every tool) and the hub layout. A round button
+bottom-right holds the logo's owl (`ChatOwl`, drawn from `lib/brand/mark`; its pupils follow the
+pointer); it opens a panel with a desert header (the sun behind the owl, two dunes), suggested
+questions, streamed answers with links, copy, retry, stop, new chat. Phones get a full-screen
+sheet. ⌘J / Ctrl+J toggles it; anything can open it with `openChat(question?)` (the top bars'
+**Ask** button does — the old right-hand sheet, `AssistPanel`, is gone). Hidden on `/ask`. Styles and
+motion are the "Chat" block at the end of `globals.css` (own `--c-*` tokens: light desert on public
+pages, follows the app theme inside; all motion off under reduced motion).
+
+Two modes, decided by the layout:
+
+- **Visitor** (not signed in, public pages, guests in the workspace) → `POST /api/chat`. It is sent
+  **the whole website** every time (`lib/assist/site.ts`: the assistant's 36 documents plus the
+  FAQ, About, contact/walkthrough steps, accounts, a page map, every *published* guide, and the
+  privacy policy and terms in their own words — all read from the constants the pages render, so
+  they cannot drift; ~116k chars ≈ 30k tokens) as one system block with `cache_control`, then a
+  small second block with the page they are on and the date (`lib/assist/visitor.ts`;
+  `pageLabel` only names known paths, never echoes the browser's string). Calculators allowed, 2
+  rounds. Nothing is stored: the conversation lives in the tab's `sessionStorage`. Guards, in
+  order: same-origin only (`lib/assist/request.ts`), question ≤ 1,000 chars, 12 questions per
+  address per 10 min and 400 per instance per hour (`ratelimit.ts`, in-memory, a cost control),
+  answers ≤ 4,000 tokens at effort `low`. All limits are `CHAT_*` in `lib/assist/config.ts`.
+- **Member** (signed in) → the existing `/api/assist` (tools, the tool on screen pinned, saved to
+  history, "full screen" opens `/ask?c=<id>`). Its retrieval now runs over the same site corpus
+  (`SITE_INDEX`), so it can find guides and policies too.
+
+Model: `ANTHROPIC_MODEL` for both (production: `claude-sonnet-5-5`); `ANTHROPIC_CHAT_MODEL` and
+`ANTHROPIC_CHAT_EFFORT` can split the public chat off (effort `''` sends none, for a model that
+takes none). Also fixed in `anthropic.ts`: a tool round now sends the model's whole reply back,
+**thinking blocks with their signatures included**, which a model that thought before calling a
+calculator requires.
+
+The privacy policy gained an "The assistant" clause (questions go to Anthropic; a visitor's are not
+kept; a member's are saved and deletable) and its date moved to 28 Oct. The policy and terms text
+moved to `lib/marketing/legal.ts` and the walkthrough steps to `content.ts` (`WALKTHROUGH_STEPS`)
+so the chat quotes the same words. The assistant's overview doc now names open and locked tools
+from `lib/access` (it said "the other four" after Tax Notice Watch made five) and no longer names
+the data's location, which the site stopped stating.
+
+Verified locally against a scripted stand-in for the API (streaming, links, ⌘J, Esc, reload
+keeps the chat, phone sheet, light/dark, axe clean). Tests: `app/api/chat/route.test.ts`,
+`site.test.ts`, `visitor.test.ts`, `visitor-suggestions.test.ts`, `request.test.ts`,
+`turns.test.ts`, and new cases in `anthropic.test.ts` / `ratelimit.test.ts`.
+
+### 11b. The assistant itself
+
 A chat panel on every signed-in screen plus `/ask` and `/ask/history`. `src/lib/assist`, provider
 code isolated in **one file** (`src/lib/assist/anthropic.ts`; it moved OpenAI → Gemini → Anthropic
 without anything else changing). Signed-in only. Lexical retrieval over a ~30-document corpus
@@ -1199,7 +1250,8 @@ keys into chat.
 | `NEXT_PUBLIC_CANONICAL_URL` | canonical tags, `og:url`, sitemap, robots, structured data, `llms.txt` | `https://www.thefinanceintelligence.com`, the host that answers (the apex 308s to it) |
 | `GOOGLE_SITE_VERIFICATION` | Search Console HTML-tag verification (the `content` value only) | no tag; verify by DNS instead |
 | `BING_SITE_VERIFICATION` | Bing Webmaster Tools (`msvalidate.01`) | no tag |
-| `ANTHROPIC_API_KEY` (+ `ANTHROPIC_MODEL`, `ANTHROPIC_BASE_URL`) | Ask, company briefs, Contact Finder chat/verification | those features say they're off |
+| `ANTHROPIC_API_KEY` (+ `ANTHROPIC_MODEL`, `ANTHROPIC_BASE_URL`) | Ask, the public chat, company briefs, Contact Finder chat/verification | those features say they're off |
+| `ANTHROPIC_CHAT_MODEL`, `ANTHROPIC_CHAT_EFFORT` | the public chat only (§11a) | `ANTHROPIC_MODEL`, effort `low` |
 | `FINDER_VERIFY_MODEL` | model override for Contact Finder's verification pass | default model |
 | `APOLLO_API_KEY` | Contact Finder search/enrich; analytics "Enrich further" | those features inert |
 | `IPINFO_TOKEN` | wider visitor identification | falls back to reverse DNS/RDAP (currently unset) |

@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
 import { StepRail } from '@/components/marketing/rich/StepRail';
 import { pageMeta } from '@/lib/marketing/seo';
-import { CONTACT } from '@/lib/marketing/content';
+import { CONTACT, WALKTHROUGH_STEPS } from '@/lib/marketing/content';
 import { ArchScene, Container, Eyebrow, Rise, Section, SectionHeading } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
@@ -34,14 +34,6 @@ const TRAIL = [
  * to the address directly is still offered beside the button, because a person
  * whose submission fails should not be left with nowhere to go.
  */
-
-/** What happens after the form is sent, as four stops on a rail. */
-const NEXT_STEPS = [
-  { t: 'A person writes back', d: 'Within one working day. Not a ticket number.' },
-  { t: 'Half an hour, together', d: 'On a shared screen, using the tool that is actually running.' },
-  { t: 'Bring the hard case', d: 'The one that broke your last system. We answer it, or say we cannot.' },
-  { t: 'Nothing to pay', d: 'No charge for a trial, and nothing to install before the call.' },
-];
 
 export default function ContactPage() {
   return (
@@ -143,7 +135,7 @@ export default function ContactPage() {
         <Container wide>
           <SectionHeading eyebrow="What happens next" title="Four stops, then you decide." center />
           <div className="mt-14">
-            <StepRail stops={NEXT_STEPS} />
+            <StepRail stops={WALKTHROUGH_STEPS} />
           </div>
         </Container>
       </Section>

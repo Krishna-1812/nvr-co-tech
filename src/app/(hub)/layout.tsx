@@ -8,6 +8,8 @@ import { HubBar } from '@/components/hub/HubBar';
 import { Toasts } from '@/components/app/Toasts';
 import { RouteStage } from '@/components/app/RouteStage';
 import { Play } from '@/components/marketing/play/Play';
+import { ChatDock } from '@/components/chat/ChatDock';
+import { OPEN_TOOLS } from '@/lib/access';
 
 /**
  * The shell for the workspace itself, as opposed to the shell for a tool inside it.
@@ -62,6 +64,14 @@ export default async function HubLayout({ children }: { children: React.ReactNod
       {/* The hub is the one signed-in group that does not sit inside AppShell,
           so it mounts the toast host itself. */}
       <Toasts />
+      {/* The chat in the corner, as on every other screen (see AppShell). */}
+      <ChatDock
+        mode={user ? 'member' : 'visitor'}
+        skin="app"
+        placement="site"
+        firstName={user?.full_name?.trim().split(/\s+/)[0] || null}
+        open={OPEN_TOOLS}
+      />
       <Play decode="[data-decode]" throwOn="[data-celebrate]" spotlight=".surface-lit" />
     </div>
   );

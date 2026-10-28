@@ -65,14 +65,7 @@ export async function* readEvents(body: ReadableStream<Uint8Array>): AsyncGenera
   }
 }
 
-/**
- * Ask a question and get the events back.
- *
- * A failure before the stream starts is a JSON body with a status, and it is
- * turned into an error event here so that the caller has exactly one shape to
- * handle. A component that had to deal with both a rejected promise and an
- * error event would deal with one of them badly.
- */
+/** Ask the signed-in assistant a question and get the events back. */
 export async function* ask(
   turns: { role: 'user' | 'assistant'; content: string }[],
   agent: string | null,
@@ -80,13 +73,37 @@ export async function* ask(
   /** The saved conversation to append to, or null to begin one. */
   conversationId?: string | null,
 ): AsyncGenerator<AssistEvent> {
+  yield* post('/api/assist', { turns, agent, conversationId: conversationId ?? null }, signal);
+}
+
+/**
+ * Ask the chat anybody can use (app/api/chat), from the page the reader is on.
+ * Nothing is saved, so there is no conversation id to carry.
+ */
+export async function* askSite(
+  turns: { role: 'user' | 'assistant'; content: string }[],
+  page: string,
+  signal?: AbortSignal,
+): AsyncGenerator<AssistEvent> {
+  yield* post('/api/chat', { turns, page }, signal);
+}
+
+/**
+ * One question, posted, with the events back.
+ *
+ * A failure before the stream starts is a JSON body with a status, and it is
+ * turned into an error event here so that the caller has exactly one shape to
+ * handle. A component that had to deal with both a rejected promise and an
+ * error event would deal with one of them badly.
+ */
+async function* post(url: string, body: unknown, signal?: AbortSignal): AsyncGenerator<AssistEvent> {
   let response: Response;
 
   try {
-    response = await fetch('/api/assist', {
+    response = await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ turns, agent, conversationId: conversationId ?? null }),
+      body: JSON.stringify(body),
       signal,
     });
   } catch (error) {
@@ -101,12 +118,12 @@ export async function* ask(
   }
 
   if (!response.ok || !response.body) {
-    const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
+    const failure = (await response.json().catch(() => null)) as { error?: unknown } | null;
     yield {
       type: 'error',
       message:
-        typeof body?.error === 'string'
-          ? body.error
+        typeof failure?.error === 'string'
+          ? failure.error
           : 'The assistant is not available just now. Please try again.',
       note: 'error',
     };
