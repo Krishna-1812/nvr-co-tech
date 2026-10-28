@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
 import { pageMeta } from '@/lib/marketing/seo';
 import { AGENTS, BRAND, ROSTER, STAGE_LABEL } from '@/lib/marketing/content';
 import {
@@ -79,12 +80,10 @@ export default function AboutPage() {
             <Eyebrow>About</Eyebrow>
           </Rise>
 
-          <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-4xl t-h1">
-              Accountants{' '}
-              <span className="m-serif m-grad-text pr-1">building their own tools.</span>
-            </h1>
-          </Rise>
+          <MotionTitle
+            className="mt-5 max-w-4xl t-h1"
+            lines={[[{ text: 'Accountants' }, { text: 'building their own tools.', tint: true }]]}
+          />
 
           <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">

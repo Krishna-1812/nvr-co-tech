@@ -5,13 +5,13 @@ import { clamp, subscribe } from '../scroll';
 import { cn } from '@/lib/utils';
 
 /**
- * The contents list, made to follow the reader.
+ * A contents list that follows the reader (the guides, the legal pages).
  *
  * A gold marker slides to the section being read, and a ring at the top fills
  * as the article goes by, with the minutes left beside it. Plain anchor links
  * underneath, so without scripting it is an ordinary table of contents.
  */
-export function GuideContents({
+export function ContentsRail({
   sections,
   minutes,
   articleId,

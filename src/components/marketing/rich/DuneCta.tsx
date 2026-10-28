@@ -3,10 +3,10 @@ import { Reveal } from '../Reveal';
 import { Spotlight } from '../motion';
 
 /**
- * A dark band with the sun climbing out of its dune as it arrives, leading from
- * a guide (or the index) to the tool that does the work.
+ * A dark band with the sun climbing out of its dune as it arrives: the closing
+ * call to action on the guides, the tools and the pages about the firm.
  */
-export function GuideCta({
+export function DuneCta({
   eyebrow,
   title,
   body,

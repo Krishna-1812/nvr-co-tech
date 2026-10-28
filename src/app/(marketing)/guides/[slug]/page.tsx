@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Clock, Plus } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
 import { ArrowLink, Container, Eyebrow, LineRise, Rise, Section } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { JsonLd } from '@/components/marketing/JsonLd';
@@ -12,8 +12,9 @@ import { Letters } from '@/components/marketing/play/Letters';
 import { Odometer } from '@/components/marketing/play/Odometer';
 import { ScrollWords } from '@/components/marketing/play/ScrollWords';
 import { Springy } from '@/components/marketing/play/Springy';
-import { GuideContents } from '@/components/marketing/guides/GuideContents';
-import { GuideCta } from '@/components/marketing/guides/GuideCta';
+import { ContentsRail } from '@/components/marketing/rich/ContentsRail';
+import { DuneCta } from '@/components/marketing/rich/DuneCta';
+import { FaqAccordion } from '@/components/marketing/rich/FaqAccordion';
 import { toCard } from '@/components/marketing/guides/summary';
 import { articleLd, faqLd, pageMeta } from '@/lib/marketing/seo';
 import { guideBySlug, sectionId, visibleGuides, type Block } from '@/lib/guides';
@@ -156,7 +157,7 @@ export default async function GuidePage({ params }: Params) {
         <Container wide>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-16 xl:grid-cols-[17rem_minmax(0,46rem)]">
             <div className="lg:sticky lg:top-28 lg:self-start">
-              <GuideContents sections={sections} minutes={card.minutes} articleId="article" />
+              <ContentsRail sections={sections} minutes={card.minutes} articleId="article" />
             </div>
 
             <article id="article" className="min-w-0">
@@ -192,20 +193,8 @@ export default async function GuidePage({ params }: Params) {
               <Eyebrow>Questions</Eyebrow>
               <h2 className="m-display s-settle mt-4 t-h2">What people ask next.</h2>
             </Reveal>
-            <div className="mt-10 space-y-3">
-              {guide.faq.map((f, i) => (
-                <Reveal key={f.q} delay={Math.min(i, 4) * 60}>
-                  <details className="g-faq m-card group rounded-2xl" open={i === 0}>
-                    <summary className="flex items-center justify-between gap-6 px-6 py-5">
-                      <span className="t-4 font-semibold text-[var(--m-ink)]">{f.q}</span>
-                      <span aria-hidden className="g-plus grid size-9 shrink-0 place-items-center rounded-full border border-[var(--m-line-2)] text-[var(--m-ink)]">
-                        <Plus className="size-4" />
-                      </span>
-                    </summary>
-                    <p className="m-dim px-6 pb-6 t-3">{f.a}</p>
-                  </details>
-                </Reveal>
-              ))}
+            <div className="mt-10">
+              <FaqAccordion faq={guide.faq} />
             </div>
           </div>
         </Container>
@@ -213,7 +202,7 @@ export default async function GuidePage({ params }: Params) {
 
       <Section>
         <Container wide>
-          <GuideCta
+          <DuneCta
             eyebrow={`Do it with ${card.tool}`}
             title="Let the tool do the working."
             body={`${card.tool} does what this guide describes, on your own figures, with the same rules.`}

@@ -2,21 +2,24 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { pageMeta } from '@/lib/marketing/seo';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { AGENTS, OPEN_NAMES, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
+import { AGENTS, LIVE_AGENTS, OPEN_NAMES, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
   ACCENT,
-  ArchScene,
   Container,
   CTA,
-  Eyebrow,
   Rise,
   Section,
+  SectionHeading,
   StageBadge,
   motifFor,
 } from '@/components/marketing/bits';
+import { KineticBand } from '@/components/marketing/play/KineticBand';
+import { DoorwayDeck } from '@/components/marketing/rich/DoorwayDeck';
+import { DuneCta } from '@/components/marketing/rich/DuneCta';
+import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
+import { StageBrowser } from '@/components/marketing/rich/StageBrowser';
 import { ArchScene as SceneArch } from '@/components/ui/Scene';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
-import { Reveal } from '@/components/marketing/Reveal';
 import { Spotlight, Tilt } from '@/components/marketing/motion';
 import { Roost } from '@/components/brand/Owl';
 
@@ -56,115 +59,117 @@ export default function AgentsPage() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <ArchScene motif="doorways" />
-
         <Roost seed="agents-roost" band="top-right" />
-
-        <Container wide className="relative pt-16 pb-14 sm:pt-24 sm:pb-20 lg:pr-[25rem] xl:pr-[28rem]">
+        <Container wide className="relative pt-12 pb-16 sm:pt-16 sm:pb-24">
           <Rise>
-            <Breadcrumbs trail={TRAIL} className="mb-7" />
+            <Breadcrumbs trail={TRAIL} className="mb-8" />
           </Rise>
-
-          <Rise>
-            <Eyebrow>All tools</Eyebrow>
-          </Rise>
-
-          <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-4xl t-h1">
-              Every tool,{' '}
-              <span className="m-serif m-grad-text pr-1">in one place.</span>
-            </h1>
-          </Rise>
-
-          {/*
-            Generic on purpose (17 Oct, at the owner's request): it used to list
-            the jobs one by one, which dated the page every time a tool was
-            added and read as a feature list before the reader had seen a tool.
-            The cards below say what each one does.
-          */}
-          <Rise delay={120}>
-            <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
-              Each one takes a routine part of the work off your desk, does the repetitive part, and
-              leaves the decision with you. Pick one to see what it does.
-            </p>
-          </Rise>
+          <div className="grid items-center gap-14 lg:grid-cols-[1.08fr_1fr] lg:gap-16">
+            <div>
+              <Rise>
+                <span className="flex items-center gap-3.5">
+                  <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
+                  <span className="m-mono t-1 font-medium t-caps text-[var(--m-gold)] uppercase">All tools</span>
+                </span>
+              </Rise>
+              <MotionTitle
+                className="mt-7 t-hero"
+                lines={[[{ text: 'Every tool,' }], [{ text: 'in one place.', mark: true }]]}
+              />
+              {/*
+                Generic on purpose (17 Oct, at the owner's request): it used to
+                list the jobs one by one, which dated the page every time a tool
+                was added. The cards below say what each one does.
+              */}
+              <Rise delay={320}>
+                <p className="m-dim mt-7 max-w-xl t-4 sm:t-5">
+                  Each one takes a routine part of the work off your desk, does the repetitive part, and
+                  leaves the decision with you. Pick one to see what it does.
+                </p>
+              </Rise>
+              <Rise delay={400}>
+                <div className="mt-9 flex flex-wrap items-center gap-3">
+                  <CTA href="#roster">See the tools</CTA>
+                  <CTA href="/contact" variant="ghost" data={{ 'data-demo': '', 'data-interest': 'Tool index hero' }}>
+                    Book a walkthrough
+                  </CTA>
+                </div>
+              </Rise>
+            </div>
+            <Rise delay={200} className="lg:pl-4">
+              <DoorwayDeck
+                doors={LIVE_AGENTS.slice(0, 3).map((a) => ({ name: a.name, color: ACCENT[a.accent], motif: motifFor(a.slug) }))}
+              />
+            </Rise>
+          </div>
         </Container>
       </section>
+
+      {/* The live tools by name and the kinds of work, sliding apart with the scroll. */}
+      <KineticBand />
 
       {/* A "shipping order" rail of all nine, in build order, sat here until
           17 Oct; the owner asked for it to go. The grouped grid below already
           says which are live and which are on the roadmap. */}
 
-      {GROUPS.map(({ stage, lead }) => {
-        const agents = AGENTS.filter((a) => a.stage === stage);
-        if (agents.length === 0) return null;
-
-        return (
-          <Section key={stage}>
-            <Container wide>
-              <Reveal>
-                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-                  <h2 className="m-display t-h4">
-                    {STAGE_LABEL[stage]}
-                  </h2>
-                  <StageBadge stage={stage} />
-                </div>
-                <p className="m-dim mt-3 max-w-xl t-3">{lead}</p>
-              </Reveal>
-
-              <ul className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {agents.map((agent, i) => (
-                  <AgentCard key={agent.slug} agent={agent} delay={i * 70} />
-                ))}
-              </ul>
-            </Container>
-          </Section>
-        );
-      })}
+      <Section id="roster" divider={false} className="scroll-mt-16">
+        <Container wide>
+          <SectionHeading
+            eyebrow="The roster"
+            title="Live, and on the way."
+            lead="Filter by whether you can use it today. Every card says which it is."
+          />
+          <div className="mt-10">
+            <StageBrowser
+              label="Filter tools by stage"
+              groups={GROUPS.map((g) => STAGE_LABEL[g.stage])}
+              notes={Object.fromEntries(GROUPS.map((g) => [STAGE_LABEL[g.stage], g.lead]))}
+              items={GROUPS.flatMap(({ stage }) =>
+                AGENTS.filter((a) => a.stage === stage).map((agent) => ({
+                  key: agent.slug,
+                  group: STAGE_LABEL[stage],
+                  node: <AgentCard agent={agent} />,
+                })),
+              )}
+            />
+          </div>
+        </Container>
+      </Section>
 
       <Section>
         <Container wide>
-          <Reveal>
-            <div className="m-card relative overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-20">
-
-              <div className="relative mx-auto max-w-2xl">
-                <Eyebrow>Where to start</Eyebrow>
-                <h2 className="m-display mt-4 t-h2">
-                  One of these is already costing you a day a month.
-                </h2>
-                <p className="m-dim mt-5 t-4">
-                  Tell us which job is the worst one and we will show you the tool that covers it. If
-                  it is not built yet, we will say so, and tell you when it should be.
-                </p>
-                <div className="mt-9 flex flex-wrap justify-center gap-3">
-                  <CTA href="/contact" data={{ 'data-demo': '', 'data-interest': 'Tool index' }}>
-                    Book a walkthrough
-                  </CTA>
-                  <CTA href="/about" variant="ghost">
-                    How we build it
-                  </CTA>
-                </div>
-              </div>
-            </div>
-          </Reveal>
+          <DuneCta
+            eyebrow="Where to start"
+            title="One of these is already costing you a day a month."
+            body="Tell us which job is the worst one and we will show you the tool that covers it. If it is not built yet, we will say so, and tell you when it should be."
+            href="/contact"
+            label="Book a walkthrough"
+          >
+            <Link
+              href="/about"
+              className="rounded-full border border-[rgb(251_246_238_/_0.35)] px-5 py-3 t-3 font-semibold transition hover:bg-[rgb(251_246_238_/_0.12)]"
+            >
+              How we build it
+            </Link>
+          </DuneCta>
         </Container>
       </Section>
     </>
   );
 }
 
-function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
+function AgentCard({ agent }: { agent: Agent }) {
   const accent = ACCENT[agent.accent];
 
   return (
-    <Reveal as="li" delay={delay} className="h-full">
+    <div className="h-full">
       {/* Tilt leans the whole card a few degrees towards the pointer, so the
           grid reads as objects on a table rather than boxes on a page.
           Spotlight owns the card surface so the pointer-tracked light can sit
           above the background and below the link's content. */}
       <Tilt className="h-full" max={4}>
         <Spotlight color={accent} className="m-card m-card-lift h-full overflow-hidden rounded-2xl">
-          <Link href={`/tools/${agent.slug}`} className="group relative flex h-full flex-col p-6">
+          <Link href={`/tools/${agent.slug}`} className="g-card group relative flex h-full flex-col p-6">
             {/*
               A live tool gets a window onto the scene its own screen opens on,
               so the roster shows each working tool as the thing you will meet
@@ -234,9 +239,10 @@ function AgentCard({ agent, delay }: { agent: Agent; delay: number }) {
               <ArrowRight className="m-dim-2 mt-0.5 size-3 shrink-0 max-sm:rotate-90" aria-hidden />
               <span className="m-mono m-dim min-w-0 flex-1 sm:text-right">{agent.outputs}</span>
             </div>
+            <span aria-hidden className="g-foot-line absolute inset-x-0 bottom-0 h-1" style={{ background: accent }} />
           </Link>
         </Spotlight>
       </Tilt>
-    </Reveal>
+    </div>
   );
 }

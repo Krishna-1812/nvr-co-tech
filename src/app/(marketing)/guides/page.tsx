@@ -8,9 +8,9 @@ import { Letters } from '@/components/marketing/play/Letters';
 import { Springy } from '@/components/marketing/play/Springy';
 import { FigureBand } from '@/components/marketing/guides/FigureBand';
 import { GuideBrowser } from '@/components/marketing/guides/GuideBrowser';
-import { GuideCta } from '@/components/marketing/guides/GuideCta';
+import { DuneCta } from '@/components/marketing/rich/DuneCta';
 import { GuideDeck } from '@/components/marketing/guides/GuideDeck';
-import { GuideRail } from '@/components/marketing/guides/GuideRail';
+import { StepRail } from '@/components/marketing/rich/StepRail';
 import { toCard } from '@/components/marketing/guides/summary';
 import { Roost } from '@/components/brand/Owl';
 import { pageMeta } from '@/lib/marketing/seo';
@@ -27,6 +27,14 @@ const meta = pageMeta({
 export function generateMetadata(): Metadata {
   return publishedGuides().length > 0 ? meta : { ...meta, robots: { index: false, follow: false } };
 }
+
+/** How every guide is laid out. */
+const STOPS = [
+  { t: 'The short answer', d: 'What you came for, in under sixty words, first.' },
+  { t: 'The working', d: 'Each step in order, with the rule behind it.' },
+  { t: 'A worked example', d: 'Real figures in rupees, checked on every build.' },
+  { t: 'The tool', d: 'The software that does the same work for you.' },
+];
 
 const TRAIL = [
   { label: 'Home', href: '/' },
@@ -115,14 +123,14 @@ export default function GuidesPage() {
             center
           />
           <div className="mt-14">
-            <GuideRail />
+            <StepRail stops={STOPS} />
           </div>
         </Container>
       </Section>
 
       <Section>
         <Container wide>
-          <GuideCta
+          <DuneCta
             eyebrow="Rather not do it by hand?"
             title="Let the tool do the working."
             body="Every guide leads to a tool that does the same job: the same rules, the same arithmetic, on your own figures."
@@ -138,7 +146,7 @@ export default function GuidesPage() {
                 {c.tool}
               </Link>
             ))}
-          </GuideCta>
+          </DuneCta>
         </Container>
       </Section>
     </>
