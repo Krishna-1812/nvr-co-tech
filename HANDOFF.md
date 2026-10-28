@@ -1301,8 +1301,14 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   reading ring), `StepRail` (guides index, contact), `DuneCta` (guides, tools index),
   `DoorwayDeck` (tools index hero: three live tools' doorways dealt in and fanned),
   `StageBrowser` (tools index: stage filter with sliding pill; server-rendered cards passed in as
-  nodes). The tools index also carries the home page's KineticBand. Auth pages (client forms in
-  `components/auth`) and the signed-in workspace were not part of this pass.
+  nodes). The tools index also carries the home page's KineticBand. The signed-in workspace was
+  not part of this pass.
+- **Auth pages** (28 Oct 2026): `AuthHeading` takes `TitlePart[][]` and sets it with MotionTitle;
+  the card unfolds (`.a-unfold`), its fields deal in (`.a-deal`), the submit button carries a
+  light sweep (`.a-sheen`), errors shake (`.a-shake`), the gate sits in a HeroStage with two
+  floating notes naming the open tools (from `OPEN_TOOLS`), and a sun climbs behind the card
+  (`.a-sunrise`). CSS block "Sign in and sign up" at the end of globals.css. To see them in preview
+  mode, set the cookie `tfi-preview-as=guest` (the proxy otherwise sends preview to /hub).
 - **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
   prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
   `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).

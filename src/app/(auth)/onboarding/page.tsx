@@ -36,7 +36,7 @@ export default async function OnboardingPage({
     return (
       <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
         <AuthHeading
-          title="You're already in an organisation."
+          title={[[{ text: "You're already in an organisation." }]]}
           lead="An account can only belong to one at a time, so this invite cannot be accepted here."
         />
         <AuthCard
@@ -67,7 +67,7 @@ export default async function OnboardingPage({
       return (
         <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
           <AuthHeading
-            title="That invite link is not valid."
+            title={[[{ text: "That invite link is not valid." }]]}
             lead="It may already have been used, or it has expired."
           />
           <AuthCard>
@@ -105,7 +105,7 @@ export default async function OnboardingPage({
       return (
         <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
           <AuthHeading
-            title="This invite is for a different address."
+            title={[[{ text: "This invite is for a different address." }]]}
             lead={`It was sent to ${preview.email}, and you are signed in as ${user.authEmail}.`}
           />
           <AuthCard>
@@ -122,11 +122,7 @@ export default async function OnboardingPage({
     return (
       <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
         <AuthHeading
-          title={
-            <>
-              Join <span className="m-serif m-grad-text">{preview.organization_name}.</span>
-            </>
-          }
+          title={[[{ text: 'Join' }, { text: `${preview.organization_name}.`, tint: true }]]}
           lead={`You have been invited as ${ROLE_META[preview.role].label.toLowerCase()}.`}
         />
         <AcceptInviteForm token={token} expiresAt={preview.expires_at} />
@@ -137,11 +133,7 @@ export default async function OnboardingPage({
   return (
     <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
       <AuthHeading
-        title={
-          <>
-            Name your <span className="m-serif m-grad-text">organisation.</span>
-          </>
-        }
+        title={[[{ text: 'Name your' }, { text: 'organisation.', tint: true }]]}
         lead="This is the workspace your team will share. You can invite people once it exists."
       />
       <CreateOrganizationForm />

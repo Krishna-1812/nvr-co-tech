@@ -19,7 +19,7 @@ export function AuthError({ message }: { message: string }) {
   return (
     <p
       role="alert"
-      className="flex animate-[pop_0.35s_cubic-bezier(0.34,1.56,0.64,1)_backwards] items-start gap-2.5 rounded-xl border px-3.5 py-3 text-[13px] leading-relaxed"
+      className="a-shake flex items-start gap-2.5 rounded-xl border px-3.5 py-3 text-[13px] leading-relaxed"
       style={{
         borderColor: 'color-mix(in oklab, var(--m-rose) 34%, transparent)',
         background: 'color-mix(in oklab, var(--m-rose) 12%, transparent)',
@@ -57,7 +57,7 @@ export function AuthSubmit({
     <button
       type="submit"
       disabled={loading || disabled}
-      className="group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)] transition-colors duration-200 hover:bg-[var(--m-gold)] focus-visible:ring-2 focus-visible:ring-[var(--m-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--m-bg)] focus-visible:outline-none active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
+      className="a-sheen group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-[var(--m-ink)] text-[13.5px] font-semibold text-[var(--m-on-grad)] shadow-[0_14px_28px_-16px_rgb(43_33_27_/_0.7)] transition-colors duration-200 hover:bg-[var(--m-gold)] focus-visible:ring-2 focus-visible:ring-[var(--m-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--m-bg)] focus-visible:outline-none active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
     >
       {loading ? (
         <>

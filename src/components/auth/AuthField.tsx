@@ -64,14 +64,14 @@ export function AuthInput({ icon: Icon, className, ...props }: InputProps) {
           'hover:border-[var(--m-line-2)]',
           // The ring replaces the border rather than sitting outside it, so the
           // control does not grow by 2px the moment it is focused.
-          'focus:border-transparent focus:bg-[var(--m-card)] focus:ring-2 focus:ring-[var(--m-gold)] focus:outline-none',
+          'focus:border-transparent focus:bg-[var(--m-card)] focus:ring-2 focus:ring-[var(--m-gold)] focus:shadow-[0_0_0_6px_color-mix(in_oklab,var(--m-gold)_14%,transparent)] focus:outline-none',
           Icon ? 'pr-4 pl-11' : 'px-4',
           className,
         )}
       />
       {Icon && (
         <Icon
-          className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[var(--m-dim-2)] transition-colors peer-focus:text-[var(--m-indigo)]"
+          className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[var(--m-dim-2)] transition-[color,scale] duration-300 peer-focus:scale-115 peer-focus:text-[var(--m-indigo)]"
           aria-hidden
         />
       )}
@@ -103,14 +103,14 @@ export function AuthPassword({
           'peer h-12 w-full rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] text-base lg:text-[15px] text-[var(--m-ink)] transition',
           'placeholder:text-[var(--m-dim-2)]',
           'hover:border-[var(--m-line-2)]',
-          'focus:border-transparent focus:bg-[var(--m-card)] focus:ring-2 focus:ring-[var(--m-gold)] focus:outline-none',
+          'focus:border-transparent focus:bg-[var(--m-card)] focus:ring-2 focus:ring-[var(--m-gold)] focus:shadow-[0_0_0_6px_color-mix(in_oklab,var(--m-gold)_14%,transparent)] focus:outline-none',
           Icon ? 'pr-12 pl-11' : 'pr-12 pl-4',
           className,
         )}
       />
       {Icon && (
         <Icon
-          className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[var(--m-dim-2)] transition-colors peer-focus:text-[var(--m-indigo)]"
+          className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[var(--m-dim-2)] transition-[color,scale] duration-300 peer-focus:scale-115 peer-focus:text-[var(--m-indigo)]"
           aria-hidden
         />
       )}

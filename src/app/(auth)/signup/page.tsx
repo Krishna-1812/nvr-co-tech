@@ -68,11 +68,7 @@ function SignupForm() {
     return (
       <div className="animate-[pop_0.4s_cubic-bezier(0.34,1.56,0.64,1)_backwards]">
         <AuthHeading
-          title={
-            <>
-              Check your <span className="m-serif m-grad-text">inbox.</span>
-            </>
-          }
+          title={[[{ text: 'Check your' }, { text: 'inbox.', tint: true }]]}
         />
         <AuthCard
           footer={
@@ -108,11 +104,7 @@ function SignupForm() {
   return (
     <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
       <AuthHeading
-        title={
-          <>
-            Create your <span className="m-serif m-grad-text">account.</span>
-          </>
-        }
+        title={[[{ text: 'Create your' }, { text: 'account.', tint: true }]]}
         lead="It takes about a minute. Work you have already started in the open tools on this device is carried into it."
       />
 

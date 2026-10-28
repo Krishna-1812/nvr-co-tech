@@ -50,11 +50,7 @@ export default function ForgotPasswordPage() {
     return (
       <div className="animate-[pop_0.4s_cubic-bezier(0.34,1.56,0.64,1)_backwards]">
         <AuthHeading
-          title={
-            <>
-              Check your <span className="m-serif m-grad-text">inbox.</span>
-            </>
-          }
+          title={[[{ text: 'Check your' }, { text: 'inbox.', tint: true }]]}
         />
         <AuthCard
           footer={
@@ -85,11 +81,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="animate-[rise_0.65s_cubic-bezier(0.22,1,0.36,1)_backwards]">
       <AuthHeading
-        title={
-          <>
-            Reset your <span className="m-serif m-grad-text">password.</span>
-          </>
-        }
+        title={[[{ text: 'Reset your' }, { text: 'password.', tint: true }]]}
         lead="Tell us the email on the account, and we will send a link to set a new one."
       />
 
