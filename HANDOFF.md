@@ -1350,11 +1350,10 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
     the sample ids are not UUIDs. The actions now take ids through `lib/domain/ids` (`recordId`):
     any non-empty id in preview, a UUID otherwise, and never relaxed in a production build
     (`ids.test.ts`). The hub has no command palette, by design (it lists every tool).
-  - Three draft guides for the owner to read (status `draft`, preview deployments only, never in
-    the sitemap, footer or llms files until published): *Pre-EMI or full EMI* (True Property Cost),
-    *Supplier statement reconciliation* (Ledger Reconciliation) and *EV/EBITDA explained*
-    (Valuation Desk). Each worked example is recalculated in guides.test.ts. The pre-EMI guide's
-    section 24(b) paragraph is the one to read most carefully before publishing.
+  - Three more guides, published at the owner's word on 28 Oct: *Pre-EMI or full EMI* (True
+    Property Cost), *Supplier statement reconciliation* (Ledger Reconciliation) and *EV/EBITDA
+    explained* (Valuation Desk). Each worked example is recalculated in guides.test.ts. The
+    pre-EMI guide's section 24(b) paragraph is the one to recheck if the tax rules change.
   - `PageHeader` (Settings, Vouchers, Comparables, Tax Notice Watch, histories…) gains the dotted
     ground the heroes stand on and, where no action sits on the right, a small doorway with the
     tool's colour and a rising sun (lg and up).

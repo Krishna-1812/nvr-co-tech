@@ -235,7 +235,7 @@ export const PRE_EMI: Guide = {
   short: 'Pre-EMI or full EMI',
   figure: { value: '₹12,750', label: 'Pre-EMI a month on ₹18 lakh disbursed' },
   motif: 'tower',
-  status: 'draft',
+  status: 'published',
   title: 'Pre-EMI or full EMI on an under-construction flat?',
   search: {
     title: 'Pre-EMI vs Full EMI on an Under-Construction Flat',
