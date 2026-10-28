@@ -40,10 +40,10 @@ export function FigureBand({ cards }: { cards: GuideCard[] }) {
       <div ref={top} className="g-band-row items-baseline">
         {twice.map((c, i) => (
           <span key={i} className="flex items-baseline gap-4 whitespace-nowrap">
-            <span className="m-display t-h2 tabular-nums" style={{ color: i % 2 ? 'var(--m-sun)' : 'var(--m-on-grad)' }}>
-              {c.figure.value}
-            </span>
-            <span className="m-mono t-2 t-caps uppercase opacity-70">{c.figure.label}</span>
+            {/* Drawn from data-n: the band is decoration, and its figures and
+                titles, twice over, would otherwise be read as the page's text. */}
+            <span data-n={c.figure.value} className="m-n m-display t-h2 tabular-nums" style={{ color: i % 2 ? 'var(--m-sun)' : 'var(--m-on-grad)' }} />
+            <span data-n={c.figure.label} className="m-n m-mono t-2 t-caps uppercase opacity-70" />
             <span className="m-arch inline-block h-7 w-6 bg-[var(--m-gold)]" />
           </span>
         ))}
@@ -52,7 +52,7 @@ export function FigureBand({ cards }: { cards: GuideCard[] }) {
         {twice.map((c, i) => (
           <span key={i} className="flex items-center gap-4 whitespace-nowrap t-4 opacity-80">
             <span className="size-2 rounded-full bg-[var(--m-sun)]" />
-            {c.title}
+            <span data-n={c.title} className="m-n" />
           </span>
         ))}
       </div>

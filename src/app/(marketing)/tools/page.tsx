@@ -254,9 +254,15 @@ function AgentCard({ agent }: { agent: Agent }) {
                 DATES AND…"); they wrap now, stacked on a phone and side by side
                 from sm up. */}
             <div className="relative mt-auto flex flex-col gap-1.5 border-t border-[var(--m-line)] pt-4 t-1 t-caps leading-snug uppercase sm:flex-row sm:items-start sm:gap-2">
-              <span className="m-mono m-dim-2 min-w-0 flex-1">{agent.inputs}</span>
+              <span className="m-mono m-dim-2 min-w-0 flex-1">
+                <span className="sr-only">Takes in: </span>
+                {agent.inputs}
+              </span>{' '}
               <ArrowRight className="m-dim-2 mt-0.5 size-3 shrink-0 max-sm:rotate-90" aria-hidden />
-              <span className="m-mono m-dim min-w-0 flex-1 sm:text-right">{agent.outputs}</span>
+              <span className="m-mono m-dim min-w-0 flex-1 sm:text-right">
+                <span className="sr-only">Gives back: </span>
+                {agent.outputs}
+              </span>
             </div>
             <span aria-hidden className="g-foot-line absolute inset-x-0 bottom-0 h-1" style={{ background: accent }} />
           </Link>

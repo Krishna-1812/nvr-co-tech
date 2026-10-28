@@ -18,7 +18,8 @@ import { JsonLd } from '@/components/marketing/JsonLd';
 import { publishedGuides, visibleGuides } from '@/lib/guides';
 
 const meta = pageMeta({
-  title: 'Guides',
+  // What the index is, in words somebody searches; "Guides" alone matched nothing.
+  title: 'Finance guides for India',
   description:
     'Plain answers with worked examples: the true cost of a flat, rental yield, bank reconciliation, net worth, income tax notices and valuing a company.',
   path: '/guides',
@@ -122,6 +123,15 @@ export default function GuidesPage() {
           <div className="mt-10">
             <GuideBrowser cards={cards} />
           </div>
+          {publishedGuides().length > 0 && (
+            <p className="m-dim mt-10 t-3">
+              Every term these guides use is defined in a sentence or two in the{' '}
+              <Link href="/glossary" className="font-semibold text-[var(--m-ink)] underline decoration-[var(--m-line-2)] underline-offset-4 hover:decoration-current">
+                glossary
+              </Link>
+              .
+            </p>
+          )}
         </Container>
       </Section>
 
@@ -154,7 +164,7 @@ export default function GuidesPage() {
                 href={`/tools/${c.toolSlug}`}
                 className="rounded-full border border-[rgb(251_246_238_/_0.35)] px-4 py-2 t-3 transition hover:bg-[rgb(251_246_238_/_0.12)]"
               >
-                {c.tool}
+                {c.tool}{' '}
               </Link>
             ))}
           </DuneCta>

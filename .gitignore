@@ -53,3 +53,4 @@ sample-export.xlsx
 # and never belong in the repo.
 brag-output*/
 brag-reels*/
+.indexnow-state.json

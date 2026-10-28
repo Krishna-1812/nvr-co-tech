@@ -32,6 +32,17 @@ export function absolute(path: string): string {
 }
 
 /**
+ * A page's share card at an address that stays put.
+ *
+ * The opengraph-image files are served at a path Next derives with a hash in it
+ * (/guides/x/opengraph-image-1kutxw/card?…), which structured data cannot name
+ * from here and which moves when the file does. These routes serve the same
+ * card at a plain address, for the `image` an Article and an app are described
+ * with.
+ */
+export const cardPath = (kind: 'guides' | 'tools', slug: string) => `/${kind}/${slug}/card.png`;
+
+/**
  * Everything a public page says about itself in its head, from one call.
  *
  * Each page used to set a title, a description and a canonical, and inherit the
@@ -67,7 +78,12 @@ export function pageMeta({
   return {
     title: bare ? { absolute: title } : title,
     description,
-    alternates: { canonical: path },
+    // The guides feed, announced from every page so a reader or crawler that
+    // lands anywhere can find it (app/(marketing)/guides/feed.xml).
+    alternates: {
+      canonical: path,
+      types: { 'application/rss+xml': [{ url: '/guides/feed.xml', title: `${BRAND.name}: guides` }] },
+    },
     openGraph: {
       type: 'website',
       siteName: BRAND.name,
@@ -135,6 +151,15 @@ function organization() {
     email: CONTACT.email,
     address: ADDRESS,
     areaServed: { '@type': 'Country', name: 'India' },
+    // The one way in that the site itself publishes: the address on every page.
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: CONTACT.email,
+      url: absolute('/contact'),
+      areaServed: 'IN',
+      availableLanguage: ['en'],
+    },
     ...(PROFILES.length > 0 ? { sameAs: [...PROFILES] } : {}),
     logo: {
       '@type': 'ImageObject',
@@ -226,8 +251,11 @@ export function serviceLd(agent: Agent) {
       '@type': 'WebApplication',
       '@id': absolute(`/tools/${agent.slug}#app`),
       name: agent.name,
+      alternateName: agent.search.title,
       description: agent.search.description,
+      ...(agent.definition ? { abstract: agent.definition } : {}),
       url: absolute(`/tools/${agent.slug}`),
+      image: absolute(cardPath('tools', agent.slug)),
       applicationCategory: 'FinanceApplication',
       operatingSystem: 'Any (runs in a web browser)',
       browserRequirements: 'Requires JavaScript',
@@ -321,6 +349,11 @@ export function articleLd(guide: {
   updated: string;
   published?: string;
   tool: string;
+  answer: string;
+  sources?: readonly { name: string; url: string; publisher: string }[];
+  /** The topic it is filed under, as the guides index shows it. */
+  section?: string;
+  wordCount?: number;
 }) {
   const url = absolute(`/guides/${guide.slug}`);
   return graph([
@@ -329,8 +362,25 @@ export function articleLd(guide: {
       '@id': `${url}#article`,
       headline: guide.title,
       description: guide.search.description,
+      // The short answer the page opens with, word for word.
+      abstract: guide.answer,
       url,
       mainEntityOfPage: url,
+      isPartOf: { '@id': SITE_ID },
+      image: absolute(cardPath('guides', guide.slug)),
+      ...(guide.section ? { articleSection: guide.section } : {}),
+      ...(guide.wordCount ? { wordCount: guide.wordCount } : {}),
+      // What the guide relies on, as listed under "Sources" on the page.
+      ...(guide.sources?.length
+        ? {
+            citation: guide.sources.map((s) => ({
+              '@type': 'CreativeWork',
+              name: s.name,
+              url: s.url,
+              publisher: { '@type': 'Organization', name: s.publisher },
+            })),
+          }
+        : {}),
       // Each guide was written and published on the date it carries; a later
       // edit moves `updated` and leaves the first publication where it was.
       datePublished: guide.published ?? guide.updated,
@@ -355,6 +405,80 @@ export function articleLd(guide: {
 /** The home page's claim about who is behind all of this. */
 export function siteLd() {
   return graph([organization(), localBusiness(), website()]);
+}
+
+/**
+ * A page that is about the firm (AboutPage) or is the way to reach it
+ * (ContactPage), tied to the Organization the home page describes. The firm
+ * itself is described again here, not only pointed at, because a reader of
+ * this page alone should not have to fetch the home page to learn who it is.
+ */
+export function profilePageLd({
+  type,
+  path,
+  name,
+  description,
+}: {
+  type: 'AboutPage' | 'ContactPage';
+  path: string;
+  name: string;
+  description: string;
+}) {
+  const url = absolute(path);
+  return graph([
+    {
+      '@type': type,
+      '@id': `${url}#page`,
+      url,
+      name,
+      description,
+      inLanguage: 'en-IN',
+      isPartOf: { '@id': SITE_ID },
+      about: { '@id': ORG_ID },
+      mainEntity: { '@id': ORG_ID },
+    },
+    organization(),
+  ]);
+}
+
+/**
+ * The glossary as a set of defined terms, each with the anchor it is defined
+ * at and, where there is one, the guide that works it through. The words are
+ * the page's own (lib/guides/glossary).
+ */
+export function glossaryLd({
+  path,
+  name,
+  description,
+  terms,
+}: {
+  path: string;
+  name: string;
+  description: string;
+  terms: readonly { id: string; term: string; definition: string; href?: string }[];
+}) {
+  const url = absolute(path);
+  const set = `${url}#terms`;
+  return graph([
+    {
+      '@type': 'DefinedTermSet',
+      '@id': set,
+      url,
+      name,
+      description,
+      inLanguage: 'en-IN',
+      publisher: { '@id': ORG_ID },
+      hasDefinedTerm: terms.map((t) => ({
+        '@type': 'DefinedTerm',
+        '@id': `${url}#${t.id}`,
+        name: t.term,
+        description: t.definition,
+        url: `${url}#${t.id}`,
+        inDefinedTermSet: { '@id': set },
+        ...(t.href ? { subjectOf: { '@type': 'Article', url: absolute(t.href) } } : {}),
+      })),
+    },
+  ]);
 }
 
 export type Crumb = { label: string; href: string };

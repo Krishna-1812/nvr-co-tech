@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { AGENTS, BRAND, CANONICAL_URL, HOME_FAQ, HOME_SEARCH, LIVE_AGENTS, STAGE_LABEL } from './content';
+import { AGENTS, BRAND, CANONICAL_URL, HOME_FAQ, HOME_SEARCH, LIVE_AGENTS, STAGE_LABEL, toolFaq } from './content';
 import { OPEN_TOOLS } from '@/lib/access';
 import { ALL_GUIDES } from '@/lib/guides';
-import { TITLE_FITS, absolute, breadcrumbLd, collectionLd, ldJson, pageMeta, serviceLd, siteLd } from './seo';
+import {
+  TITLE_FITS,
+  absolute,
+  articleLd,
+  breadcrumbLd,
+  cardPath,
+  collectionLd,
+  ldJson,
+  pageMeta,
+  profilePageLd,
+  serviceLd,
+  siteLd,
+} from './seo';
 
 /**
  * Structured data is a set of claims made to a machine that will never read the
@@ -237,7 +249,13 @@ describe('pageMeta', () => {
     // link to a tool previewed as the home page.
     expect(meta.openGraph).toMatchObject({ url: '/tools', title: `Tools · ${BRAND.name}`, description: 'Every tool.' });
     expect(meta.twitter).toMatchObject({ title: `Tools · ${BRAND.name}`, description: 'Every tool.' });
-    expect(meta.alternates).toEqual({ canonical: '/tools' });
+    expect(meta.alternates).toMatchObject({ canonical: '/tools' });
+  });
+
+  it('announces the guides feed from every page', () => {
+    expect(meta.alternates?.types).toEqual({
+      'application/rss+xml': [{ url: '/guides/feed.xml', title: `${BRAND.name}: guides` }],
+    });
   });
 
   it('does not add the brand twice to a title that already has it', () => {
@@ -326,5 +344,70 @@ describe('free, said of the open tools only', () => {
       if (OPEN_TOOLS.includes(a.slug)) expect(app.isAccessibleForFree, a.slug).toBe(true);
       else expect(app, a.slug).not.toHaveProperty('isAccessibleForFree');
     }
+  });
+});
+
+describe('what each live tool is, in one answer', () => {
+  it('has a definition that names it and leads its questions', () => {
+    for (const a of LIVE_AGENTS) {
+      expect(a.definition, a.slug).toMatch(new RegExp(`^${a.name} is `));
+      expect(a.definition, a.slug).not.toMatch(/\u2014/);
+      const faq = toolFaq(a);
+      expect(faq[0], a.slug).toEqual({ q: `What is ${a.name}?`, a: a.definition });
+      expect(faq.slice(1), a.slug).toEqual(a.faq ?? []);
+    }
+  });
+
+  it('calls a tool account-free only when anybody can open it', () => {
+    for (const a of LIVE_AGENTS) {
+      if (/needs no account/.test(a.definition ?? '')) expect(OPEN_TOOLS, a.slug).toContain(a.slug);
+    }
+  });
+
+  it('gives the app node its card and its search name', () => {
+    for (const a of LIVE_AGENTS) {
+      const app = byType(serviceLd(a), 'WebApplication');
+      expect(app.image, a.slug).toBe(absolute(cardPath('tools', a.slug)));
+      expect(app.alternateName, a.slug).toBe(a.search.title);
+    }
+  });
+});
+
+describe('articleLd', () => {
+  const guide = ALL_GUIDES.find((g) => (g.sources ?? []).length > 0)!;
+  const article = byType(articleLd({ ...guide, section: 'Books', wordCount: 900 }), 'Article');
+
+  it('carries the short answer, a stable image and where it sits', () => {
+    expect(article.abstract).toBe(guide.answer);
+    expect(article.image).toBe(absolute(`/guides/${guide.slug}/card.png`));
+    expect(article.isPartOf).toEqual({ '@id': `${CANONICAL_URL}/#website` });
+    expect(article.articleSection).toBe('Books');
+    expect(article.wordCount).toBe(900);
+  });
+
+  it('cites exactly the sources the page lists', () => {
+    const cited = (article.citation as { url: string; name: string }[]).map((c) => [c.name, c.url]);
+    expect(cited).toEqual(guide.sources!.map((s) => [s.name, s.url]));
+  });
+
+  it('cites nothing for a guide that lists nothing', () => {
+    const bare = ALL_GUIDES.find((g) => !g.sources?.length)!;
+    expect(byType(articleLd(bare), 'Article')).not.toHaveProperty('citation');
+  });
+});
+
+describe('profilePageLd', () => {
+  const ld = profilePageLd({ type: 'AboutPage', path: '/about', name: 'About', description: 'Who we are.' });
+
+  it('is about the firm the home page describes, and describes it again', () => {
+    const page = byType(ld, 'AboutPage');
+    expect(page.url).toBe(absolute('/about'));
+    expect(page.mainEntity).toEqual({ '@id': `${CANONICAL_URL}/#organization` });
+    expect(byType(ld, 'Organization')['@id']).toBe(`${CANONICAL_URL}/#organization`);
+  });
+
+  it('gives the firm a contact point that is the address the site publishes', () => {
+    const org = byType(ld, 'Organization');
+    expect(org.contactPoint).toMatchObject({ '@type': 'ContactPoint', url: absolute('/contact') });
   });
 });

@@ -46,6 +46,15 @@ export type Guide = {
   blocks: Block[];
   faq: { q: string; a: string }[];
   /**
+   * Where the rules the guide relies on are written down: the Act, the
+   * regulator, the portal's own manual, the professional body's material. Shown
+   * under "Sources" and named in the Article data as its citations. Only what
+   * the guide actually rests on; a guide that is arithmetic throughout has
+   * none, rather than a list of links for the look of it. Every address was
+   * opened and read before it went in (guides.test.ts checks the form).
+   */
+  sources?: { name: string; publisher: string; url: string }[];
+  /**
    * The one figure the guide is remembered by, rolled in on its card and in its
    * hero. Quoted from the guide itself (guides.test.ts checks it appears in the
    * text), so the headline number can never say something the page does not.

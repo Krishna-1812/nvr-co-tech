@@ -97,6 +97,8 @@ export function SiteHeader() {
                       active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
                     )}
                   />
+                  {/* Ignored by the flex row; keeps the bare HTML from reading
+                      "ToolsGuidesAbout" to a crawler that does not lay it out. */}{' '}
                 </Link>
               );
             })}
@@ -111,7 +113,7 @@ export function SiteHeader() {
               className="m-dim hidden px-1 py-2 t-3 font-medium whitespace-nowrap transition-colors hover:text-[var(--m-ink)] sm:block"
             >
               Open the workspace
-            </Link>
+            </Link>{' '}
             <Link
               href="/contact"
               data-demo=""
@@ -154,7 +156,7 @@ export function SiteHeader() {
                   className="flex h-11 flex-1 items-center justify-center rounded-full border-[1.5px] border-[var(--m-ink)] t-3 font-semibold"
                 >
                   Open the workspace
-                </Link>
+                </Link>{' '}
                 <Link
                   href="/contact"
                   data-demo=""

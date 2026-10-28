@@ -1,6 +1,7 @@
 import { AGENTS, BRAND, CONTACT, HOME_FAQ, STAGE_LABEL, WALKTHROUGH_STEPS } from '@/lib/marketing/content';
 import { PRIVACY_CLAUSES, PRIVACY_UPDATED, TERMS_CLAUSES, TERMS_UPDATED, type Clause } from '@/lib/marketing/legal';
 import { blockText, publishedGuides, type Guide } from '@/lib/guides';
+import { glossary } from '@/lib/guides/glossary';
 import { OPEN_TOOLS } from '@/lib/access';
 import { DOCS, type Doc } from './knowledge';
 import { createIndex } from './retrieve';
@@ -148,6 +149,8 @@ function publicDocs(): Doc[] {
           ? [
               '- /guides lists the guides. Each answers one question in full, with a worked example:',
               ...guides.map((g) => `  - ${g.title}: /guides/${g.slug}`),
+              '- /glossary defines every finance term the guides and tools use, each linked to its guide.',
+              '- /guides/feed.xml is the guides as an RSS feed.',
             ]
           : []),
         '- /about is who built it and why.',
@@ -178,6 +181,21 @@ function publicDocs(): Doc[] {
         ]
       : []),
     ...guides.map(guideDoc),
+    ...(guides.length
+      ? [
+          {
+            id: 'site-glossary',
+            title: 'Glossary',
+            agent: null,
+            kind: 'finance' as const,
+            href: '/glossary',
+            keywords: ['glossary', 'meaning', 'definition', 'define', 'what is', 'term', 'means'],
+            body: glossary()
+              .map((t) => `- ${t.term}: ${t.definition}${t.href ? ` (${t.href})` : ''}`)
+              .join('\n'),
+          },
+        ]
+      : []),
     {
       id: 'site-privacy-policy',
       title: 'Privacy policy',

@@ -167,6 +167,18 @@ export const TAX_NOTICES: Guide = {
       text: 'A firm that looks after forty clients would have to log in to forty accounts to be sure nothing new has arrived, and do it often enough that no response date slips past. The usual answers are a weekly round of logins by a junior, which is slow and easy to skip, or relying on clients to forward the department’s emails, which often land in spam. Whatever the method, it should give one list of every open notice and its due date, and it should say clearly which accounts could not be checked, so that a missed login is never mistaken for no notices.',
     },
   ],
+  sources: [
+    {
+      name: 'e-Proceedings user manual',
+      publisher: 'Income Tax Department, e-Filing portal',
+      url: 'https://www.incometax.gov.in/iec/foportal/help/respond-to-e-proceedings',
+    },
+    {
+      name: 'Authenticate a notice or order issued by the Income Tax Department: user manual',
+      publisher: 'Income Tax Department, e-Filing portal',
+      url: 'https://www.incometax.gov.in/iec/foportal/help/all-topics/e-filing-services/authenticate-noticeorder-issued-itd-UM',
+    },
+  ],
   faq: [
     {
       q: 'Where can I see income tax notices online?',

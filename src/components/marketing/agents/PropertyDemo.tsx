@@ -140,7 +140,7 @@ export function PropertyDemo() {
             >
               Work out your own property
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-            </Link>
+            </Link>{' '}
             <span className="m-dim-2 t-2">Pre-tax, simple interest, no appreciation. Stamp duty and GST are in the payments.</span>
           </div>
         </div>
@@ -172,7 +172,7 @@ function Slider({
   return (
     <label className="block">
       <span className="flex items-baseline justify-between gap-3">
-        <span className="t-3 font-semibold text-[var(--m-ink)]">{label}</span>
+        <span className="t-3 font-semibold text-[var(--m-ink)]">{label}</span>{' '}
         <span className="m-mono t-2 tabular-nums text-[var(--m-gold)]">{display}</span>
       </span>
       <input
@@ -184,7 +184,7 @@ function Slider({
         onChange={(e) => onChange(Number(e.target.value))}
         className="m-range mt-3 w-full"
         style={{ '--fill': `${fill}%` } as React.CSSProperties}
-      />
+      />{' '}
       <span className="m-dim-2 mt-2 block t-2">{note}</span>
     </label>
   );

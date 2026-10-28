@@ -85,6 +85,12 @@ export type Agent = {
   category: string;
   /** One line for cards. */
   summary: string;
+  /**
+   * What it is, in the "X is a … that …" form somebody asking an assistant
+   * "what is X?" wants back, and that an answer engine can quote without the
+   * page around it. Live tools only, and only what `does` already says.
+   */
+  definition?: string;
   /** The pitch, for the agent's own page. */
   pitch: string;
   /** What it actually does, in specifics. */
@@ -133,6 +139,8 @@ const BASE_AGENTS: Agent[] = [
     stage: 'live',
     category: 'Payments & approvals',
     accent: 'indigo',
+    definition:
+      'Voucher Desk is web software for raising payment vouchers and, if you switch it on, approving them. Nobody can approve a voucher they raised. It checks the GST split, locks the figures on submit, keeps a history nobody can edit, and exports PDF and Excel.',
     summary:
       'Payment vouchers with approval built in, on or off by your choice. Nobody can approve their own voucher, whatever you set.',
     pitch:
@@ -180,6 +188,8 @@ const BASE_AGENTS: Agent[] = [
     stage: 'live',
     category: 'Books & closing',
     accent: 'emerald',
+    definition:
+      'Ledger Reconciliation is a browser tool that reconciles two ledgers, such as your cash book and a bank statement, from Excel, CSV or a text PDF. It clears the entries that agree, explains the rest, and builds a reconciliation statement that says whether the two balances tie.',
     summary:
       'Two ledgers in, a reconciliation statement out. It clears the lines that agree, explains the ones that do not, and tells you whether the two balances tie.',
     pitch:
@@ -227,6 +237,8 @@ const BASE_AGENTS: Agent[] = [
     stage: 'live',
     category: 'Valuation & deals',
     accent: 'violet',
+    definition:
+      'Valuation Desk is a comparable company valuation tool. It finds comparable companies by what they actually do, works out their EV/Revenue, EV/EBITDA and P/E multiples from the public record, and applies them to value a company that does not trade.',
     summary:
       'Comparable companies, the multiples they trade at, and what those imply for a company that does not trade. Every figure links to the filing it came from.',
     pitch:
@@ -269,6 +281,8 @@ const BASE_AGENTS: Agent[] = [
     stage: 'live',
     category: 'Research & outreach',
     accent: 'lime',
+    definition:
+      'Contact Finder is a B2B contact search. It finds people by role and seniority at companies chosen by industry, size or location, re-checks every result against the source record, and counts each row it removed with the reason.',
     summary:
       'Find the person behind a company, by role, seniority, industry or size. Every row it shows has been checked against what the source actually said, and every row it removed is counted with the reason.',
     pitch:
@@ -312,6 +326,8 @@ const BASE_AGENTS: Agent[] = [
     stage: 'live',
     category: 'Tax & compliance',
     accent: 'rose',
+    definition:
+      'Tax Notice Watch is an income tax notice tracker for CA firms. Each morning it checks every client’s e-Proceedings on the Income Tax e-Filing portal, downloads any new notice, and emails the client and the team with the response date.',
     summary:
       'Checks every client’s e-Proceedings on the Income Tax portal each morning, downloads any new notice, and emails the team the day it arrives, with the response date.',
     pitch:
@@ -359,6 +375,8 @@ const BASE_AGENTS: Agent[] = [
     stage: 'live',
     category: 'Property & capex',
     accent: 'cyan',
+    definition:
+      'True Property Cost is a calculator for the real cost of an under-construction flat. It adds up every payment, adds what each one cost you until possession in loan interest or lost returns, and works out the rental yield on that true cost. It runs in your browser and needs no account.',
     summary:
       'What an under-construction property really costs by possession, and what it really yields once let: every instalment, plus what the money cost while it was tied up, own funds and loan each at its own rate.',
     pitch:
@@ -409,6 +427,8 @@ const BASE_AGENTS: Agent[] = [
     stage: 'live',
     category: 'Personal finance',
     accent: 'amber',
+    definition:
+      'Wealth Tracker is a net worth tracker for Indian households. It keeps every account, investment, property and loan in one record, works out your net worth at your share of anything held jointly, and checks that each account has a nominee. It runs in your browser and needs no account.',
     summary:
       'Everything you own and owe in one record: bank accounts, deposits, shares, funds, PF and PPF, policies, property, gold and loans, with your net worth and a check that every account has a nominee.',
     pitch:
@@ -568,6 +588,17 @@ export const ROSTER = {
 
 export function agentBySlug(slug: string): Agent | undefined {
   return AGENTS.find((a) => a.slug === slug);
+}
+
+/**
+ * A tool's questions as its page asks them: "What is …?" first, answered with
+ * its definition, then its own. The first question is the one most often put
+ * to an assistant about a product, so it is answered on the page in so many
+ * words rather than left to be pieced together from the rest.
+ */
+export function toolFaq(agent: Agent): readonly { q: string; a: string }[] {
+  const own = agent.faq ?? [];
+  return agent.definition ? [{ q: `What is ${agent.name}?`, a: agent.definition }, ...own] : own;
 }
 
 /** Primary navigation for the public site. */

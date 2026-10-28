@@ -98,6 +98,7 @@ export function SiteFooter() {
                 </FooterLink>
               ))}
               <FooterLink href="/guides">All guides</FooterLink>
+              <FooterLink href="/glossary">Glossary</FooterLink>
             </FooterCol>
           )}
 
@@ -148,6 +149,7 @@ export function SiteFooter() {
                 className="transition hover:text-[var(--m-ink)]"
               >
                 {l.label}
+                {/* The row's gap does the spacing; this is for bare HTML. */}{' '}
               </Link>
             ))}
           </div>

@@ -87,6 +87,10 @@ export function Logo({
           size, which at 16px is the natural drawn width and -0.0056em.
         */}
         <span className="m-display block t-4">{BRAND.name}</span>
+        {/* A space between the two lines, which the layout ignores (both are
+            blocks) and a reader of the bare HTML needs: without it a crawler
+            that does not lay the page out reads "…IntelligenceAI tools…". */}
+        {showTagline && ' '}
         {showTagline && (
           <span className="m-mono m-dim-2 mt-1.5 block t-1 t-caps uppercase">
             {BRAND.tagline}

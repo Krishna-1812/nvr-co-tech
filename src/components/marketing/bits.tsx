@@ -327,6 +327,7 @@ export function StageBadge({ stage, className }: { stage: AgentStage; className?
         </span>
       )}
       {STAGE_LABEL[stage]}
+      {/* Kept apart from the words around it in the bare HTML; see CTA. */}{' '}
     </span>
   );
 }
@@ -398,6 +399,11 @@ export function CTA({
       ) : (
         <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
       )}
+      {/*
+        A trailing space, which the flex box drops and the bare HTML keeps: two
+        buttons side by side otherwise read "Open itBook a walkthrough" to a
+        crawler that takes the text without laying the page out.
+      */}{' '}
     </Link>
   );
 }
@@ -422,6 +428,7 @@ export function ArrowLink({
     >
       {children}
       <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden />
+      {/* For the bare HTML; see CTA. */}{' '}
     </Link>
   );
 }

@@ -108,14 +108,38 @@ export function istDay(iso: string | Date): string {
   return IST.format(typeof iso === 'string' ? new Date(iso) : iso);
 }
 
+/**
+ * The assistants that send people here, by the host they link from or the
+ * utm_source they add (ChatGPT tags its links utm_source=chatgpt.com). Named,
+ * so the sources table answers "are answer engines sending anyone?" at a
+ * glance instead of scattering it across raw host names.
+ */
+const ASSISTANTS: [RegExp, string][] = [
+  [/(^|\.)(chatgpt\.com|chat\.openai\.com|openai\.com)$/, 'ChatGPT'],
+  [/(^|\.)perplexity\.ai$/, 'Perplexity'],
+  [/(^|\.)gemini\.google\.com$|(^|\.)bard\.google\.com$/, 'Gemini'],
+  [/(^|\.)copilot\.microsoft\.com$|(^|\.)copilot\.cloud\.microsoft$/, 'Copilot'],
+  [/(^|\.)claude\.ai$/, 'Claude'],
+  [/(^|\.)chat\.deepseek\.com$/, 'DeepSeek'],
+  [/(^|\.)meta\.ai$/, 'Meta AI'],
+];
+
+function assistant(host: string): string | null {
+  const clean = host.toLowerCase().replace(/^www\./, '');
+  return ASSISTANTS.find(([re]) => re.test(clean))?.[1] ?? null;
+}
+
 /** Where a visitor came from, in a word: a campaign, a site, or Direct. */
 export function sourceOf(v: Pick<SiteVisitorRow, 'utm_source' | 'first_referrer'>, ownHost?: string): string {
-  if (v.utm_source) return v.utm_source;
+  if (v.utm_source) return assistant(v.utm_source) ?? v.utm_source;
   if (!v.first_referrer) return 'Direct';
   try {
     const host = new URL(v.first_referrer).hostname.replace(/^www\./, '');
     if (ownHost && host === ownHost.replace(/^www\./, '')) return 'Direct';
+    const ai = assistant(host);
+    if (ai) return ai;
     if (/google\./.test(host)) return 'Google';
+    if (/duckduckgo\.com$/.test(host)) return 'DuckDuckGo';
     if (/bing\.com$/.test(host)) return 'Bing';
     if (/linkedin\.com$|lnkd\.in$/.test(host)) return 'LinkedIn';
     if (/(^|\.)t\.co$|twitter\.com$|x\.com$/.test(host)) return 'X';

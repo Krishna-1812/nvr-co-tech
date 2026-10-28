@@ -3,7 +3,8 @@ import { LogIn, ShieldCheck, type LucideIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
 import { StepRail } from '@/components/marketing/rich/StepRail';
-import { pageMeta } from '@/lib/marketing/seo';
+import { JsonLd } from '@/components/marketing/JsonLd';
+import { pageMeta, profilePageLd } from '@/lib/marketing/seo';
 import { CONTACT, WALKTHROUGH_STEPS } from '@/lib/marketing/content';
 import { ArchScene, Container, Eyebrow, Rise, Section, SectionHeading } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
@@ -11,12 +12,10 @@ import { Reveal } from '@/components/marketing/Reveal';
 import { RequestForm } from '@/components/marketing/RequestForm';
 import { Roost } from '@/components/brand/Owl';
 
-export const metadata: Metadata = pageMeta({
-  title: 'Book a walkthrough',
-  description:
-    'Thirty minutes with the people who built it. Tell us which tool interests you and what your month currently looks like.',
-  path: '/contact',
-});
+const DESCRIPTION =
+  'Thirty minutes with the people who built it. Tell us which tool interests you and what your month currently looks like.';
+
+export const metadata: Metadata = pageMeta({ title: 'Book a walkthrough', description: DESCRIPTION, path: '/contact' });
 
 const TRAIL = [
   { label: 'Home', href: '/' },
@@ -38,6 +37,7 @@ const TRAIL = [
 export default function ContactPage() {
   return (
     <>
+      <JsonLd data={profilePageLd({ type: 'ContactPage', path: '/contact', name: 'Book a walkthrough', description: DESCRIPTION })} />
       <section className="relative overflow-hidden">
         <ArchScene motif="sundial" />
 
@@ -90,7 +90,7 @@ export default function ContactPage() {
                       className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line-2)] px-5 t-3 font-semibold transition hover:border-[var(--m-ink)] hover:bg-[var(--m-bg-2)] sm:flex-1"
                     >
                       Sign in
-                    </Link>
+                    </Link>{' '}
                     <Link
                       href="/signup"
                       className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--m-line)] px-5 t-3 font-semibold transition hover:border-[var(--m-line-2)] hover:bg-[var(--m-bg-2)] sm:flex-1"

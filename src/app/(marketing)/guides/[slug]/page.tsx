@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Clock } from 'lucide-react';
 import { ArrowLink, Container, Eyebrow, LineRise, Rise, Section } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { JsonLd } from '@/components/marketing/JsonLd';
@@ -17,7 +17,8 @@ import { DuneCta } from '@/components/marketing/rich/DuneCta';
 import { FaqAccordion } from '@/components/marketing/rich/FaqAccordion';
 import { toCard } from '@/components/marketing/guides/summary';
 import { articleLd, faqLd, pageMeta } from '@/lib/marketing/seo';
-import { guideBySlug, sectionId, visibleGuides, type Block } from '@/lib/guides';
+import { BRAND } from '@/lib/marketing/content';
+import { guideBySlug, guideWords, sectionId, visibleGuides, type Block } from '@/lib/guides';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -53,8 +54,11 @@ export default async function GuidePage({ params }: Params) {
   const next = index < all.length - 1 ? toCard(all[index + 1], index + 1) : null;
 
   const headings = guide.blocks.filter((b): b is Extract<Block, { t: 'h2' }> => b.t === 'h2');
+  const sources = guide.sources ?? [];
+  const workedExample = headings.some((h) => /worked example/i.test(h.text));
   const sections = [
     ...headings.map((h) => ({ id: sectionId(h.text), label: h.text })),
+    ...(sources.length > 0 ? [{ id: 'sources', label: 'Sources' }] : []),
     { id: 'questions', label: 'Questions' },
   ];
   let n = 0;
@@ -67,7 +71,9 @@ export default async function GuidePage({ params }: Params) {
 
   return (
     <>
-      {guide.status === 'published' && <JsonLd data={articleLd(guide)} />}
+      {guide.status === 'published' && (
+        <JsonLd data={articleLd({ ...guide, section: card.topic, wordCount: guideWords(guide) })} />
+      )}
 
       <section className="relative overflow-hidden">
         <Container wide className="relative pt-12 pb-16 sm:pt-16 sm:pb-20">
@@ -180,6 +186,61 @@ export default async function GuidePage({ params }: Params) {
                 if (b.t === 'h2') n++;
                 return <GuideBlock key={i} block={b} number={n} color={card.color} />;
               })}
+
+              {/*
+                What the guide rests on, linked, so a reader (or an assistant
+                quoting it) can check the rule at its source rather than take
+                our word for it. The same list is the Article's `citation`.
+              */}
+              {sources.length > 0 && (
+                <Reveal>
+                  <section aria-labelledby="sources" className="mt-16">
+                    <h2 id="sources" className="m-display s-settle scroll-mt-28 t-h4">
+                      Sources
+                    </h2>
+                    <ol className="mt-5 space-y-3">
+                      {sources.map((s) => (
+                        <li key={s.url} className="m-card rounded-2xl px-5 py-4 t-3">
+                          <a
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener"
+                            className="inline-flex items-start gap-1.5 font-semibold text-[var(--m-ink)] underline decoration-[var(--m-line-2)] underline-offset-4 hover:decoration-current"
+                          >
+                            {s.name}
+                            <ArrowUpRight className="mt-1 size-3.5 shrink-0" aria-hidden />
+                          </a>{' '}
+                          <span className="m-dim-2 block">{s.publisher}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </section>
+                </Reveal>
+              )}
+
+              {/*
+                Who stands behind the page and how it is kept right, in words a
+                reader can hold us to: the about page says who builds the site,
+                and guides.test.ts recalculates every worked example on every
+                change (CI). The test sentence only where there is a worked
+                example for it to be true of.
+              */}
+              <Reveal>
+                <aside className="m-card mt-12 rounded-[1.75rem] px-6 py-6 t-3">
+                  <p className="font-semibold text-[var(--m-ink)]">How this guide is checked</p>
+                  <p className="m-dim mt-2">
+                    Written by {BRAND.name}, which is built by chartered accountants.{' '}
+                    {workedExample && 'The worked example is recalculated by an automated test every time the site changes. '}
+                    Last checked against the rules on{' '}
+                    <time dateTime={guide.updated}>{date(guide.updated)}</time>. Spotted something
+                    wrong?{' '}
+                    <Link href="/contact" className="underline decoration-[var(--m-line-2)] underline-offset-4 hover:decoration-current">
+                      Tell us
+                    </Link>
+                    .
+                  </p>
+                </aside>
+              </Reveal>
             </article>
           </div>
         </Container>
@@ -262,9 +323,7 @@ function GuideBlock({ block: b, number, color }: { block: Block; number: number;
       return (
         <Reveal>
           <h2 id={sectionId(b.text)} className="mt-16 flex scroll-mt-28 items-baseline gap-4">
-            <span className="m-mono t-2 tabular-nums" style={{ color }}>
-              {String(number).padStart(2, '0')}
-            </span>
+            <span aria-hidden data-n={String(number).padStart(2, '0')} className="m-n m-mono t-2 tabular-nums" style={{ color }} />
             <span className="m-display s-settle t-h3">{b.text}</span>
           </h2>
           <span aria-hidden className="s-rule mt-4 block h-px bg-[var(--m-line)]" />
@@ -284,9 +343,12 @@ function GuideBlock({ block: b, number, color }: { block: Block; number: number;
           {b.items.map((item, i) => (
             <li key={item} className="m-card flex gap-4 rounded-2xl px-5 py-4">
               {b.t === 'ol' ? (
-                <span className="m-display grid size-8 shrink-0 place-items-center rounded-full t-3 text-[var(--m-on-grad)]" style={{ background: color }}>
-                  {i + 1}
-                </span>
+                <span
+                  aria-hidden
+                  data-n={i + 1}
+                  className="m-n m-display grid size-8 shrink-0 place-items-center rounded-full t-3 text-[var(--m-on-grad)]"
+                  style={{ background: color }}
+                />
               ) : (
                 <span aria-hidden className="mt-2.5 size-2.5 shrink-0 rounded-full bg-[var(--m-sun)] ring-4 ring-[var(--m-wait-wash)]" />
               )}

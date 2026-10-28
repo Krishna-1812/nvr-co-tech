@@ -1,6 +1,7 @@
-import { AGENTS, BRAND, CONTACT, HOME_FAQ, STAGE_LABEL, type Agent } from '@/lib/marketing/content';
+import { AGENTS, BRAND, CONTACT, HOME_FAQ, STAGE_LABEL, toolFaq, type Agent } from '@/lib/marketing/content';
 import { absolute } from '@/lib/marketing/seo';
 import { blockText, publishedGuides, type Guide } from '@/lib/guides';
+import { TOPICS, glossary } from '@/lib/guides/glossary';
 
 /**
  * /llms-full.txt: everything /llms.txt links to, in one file.
@@ -23,6 +24,7 @@ function section(a: Agent): string[] {
     '',
     `${absolute(`/tools/${a.slug}`)}`,
     '',
+    ...(a.definition ? [a.definition, ''] : []),
     a.summary,
     '',
     a.pitch,
@@ -34,9 +36,10 @@ function section(a: Agent): string[] {
     `Goes in: ${a.inputs}`,
     `Comes out: ${a.outputs}`,
   ];
-  if (a.faq && a.faq.length > 0) {
+  const faq = toolFaq(a);
+  if (faq.length > 0) {
     out.push('', 'Questions:', '');
-    for (const f of a.faq) out.push(`Q: ${f.q}`, `A: ${f.a}`, '');
+    for (const f of faq) out.push(`Q: ${f.q}`, `A: ${f.a}`, '');
   }
   out.push('');
   return out;
@@ -53,6 +56,8 @@ function guideSection(g: Guide): string[] {
   }
   out.push('Questions:', '');
   for (const f of g.faq) out.push(`Q: ${f.q}`, `A: ${f.a}`, '');
+  if (g.sources?.length) out.push('Sources:', '', ...g.sources.map((s) => `- ${s.name} (${s.publisher}): ${s.url}`), '');
+  out.push(`Last checked: ${g.updated}`, '');
   return out;
 }
 
@@ -76,6 +81,22 @@ export function GET(): Response {
     ...live.flatMap(section),
     ...(coming.length > 0 ? ['# Not built yet', '', ...coming.flatMap(section)] : []),
     ...(publishedGuides().length > 0 ? ['# Guides', '', ...publishedGuides().flatMap(guideSection)] : []),
+    ...(publishedGuides().length > 0
+      ? [
+          '# Glossary',
+          '',
+          absolute('/glossary'),
+          '',
+          ...TOPICS.flatMap((topic) => [
+            `## ${topic}`,
+            '',
+            ...glossary()
+              .filter((t) => t.topic === topic)
+              .map((t) => `- ${t.term}: ${t.definition}${t.href ? ` (${absolute(t.href)})` : ''}`),
+            '',
+          ]),
+        ]
+      : []),
   ].join('\n');
 
   return new Response(body, {

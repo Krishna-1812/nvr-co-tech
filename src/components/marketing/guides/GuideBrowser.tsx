@@ -53,8 +53,9 @@ export function GuideBrowser({ cards }: { cards: GuideCard[] }) {
                   on ? 'text-[var(--m-on-grad)]' : 'text-[var(--m-dim)] hover:text-[var(--m-ink)]',
                 )}
               >
-                {t}
+                {t}{' '}
                 <span className={cn('ml-1.5 tabular-nums', on ? 'opacity-70' : 'opacity-50')}>{count}</span>
+                {/* For the bare HTML: the chips are a flex row. */}{' '}
               </button>
             );
           })}
@@ -112,7 +113,7 @@ function Card({ card: c, lead }: { card: GuideCard; lead: boolean }) {
               <span className="m-dim-2 inline-flex items-center gap-1.5 t-2">
                 <Clock className="size-3.5" aria-hidden />
                 {c.minutes} min · with {c.tool}
-              </span>
+              </span>{' '}
               <span className="inline-flex items-center gap-1.5 t-3 font-semibold text-[var(--m-ink)]">
                 Read
                 <ArrowRight className="g-arrow size-4" aria-hidden />

@@ -115,7 +115,7 @@ export function WorkCalendar() {
                       <span className="min-w-0 flex-1">
                         <span className="m-mono m-dim-2 block t-1 t-caps uppercase">
                           {j.when}
-                        </span>
+                        </span>{' '}
                         <span
                           className={cn(
                             'mt-1 block t-3 transition-colors',
@@ -219,7 +219,7 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
                 )}
               >
                 {MARK[j.id]}
-              </span>
+              </span>{' '}
               <span
                 aria-hidden
                 className="mt-2 w-px transition-opacity"
@@ -231,8 +231,9 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
               />
               <span
                 aria-hidden
+                data-n={j.day}
                 className={cn(
-                  'mt-1.5 grid size-7 place-items-center rounded-full border t-1 font-semibold transition-all',
+                  'm-n mt-1.5 grid size-7 place-items-center rounded-full border t-1 font-semibold transition-all',
                   // The button drops the browser's outline, so the dot shows focus.
                   'group-focus-visible:outline-2 group-focus-visible:outline-offset-4 group-focus-visible:outline-[var(--m-ink)]',
                   on ? undefined : 'm-dim border-[var(--m-line-2)] bg-[var(--m-bg)]',
@@ -247,9 +248,7 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
                       }
                     : undefined
                 }
-              >
-                {j.day}
-              </span>
+              />
             </button>
           );
         })}
@@ -272,8 +271,7 @@ function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) =>
       </div>
 
       <div className="m-mono m-dim-2 mt-1.5 flex justify-between t-1 t-caps">
-        <span>1st</span>
-        <span>31st</span>
+        <span>1st</span> <span>31st</span>
       </div>
 
       <p className="m-dim-2 mt-5 max-w-xl t-2">

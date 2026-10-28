@@ -61,21 +61,28 @@ function Row({ copy = false }: { copy?: boolean }) {
     >
       {/* Twice inside each copy as well, so even on a wide screen one copy is
           wider than the viewport and the loop never shows its seam. */}
-      {[...LIVE_AGENTS, ...LIVE_AGENTS].map((a, k) => (
-        <li key={`${a.slug}-${k}`} className="flex items-center" aria-hidden={k >= LIVE_AGENTS.length || undefined}>
-          <Link
-            href={`/tools/${a.slug}`}
-            tabIndex={k >= LIVE_AGENTS.length ? -1 : undefined}
-            className="group flex items-baseline gap-3 px-6 whitespace-nowrap sm:px-9"
-          >
-            <span className="m-display t-7 transition-colors group-hover:text-[var(--m-gold)] sm:t-8">
-              {a.name}
-            </span>
-            <span className="m-eyebrow m-dim-2">{a.category}</span>
-          </Link>
-          <Shape n={k} />
-        </li>
-      ))}
+      {[...LIVE_AGENTS, ...LIVE_AGENTS].map((a, k) => {
+        const echo = copy || k >= LIVE_AGENTS.length;
+        // The loop's repeats are drawn from data-n (.m-n), so the roster is in
+        // the page's text once rather than four times over.
+        const word = (text: string) => (echo ? { 'data-n': text, children: null } : { children: text });
+        return (
+          <li key={`${a.slug}-${k}`} className="flex items-center" aria-hidden={k >= LIVE_AGENTS.length || undefined}>
+            <Link
+              href={`/tools/${a.slug}`}
+              tabIndex={k >= LIVE_AGENTS.length ? -1 : undefined}
+              className="group flex items-baseline gap-3 px-6 whitespace-nowrap sm:px-9"
+            >
+              <span
+                className={`${echo ? 'm-n ' : ''}m-display t-7 transition-colors group-hover:text-[var(--m-gold)] sm:t-8`}
+                {...word(a.name)}
+              />{' '}
+              <span className={`${echo ? 'm-n ' : ''}m-eyebrow m-dim-2`} {...word(a.category)} />
+            </Link>
+            <Shape n={k} />
+          </li>
+        );
+      })}
     </ul>
   );
 }
