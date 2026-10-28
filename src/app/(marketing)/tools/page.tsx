@@ -114,11 +114,21 @@ export default function AgentsPage() {
 
       <Section id="roster" divider={false} className="scroll-mt-16">
         <Container wide>
-          <SectionHeading
-            eyebrow="The roster"
-            title="Live, and on the way."
-            lead="Filter by whether you can use it today. Every card says which it is."
-          />
+          {/* The roadmap tools were taken off the site on 28 Oct, at the owner's
+              request, so while every tool is live the heading says so. */}
+          {LIVE_AGENTS.length === AGENTS.length ? (
+            <SectionHeading
+              eyebrow="The roster"
+              title="Every one of them, live."
+              lead="Each card says what goes in, what comes out, and whether it is open to you."
+            />
+          ) : (
+            <SectionHeading
+              eyebrow="The roster"
+              title="Live, and on the way."
+              lead="Filter by whether you can use it today. Every card says which it is."
+            />
+          )}
           <div className="mt-10">
             <StageBrowser
               label="Filter tools by stage"
@@ -141,7 +151,7 @@ export default function AgentsPage() {
           <DuneCta
             eyebrow="Where to start"
             title="One of these is already costing you a day a month."
-            body="Tell us which job is the worst one and we will show you the tool that covers it. If it is not built yet, we will say so, and tell you when it should be."
+            body="Tell us which job is the worst one and we will show you the tool that covers it. If none of them covers it, we will say so."
             href="/contact"
             label="Book a walkthrough"
           >

@@ -1320,6 +1320,16 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   plays when scrolled to (count pops, letters rise, rule draws). The voucher status filters have one
   tint that slides between pills (`.w-pill`). CSS block "WORKSPACE" at the end of globals.css; all of
   it is off under reduced motion and hides nothing without scripting.
+- **Roadmap tools removed (28 Oct 2026, owner's request):** GST Reconciliation, TDS Compliance,
+  Invoice Intake and Audit Copilot are gone from `AGENTS` and everything that reads it (hub, /tools,
+  /about, sitemap, llms.txt, llms-full.txt, the assistant's knowledge and prompt, icons, motifs).
+  Their `/tools/<slug>` and `/agents/<slug>` addresses 308 to `/tools` (next.config), because Google
+  had indexed them. The finance-month jobs those tools covered stay on the home page (they name no
+  tool), with `agent`/`ours` dropped so the assistant says no tool takes them on. Every screen that
+  lists non-live tools now hides that part while there are none (hub "On the way" section and stat,
+  the /tools stage filter, the about page's "not all of this is built" line, the llms "Not built
+  yet" lists), so adding a tool at another stage brings them back. Assistant runs that were counted
+  under `audit-copilot` are aliased to `assistant` (`lib/analytics/aliases`).
 - **Search Console status (28 Oct 2026):** done by the owner. *Domain* property
   `thefinanceintelligence.com` verified; `/sitemap.xml` submitted (25 URLs); the home page, tools
   and guides inspected and showing "URL is on Google". **Still to do, owner deferred:** Bing

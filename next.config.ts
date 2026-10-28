@@ -33,6 +33,16 @@ const nextConfig: NextConfig = {
        * /tools. The landed-cost line above comes first so that address takes
        * one hop rather than two.
        */
+      /*
+       * Four roadmap tools were taken off the site on 28 Oct 2026, at the
+       * owner's request. Google had already indexed their pages, so each one,
+       * under /tools and under the old /agents, forwards for good to the tool
+       * index rather than ending on a 404. Before /agents/:slug, for one hop.
+       */
+      ...['gst-reconciliation', 'tds-compliance', 'invoice-intake', 'audit-copilot'].flatMap((slug) => [
+        { source: `/tools/${slug}`, destination: '/tools', permanent: true },
+        { source: `/agents/${slug}`, destination: '/tools', permanent: true },
+      ]),
       { source: '/agents', destination: '/tools', permanent: true },
       // Tax Notice Watch opened as a page of the Admin screen on 20 Oct 2026 and
       // became a tool of its own the same day; the morning emails of that day link here.

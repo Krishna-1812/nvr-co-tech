@@ -177,7 +177,7 @@ export async function POST(request: Request) {
    * one, so a question asked inside reconciliation counts toward that tool
    * rather than toward a generic assistant nobody can find on the roster.
    */
-  void recordRun(agent ?? 'audit-copilot');
+  void recordRun(agent ?? 'assistant');
 
   const system = `${instructions({
     agent,

@@ -10,6 +10,10 @@ export type BrowserItem = { key: string; group: string; node: React.ReactNode };
  * that deals its cards back in each time the choice changes. The cards are
  * rendered on the server and handed in as nodes, so every one of them is in the
  * HTML as a link whether or not a filter is ever used.
+ *
+ * With only one group there is nothing to filter, and "All 7 · Live 7" would
+ * be two chips saying the same thing, so the chips go and that group's note
+ * stays.
  */
 export function StageBrowser({
   items,
@@ -28,6 +32,7 @@ export function StageBrowser({
 }) {
   const shown = groups.filter((g) => items.some((i) => i.group === g));
   const chips = ['All', ...shown];
+  const filterable = shown.length > 1;
   const [group, setGroup] = useState('All');
   const visible = group === 'All' ? items : items.filter((i) => i.group === group);
 
@@ -43,8 +48,11 @@ export function StageBrowser({
     return () => window.removeEventListener('resize', place);
   }, [group]);
 
+  const note = notes?.[filterable ? group : shown[0]];
+
   return (
     <div>
+      {filterable && (
       <div className="-mx-5 overflow-x-auto px-5 pb-2 sm:mx-0 sm:px-0">
         <div ref={bar} role="group" aria-label={label} className="g-chips relative inline-flex gap-1 rounded-full border border-[var(--m-line)] bg-[var(--m-card)] p-1.5">
           <span
@@ -73,9 +81,10 @@ export function StageBrowser({
           })}
         </div>
       </div>
-      {notes?.[group] && (
-        <p key={`n-${group}`} className="g-card-in m-dim mt-5 max-w-2xl t-3">
-          {notes[group]}
+      )}
+      {note && (
+        <p key={`n-${group}`} className={cn('g-card-in m-dim max-w-2xl t-3', filterable && 'mt-5')}>
+          {note}
         </p>
       )}
       <ul key={group} className={cn('mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3', className)}>

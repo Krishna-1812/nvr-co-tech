@@ -11,9 +11,9 @@ import { FootToys, FootWord } from './play/Footplay';
  * ── What was wrong with it ──────────────────────────────────────────────────
  *
  * The agents column was `AGENTS.slice(0, 5)`, which is five of six chosen by
- * arithmetic rather than by anybody. It dropped Audit Copilot for the whole life
- * of the site, and it would silently drop whichever agent happened to be last
- * the next time one was added. If a column is too long, the fix is a shorter
+ * arithmetic rather than by anybody. It dropped the last tool on the roster for
+ * the whole life of the site, and it would silently drop whichever agent
+ * happened to be last the next time one was added. If a column is too long, the fix is a shorter
  * column and not a truncated one.
  *
  * There was also no closing bar at all. The page simply stopped, with the legal

@@ -70,9 +70,7 @@ export function GET(): Response {
     '# Live today',
     '',
     ...live.flatMap(section),
-    '# Not built yet',
-    '',
-    ...coming.flatMap(section),
+    ...(coming.length > 0 ? ['# Not built yet', '', ...coming.flatMap(section)] : []),
     ...(publishedGuides().length > 0 ? ['# Guides', '', ...publishedGuides().flatMap(guideSection)] : []),
   ].join('\n');
 

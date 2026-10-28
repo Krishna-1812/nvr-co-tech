@@ -103,6 +103,7 @@ function calendarDoc(): Doc {
     keywords: ['calendar', 'deadline', 'due date', 'monthly', 'routine', 'when'],
     body: [
       'The work a finance team repeats every month, and which tool takes each job.',
+      'A job with no tool named is one we do not take on: say so rather than offer one.',
       'Only three of these have a fixed statutory date, and those three are for a',
       'monthly filer. Anything that moves with your filing frequency is given as a',
       'band instead. Check your own due dates before relying on any of them.',
@@ -112,8 +113,9 @@ function calendarDoc(): Doc {
         return [
           `${job.when}: ${job.title}.`,
           `  How it usually goes: ${job.now}`,
-          `  The part we take on: ${job.ours}`,
-          `  Tool: ${agent ? `${agent.name} (${STAGE_LABEL[agent.stage].toLowerCase()})` : job.agent}`,
+          ...(agent && job.ours
+            ? [`  The part we take on: ${job.ours}`, `  Tool: ${agent.name} (${STAGE_LABEL[agent.stage].toLowerCase()})`]
+            : ['  No tool here takes this on.']),
           '',
         ];
       }),
@@ -227,8 +229,7 @@ function tdsDoc(): Doc {
       'deducting. The assistant should say so rather than answer as if this table',
       'settled the question.',
       '',
-      'TDS Compliance, the tool meant to work the section and rate out for you and',
-      'build the quarterly returns, is on the roadmap and is not built.',
+      'No tool on this platform works out TDS or builds the quarterly returns.',
     ].join('\n'),
   };
 }
@@ -251,10 +252,18 @@ const WRITTEN: Doc[] = [
       '',
       // Counted from the roster rather than written, because it was written: it
       // said six tools and two built long after there were eight and four.
-      `There are ${AGENTS.length} tools on the roster. ${LIVE_COUNT} are built and running today.`,
-      `${AGENTS.length - LIVE_COUNT} are written up and not started. Every screen that lists them says which`,
-      'is which, and the assistant must do the same. Describing a roadmap tool as if',
-      'it were available is the single worst thing it can do.',
+      ...(LIVE_COUNT === AGENTS.length
+        ? [
+            `There are ${AGENTS.length} tools, and every one is built and running today. There`,
+            'is no roadmap of unbuilt tools on this site, and the assistant must not invent',
+            'one or promise a tool that is not listed here.',
+          ]
+        : [
+            `There are ${AGENTS.length} tools on the roster. ${LIVE_COUNT} are built and running today.`,
+            `${AGENTS.length - LIVE_COUNT} are written up and not started. Every screen that lists them says which`,
+            'is which, and the assistant must do the same. Describing a roadmap tool as if',
+            'it were available is the single worst thing it can do.',
+          ]),
       '',
       'The workspace (the hub, at /hub) is open to anybody, with no account. Two of',
       'the live tools, True Property Cost and Wealth Tracker, can be used by anybody,',
@@ -1004,9 +1013,8 @@ const WRITTEN: Doc[] = [
       'claim wrongly brings a notice. Both come out of the same check, which is',
       'matching what your suppliers have reported against what you have recorded.',
       '',
-      'GST Reconciliation, the tool meant to do that matching, is on the roadmap and',
-      'is not built. Rates and rules change, so confirm the current position for your',
-      'own case.',
+      'No tool on this platform does that matching.',
+      'Rates and rules change, so confirm the current position for your own case.',
     ].join('\n'),
   },
   {

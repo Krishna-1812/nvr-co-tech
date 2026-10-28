@@ -36,7 +36,7 @@ describe('what is offered', () => {
   });
 
   it('falls back to the general set for a tool with nothing written for it', () => {
-    expect(suggestionsFor('gst-reconciliation')).toEqual(suggestionsFor(null));
+    expect(suggestionsFor('not-a-tool')).toEqual(suggestionsFor(null));
   });
 
   it('gives the same four every time, so nobody has to read them twice', () => {

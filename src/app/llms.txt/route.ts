@@ -20,9 +20,11 @@ import { publishedGuides } from '@/lib/guides';
  * here in the same commit.
  *
  * The stage of every agent is stated plainly, and that is the point rather than
- * a detail: six of the eight are not built. An assistant that reads this and
- * tells somebody they can go and use Audit Copilot today has been misled by us,
- * and the fix is to say so here rather than to hope it infers the difference.
+ * a detail: an assistant that reads this and tells somebody they can use a tool
+ * that is not built has been misled by us, and the fix is to say so here rather
+ * than to hope it infers the difference. While every tool is live (the roadmap
+ * tools were taken off the site on 28 Oct) the "Not built yet" list is left out
+ * rather than printed empty.
  */
 export const dynamic = 'force-static';
 
@@ -43,17 +45,18 @@ export function GET(): Response {
     'person. The rules the tools enforce are held in the database rather than in the screens,',
     'so they apply however the request arrives.',
     '',
-    'Some of the tools are live today. The rest are being built or are written up and waiting',
-    'their turn, and every page on the site says which is which — as do the two lists below.',
+    ...(coming.length > 0
+      ? [
+          'Some of the tools are live today. The rest are being built or are written up and waiting',
+          'their turn, and every page on the site says which is which — as do the two lists below.',
+        ]
+      : ['Every tool listed below is live today. There are no others, built or planned.']),
     '',
     '## Live today',
     '',
     ...live.map(line),
     '',
-    '## Not built yet',
-    '',
-    ...coming.map(line),
-    '',
+    ...(coming.length > 0 ? ['## Not built yet', '', ...coming.map(line), ''] : []),
     // Published guides only; drafts are never described to an assistant.
     ...(publishedGuides().length > 0
       ? [
@@ -66,7 +69,7 @@ export function GET(): Response {
     '## The site',
     '',
     `- [Home](${absolute('/')}): what the platform is and who it is for.`,
-    `- [Tools](${absolute('/tools')}): the whole roster, grouped by what is built and what is not.`,
+    `- [Tools](${absolute('/tools')}): every tool, what it does and whether it is open to you.`,
     `- [About](${absolute('/about')}): who is building this, and the four rules it is built to.`,
     `- [Book a walkthrough](${absolute('/contact')}): half an hour with the people who built it.`,
     `- [Every tool in full](${absolute('/llms-full.txt')}): each tool's page as plain text, with its questions and answers.`,
