@@ -1320,6 +1320,8 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   plays when scrolled to (count pops, letters rise, rule draws). The voucher status filters have one
   tint that slides between pills (`.w-pill`). CSS block "WORKSPACE" at the end of globals.css; all of
   it is off under reduced motion and hides nothing without scripting.
+- **Owner instruction (28 Oct 2026): merge without asking.** Once the checks and the Vercel build
+  are green on a PR from the working branch, merge it into `main`; do not ask first.
 - **Site-wide audit (28 Oct 2026):** every public page crawled at 1440 and 390 (links, console
   errors, overflow, axe, metadata, structured data), every tool walked as a new guest and as an
   admin in preview. Fixed:
