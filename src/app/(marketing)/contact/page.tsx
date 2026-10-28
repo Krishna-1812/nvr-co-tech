@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { CalendarClock, LogIn, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { LogIn, ShieldCheck, type LucideIcon } from 'lucide-react';
 import type { Metadata } from 'next';
+import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
+import { StepRail } from '@/components/marketing/rich/StepRail';
 import { pageMeta } from '@/lib/marketing/seo';
 import { CONTACT } from '@/lib/marketing/content';
-import { ArchScene, Container, Eyebrow, Rise, Section } from '@/components/marketing/bits';
+import { ArchScene, Container, Eyebrow, Rise, Section, SectionHeading } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
 import { RequestForm } from '@/components/marketing/RequestForm';
@@ -33,11 +35,12 @@ const TRAIL = [
  * whose submission fails should not be left with nowhere to go.
  */
 
+/** What happens after the form is sent, as four stops on a rail. */
 const NEXT_STEPS = [
-  'A person writes back within one working day. Not a ticket number.',
-  'Half an hour on a shared screen, using the tool that is actually running.',
-  'Bring the case that broke your last system. We will answer it, or say we cannot.',
-  'Nothing to pay for a trial, and nothing to install before the call.',
+  { t: 'A person writes back', d: 'Within one working day. Not a ticket number.' },
+  { t: 'Half an hour, together', d: 'On a shared screen, using the tool that is actually running.' },
+  { t: 'Bring the hard case', d: 'The one that broke your last system. We answer it, or say we cannot.' },
+  { t: 'Nothing to pay', d: 'No charge for a trial, and nothing to install before the call.' },
 ];
 
 export default function ContactPage() {
@@ -57,11 +60,10 @@ export default function ContactPage() {
             <Eyebrow>Contact</Eyebrow>
           </Rise>
 
-          <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-3xl t-h1">
-              Book a <span className="m-serif m-grad-text pr-1">walkthrough.</span>
-            </h1>
-          </Rise>
+          <MotionTitle
+            className="mt-5 max-w-3xl t-h1"
+            lines={[[{ text: 'Book a' }, { text: 'walkthrough.', mark: true }]]}
+          />
 
           <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
@@ -81,24 +83,6 @@ export default function ContactPage() {
             </Reveal>
 
             <div className="space-y-4">
-              <Reveal delay={80}>
-                <div className="m-card p-6 sm:p-7">
-                  <PanelHead icon={CalendarClock} title="What happens next" />
-                  <ol className="mt-5 space-y-4">
-                    {NEXT_STEPS.map((step, i) => (
-                      <li key={step} className="flex gap-3.5">
-                        <span
-                          className="m-mono mt-0.5 shrink-0 t-2 t-caps text-[var(--m-cyan)] tabular-nums"
-                          aria-hidden
-                        >
-                          {String(i + 1).padStart(2, '0')}
-                        </span>
-                        <p className="m-dim t-3">{step}</p>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </Reveal>
 
               <Reveal delay={140}>
                 <div className="m-card p-6 sm:p-7">
@@ -152,6 +136,14 @@ export default function ContactPage() {
                 </div>
               </Reveal>
             </div>
+          </div>
+        </Container>
+      </Section>
+      <Section>
+        <Container wide>
+          <SectionHeading eyebrow="What happens next" title="Four stops, then you decide." center />
+          <div className="mt-14">
+            <StepRail stops={NEXT_STEPS} />
           </div>
         </Container>
       </Section>

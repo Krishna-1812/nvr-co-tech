@@ -1295,6 +1295,14 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   (`details`, still fully in the HTML), prev/next cards, and a door transition per guide
   (`guides/template.tsx` passes titles to PageCurtain). Each guide has a `figure` (tested to be
   quoted from its own text) and `motif`. Only `toCard` summaries reach client components.
+- **Site-wide motion kit** (28 Oct 2026, `components/marketing/rich`): `MotionTitle` (every public
+  page's h1: lines rise from clips, letters lean to the pointer, `mark`/`tint` parts),
+  `FaqAccordion` (guides and tool pages), `ContentsRail` (guides and legal pages: sliding marker,
+  reading ring), `StepRail` (guides index, contact), `DuneCta` (guides, tools index),
+  `DoorwayDeck` (tools index hero: three live tools' doorways dealt in and fanned),
+  `StageBrowser` (tools index: stage filter with sliding pill; server-rendered cards passed in as
+  nodes). The tools index also carries the home page's KineticBand. Auth pages (client forms in
+  `components/auth`) and the signed-in workspace were not part of this pass.
 - **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
   prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
   `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).

@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { LIVE_AGENTS } from '@/lib/marketing/content';
 import { ACCENT, Container, CTA } from './bits';
 import { Roost } from '@/components/brand/Owl';
+import { MotionTitle } from './rich/MotionTitle';
 
 /**
  * The body of the public 404, on its own so that two routes can render it.
@@ -44,9 +45,7 @@ export function NotFoundPanel() {
           />
         </div>
         <p className="m-eyebrow">Error 404</p>
-        <h1 className="m-display mt-5 t-h1">
-          Nothing filed <span className="m-serif m-grad-text">here.</span>
-        </h1>
+        <MotionTitle className="mt-5 t-h1" lines={[[{ text: 'Nothing filed' }, { text: 'here.', tint: true }]]} />
         <p className="m-dim mx-auto mt-6 max-w-md t-4">
           This page does not exist. It may have been renamed, or the link that brought you here may
           be an old one.

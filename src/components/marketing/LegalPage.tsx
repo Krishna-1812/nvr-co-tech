@@ -3,6 +3,8 @@ import { ArchScene, Container, Eyebrow, Rise, Section } from './bits';
 import { Breadcrumbs } from './Breadcrumbs';
 import { Reveal } from './Reveal';
 import { Roost } from '@/components/brand/Owl';
+import { ContentsRail } from './rich/ContentsRail';
+import { MotionTitle } from './rich/MotionTitle';
 import type { Crumb } from '@/lib/marketing/seo';
 import type { SceneMotif } from '@/components/ui/Scene';
 
@@ -46,6 +48,15 @@ export const slug = (title: string): string =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
+/** Minutes to read the clauses, at 220 words a minute. */
+function minutesToRead(clauses: Clause[]): number {
+  const words = clauses
+    .flatMap((c) => [c.title, ...(Array.isArray(c.body) ? c.body : [c.body])])
+    .join(' ')
+    .split(/\s+/).length;
+  return Math.max(1, Math.ceil(words / 220));
+}
+
 export function LegalPage({
   eyebrow,
   title,
@@ -59,7 +70,7 @@ export function LegalPage({
   motif = 'ledger',
 }: {
   eyebrow: string;
-  title: React.ReactNode;
+  title: string;
   lead: string;
   updated: string;
   clauses: Clause[];
@@ -94,9 +105,7 @@ export function LegalPage({
           <Rise>
             <Eyebrow>{eyebrow}</Eyebrow>
           </Rise>
-          <Rise delay={60}>
-            <h1 className="m-display mt-5 max-w-3xl t-h1">{title}</h1>
-          </Rise>
+          <MotionTitle className="mt-5 max-w-3xl t-h1" lines={[[{ text: title }]]} />
           <Rise delay={120}>
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">{lead}</p>
           </Rise>
@@ -133,45 +142,21 @@ export function LegalPage({
             pair would pull the body off the left edge the hero sets, and a
             document with two different left margins reads as a mistake.
           */}
-          <div className="grid gap-12 lg:grid-cols-[15.5rem_minmax(0,64ch)] lg:gap-16">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[15.5rem_minmax(0,64ch)] lg:gap-16">
             {/*
               Ordered, because it is a table of contents for a numbered
               document, and the number in each link is the clause number rather
               than a counter that happens to agree with it.
             */}
-            <nav
-              aria-label="Contents"
-              className="m-card rounded-3xl p-5 shadow-[0_24px_44px_-34px_rgb(80_40_20_/_0.55)] lg:sticky lg:top-28 lg:self-start"
-            >
-              <div className="flex items-center gap-2.5">
-                <span
-                  aria-hidden
-                  className="m-arch h-5 w-4 shrink-0"
-                  style={{ background: accent }}
-                />
-                <p className="m-eyebrow">Contents</p>
-              </div>
-              <ol className="mt-4 space-y-0.5 border-t border-[var(--m-line)] pt-3">
-                {clauses.map((clause, i) => (
-                  <li key={clause.title}>
-                    <a
-                      href={`#${slug(clause.title)}`}
-                      className="group -mx-2 flex gap-3 rounded-xl px-2 py-1.5 transition hover:bg-[var(--m-bg)]"
-                    >
-                      <span
-                        className="m-mono m-dim-2 shrink-0 pt-px t-1 t-caps tabular-nums transition-colors group-hover:text-[var(--m-gold)]"
-                        aria-hidden
-                      >
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                      <span className="m-dim t-3 transition-colors group-hover:text-[var(--m-ink)]">
-                        {clause.title}
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
-            </nav>
+            {/* Follows the reader: a marker slides to the clause being read, and
+                the ring fills with the page. Plain anchors underneath. */}
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <ContentsRail
+                sections={clauses.map((c) => ({ id: slug(c.title), label: c.title }))}
+                minutes={minutesToRead(clauses)}
+                articleId="clauses"
+              />
+            </div>
 
             {/*
               The 64ch measure is a grid track from lg, but below it the column had
@@ -179,7 +164,7 @@ export function LegalPage({
               tablet. Same measure, stated twice, because only one of the two ways
               of saying it is in force at a time.
             */}
-            <div className="min-w-0 max-w-[64ch] lg:max-w-none">
+            <div id="clauses" className="min-w-0 max-w-[64ch] lg:max-w-none">
               <ol className="border-t border-[var(--m-line)]">
                 {clauses.map((clause, i) => (
                   <Reveal

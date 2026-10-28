@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { faqLd, pageMeta, serviceLd } from '@/lib/marketing/seo';
-import { guidesForTool } from '@/lib/guides';
+import { guidesForTool, visibleGuides } from '@/lib/guides';
+import { toCard } from '@/components/marketing/guides/summary';
+import { FaqAccordion } from '@/components/marketing/rich/FaqAccordion';
+import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
+import { Odometer } from '@/components/marketing/play/Odometer';
+import { Tilt } from '@/components/marketing/motion';
 import { notFound } from 'next/navigation';
 import { ArrowRight, Check, CircleDashed, Hammer } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -104,9 +109,7 @@ export default async function AgentPage({ params }: Params) {
                 </div>
               </Rise>
 
-              <Rise delay={110}>
-                <h1 className="m-display mt-6 t-h1">{agent.name}</h1>
-              </Rise>
+              <MotionTitle className="mt-6 t-h1" delay={110} lines={[[{ text: agent.name }]]} />
 
               <Rise delay={160}>
                 <p className="m-dim mt-6 max-w-xl t-4 sm:t-5">{agent.summary}</p>
@@ -313,16 +316,30 @@ export default async function AgentPage({ params }: Params) {
           <Container wide>
             <Reveal>
               <Eyebrow>Guides</Eyebrow>
+              <h2 className="m-display s-settle mt-4 t-h3">Read how it works, by hand.</h2>
             </Reveal>
-            <ul className="mt-6 grid gap-4 md:grid-cols-2">
-              {guidesForTool(agent.slug).map((g) => (
-                <li key={g.slug}>
-                  <Link href={`/guides/${g.slug}`} className="m-card block h-full rounded-2xl px-5 py-5 transition hover:-translate-y-0.5">
-                    <p className="t-4 font-semibold text-[var(--m-ink)]">{g.title}</p>
-                    <p className="m-dim-2 mt-2 t-3">{g.lead}</p>
-                  </Link>
-                </li>
-              ))}
+            <ul className="mt-8 grid gap-4 md:grid-cols-2">
+              {guidesForTool(agent.slug).map((g) => {
+                const c = toCard(g, visibleGuides().indexOf(g));
+                return (
+                  <Reveal as="li" key={g.slug}>
+                    <Tilt max={4} className="h-full">
+                      <Link href={`/guides/${g.slug}`} className="g-card m-card relative block h-full overflow-hidden rounded-[1.75rem] p-6 sm:p-7">
+                        <span className="m-eyebrow" style={{ color: c.colorText }}>
+                          Guide {c.n} · {c.minutes} min
+                        </span>
+                        <p className="m-display mt-4 t-h3 tabular-nums" style={{ color: c.colorText }}>
+                          <Odometer value={c.figure.value} />
+                        </p>
+                        <p className="m-dim-2 mt-1 t-2">{c.figure.label}</p>
+                        <p className="m-display mt-5 t-5 text-[var(--m-ink)]">{g.title}</p>
+                        <p className="m-dim-2 mt-2 t-3">{g.lead}</p>
+                        <span aria-hidden className="g-foot-line absolute inset-x-0 bottom-0 h-1" style={{ background: c.color }} />
+                      </Link>
+                    </Tilt>
+                  </Reveal>
+                );
+              })}
             </ul>
           </Container>
         </Section>
@@ -336,15 +353,8 @@ export default async function AgentPage({ params }: Params) {
               <Eyebrow>Questions</Eyebrow>
               <h2 className="m-display mt-4 t-h3">What people ask first.</h2>
             </Reveal>
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
-              {agent.faq.map((f, i) => (
-                <Reveal key={f.q} delay={Math.min(i, 4) * 40}>
-                  <div className="m-card h-full rounded-2xl px-5 py-5">
-                    <h3 className="t-4 font-semibold text-[var(--m-ink)]">{f.q}</h3>
-                    <p className="m-dim-2 mt-2 t-3">{f.a}</p>
-                  </div>
-                </Reveal>
-              ))}
+            <div className="mt-8 max-w-3xl">
+              <FaqAccordion faq={agent.faq} />
             </div>
           </Container>
         </Section>
