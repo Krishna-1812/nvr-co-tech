@@ -7,6 +7,7 @@ import { ContentsRail } from './rich/ContentsRail';
 import { MotionTitle } from './rich/MotionTitle';
 import type { Crumb } from '@/lib/marketing/seo';
 import type { SceneMotif } from '@/components/ui/Scene';
+import type { Clause } from '@/lib/marketing/legal';
 
 /**
  * The shape both /privacy and /terms are built from.
@@ -35,11 +36,7 @@ import type { SceneMotif } from '@/components/ui/Scene';
  * can send.
  */
 
-export type Clause = {
-  title: string;
-  /** One paragraph, or several. An array renders as separate paragraphs. */
-  body: string | string[];
-};
+export type { Clause };
 
 /** An id a person could plausibly have typed, from a heading. */
 export const slug = (title: string): string =>

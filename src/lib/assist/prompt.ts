@@ -138,11 +138,14 @@ export function sourcesOf(hits: Hit[]): Source[] {
  * long chat from growing without bound; the character count catches the one turn
  * where somebody pasted a ledger in.
  */
-export function trimHistory(turns: Ask['turns']): Ask['turns'] {
-  let kept = turns.slice(-MAX_HISTORY_TURNS);
+export function trimHistory(
+  turns: Ask['turns'],
+  { maxTurns = MAX_HISTORY_TURNS, maxChars = MAX_HISTORY_CHARS }: { maxTurns?: number; maxChars?: number } = {},
+): Ask['turns'] {
+  let kept = turns.slice(-maxTurns);
 
   let size = kept.reduce((n, t) => n + t.content.length, 0);
-  while (kept.length > 1 && size > MAX_HISTORY_CHARS) {
+  while (kept.length > 1 && size > maxChars) {
     size -= kept[0].content.length;
     kept = kept.slice(1);
   }

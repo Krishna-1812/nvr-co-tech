@@ -6,7 +6,7 @@ import { ASSIST_SLUG, type Section } from '@/lib/nav';
 import { SOLUTIONS } from '@/lib/solutions';
 import { UserMenu } from '../UserMenu';
 import { buttonClass } from '../ui/primitives';
-import { AssistPanel } from '../assist/AssistPanel';
+import { AskButton } from '../chat/AskButton';
 import { CommandPalette } from './CommandPalette';
 import { HomeCrumb } from './HomeCrumb';
 import { SignInButton } from '../access/SignInButton';
@@ -113,9 +113,7 @@ export function TopBar({
             which one that is. Not offered on its own page, where the whole screen
             is already it.
           */}
-          {user && section.slug !== ASSIST_SLUG && (
-            <AssistPanel agent={section.slug} agentName={section.name} />
-          )}
+          {user && section.slug !== ASSIST_SLUG && <AskButton />}
 
           {/* Only where the rail is not there to carry it. The same button twice
               on one screen is one too many. */}

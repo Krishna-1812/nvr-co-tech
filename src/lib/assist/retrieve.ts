@@ -107,102 +107,123 @@ function indexDoc(doc: Doc): Indexed {
   return { doc, terms, length };
 }
 
-const INDEX: Indexed[] = DOCS.map(indexDoc);
-
 /**
- * Inverse document frequency, computed once.
+ * An index over one set of documents.
  *
- * The +1s are the usual smoothing, and they matter more than usual in a corpus
- * this small: without them a term appearing in every document would score zero
- * and a term appearing in none would divide by zero.
+ * A factory, because there are two corpora: the signed-in assistant's own
+ * documents, which retrieve.test pins down one question at a time,
+ * and the same documents with the public site's pages added (lib/assist/site),
+ * which the chat on every page reads from. Each gets its own term weights, since
+ * a word's rarity depends on which documents it is rare among.
  */
-const IDF = new Map<string, number>();
-for (const entry of INDEX) {
-  for (const term of entry.terms.keys()) IDF.set(term, (IDF.get(term) ?? 0) + 1);
-}
-for (const [term, docs] of IDF) {
-  IDF.set(term, Math.log(1 + INDEX.length / (1 + docs)));
-}
+export function createIndex(docs: Doc[]) {
+  const INDEX: Indexed[] = docs.map(indexDoc);
 
-/** The mean document length, for the length normalisation below. */
-const AVG_LENGTH = INDEX.reduce((sum, e) => sum + e.length, 0) / Math.max(INDEX.length, 1);
-
-/**
- * How much a document is favoured for belonging to the tool the reader is
- * looking at.
- *
- * Multiplicative rather than additive, so it reorders documents that are already
- * relevant instead of dragging in an irrelevant one. Somebody sitting inside
- * Ledger Reconciliation asking "how do I start" means that tool, but somebody in
- * there asking about GST does not want a reconciliation answer, and an additive
- * bonus would have given them one.
- */
-const AGENT_BOOST = 1.6;
-
-/** Below this a document is noise, and a wrong document is worse than none. */
-const FLOOR = 0.35;
-
-export function retrieve(
-  query: string,
-  { agent = null, limit = 6 }: { agent?: string | null; limit?: number } = {},
-): Hit[] {
-  const terms = tokenise(query);
-  if (terms.length === 0) return [];
-
-  // The same term twice in a question is emphasis, and counting it twice is the
-  // honest reading of that.
-  const wanted = new Map<string, number>();
-  for (const term of terms) wanted.set(term, (wanted.get(term) ?? 0) + 1);
-
-  const hits: Hit[] = [];
-
+  /**
+   * Inverse document frequency, computed once.
+   *
+   * The +1s are the usual smoothing, and they matter more than usual in a corpus
+   * this small: without them a term appearing in every document would score zero
+   * and a term appearing in none would divide by zero.
+   */
+  const IDF = new Map<string, number>();
   for (const entry of INDEX) {
-    let score = 0;
-
-    for (const [term, asked] of wanted) {
-      const found = entry.terms.get(term);
-      if (!found) continue;
-
-      /*
-       * Saturating term frequency, as BM25 does it. The tenth mention of
-       * "reconciliation" in a document about reconciliation says nothing the
-       * third did not, and without saturation the longest document wins every
-       * query that touches its subject.
-       */
-      const tf = found / (found + 1.2 * (0.25 + 0.75 * (entry.length / AVG_LENGTH)));
-      score += (IDF.get(term) ?? 0) * tf * asked;
-    }
-
-    if (score <= 0) continue;
-    if (agent && entry.doc.agent === agent) score *= AGENT_BOOST;
-    hits.push({ doc: entry.doc, score });
+    for (const term of entry.terms.keys()) IDF.set(term, (IDF.get(term) ?? 0) + 1);
+  }
+  for (const [term, docs] of IDF) {
+    IDF.set(term, Math.log(1 + INDEX.length / (1 + docs)));
   }
 
-  hits.sort((a, b) => b.score - a.score || a.doc.id.localeCompare(b.doc.id));
+  /** The mean document length, for the length normalisation below. */
+  const AVG_LENGTH = INDEX.reduce((sum, e) => sum + e.length, 0) / Math.max(INDEX.length, 1);
 
-  const best = hits[0]?.score ?? 0;
-  return hits.filter((h) => h.score >= Math.max(FLOOR, best * 0.18)).slice(0, limit);
+  /**
+   * How much a document is favoured for belonging to the tool the reader is
+   * looking at.
+   *
+   * Multiplicative rather than additive, so it reorders documents that are already
+   * relevant instead of dragging in an irrelevant one. Somebody sitting inside
+   * Ledger Reconciliation asking "how do I start" means that tool, but somebody in
+   * there asking about GST does not want a reconciliation answer, and an additive
+   * bonus would have given them one.
+   */
+  const AGENT_BOOST = 1.6;
+
+  /** Below this a document is noise, and a wrong document is worse than none. */
+  const FLOOR = 0.35;
+
+  function retrieve(
+    query: string,
+    { agent = null, limit = 6 }: { agent?: string | null; limit?: number } = {},
+  ): Hit[] {
+    const terms = tokenise(query);
+    if (terms.length === 0) return [];
+
+    // The same term twice in a question is emphasis, and counting it twice is the
+    // honest reading of that.
+    const wanted = new Map<string, number>();
+    for (const term of terms) wanted.set(term, (wanted.get(term) ?? 0) + 1);
+
+    const hits: Hit[] = [];
+
+    for (const entry of INDEX) {
+      let score = 0;
+
+      for (const [term, asked] of wanted) {
+        const found = entry.terms.get(term);
+        if (!found) continue;
+
+        /*
+         * Saturating term frequency, as BM25 does it. The tenth mention of
+         * "reconciliation" in a document about reconciliation says nothing the
+         * third did not, and without saturation the longest document wins every
+         * query that touches its subject.
+         */
+        const tf = found / (found + 1.2 * (0.25 + 0.75 * (entry.length / AVG_LENGTH)));
+        score += (IDF.get(term) ?? 0) * tf * asked;
+      }
+
+      if (score <= 0) continue;
+      if (agent && entry.doc.agent === agent) score *= AGENT_BOOST;
+      hits.push({ doc: entry.doc, score });
+    }
+
+    hits.sort((a, b) => b.score - a.score || a.doc.id.localeCompare(b.doc.id));
+
+    const best = hits[0]?.score ?? 0;
+    return hits.filter((h) => h.score >= Math.max(FLOOR, best * 0.18)).slice(0, limit);
+  }
+
+  /**
+   * The tool the reader is inside, always included.
+   *
+   * Retrieval answers "what is this question about"; this answers "what is on
+   * their screen". They are different questions, and the second one has a right
+   * answer that does not depend on how the first was worded. Without this, "how do
+   * I use this" inside Ledger Reconciliation retrieves nothing useful, because
+   * neither "use" nor "this" is a word.
+   */
+  function retrieveWithContext(
+    query: string,
+    { agent = null, limit = 6 }: { agent?: string | null; limit?: number } = {},
+  ): Hit[] {
+    const hits = retrieve(query, { agent, limit });
+    if (!agent) return hits;
+    if (hits.some((h) => h.doc.agent === agent)) return hits;
+
+    const overview = INDEX.find((e) => e.doc.id === `agent-${agent}`);
+    if (!overview) return hits;
+
+    return [{ doc: overview.doc, score: 0 }, ...hits].slice(0, limit);
+  }
+
+  return { retrieve, retrieveWithContext };
 }
 
-/**
- * The tool the reader is inside, always included.
- *
- * Retrieval answers "what is this question about"; this answers "what is on
- * their screen". They are different questions, and the second one has a right
- * answer that does not depend on how the first was worded. Without this, "how do
- * I use this" inside Ledger Reconciliation retrieves nothing useful, because
- * neither "use" nor "this" is a word.
- */
-export function retrieveWithContext(
-  query: string,
-  { agent = null, limit = 6 }: { agent?: string | null; limit?: number } = {},
-): Hit[] {
-  const hits = retrieve(query, { agent, limit });
-  if (!agent) return hits;
-  if (hits.some((h) => h.doc.agent === agent)) return hits;
+const DOCS_INDEX = createIndex(DOCS);
 
-  const overview = INDEX.find((e) => e.doc.id === `agent-${agent}`);
-  if (!overview) return hits;
+/** Retrieval over the assistant's own documents. */
+export const retrieve = DOCS_INDEX.retrieve;
 
-  return [{ doc: overview.doc, score: 0 }, ...hits].slice(0, limit);
-}
+/** The same, with the tool on screen always included. See the note inside createIndex. */
+export const retrieveWithContext = DOCS_INDEX.retrieveWithContext;

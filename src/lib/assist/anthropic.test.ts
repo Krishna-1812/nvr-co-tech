@@ -284,6 +284,121 @@ describe('running a tool', () => {
   });
 });
 
+describe('what goes back to the model after a tool round', () => {
+  it('returns its thinking, signature and all, ahead of its calls', async () => {
+    /*
+     * A model that thought before it asked for a calculator has to be shown
+     * that thinking again, untouched, with the call it led to. Leaving it out
+     * is refused, which used to end any answer that needed a calculator
+     * whenever the model chose to think first.
+     */
+    const thought = [
+      messageStart(),
+      blockStart(0, { type: 'thinking', thinking: '', signature: '' }),
+      { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: 'Split it.' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: 'sig-abc' } },
+      blockStop(0),
+      blockStart(1, { type: 'text' }),
+      textDelta(1, 'Working it out. '),
+      blockStop(1),
+      blockStart(2, { type: 'tool_use', id: 'call_1', name: 'gst_split' }),
+      jsonDelta(2, JSON.stringify({ taxable_value: 100_000, rate_percent: 18, inter_state: false })),
+      blockStop(2),
+      messageDelta('tool_use'),
+      messageStop(),
+    ];
+    const { sent } = serve(thought, says('₹9,000 each.'));
+
+    const events = await collect();
+    expect(textOf(events)).toBe('Working it out. ₹9,000 each.');
+
+    const second = messagesOf(sent[1]);
+    expect(second[1]).toEqual({
+      role: 'assistant',
+      content: [
+        { type: 'thinking', thinking: 'Split it.', signature: 'sig-abc' },
+        { type: 'text', text: 'Working it out. ' },
+        {
+          type: 'tool_use',
+          id: 'call_1',
+          name: 'gst_split',
+          input: { taxable_value: 100_000, rate_percent: 18, inter_state: false },
+        },
+      ],
+    });
+  });
+
+  it('returns redacted thinking as it came', async () => {
+    const frames = [
+      messageStart(),
+      blockStart(0, { type: 'redacted_thinking', data: 'opaque' }),
+      blockStop(0),
+      blockStart(1, { type: 'tool_use', id: 'a', name: 'financial_year' }),
+      jsonDelta(1, '{"date":"2026-04-01"}'),
+      blockStop(1),
+      messageDelta('tool_use'),
+      messageStop(),
+    ];
+    const { sent } = serve(frames, says('25-26'));
+    await collect();
+
+    expect(messagesOf(sent[1])[1].content).toEqual([
+      { type: 'redacted_thinking', data: 'opaque' },
+      { type: 'tool_use', id: 'a', name: 'financial_year', input: { date: '2026-04-01' } },
+    ]);
+  });
+});
+
+describe('what a caller may change', () => {
+  it('sends the model, the ceiling and the effort it is given', async () => {
+    const { sent } = serve(says('ok'));
+    for await (const event of runAssist('be brief', [{ role: 'user', content: 'hi' }], undefined, {
+      model: 'some-model',
+      maxTokens: 1234,
+      effort: 'low',
+    })) {
+      void event;
+    }
+
+    expect(sent[0].model).toBe('some-model');
+    expect(sent[0].max_tokens).toBe(1234);
+    expect(sent[0].output_config).toEqual({ effort: 'low' });
+  });
+
+  it('sends no effort when none is asked for', async () => {
+    const { sent } = serve(says('ok'));
+    await collect();
+    expect(sent[0]).not.toHaveProperty('output_config');
+  });
+
+  it('passes instruction blocks through with their cache marker', async () => {
+    const system = [
+      { type: 'text' as const, text: 'everything that never changes', cache_control: { type: 'ephemeral' as const } },
+      { type: 'text' as const, text: 'the page they are on' },
+    ];
+    const { sent } = serve(says('ok'));
+    for await (const event of runAssist(system, [{ role: 'user', content: 'hi' }])) void event;
+
+    expect(sent[0].system).toEqual(system);
+  });
+
+  it('holds to a smaller calculator budget when given one', async () => {
+    const { sent } = serve(
+      wants([{ id: 'x', name: 'financial_year' }]),
+      wants([{ id: 'y', name: 'financial_year' }]),
+      says('Done.'),
+    );
+    const events: AssistEvent[] = [];
+    for await (const event of runAssist('x', [{ role: 'user', content: 'hi' }], undefined, { toolRounds: 1 })) {
+      events.push(event);
+    }
+
+    expect(tracesOf(events)).toHaveLength(1);
+    expect(sent).toHaveLength(3);
+    expect(JSON.stringify(messagesOf(sent[2]).at(-1)?.content)).toMatch(/No more calculations are allowed/);
+  });
+});
+
 describe('the loop always ends', () => {
   it('stops a model that only ever asks for tools', async () => {
     const { calls } = serve(wants([{ id: 'x', name: 'financial_year' }]));

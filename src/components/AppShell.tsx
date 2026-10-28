@@ -12,6 +12,9 @@ import { Toasts } from './app/Toasts';
 import { ThemeColor } from './app/ThemeColor';
 import { RouteStage } from './app/RouteStage';
 import { Play } from './marketing/play/Play';
+import { ChatDock } from './chat/ChatDock';
+import { AGENTS } from '@/lib/marketing/content';
+import { OPEN_TOOLS } from '@/lib/access';
 
 type Props = {
   /** Null for a visitor using the open workspace without an account. */
@@ -116,6 +119,21 @@ export async function AppShell({ user, admin = false, section: given, children }
 
       {/* One place for the whole signed-in side, and never on the public site. */}
       <Toasts />
+
+      {/*
+        The chat in the corner. Signed in, it is the assistant that knows the
+        tool on screen and keeps a history; a visitor in the open workspace
+        gets the public chat, which keeps nothing. Not on /ask, which is it.
+      */}
+      <ChatDock
+        mode={user ? 'member' : 'visitor'}
+        skin="app"
+        placement="app"
+        agent={AGENTS.some((a) => a.slug === section.slug) ? section.slug : null}
+        agentName={AGENTS.some((a) => a.slug === section.slug) ? section.name : null}
+        firstName={user?.full_name?.trim().split(/\s+/)[0] || null}
+        open={OPEN_TOOLS}
+      />
 
       {/* The public site's delegated motion, pointed at the app's own targets:
           buttons that flood from the pointer, labels marked data-decode, and

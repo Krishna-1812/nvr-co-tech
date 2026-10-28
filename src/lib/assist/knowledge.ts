@@ -2,8 +2,19 @@ import { AGENTS, JOBS, LIVE_AGENTS, STAGE_LABEL, TDS_SECTIONS } from '@/lib/mark
 import { ROLE_META, USER_ROLES } from '@/lib/domain/workflow';
 import { assistSection, landedSection, reconSection, voucherSection, wealthSection, willSection } from '@/lib/nav';
 import { willMakerPublic } from '@/lib/will/flag';
+import { LOCKED_TOOLS, OPEN_TOOLS } from '@/lib/access';
 
 const LIVE_COUNT = LIVE_AGENTS.length;
+
+/** The roster names of some slugs, in roster order, leaving out any not on it. */
+function namesOf(slugs: readonly string[]): string[] {
+  return AGENTS.filter((a) => slugs.includes(a.slug)).map((a) => a.name);
+}
+
+/** "A, B and C". */
+function listOf(names: readonly string[]): string {
+  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+}
 
 /**
  * What the assistant is allowed to know.
@@ -265,14 +276,19 @@ const WRITTEN: Doc[] = [
             'it were available is the single worst thing it can do.',
           ]),
       '',
-      'The workspace (the hub, at /hub) is open to anybody, with no account. Two of',
-      'the live tools, True Property Cost and Wealth Tracker, can be used by anybody,',
-      'signed in or not. The other four (Voucher Desk, Ledger Reconciliation,',
-      'Valuation Desk and Contact Finder) are used by our own team, and anybody else',
-      'can see what each one does and request access from its page; a person replies.',
-      'Signing in does not open more tools. What it does is save your work in True',
-      'Property Cost and Wealth Tracker to your account, so it is not lost with the',
-      'browser and is there on your other devices.',
+      // Named from lib/access, which is what actually opens and locks them: this
+      // said "the other four" for as long as it took a fifth to be added.
+      'The workspace (the hub, at /hub) is open to anybody, with no account.',
+      `Open to anybody, signed in or not, free of charge: ${listOf(namesOf(OPEN_TOOLS))}.`,
+      'Used by our own team, and open to others on request:',
+      `${listOf(namesOf(LOCKED_TOOLS))}.`,
+      'Anybody can see what each of those does and ask for access from its page;',
+      'a person reads every request and replies.',
+      'Signing in does not open more tools. What it does is save your work in the',
+      'open tools to your account, so it is not lost with the browser and is there',
+      'on your other devices.',
+      'The site publishes no prices. Anybody asking about cost for the locked tools should',
+      'request access or book a walkthrough at /contact, where nothing is charged for a trial.',
     ].join('\n'),
   },
   {
@@ -282,8 +298,6 @@ const WRITTEN: Doc[] = [
     kind: 'platform',
     keywords: ['security', 'privacy', 'gdpr', 'upload', 'server', 'storage', 'confidential'],
     body: [
-      'The application and its database both run in Mumbai.',
-      '',
       'Ledger Reconciliation is the strictest case, because the files are client bank',
       'statements. Both ledgers are read inside your own browser and are never',
       'uploaded. The engine that matches them runs there too. The only thing that',
@@ -304,7 +318,9 @@ const WRITTEN: Doc[] = [
       'What you type to this assistant is sent to Anthropic, and answered by Claude. Do',
       'not paste anything into it that you would not send to a third party. It is not',
       'given a connection to your vouchers, your ledgers or your history, so it cannot',
-      'read your records even if you ask it to.',
+      'read your records even if you ask it to. A visitor who is not signed in has their',
+      'conversation kept only in that browser tab; we do not keep it. Signed in, each',
+      'conversation is saved to your account, at /ask/history, and can be deleted there.',
     ].join('\n'),
   },
   {

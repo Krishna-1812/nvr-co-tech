@@ -15,7 +15,8 @@ import {
   trimHistory,
 } from '@/lib/assist/prompt';
 import { checkRate } from '@/lib/assist/ratelimit';
-import { retrieveWithContext } from '@/lib/assist/retrieve';
+import { SITE_INDEX } from '@/lib/assist/site';
+import { readTurns } from '@/lib/assist/turns';
 import { saveExchange } from '@/lib/assist/store';
 import type { AssistEvent, ToolTrace, TurnNote } from '@/lib/assist/types';
 import { logServerError } from '@/lib/errors/server';
@@ -44,8 +45,6 @@ type Body = {
   conversationId?: unknown;
 };
 
-type Turn = { role: 'user' | 'assistant'; content: string };
-
 /**
  * The most turns one request may carry.
  *
@@ -55,47 +54,6 @@ type Turn = { role: 'user' | 'assistant'; content: string };
  * may get before it is refused rather than parsed.
  */
 const MAX_POSTED_TURNS = 400;
-
-/**
- * Read the conversation out of the body, or say why it cannot be.
- *
- * The browser is the only thing that posts here today, which is exactly why this
- * is thorough: the reason to validate is not that a user might send something
- * strange, it is that a bug in the composer should fail here with a sentence
- * rather than three seconds later inside a model request that has already been
- * paid for.
- */
-function readTurns(body: Body): { turns: Turn[] } | { error: string } {
-  if (!Array.isArray(body.turns) || body.turns.length === 0) {
-    return { error: 'No question was sent.' };
-  }
-  if (body.turns.length > MAX_POSTED_TURNS) {
-    return { error: 'That conversation is too long to carry on. Start a new one.' };
-  }
-
-  const turns: Turn[] = [];
-  for (const raw of body.turns) {
-    if (!raw || typeof raw !== 'object') return { error: 'That conversation could not be read.' };
-    const { role, content } = raw as { role?: unknown; content?: unknown };
-    if (role !== 'user' && role !== 'assistant') {
-      return { error: 'That conversation could not be read.' };
-    }
-    if (typeof content !== 'string') return { error: 'That conversation could not be read.' };
-    turns.push({ role, content });
-  }
-
-  const last = turns[turns.length - 1];
-  if (last.role !== 'user' || !last.content.trim()) {
-    return { error: 'No question was sent.' };
-  }
-  if (last.content.length > MAX_QUESTION_CHARS) {
-    return {
-      error: `That question is too long. The limit is ${MAX_QUESTION_CHARS.toLocaleString('en-IN')} characters.`,
-    };
-  }
-
-  return { turns };
-}
 
 /** One event, as an SSE frame. */
 function frame(event: AssistEvent): string {
@@ -125,7 +83,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Body | null;
   if (!body) return NextResponse.json({ error: 'That request could not be read.' }, { status: 400 });
 
-  const read = readTurns(body);
+  const read = readTurns(body.turns, { maxQuestionChars: MAX_QUESTION_CHARS, maxPostedTurns: MAX_POSTED_TURNS });
   if ('error' in read) return NextResponse.json({ error: read.error }, { status: 400 });
 
   const rate = checkRate(user.id);
@@ -153,8 +111,12 @@ export async function POST(request: Request) {
    * Retrieval runs on the question, not on the whole conversation, with the
    * previous question prepended when the current one is too short to stand up on
    * its own. See retrievalQuery for why.
+   *
+   * Over the whole site, not only the tools' own documents, so a question about
+   * a guide, the privacy policy or how to book a walkthrough finds the page that
+   * answers it (lib/assist/site).
    */
-  const hits = retrieveWithContext(retrievalQuery(turns), { agent });
+  const hits = SITE_INDEX.retrieveWithContext(retrievalQuery(turns), { agent });
   const sources = sourcesOf(hits);
 
 

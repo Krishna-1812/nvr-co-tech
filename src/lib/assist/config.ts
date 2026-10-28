@@ -75,3 +75,61 @@ export const RATE_WINDOW_MS = 5 * 60 * 1000;
 
 /** How long a single answer may take before the request is abandoned. */
 export const REQUEST_TIMEOUT_MS = 90_000;
+
+// ─── The public chat ─────────────────────────────────────────────────────────
+
+/*
+ * The chat on the public site and for visitors in the open workspace, which
+ * answers anybody, signed in or not (app/api/chat). Its limits are tighter than
+ * the signed-in assistant's for the reason that route gives: nobody has to
+ * prove who they are to spend this key, so every one of these is part of what
+ * keeps a stranger from running up the bill.
+ */
+
+/**
+ * The model for the public chat. The signed-in assistant's unless a deployment
+ * names another, so one setting moves both and a second can split them.
+ */
+export const CHAT_MODEL = process.env.ANTHROPIC_CHAT_MODEL?.trim() || MODEL;
+
+/**
+ * How hard the public chat thinks before it answers. Low, because the reader is
+ * watching an empty bubble until it starts, and a question about this website
+ * is answered from the knowledge it is handed rather than worked out. Set the
+ * variable to an empty string to send no effort at all (for a model that does
+ * not take one).
+ */
+export const CHAT_EFFORT = process.env.ANTHROPIC_CHAT_EFFORT ?? 'low';
+
+/** A question to a website's chat is a sentence or two, not a ledger. */
+export const CHAT_MAX_QUESTION_CHARS = 1_000;
+
+/** The most turns a visitor's request may carry before it is refused unread. */
+export const CHAT_MAX_POSTED_TURNS = 60;
+
+/** What is carried forward of a visitor's conversation. */
+export const CHAT_MAX_HISTORY_TURNS = 10;
+export const CHAT_MAX_HISTORY_CHARS = 8_000;
+
+/**
+ * The ceiling on one answer, thinking included. Answers are asked to be short;
+ * this is room for the thinking before one, not an invitation to length.
+ */
+export const CHAT_MAX_OUTPUT_TOKENS = 4_000;
+
+/** Calculator rounds per question. Two covers "split this, then total it". */
+export const CHAT_TOOL_ROUNDS = 2;
+
+/** Questions per visitor (by address) per window. */
+export const CHAT_RATE_LIMIT = 12;
+export const CHAT_RATE_WINDOW_MS = 10 * 60 * 1000;
+
+/**
+ * Questions per server instance per hour, from everybody together.
+ *
+ * The per-visitor limit stops one person; this stops many, or one with many
+ * addresses. Like the others it counts in one instance's memory, so the real
+ * ceiling scales with how many are warm, which is the right shape for a guard
+ * whose job is to make a runaway bill impossible rather than to meter usage.
+ */
+export const CHAT_HOURLY_BUDGET = 400;
