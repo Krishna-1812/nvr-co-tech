@@ -19,6 +19,7 @@ import { RosterMeter } from './RosterMeter';
 import { SolutionCard } from './SolutionCard';
 import { remaining } from './AskCard';
 import { SignInButton } from '../access/SignInButton';
+import { SectionHead } from '@/components/hub/SectionHead';
 
 /**
  * The workspace for everybody who is not a platform admin: a visitor with no
@@ -282,21 +283,6 @@ function LockedCard({ solution }: { solution: Solution }) {
   );
 }
 
-function SectionHead({ id, count, title, note }: { id: string; count: number; title: string; note: string }) {
-  return (
-    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="surface-sunken a-inner grid h-9 min-w-9 place-items-center rounded-xl border px-2 text-[15px] font-semibold tracking-tight tabular-nums">
-          {count}
-        </span>
-        <h2 id={id} className="m-display text-[1.45rem] leading-tight">
-          {title}
-        </h2>
-      </div>
-      <p className="text-subtle text-[12px] text-pretty">{note}</p>
-    </div>
-  );
-}
 
 const SM_SPAN = { 1: 'sm:col-span-1', 2: 'sm:col-span-2' } as const;
 const LG_SPAN = { 1: 'lg:col-span-1', 2: 'lg:col-span-2', 3: 'lg:col-span-3' } as const;

@@ -17,7 +17,7 @@ export function Accounts({ accounts, people, now }: { accounts: AdminAccountRow[
   const byKey = new Map(people.map((p) => [p.key, p]));
   return (
     <div className="scroll-x-hint overflow-x-auto">
-      <table className="w-full min-w-[44rem] text-left text-[13px]">
+      <table className="w-rows w-full min-w-[44rem] text-left text-[13px]">
         <thead className="surface-sunken">
           <tr className="a-label">
             <th className="px-5 py-2.5 font-medium sm:px-6">Account</th>

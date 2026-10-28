@@ -32,6 +32,7 @@ import { HeroChip, HeroStat, ToolHero } from '@/components/ui/ToolHero';
 import { IntroCurtain } from '@/components/marketing/play/IntroCurtain';
 import { myFeatureRequests } from '@/app/actions/access';
 import { OpenHub } from '@/components/hub/OpenHub';
+import { SectionHead } from '@/components/hub/SectionHead';
 
 export const metadata: Metadata = { title: 'Workspace' };
 
@@ -840,37 +841,6 @@ export default async function HubPage() {
           </li>
         </ul>
       </section>
-    </div>
-  );
-}
-
-/**
- * The heading over each half of the screen: a count in a tile, the title in
- * the display face, and one line saying what is under it. Local because the
- * hub is the only screen with two grids of tools to tell apart.
- */
-function SectionHead({
-  id,
-  count,
-  title,
-  note,
-}: {
-  id: string;
-  count: number;
-  title: string;
-  note: string;
-}) {
-  return (
-    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="surface-sunken a-inner grid h-9 min-w-9 place-items-center rounded-xl border px-2 text-[15px] font-semibold tracking-tight tabular-nums">
-          {count}
-        </span>
-        <h2 id={id} className="m-display text-[1.45rem] leading-tight">
-          {title}
-        </h2>
-      </div>
-      <p className="text-subtle text-[12px] text-pretty">{note}</p>
     </div>
   );
 }

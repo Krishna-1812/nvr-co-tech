@@ -45,7 +45,7 @@ export function Statement({ statement }: { statement: StatementData }) {
       />
 
       <CardBody className="px-0 py-0">
-        <table className="w-full text-sm">
+        <table className="w-rows w-full text-sm">
           <tbody>
             {/* Where it starts. */}
             <BalanceRow
