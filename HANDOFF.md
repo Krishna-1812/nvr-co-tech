@@ -1309,6 +1309,17 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   floating notes naming the open tools (from `OPEN_TOOLS`), and a sun climbs behind the card
   (`.a-sunrise`). CSS block "Sign in and sign up" at the end of globals.css. To see them in preview
   mode, set the cookie `tfi-preview-as=guest` (the proxy otherwise sends preview to /hub).
+- **Workspace** (28 Oct 2026): the signed-in app already had letter-set heroes, rolling figures and
+  the curtain between screens; this adds the public site's card and chip gestures, mostly through
+  shared pieces so every tool gets them. `DataTable` (and the raw tables in admin Accounts, Contact
+  Finder results, the reconciliation statement and Tax Notice Watch) carry `.w-rows`: the first 14
+  body rows rise in. Every `Input`/`Textarea`/`Select` sends one ring out on focus (`.w-control`).
+  `CardTitle`'s icon tile tips when its card is hovered (`.w-tile`). `EmptyState`'s icon drifts and
+  its light breathes. The hub's live tool cards tilt slightly and draw a bar of the tool's colour
+  along the foot on hover. The hub's two section headings are one shared `hub/SectionHead` that
+  plays when scrolled to (count pops, letters rise, rule draws). The voucher status filters have one
+  tint that slides between pills (`.w-pill`). CSS block "WORKSPACE" at the end of globals.css; all of
+  it is off under reduced motion and hides nothing without scripting.
 - **Owner steps:** Search Console → add a *Domain* property (DNS TXT, covers apex and www) or a URL
   prefix for `https://www.thefinanceintelligence.com/` with `GOOGLE_SITE_VERIFICATION`; submit
   `/sitemap.xml`. Same in Bing Webmaster Tools (can import from Search Console).

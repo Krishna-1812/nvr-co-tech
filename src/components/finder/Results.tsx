@@ -428,7 +428,7 @@ function ResultTable({
 
   return (
     <div className="surface-lit a-ring overflow-x-auto rounded-3xl">
-      <table className="w-full min-w-[52rem] text-sm">
+      <table className="w-rows w-full min-w-[52rem] text-sm">
         <thead>
           <tr className="border-b bg-[color-mix(in_oklab,var(--surface-sunken)_60%,transparent)]">
             <th className="w-9 px-3 py-2" />

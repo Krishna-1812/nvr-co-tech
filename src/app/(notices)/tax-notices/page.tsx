@@ -195,7 +195,7 @@ export default async function NoticesPage() {
             ))}
           </ul>
           <div className="hidden overflow-x-auto sm:block">
-            <table className="w-full min-w-[36rem] text-left text-[13px]">
+            <table className="w-rows w-full min-w-[36rem] text-left text-[13px]">
               <thead className="surface-sunken">
                 <tr className="a-label">
                   <th className="px-5 py-2.5 font-medium sm:px-6">Started</th>

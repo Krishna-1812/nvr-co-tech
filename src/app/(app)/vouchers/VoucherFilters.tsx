@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, useRef, type CSSProperties } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input, Select } from '@/components/ui/primitives';
 import { STATUS_TONE } from '@/components/StatusBadge';
@@ -17,6 +17,12 @@ import { cn } from '@/lib/utils';
  * without opening — and the coloured dot on each pill is the same dot as the badge
  * on the rows it filters to, so the connection needs no explaining. A select hid
  * all of that behind a click and told you nothing until you opened it.
+ *
+ * The tint under the chosen pill is one shape that slides from pill to pill
+ * and changes colour on the way, as the topic chips on the public guides page
+ * do, so a change of filter is seen to move rather than to blink. Until the
+ * page has measured the pills (the server's HTML, or scripting off) the chosen
+ * pill carries the tint itself.
  */
 export function VoucherFilters({
   chapters,
@@ -55,6 +61,29 @@ export function VoucherFilters({
   const chapter = params.get('chapter') ?? '';
   const query = params.get('q') ?? '';
   const filtered = Boolean(query || status || chapter);
+
+  const row = useRef<HTMLDivElement>(null);
+  const [pill, setPill] = useState<{ x: number; y: number; w: number; h: number; tone: string } | null>(null);
+
+  useLayoutEffect(() => {
+    const place = () => {
+      const el = row.current?.querySelector<HTMLElement>('[aria-pressed="true"]');
+      setPill(
+        el
+          ? {
+              x: el.offsetLeft,
+              y: el.offsetTop,
+              w: el.offsetWidth,
+              h: el.offsetHeight,
+              tone: el.dataset.tone ?? 'var(--color-brand-500)',
+            }
+          : null,
+      );
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [status]);
 
   return (
     <div className="surface-lit a-ring overflow-hidden rounded-3xl">
@@ -106,14 +135,22 @@ export function VoucherFilters({
         Scrolls rather than wraps below sm. Seven pills wrapping to three rows
         makes the toolbar taller than the first row of the table it is filtering.
       */}
-      <div className="scroll-x-hint flex gap-1.5 overflow-x-auto border-t px-3 py-2.5 sm:px-4">
-        <Pill active={!status} onClick={() => apply({ status: '' })}>
+      <div ref={row} className="scroll-x-hint relative flex gap-1.5 overflow-x-auto border-t px-3 py-2.5 sm:px-4">
+        {pill && (
+          <span
+            aria-hidden
+            className="w-pill tinted pointer-events-none absolute rounded-full border"
+            style={{ '--tone': pill.tone, left: pill.x, top: pill.y, width: pill.w, height: pill.h } as CSSProperties}
+          />
+        )}
+        <Pill active={!status} measured={pill !== null} onClick={() => apply({ status: '' })}>
           All
         </Pill>
         {statuses.map((s) => (
           <Pill
             key={s.value}
             active={status === s.value}
+            measured={pill !== null}
             tone={STATUS_TONE[s.value as VoucherStatus]}
             onClick={() => apply({ status: status === s.value ? '' : s.value })}
           >
@@ -132,11 +169,14 @@ export function VoucherFilters({
  */
 function Pill({
   active,
+  measured,
   tone,
   onClick,
   children,
 }: {
   active: boolean;
+  /** The sliding tint is in place, so the chosen pill leaves the fill to it. */
+  measured: boolean;
   tone?: string;
   onClick: () => void;
   children: React.ReactNode;
@@ -146,10 +186,16 @@ function Pill({
       type="button"
       onClick={onClick}
       aria-pressed={active}
+      data-tone={tone}
       style={tone ? ({ '--tone': tone } as CSSProperties) : undefined}
       className={cn(
-        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition',
-        active && tone
+        'relative inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition',
+        active && measured
+          ? cn(
+              'border-transparent font-semibold',
+              tone ? 'text-[color-mix(in_oklab,var(--tone)_82%,var(--text-c))]' : 'text-brand-700 dark:text-brand-200',
+            )
+          : active && tone
           ? 'tinted font-semibold'
           : active
             ? 'border-brand-500 bg-brand-50 font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-200'

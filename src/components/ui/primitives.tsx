@@ -170,7 +170,7 @@ export function CardTitle({
         {icon && (
           <span
             aria-hidden
-            className="surface-sunken text-muted a-inner grid size-9 shrink-0 place-items-center rounded-xl border"
+            className="w-tile surface-sunken text-muted a-inner grid size-9 shrink-0 place-items-center rounded-xl border"
           >
             {icon}
           </span>
@@ -192,11 +192,15 @@ export function CardTitle({
  * the recycle bin. Those four had drifted apart on padding and header casing;
  * the point of centralising it is that a financial system should look like it
  * counts the same way everywhere.
+ *
+ * `w-rows`: the body rows settle in one after another when the table first
+ * paints, the first dozen or so, and a row added later arrives the same way.
+ * Quick, and only on arrival, because this is read all day.
  */
 export function DataTable({ className, ...props }: ComponentProps<'table'>) {
   return (
     <div className="scroll-x-hint overflow-x-auto">
-      <table className={cn('w-full text-left text-sm', className)} {...props} />
+      <table className={cn('w-rows w-full text-left text-sm', className)} {...props} />
     </div>
   );
 }
@@ -360,7 +364,7 @@ export function Field({
  * From `lg` the 14px density is exactly what it always was.
  */
 const CONTROL =
-  'w-full rounded-lg border bg-[var(--surface-raised)] px-3 py-2 text-base transition lg:text-sm ' +
+  'w-control w-full rounded-lg border bg-[var(--surface-raised)] px-3 py-2 text-base transition lg:text-sm ' +
   'shadow-[var(--elev-1)] placeholder:text-[var(--text-subtle)] ' +
   'hover:border-[var(--border-strong)] ' +
   'focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 ' +
@@ -488,9 +492,9 @@ export function EmptyState({
         <div className="text-subtle relative mb-5">
           <span
             aria-hidden
-            className="absolute inset-0 -z-10 m-auto size-24 rounded-full bg-[radial-gradient(circle,var(--color-brand-500),transparent_70%)] opacity-15 blur-2xl"
+            className="w-breathe absolute inset-0 -z-10 m-auto size-24 rounded-full bg-[radial-gradient(circle,var(--color-brand-500),transparent_70%)] opacity-15 blur-2xl"
           />
-          <span className="a-ring surface-sunken grid size-14 place-items-center rounded-2xl border">
+          <span className="w-float a-ring surface-sunken grid size-14 place-items-center rounded-2xl border">
             {icon}
           </span>
         </div>

@@ -3488,3 +3488,82 @@ html[data-sky='night'] .m-stars { opacity: 0.85; }
   .a-float { animation: a-pop-in 0.7s cubic-bezier(0.2, 0.9, 0.25, 1.3) backwards, a-bob 5s ease-in-out var(--fd, 0s) infinite; }
   .a-sunrise { animation: a-sunrise 2.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s backwards; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+ * WORKSPACE — the public site's richer motion, brought into the signed-in app
+ *
+ * Hooks on the shared pieces (tables, inputs, card tiles, empty states) so
+ * every tool picks them up at once, and a few for the workspace itself. All
+ * of it plays on arrival or under the pointer, never while somebody is typing
+ * or reading, and none of it hides anything under reduced motion.
+ * ════════════════════════════════════════════════════════════════════════ */
+
+@keyframes w-row-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes w-pop { 0% { opacity: 0; transform: scale(0.6) rotate(-10deg); } 60% { opacity: 1; transform: scale(1.1) rotate(3deg); } }
+@keyframes w-halo {
+  from { outline: 2px solid color-mix(in oklab, var(--color-brand-500) 55%, transparent); outline-offset: 0; }
+  to   { outline: 2px solid transparent; outline-offset: 7px; }
+}
+@keyframes w-bob { 50% { transform: translateY(-5px) rotate(-2deg); } }
+@keyframes w-breathe { 50% { transform: scale(1.18); opacity: 0.26; } }
+
+/* The colour bar along a live tool card's foot. Shown outright with motion off. */
+.w-foot { transform-origin: left; transform: scaleX(0); }
+.group:hover .w-foot, .group:focus-within .w-foot { transform: scaleX(1); }
+
+/* The heading over each group of cards on the workspace (hub/SectionHead). */
+.w-head[data-w='armed'] .m-ch,
+.w-head[data-w='armed'] .w-count { opacity: 0; }
+.w-head[data-w='armed'] .w-rule { transform: scaleX(0); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Table rows settle in one after another; past the first fourteen they are
+     below the fold of any screen this runs on, and simply appear. */
+  .w-rows > tbody > tr:nth-child(-n + 14) { animation: w-row-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .w-rows > tbody > tr:nth-child(1) { animation-delay: 60ms; }
+  .w-rows > tbody > tr:nth-child(2) { animation-delay: 88ms; }
+  .w-rows > tbody > tr:nth-child(3) { animation-delay: 116ms; }
+  .w-rows > tbody > tr:nth-child(4) { animation-delay: 144ms; }
+  .w-rows > tbody > tr:nth-child(5) { animation-delay: 172ms; }
+  .w-rows > tbody > tr:nth-child(6) { animation-delay: 200ms; }
+  .w-rows > tbody > tr:nth-child(7) { animation-delay: 228ms; }
+  .w-rows > tbody > tr:nth-child(8) { animation-delay: 256ms; }
+  .w-rows > tbody > tr:nth-child(9) { animation-delay: 284ms; }
+  .w-rows > tbody > tr:nth-child(10) { animation-delay: 312ms; }
+  .w-rows > tbody > tr:nth-child(11) { animation-delay: 340ms; }
+  .w-rows > tbody > tr:nth-child(12) { animation-delay: 368ms; }
+  .w-rows > tbody > tr:nth-child(13) { animation-delay: 396ms; }
+  .w-rows > tbody > tr:nth-child(14) { animation-delay: 424ms; }
+
+  /* A field taking focus sends one ring out from its edge, then keeps the
+     steady one it always had. */
+  .w-control:focus { animation: w-halo 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* A card's icon tile answers the pointer on the card. */
+  .w-tile { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .surface-lit:hover .w-tile, .group:hover .w-tile { transform: scale(1.08) rotate(-6deg); }
+
+  .w-foot { transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* The sliding tint under the chosen filter (vouchers/VoucherFilters). */
+  .w-pill {
+    transition:
+      left 0.5s cubic-bezier(0.34, 1.3, 0.64, 1),
+      top 0.5s cubic-bezier(0.34, 1.3, 0.64, 1),
+      width 0.5s cubic-bezier(0.34, 1.3, 0.64, 1),
+      height 0.5s ease,
+      background-color 0.35s ease,
+      border-color 0.35s ease;
+  }
+
+  .w-head[data-w='in'] .m-ch {
+    animation: p-ch-rise 0.65s cubic-bezier(0.2, 1, 0.3, 1) backwards;
+    animation-delay: calc(140ms + min(var(--i), 30) * 24ms);
+  }
+  .w-head[data-w='in'] .w-count { animation: w-pop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+  .w-head[data-w='in'] .w-rule { transform-origin: left; animation: p-draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) 0.35s backwards; }
+
+  /* An empty state's icon drifts, and the light behind it breathes. */
+  .w-float { animation: w-bob 5.5s ease-in-out 0.6s infinite; }
+  .w-breathe { animation: w-breathe 5.5s ease-in-out 0.6s infinite; }
+}
