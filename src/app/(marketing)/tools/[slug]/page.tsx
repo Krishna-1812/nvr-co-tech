@@ -65,6 +65,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return pageMeta({ title: agent.search.title, description: agent.search.description, path: `/tools/${agent.slug}` });
 }
 
+/** Tool pages that leave out "The case for it", at the owner's request. */
+const NO_CASE = new Set(['voucher-desk']);
+
 export default async function AgentPage({ params }: Params) {
   const agent = agentBySlug((await params).slug);
   if (!agent) notFound();
@@ -214,40 +217,44 @@ export default async function AgentPage({ params }: Params) {
         it reads as what it is, the argument, and the hero's arch is free to
         hold the picture.
       */}
-      <Section>
-        <Container wide>
-          <Reveal>
-            <figure className="m-card relative overflow-hidden rounded-[2rem] px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
-              <span
-                aria-hidden
-                className="m-arch absolute -right-10 -bottom-10 hidden h-80 w-56 opacity-[0.14] md:block"
-                style={{ background: accent }}
-              />
-              <span
-                aria-hidden
-                className="m-sun absolute top-10 right-24 hidden size-16 opacity-80 md:block"
-                style={{ '--sun-from': '40px' } as React.CSSProperties}
-              />
+      {/* Not on every page: the owner took it off Voucher Desk's (29 Oct).
+          The pitch is still the tool's, in llms-full and the assistant. */}
+      {!NO_CASE.has(agent.slug) && (
+        <Section>
+          <Container wide>
+            <Reveal>
+              <figure className="m-card relative overflow-hidden rounded-[2rem] px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+                <span
+                  aria-hidden
+                  className="m-arch absolute -right-10 -bottom-10 hidden h-80 w-56 opacity-[0.14] md:block"
+                  style={{ background: accent }}
+                />
+                <span
+                  aria-hidden
+                  className="m-sun absolute top-10 right-24 hidden size-16 opacity-80 md:block"
+                  style={{ '--sun-from': '40px' } as React.CSSProperties}
+                />
 
-              <div className="relative max-w-4xl">
-                <div className="flex items-center gap-3.5">
-                  <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
-                  <Eyebrow>The case for it</Eyebrow>
+                <div className="relative max-w-4xl">
+                  <div className="flex items-center gap-3.5">
+                    <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
+                    <Eyebrow>The case for it</Eyebrow>
+                  </div>
+                  <blockquote className="mt-7">
+                    <p className="m-display t-6 !leading-[1.3] text-[var(--m-ink)] sm:t-7 lg:t-8">
+                      {agent.pitch}
+                    </p>
+                  </blockquote>
+                  <figcaption className="m-mono m-dim-2 mt-9 flex items-center gap-3 t-1 t-caps uppercase">
+                    <span aria-hidden className="m-arch h-5 w-4" style={{ background: accent }} />
+                    {agent.name} · {agent.category}
+                  </figcaption>
                 </div>
-                <blockquote className="mt-7">
-                  <p className="m-display t-6 !leading-[1.3] text-[var(--m-ink)] sm:t-7 lg:t-8">
-                    {agent.pitch}
-                  </p>
-                </blockquote>
-                <figcaption className="m-mono m-dim-2 mt-9 flex items-center gap-3 t-1 t-caps uppercase">
-                  <span aria-hidden className="m-arch h-5 w-4" style={{ background: accent }} />
-                  {agent.name} · {agent.category}
-                </figcaption>
-              </div>
-            </figure>
-          </Reveal>
-        </Container>
-      </Section>
+              </figure>
+            </Reveal>
+          </Container>
+        </Section>
+      )}
 
       <Section>
         <Container wide>
