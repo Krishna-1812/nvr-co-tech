@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react';
 import type React from 'react';
 import { usePathname } from 'next/navigation';
-import { agentBySlug } from '@/lib/marketing/content';
-import { ACCENT, ON_ACCENT } from '../bits';
 
 /**
  * The transition between public pages.
@@ -19,8 +17,8 @@ import { ACCENT, ON_ACCENT } from '../bits';
  * navigations, never on the first page of a visit: the server-rendered page is
  * painted as it arrives, with nothing clipping or covering it, so the first
  * impression and the largest paint are never held up by a transition. The
- * first page has the opening sequence (IntroCurtain) on the home page, and the
- * hero's own entrances everywhere else.
+ * first page of a visit has only its hero's own entrances (the home page's
+ * opening sequence went on 29 Oct, for the same reason).
  *
  * `entering` is decided at render from a flag the first mount sets, so the
  * server render and the hydrating render agree (both false) and every later
@@ -54,18 +52,15 @@ export function PageCurtain({
    */
   scope?: 'site' | 'tools' | 'guides';
   /**
-   * The doors for the guides' own template, by slug: a guide arrives through a
-   * door in its tool's colour with its title on it. Passed in by the template,
-   * a server component, so no guide's text has to be bundled here to find it.
+   * The doors, by path: a tool or a guide arrives through a door in its tool's
+   * colour with its name on it. Passed in by the template, a server component,
+   * so neither the roster nor any guide's text has to be bundled here.
    */
   doors?: Record<string, { name: string; color: string; on: string }>;
 }) {
   const [entering] = useState(() => mounted);
   const path = usePathname() ?? '';
-  const agent = agentBySlug(/^\/tools\/([^/]+)\/?$/.exec(path)?.[1] ?? '');
-  const tool = agent
-    ? { name: agent.name, color: ACCENT[agent.accent], on: ON_ACCENT[agent.accent] }
-    : doors?.[/^\/guides\/([^/]+)\/?$/.exec(path)?.[1] ?? ''];
+  const tool = doors?.[path.replace(/\/+$/, '')];
 
   useEffect(() => {
     mounted = true;

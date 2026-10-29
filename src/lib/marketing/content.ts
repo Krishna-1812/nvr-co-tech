@@ -12,6 +12,9 @@
 
 import { FAQ } from '@/lib/will/faq';
 import { willMakerPublic } from '@/lib/will/flag';
+import { BRAND, CONTACT, NAV, STAGE_LABEL, type AgentStage, type ToolBrief } from './brand';
+
+export { BRAND, CONTACT, NAV, STAGE_LABEL, type AgentStage, type ToolBrief };
 
 /**
  * Absolute origin of the public site.
@@ -64,19 +67,6 @@ export const HOME_SEARCH = {
  */
 export const PROFILES: readonly string[] = [];
 
-export const BRAND = {
-  /** The platform. */
-  name: 'The Finance Intelligence',
-  /** Shortened for tight spaces (nav mark, footer). */
-  short: 'FI',
-  tagline: 'AI tools for finance teams',
-  /** One sentence, used in metadata and the footer. */
-  blurb:
-    'Tools that take care of the routine parts of finance work and keep a clear record of who approved what, and when.',
-} as const;
-
-export type AgentStage = 'live' | 'building' | 'planned';
-
 export type Agent = {
   slug: string;
   name: string;
@@ -113,11 +103,6 @@ export type Agent = {
   search: { title: string; description: string };
 };
 
-export const STAGE_LABEL: Record<AgentStage, string> = {
-  live: 'Live',
-  building: 'In build',
-  planned: 'On the roadmap',
-};
 
 /**
  * The roster.
@@ -590,6 +575,16 @@ export function agentBySlug(slug: string): Agent | undefined {
   return AGENTS.find((a) => a.slug === slug);
 }
 
+/** The roster as client components are given it (brand.ts `ToolBrief`). */
+export function toolBriefs(list: readonly Agent[] = AGENTS): ToolBrief[] {
+  return list.map((a) => ({ slug: a.slug, name: a.name, category: a.category, stage: a.stage, ...(a.href ? { href: a.href } : {}) }));
+}
+
+/** The finance month as the home page's calendar shows it: without the assistant's notes. */
+export function calendarJobs(): Pick<Job, 'id' | 'when' | 'day' | 'title' | 'now' | 'good'>[] {
+  return JOBS.map(({ id, when, day, title, now, good }) => ({ id, when, ...(day ? { day } : {}), title, now, good }));
+}
+
 /**
  * A tool's questions as its page asks them: "What is …?" first, answered with
  * its definition, then its own. The first question is the one most often put
@@ -601,13 +596,6 @@ export function toolFaq(agent: Agent): readonly { q: string; a: string }[] {
   return agent.definition ? [{ q: `What is ${agent.name}?`, a: agent.definition }, ...own] : own;
 }
 
-/** Primary navigation for the public site. */
-export const NAV = [
-  { href: '/tools', label: 'Tools' },
-  { href: '/guides', label: 'Guides' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
-] as const;
 
 /*
  * The format strip that used to live here is gone, and with it the FORMATS
@@ -776,10 +764,6 @@ export const STAGE_NOTE: Record<AgentStage, string> = {
  * yet — `security` is the same address for now, kept as its own field so it
  * moves to a real one later without touching every call site.
  */
-export const CONTACT = {
-  email: 'team@thefinanceintelligence.com',
-  security: 'team@thefinanceintelligence.com',
-} as const;
 
 /**
  * What happens after a walkthrough is booked on /contact, as four stops on a

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { BRAND } from '@/lib/marketing/content';
+import { BRAND } from '@/lib/marketing/brand';
 import { Letters } from './Letters';
 import { Springy } from './Springy';
 import { reducedMotion, subscribe, subscribeSpeed, useInView } from '../scroll';

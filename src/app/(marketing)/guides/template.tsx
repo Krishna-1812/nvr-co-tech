@@ -11,7 +11,7 @@ export default function GuidesTemplate({ children }: { children: React.ReactNode
   const doors = Object.fromEntries(
     visibleGuides().map((g, i) => {
       const c = toCard(g, i);
-      return [g.slug, { name: g.title, color: c.color, on: c.onColor }];
+      return [`/guides/${g.slug}`, { name: g.title, color: c.color, on: c.onColor }];
     }),
   );
   return (

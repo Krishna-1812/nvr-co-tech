@@ -1,4 +1,6 @@
 import { PageCurtain } from '@/components/marketing/play/PageCurtain';
+import { ACCENT, ON_ACCENT } from '@/components/marketing/bits';
+import { AGENTS } from '@/lib/marketing/content';
 
 /**
  * The page transition for everything under /tools.
@@ -10,5 +12,13 @@ import { PageCurtain } from '@/components/marketing/play/PageCurtain';
  * (or the bands, for the roster). See PageCurtain.
  */
 export default function ToolsTemplate({ children }: { children: React.ReactNode }) {
-  return <PageCurtain scope="tools">{children}</PageCurtain>;
+  // Each tool arrives through its own door; built here so the roster stays on the server.
+  const doors = Object.fromEntries(
+    AGENTS.map((a) => [`/tools/${a.slug}`, { name: a.name, color: ACCENT[a.accent], on: ON_ACCENT[a.accent] }]),
+  );
+  return (
+    <PageCurtain scope="tools" doors={doors}>
+      {children}
+    </PageCurtain>
+  );
 }

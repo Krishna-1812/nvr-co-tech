@@ -89,7 +89,7 @@ export default function GuidesPage() {
                   </span>
                 </LineRise>
               </Springy>
-              <Rise delay={320}>
+              <Rise delay={320} solid>
                 <p className="m-dim mt-7 max-w-xl t-4 sm:t-5">
                   Each guide answers one question people search for, in plain words, with a worked
                   example in rupees you can check line by line. Then it points to the tool that

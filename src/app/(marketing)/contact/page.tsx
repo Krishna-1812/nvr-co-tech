@@ -5,7 +5,7 @@ import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
 import { StepRail } from '@/components/marketing/rich/StepRail';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { pageMeta, profilePageLd } from '@/lib/marketing/seo';
-import { CONTACT, WALKTHROUGH_STEPS } from '@/lib/marketing/content';
+import { CONTACT, WALKTHROUGH_STEPS, toolBriefs } from '@/lib/marketing/content';
 import { ArchScene, Container, Eyebrow, Rise, Section, SectionHeading } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { Reveal } from '@/components/marketing/Reveal';
@@ -57,7 +57,7 @@ export default function ContactPage() {
             lines={[[{ text: 'Book a' }, { text: 'walkthrough.', mark: true }]]}
           />
 
-          <Rise delay={120}>
+          <Rise delay={120} solid>
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
               Half an hour with the people who built it, using the tool that is actually running.
               Tell us which part of your month is the worst and we will show you whether we have
@@ -71,7 +71,7 @@ export default function ContactPage() {
         <Container wide>
           <div className="grid gap-8 lg:grid-cols-[1.35fr_1fr] lg:gap-14">
             <Reveal>
-              <RequestForm />
+              <RequestForm tools={toolBriefs()} />
             </Reveal>
 
             <div className="space-y-4">

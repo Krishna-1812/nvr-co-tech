@@ -92,7 +92,7 @@ export default function AboutPage() {
             lines={[[{ text: 'Accountants' }, { text: 'building their own tools.', tint: true }]]}
           />
 
-          <Rise delay={120}>
+          <Rise delay={120} solid>
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
               {BRAND.name} is built by chartered accountants. Everything here started out as work we
               were doing by hand, for clients, against deadlines. These tools exist because the

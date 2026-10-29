@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { NAV } from '@/lib/marketing/content';
+import { NAV } from '@/lib/marketing/brand';
 import { Container } from './bits';
 import { Logo } from './Logo';
 import { ScrollProgressBar } from './motion';

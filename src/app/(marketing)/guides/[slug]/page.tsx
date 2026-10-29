@@ -104,7 +104,7 @@ export default async function GuidePage({ params }: Params) {
                   <Letters text={guide.title} />
                 </LineRise>
               </Springy>
-              <Rise delay={200}>
+              <Rise delay={200} solid>
                 <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">{guide.lead}</p>
               </Rise>
               <Rise delay={280}>

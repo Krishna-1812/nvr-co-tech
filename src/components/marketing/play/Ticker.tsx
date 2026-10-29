@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
-import { LIVE_AGENTS } from '@/lib/marketing/content';
+import type { ToolBrief } from '@/lib/marketing/brand';
 import { subscribeSpeed } from '../scroll';
 
 /**
@@ -27,7 +27,7 @@ import { subscribeSpeed } from '../scroll';
  * is what makes the loop seamless. The second copy is hidden from assistive
  * technology and from the keyboard, so the list is read once.
  */
-export function Ticker() {
+export function Ticker({ tools }: { tools: readonly ToolBrief[] }) {
   const track = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,14 +46,14 @@ export function Ticker() {
       className="m-ticker relative overflow-hidden border-y border-[var(--m-line)] bg-[var(--m-bg)] py-5 sm:py-6"
     >
       <div ref={track} className="m-ticker-track flex w-max">
-        <Row />
-        <Row copy />
+        <Row tools={tools} />
+        <Row tools={tools} copy />
       </div>
     </section>
   );
 }
 
-function Row({ copy = false }: { copy?: boolean }) {
+function Row({ tools, copy = false }: { tools: readonly ToolBrief[]; copy?: boolean }) {
   return (
     <ul
       className="flex shrink-0 items-center"
@@ -61,16 +61,16 @@ function Row({ copy = false }: { copy?: boolean }) {
     >
       {/* Twice inside each copy as well, so even on a wide screen one copy is
           wider than the viewport and the loop never shows its seam. */}
-      {[...LIVE_AGENTS, ...LIVE_AGENTS].map((a, k) => {
-        const echo = copy || k >= LIVE_AGENTS.length;
+      {[...tools, ...tools].map((a, k) => {
+        const echo = copy || k >= tools.length;
         // The loop's repeats are drawn from data-n (.m-n), so the roster is in
         // the page's text once rather than four times over.
         const word = (text: string) => (echo ? { 'data-n': text, children: null } : { children: text });
         return (
-          <li key={`${a.slug}-${k}`} className="flex items-center" aria-hidden={k >= LIVE_AGENTS.length || undefined}>
+          <li key={`${a.slug}-${k}`} className="flex items-center" aria-hidden={k >= tools.length || undefined}>
             <Link
               href={`/tools/${a.slug}`}
-              tabIndex={k >= LIVE_AGENTS.length ? -1 : undefined}
+              tabIndex={k >= tools.length ? -1 : undefined}
               className="group flex items-baseline gap-3 px-6 whitespace-nowrap sm:px-9"
             >
               <span

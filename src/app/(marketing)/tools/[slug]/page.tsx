@@ -116,7 +116,7 @@ export default async function AgentPage({ params }: Params) {
 
               <MotionTitle className="mt-6 t-h1" delay={110} lines={[[{ text: agent.name }]]} />
 
-              <Rise delay={160}>
+              <Rise delay={160} solid>
                 <p className="m-dim mt-6 max-w-xl t-4 sm:t-5">{agent.summary}</p>
               </Rise>
 

@@ -1,25 +1,27 @@
 'use client';
 
 import { useEffect } from 'react';
-import { BRAND } from '@/lib/marketing/content';
+import { BRAND } from '@/lib/marketing/brand';
 import { LogoMark } from '../Logo';
 import { Letters } from './Letters';
 
 /**
- * The opening sequence: the first time someone arrives on the home page in a
- * session, the name drops in over four bands of the desert's colours, and then
- * the bands lift off the page like a blind going up, uncovering the hero as
- * its lines rise.
+ * The workspace's welcome: once per session after signing in, a greeting by
+ * name drops in over four bands of the desert's colours, and then the bands
+ * lift off the page like a blind going up, uncovering the hub as its lines
+ * rise.
  *
- * The signed-in workspace (/hub) has its own, once per session after signing
- * in: the same bands, with a greeting by name in place of the brand. Each has
- * its own storage key, so seeing one does not use up the other.
+ * The public home page opened the same way until 29 Oct, with the brand in
+ * place of the greeting. It was taken off for speed: for its second and a half
+ * a first visit saw nothing else, which on a phone held the first sight of the
+ * page back to about 3 seconds. A signed-in reader has already chosen to be
+ * here; a first-time visitor and a search engine's measurements have not.
  *
  * ── Who sees it, and when that is decided ────────────────────────────────
  *
  * The decision is made before first paint, by the inline script in the root
- * layout's <head>: home page, no `tfi-intro` in sessionStorage, not arriving
- * from another page of this site, and no request for reduced motion. If all of
+ * layout's <head>: the hub, no `tfi-welcome` in sessionStorage, and no request
+ * for reduced motion. If all of
  * that holds it sets `data-intro="on"` on <html>, and CSS does the rest. This
  * markup is always rendered and is `display: none` without that attribute, so
  * nobody who should not see it ever gets a frame of it, and nobody who should
