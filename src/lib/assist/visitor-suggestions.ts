@@ -1,4 +1,4 @@
-import { AGENTS, BRAND } from '@/lib/marketing/content';
+import { BRAND, type ToolBrief } from '@/lib/marketing/brand';
 import type { Suggestion } from './suggestions';
 
 /**
@@ -11,14 +11,16 @@ import type { Suggestion } from './suggestions';
  *
  * `open` is the slugs anybody may use, passed down from the server
  * (lib/access) rather than imported here, since this runs in the browser and
- * the access module holds the admins' addresses.
+ * the access module holds the admins' addresses. `tools` is the roster, passed
+ * down for the same reason: content.ts would bring every tool's description
+ * into the browser with it.
  */
-export function visitorSuggestions(path: string, open: readonly string[]): Suggestion[] {
+export function visitorSuggestions(path: string, open: readonly string[], tools: readonly ToolBrief[]): Suggestion[] {
   const clean = path.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
   const toolPage = /^\/tools\/([a-z0-9-]+)$/.exec(clean)?.[1];
-  const inside = AGENTS.find((a) => a.href && (clean === a.href || clean.startsWith(`${a.href}/`)));
-  const agent = AGENTS.find((a) => a.slug === toolPage) ?? inside;
+  const inside = tools.find((a) => a.href && (clean === a.href || clean.startsWith(`${a.href}/`)));
+  const agent = tools.find((a) => a.slug === toolPage) ?? inside;
 
   if (agent) {
     const free = open.includes(agent.slug);

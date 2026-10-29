@@ -51,7 +51,7 @@ export default function GlossaryPage() {
             <Eyebrow>Glossary</Eyebrow>
           </Rise>
           <MotionTitle className="mt-5 max-w-4xl t-h1" lines={[[{ text: 'Every term,' }, { text: 'in a sentence or two.', tint: true }]]} />
-          <Rise delay={120}>
+          <Rise delay={120} solid>
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">
               The words the guides and tools use, defined plainly, {terms.length} of them. Each one
               links to the guide that works it through with an example.

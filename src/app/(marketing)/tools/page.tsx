@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { collectionLd, pageMeta } from '@/lib/marketing/seo';
 import { JsonLd } from '@/components/marketing/JsonLd';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { AGENTS, LIVE_AGENTS, OPEN_NAMES, STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
+import { AGENTS, LIVE_AGENTS, OPEN_NAMES, STAGE_LABEL, toolBriefs, type Agent, type AgentStage } from '@/lib/marketing/content';
 import {
   ACCENT,
   Container,
@@ -90,7 +90,7 @@ export default function AgentsPage() {
                 list the jobs one by one, which dated the page every time a tool
                 was added. The cards below say what each one does.
               */}
-              <Rise delay={320}>
+              <Rise delay={320} solid>
                 <p className="m-dim mt-7 max-w-xl t-4 sm:t-5">
                   Each one takes a routine part of the work off your desk, does the repetitive part, and
                   leaves the decision with you. Pick one to see what it does.
@@ -115,7 +115,7 @@ export default function AgentsPage() {
       </section>
 
       {/* The live tools by name and the kinds of work, sliding apart with the scroll. */}
-      <KineticBand />
+      <KineticBand tools={toolBriefs(LIVE_AGENTS)} />
 
       {/* A "shipping order" rail of all nine, in build order, sat here until
           17 Oct; the owner asked for it to go. The grouped grid below already

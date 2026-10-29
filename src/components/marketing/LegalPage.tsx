@@ -103,7 +103,7 @@ export function LegalPage({
             <Eyebrow>{eyebrow}</Eyebrow>
           </Rise>
           <MotionTitle className="mt-5 max-w-3xl t-h1" lines={[[{ text: title }]]} />
-          <Rise delay={120}>
+          <Rise delay={120} solid>
             <p className="m-dim mt-7 max-w-2xl t-4 sm:t-5">{lead}</p>
           </Rise>
           <Rise delay={170}>

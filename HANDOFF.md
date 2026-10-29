@@ -25,8 +25,10 @@
   five platform admins and everybody else can request access; signing in saves work to an account
   (§4a, migration 0032).
 - **Six tools are live:** Voucher Desk, Ledger Reconciliation, Valuation Desk, Contact Finder,
-  True Property Cost, Wealth Tracker (added 18 Oct, §10b). Four more are roadmap entries (GST
-  Reconciliation, TDS Compliance, Invoice Intake, Audit Copilot) and every page says so. **Ask** (an assistant) is a layer across all tools.
+  True Property Cost, Wealth Tracker (added 18 Oct, §10b). The four roadmap entries (GST
+  Reconciliation, TDS Compliance, Invoice Intake, Audit Copilot) were taken off the site on 28 Oct
+  at the owner's request; do not bring them back as they were. **Ask** (an assistant) is a layer
+  across all tools.
 - **Stack:** Next.js 16.2 App Router (`src/proxy.ts`, not middleware) · React 19.2 · TypeScript ·
   Tailwind v4 · Supabase (Postgres + Auth + Storage, Mumbai) · Vercel (`bom1`, Mumbai) · Vitest ·
   Anthropic Claude for AI features · Apollo.io for Contact Finder.
@@ -41,6 +43,9 @@
   scenes, premium tool heroes) across every page, the new True Property Cost tool, then a
   phone-width audit and a dark-mode audit with fixes. All committed and pushed. Nothing is
   half-done. See §19.
+- **Speed rules (§19d):** nothing under the root layout or the root not-found reads cookies or
+  headers (it makes every public page dynamic); a `'use client'` file never imports
+  `lib/marketing/content.ts`; a page's standfirst uses `<Rise solid>`.
 - **Standing instructions from the owner:** finish the work, then **commit and push without
   asking**. Never fabricate data. Never commit secrets. Stage explicit paths (never `git add -A`).
   Verify UI by actually rendering it. Details in §2.
@@ -729,8 +734,9 @@ never a name) to platform admins; everybody else gets `OpenHub`, which reads `SO
 ### 11a. The chat in the corner, on every page (28 Oct 2026)
 
 The owner asked for a chatbot on the public pages and the signed-in pages that answers questions
-about the website, using the Anthropic key on the server. It is one component,
-`src/components/chat/ChatDock.tsx`, mounted in `PublicShell` (every public page and the 404), the
+about the website, using the Anthropic key on the server. It is `src/components/chat/ChatDock.tsx`
+(since 29 Oct a small shell that draws the launcher and loads the chat itself, `ChatDockFull.tsx`,
+when somebody reaches for it; see §19d), mounted in `PublicShell` (every public page and the 404), the
 auth layout (sign in / sign up / reset), `AppShell` (every tool) and the hub layout. A round button
 bottom-right holds the logo's owl (`ChatOwl`, drawn from `lib/brand/mark`; its pupils follow the
 pointer); it opens a panel with a desert header (the sun behind the owl, two dunes), suggested
@@ -1509,10 +1515,50 @@ say, and what was built from it:
   mentions and links from ICAI branches, CA communities and Reddit/Quora answers (the sources AI
   answers cite most). A *nominee vs legal heir* guide would rank well but is legal content; write
   it only with an advocate's review, like Will Maker.
-- **Not done, worth doing (code):** the home page is the slowest on Lighthouse mobile (perf 79,
-  TBT ~740 ms from hydrating a large DOM; every other page 94–96). Fewer client components on the
-  home page is the fix. The home's one a11y failure in Lighthouse is the intro bars still over the
-  header when it samples, not a real contrast problem.
+- **Done since (29 Oct, §19d):** the home page was the slowest on Lighthouse mobile (perf 79);
+  see §19d for what it was and what fixed it.
+
+## 19d. Speed (29 Oct 2026)
+
+The owner asked for the home page to be faster. Measured with Lighthouse 12 (mobile, simulated
+4× CPU, slow 4G) against a local production build, before → after: home perf 79 → 97 (desktop
+100), Speed Index 3.7–6.3 s live → 1.2 s, TBT ~740 → 40–60 ms; every other public page 84–89 →
+96–97. What it was, biggest first:
+
+- **Every public page was rendered on every request.** The root `app/not-found.tsx` read the
+  session (to give a signed-in person the app's 404), and Next renders the root not-found into
+  every route's payload, so that one cookie read made the whole site dynamic: `private,
+  no-store`, ~0.5 s of server time before the first byte. It is now the public 404 only, and
+  static; `(app)`, `(finder)`, `(recon)` and `(will)` each have their own `not-found.tsx` with the
+  app's 404 (`components/app/AppNotFound.tsx`). Every public page now builds as ○/● and answers
+  from the cache (TTFB ~10 ms locally). **Rule: nothing under the root layout or the root
+  not-found may read cookies/headers**, or the whole public site goes dynamic again; check the
+  route table after `next build` (public routes must be ○ or ●, not ƒ).
+- **The home opening sequence (IntroCurtain) is gone from the home page.** For ~1.5 s it covered
+  the hero, so on a phone nothing readable showed until ~3 s. The hub's welcome still uses it
+  (the head script in `app/layout.tsx` now only sets `data-intro` on `/hub`).
+- **The page's largest text faded in.** A browser counts the standfirst as the main content
+  (LCP) only once it is fully visible, so a 0.7 s fade after a delay put ~1.2 s on every page's
+  score. `Rise solid` (bits.tsx) moves without fading (`rise-solid` keyframes); every page's
+  standfirst uses it. Use it for the largest text block above the fold on any new page.
+- **The roster and the Will FAQ were in the browser bundle.** Client components imported
+  `lib/marketing/content.ts`. Browser-side constants now live in `lib/marketing/brand.ts`
+  (BRAND, NAV, CONTACT, STAGE_LABEL, `ToolBrief`), and server components pass client components
+  what they need as props (`toolBriefs()`, `calendarJobs()`; Ticker, KineticBand, WorkCalendar,
+  RequestForm, the chat's suggestions, PageCurtain's `doors`). **Rule: a `'use client'` file must
+  not import `content.ts`.**
+- **The chat loads when somebody reaches for it.** `ChatDock.tsx` is now a small shell that draws
+  the launcher and loads `ChatDockFull.tsx` on pointer-over/focus/touch, on click (opens it), on
+  ⌘J / `openChat()` (opens it, with the question), or on a desktop after ~6 s idle. Phones wait to
+  be asked. ~25 KB gz off every page's first load.
+- **Tried and rejected:** `experimental.inlineCss`. Next inlines the stylesheet *and* repeats it
+  in the RSC payload, so the home HTML went from 35 KB to 150 KB gzipped; it helped real-throttle
+  FCP (1.8 → 1.4 s) but made PageSpeed's simulated score worse. The stylesheet (39 KB gz, ~1,500
+  Tailwind rules with no single large piece) is the remaining render-blocking request.
+- How to measure: `npx next build && npx next start -p 3311`, then Lighthouse with
+  `CHROME_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`. Ignore the first run after a
+  server start (cold). Compare `observedLargestContentfulPaint` in the JSON with the simulated LCP:
+  if the observed one is ~150 ms the page is fine and the simulated number is network modelling.
 
 ---
 

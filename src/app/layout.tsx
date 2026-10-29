@@ -103,16 +103,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           recorded" and "recorded as system" are different states and a media query
           cannot tell them apart. lib/theme.ts reads the same rule.
 
-          The second statement decides the home page's opening sequence, for
-          the same reason: it has to be known before the first frame, or the
-          hero is painted and then covered. The home page once a session
-          (never when arriving from another page of this site), and the
-          workspace's welcome once a session after signing in; never under
-          reduced motion. See components/marketing/play/IntroCurtain.
+          The second statement decides the workspace's welcome, for the same
+          reason: it has to be known before the first frame, or the page is
+          painted and then covered. Once a session after signing in; never
+          under reduced motion. See components/marketing/play/IntroCurtain.
+          (The public home page had one too until 29 Oct; it went for speed.)
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(!t)d.setAttribute('data-theme','light');else if(t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}try{var d2=document.documentElement,p=location.pathname,k=p==='/'?'tfi-intro':p==='/hub'?'tfi-welcome':'';if(k&&!sessionStorage.getItem(k)&&(p!=='/'||document.referrer.indexOf(location.origin)!==0)&&!matchMedia('(prefers-reduced-motion: reduce)').matches)d2.setAttribute('data-intro','on')}catch(e){}`,
+            __html: `try{var d=document.documentElement,t=localStorage.getItem('theme');if(!t)d.setAttribute('data-theme','light');else if(t!=='system')d.setAttribute('data-theme',t);if(localStorage.getItem('rail')==='collapsed')d.setAttribute('data-rail','collapsed')}catch(e){}try{if(location.pathname==='/hub'&&!sessionStorage.getItem('tfi-welcome')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.setAttribute('data-intro','on')}catch(e){}`,
           }}
         />
         {/*

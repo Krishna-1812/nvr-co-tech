@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { LIVE_AGENTS } from '@/lib/marketing/content';
+import type { ToolBrief } from '@/lib/marketing/brand';
 import { clamp, reducedMotion, subscribe, subscribeSpeed } from '../scroll';
 
 /**
@@ -23,7 +23,7 @@ import { clamp, reducedMotion, subscribe, subscribeSpeed } from '../scroll';
  * so the band is hidden from assistive technology rather than read out as a
  * second, scrambled list.
  */
-export function KineticBand() {
+export function KineticBand({ tools }: { tools: readonly ToolBrief[] }) {
   const band = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,8 +56,8 @@ export function KineticBand() {
     };
   }, []);
 
-  const names = LIVE_AGENTS.map((a) => a.name);
-  const kinds = LIVE_AGENTS.map((a) => a.category);
+  const names = tools.map((a) => a.name);
+  const kinds = tools.map((a) => a.category);
 
   return (
     <div ref={band} aria-hidden className="m-kin relative overflow-hidden py-14 sm:py-20">

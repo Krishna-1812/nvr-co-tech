@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { JOBS } from '@/lib/marketing/content';
+import type { calendarJobs } from '@/lib/marketing/content';
 import { cn } from '@/lib/utils';
 import { ArrowLink, Container, Eyebrow } from '../bits';
 import { Reveal } from '../Reveal';
@@ -32,7 +32,7 @@ const MARK: Record<string, string> = {
   'gst-claim': 'GSTR-3B',
 };
 
-const DATED = JOBS.filter((j) => j.day !== undefined);
+type CalendarJob = ReturnType<typeof calendarJobs>[number];
 
 /** The site's accent, for every job alike; see the note above. */
 const ACCENT = 'var(--m-gold)';
@@ -40,9 +40,10 @@ const ACCENT = 'var(--m-gold)';
 /** Day 1 sits at 0% and day 31 at 100%, which is also how the ticks are placed. */
 const at = (day: number) => `${((day - 1) / 30) * 100}%`;
 
-export function WorkCalendar() {
+/** `jobs` comes from the server (content.ts `calendarJobs`), so the roster is not bundled here. */
+export function WorkCalendar({ jobs }: { jobs: readonly CalendarJob[] }) {
   const [active, setActive] = useState(2);
-  const job = JOBS[active];
+  const job = jobs[active];
 
   return (
     <section id="work" className="relative border-t border-[var(--m-line)] bg-[var(--m-bg-2)] py-20 sm:py-28">
@@ -83,14 +84,14 @@ export function WorkCalendar() {
         </Reveal>
 
         <Reveal delay={70}>
-          <Ruler activeId={job.id} onPick={(id) => setActive(JOBS.findIndex((j) => j.id === id))} />
+          <Ruler jobs={jobs} activeId={job.id} onPick={(id) => setActive(jobs.findIndex((j) => j.id === id))} />
         </Reveal>
 
         <Reveal delay={110}>
           <div className="m-card m-ring mt-10 grid overflow-hidden rounded-3xl lg:grid-cols-[0.92fr_1fr] shadow-[var(--m-shadow)]">
             {/* ── The jobs ── */}
             <ul className="divide-y divide-[var(--m-line)]">
-              {JOBS.map((j, i) => {
+              {jobs.map((j, i) => {
                 const on = i === active;
                 return (
                   <li key={j.id}>
@@ -189,12 +190,13 @@ export function WorkCalendar() {
  * run all month or land at a month, quarter or year end are in the list instead,
  * where they are not pretending to have a date.
  */
-function Ruler({ activeId, onPick }: { activeId: string; onPick: (id: string) => void }) {
+function Ruler({ jobs, activeId, onPick }: { jobs: readonly CalendarJob[]; activeId: string; onPick: (id: string) => void }) {
+  const dated = jobs.filter((j) => j.day !== undefined);
   return (
     <div className="mt-12">
       {/* Shorter where the captions are hidden, so their absence is not a gap. */}
       <div className="relative h-[4.75rem] sm:h-24">
-        {DATED.map((j) => {
+        {dated.map((j) => {
           const on = j.id === activeId;
           const accent = ACCENT;
           return (

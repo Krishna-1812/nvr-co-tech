@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { HOME_FAQ, HOME_SEARCH } from '@/lib/marketing/content';
+import { HOME_FAQ, HOME_SEARCH, LIVE_AGENTS, calendarJobs, toolBriefs } from '@/lib/marketing/content';
 import { faqLd, pageMeta, siteLd } from '@/lib/marketing/seo';
 import { Container, Section, SectionHeading } from '@/components/marketing/bits';
 import { FaqAccordion } from '@/components/marketing/rich/FaqAccordion';
@@ -74,9 +74,9 @@ export default function HomePage() {
       {/* The live tools running past like a station board, leaning into the
           scroll, and lower down the same names in display type sliding past
           each other: motion between the arguments, not in place of one. */}
-      <Ticker />
-      <WorkCalendar />
-      <KineticBand />
+      <Ticker tools={toolBriefs(LIVE_AGENTS)} />
+      <WorkCalendar jobs={calendarJobs()} />
+      <KineticBand tools={toolBriefs(LIVE_AGENTS)} />
       {/* The questions a first visit asks, answered in words an assistant can
           quote, with the same words as FAQ data (HOME_FAQ in content.ts). */}
       <Section>

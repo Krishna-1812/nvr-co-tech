@@ -4,6 +4,7 @@ import { DESERT_FONTS } from '@/lib/brand/fonts';
 import { Play } from './play/Play';
 import { ChatDock } from '@/components/chat/ChatDock';
 import { OPEN_TOOLS } from '@/lib/access';
+import { toolBriefs } from '@/lib/marketing/content';
 
 /**
  * The frame every public page hangs in: the desert skin, the header, the footer,
@@ -78,7 +79,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
 
       {/* The chat in the corner, for anybody: it answers from this website and
           keeps nothing. See components/chat/ChatDock and app/api/chat. */}
-      <ChatDock mode="visitor" skin="desert" placement="site" open={OPEN_TOOLS} />
+      <ChatDock mode="visitor" skin="desert" placement="site" open={OPEN_TOOLS} tools={toolBriefs()} />
 
     </div>
   );

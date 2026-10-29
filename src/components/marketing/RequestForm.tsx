@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ArrowRight, CalendarDays, Check, Mail } from 'lucide-react';
 import { requestAccess } from '@/app/actions/access';
-import { AGENTS, CONTACT, STAGE_LABEL } from '@/lib/marketing/content';
+import { CONTACT, STAGE_LABEL, type ToolBrief } from '@/lib/marketing/brand';
 
 /**
  * The walkthrough request, as a form that actually goes somewhere.
@@ -19,7 +19,8 @@ import { AGENTS, CONTACT, STAGE_LABEL } from '@/lib/marketing/content';
  * lives on the dark public site and the two palettes are deliberately scoped
  * apart.
  */
-export function RequestForm() {
+/** `tools` comes from the contact page (content.ts `toolBriefs`), so the roster is not bundled here. */
+export function RequestForm({ tools }: { tools: readonly ToolBrief[] }) {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
@@ -121,7 +122,7 @@ export function RequestForm() {
           >
             <option value="Not sure yet">Not sure yet</option>
             <option value="Build something custom">Something built for us</option>
-            {AGENTS.map((agent) => (
+            {tools.map((agent) => (
               <option key={agent.slug} value={agent.name}>
                 {agent.name} ({STAGE_LABEL[agent.stage].toLowerCase()})
               </option>

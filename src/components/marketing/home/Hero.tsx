@@ -2,7 +2,6 @@ import { ArrowDown } from 'lucide-react';
 import { CTA, Container, LineRise, Rise } from '../bits';
 import { HeroVisual } from './HeroVisual';
 import { HeroStage } from '../play/HeroStage';
-import { IntroCurtain } from '../play/IntroCurtain';
 import { Letters } from '../play/Letters';
 import { Springy } from '../play/Springy';
 import { Roost } from '@/components/brand/Owl';
@@ -19,7 +18,14 @@ import { Roost } from '@/components/brand/Owl';
 export function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <IntroCurtain />
+      {/*
+        No opening sequence here any more (29 Oct). The brand used to drop in
+        over four bands that then lifted off the page, and for that second and
+        a half the first visit showed nothing else: on a phone the hero was not
+        visible until about 3 seconds in, which is the number search engines
+        and impatient readers both go by. The hero's own entrances remain.
+        The workspace keeps its welcome (hub), which follows a sign-in.
+      */}
       <HeroBackdrop />
 
       {/* Two, and both in the vertical padding rather than the gutter, because

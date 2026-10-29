@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { BRAND } from '@/lib/marketing/content';
+import { BRAND } from '@/lib/marketing/brand';
 import { BEAK, EYE, HALO, HEAD, INK, RECENTRE, RUPEE, TUFTS, VIEW } from '@/lib/brand/mark';
 
 /**

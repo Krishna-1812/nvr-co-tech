@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { STAGE_LABEL, type Agent, type AgentStage } from '@/lib/marketing/content';
+import { STAGE_LABEL, type AgentStage } from '@/lib/marketing/brand';
+import type { Agent } from '@/lib/marketing/content';
 import { ArchScene as SceneArch, type SceneMotif } from '@/components/ui/Scene';
 
 /**
@@ -101,9 +102,9 @@ export function LineRise({
 
 /**
  * An above-the-fold entrance delay, plus however long the opening sequence is
- * still covering the page. `--intro-wait` is only set while the home page's
- * curtain is up (see play/IntroCurtain), so everywhere else this is the delay
- * as given.
+ * still covering the page. `--intro-wait` is only set while the workspace's
+ * welcome is up (see play/IntroCurtain), so on the public site this is the
+ * delay as given.
  */
 function introDelay(delay: number) {
   return `calc(var(--intro-wait, 0ms) + ${delay}ms)`;
@@ -141,17 +142,30 @@ export function Eyebrow({ children, className }: { children: React.ReactNode; cl
 export function Rise({
   children,
   delay = 0,
+  solid = false,
   className,
   as: Tag = 'div',
 }: {
   children: React.ReactNode;
   delay?: number;
+  /**
+   * Move without fading (rise-solid in globals.css). For a page's standfirst,
+   * the largest block of text above the fold: a browser counts it as the
+   * page's main content (LCP) only once it is fully visible, so a fade put the
+   * end of the animation, a second in, on every page's speed score.
+   */
+  solid?: boolean;
   className?: string;
   as?: 'div' | 'section' | 'li' | 'p' | 'h1';
 }) {
   return (
     <Tag
-      className={cn('animate-[rise_0.7s_cubic-bezier(0.22,1,0.36,1)_backwards]', className)}
+      className={cn(
+        solid
+          ? 'animate-[rise-solid_0.7s_cubic-bezier(0.22,1,0.36,1)_backwards]'
+          : 'animate-[rise_0.7s_cubic-bezier(0.22,1,0.36,1)_backwards]',
+        className,
+      )}
       style={{ animationDelay: introDelay(delay) }}
     >
       {children}
