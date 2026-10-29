@@ -79,10 +79,14 @@ export function pageMeta({
     title: bare ? { absolute: title } : title,
     description,
     // The guides feed, announced from every page so a reader or crawler that
-    // lands anywhere can find it (app/(marketing)/guides/feed.xml).
+    // lands anywhere can find it (app/(marketing)/guides/feed.xml), and the
+    // page's own Markdown copy where it has one (lib/marketing/markdown.ts).
     alternates: {
       canonical: path,
-      types: { 'application/rss+xml': [{ url: '/guides/feed.xml', title: `${BRAND.name}: guides` }] },
+      types: {
+        'application/rss+xml': [{ url: '/guides/feed.xml', title: `${BRAND.name}: guides` }],
+        ...(markdownCopy(path) ? { 'text/markdown': markdownCopy(path) } : {}),
+      },
     },
     openGraph: {
       type: 'website',
@@ -94,6 +98,17 @@ export function pageMeta({
     },
     twitter: { card: 'summary_large_image', title: shown, description },
   };
+}
+
+/**
+ * The address of a public page's Markdown copy (app/md, rewritten from
+ * `<page>.md` in next.config), or null for a page that has none. The pattern is
+ * the rewrites' own: the home page, the three indexes and the glossary, and a
+ * page under tools, guides or calculators.
+ */
+export function markdownCopy(path: string): string | null {
+  if (path === '/') return '/index.md';
+  return /^\/(?:(?:tools|guides|calculators)(?:\/[a-z0-9-]+)?|glossary)$/.test(path) ? `${path}.md` : null;
 }
 
 /** Roughly what a results page shows of a title before it cuts it off. */
@@ -146,7 +161,9 @@ function organization() {
     '@id': ORG_ID,
     name: BRAND.name,
     url: absolute('/'),
-    description: BRAND.blurb,
+    // What it is, as the sentence the footer and the llms files also carry.
+    description: BRAND.definition,
+    disambiguatingDescription: BRAND.blurb,
     slogan: BRAND.tagline,
     email: CONTACT.email,
     address: ADDRESS,
@@ -203,6 +220,9 @@ function localBusiness() {
       'Under-construction property cost and rental yield',
       'Net worth and nominee records',
       'Goods and Services Tax',
+      'Home loan pre-EMI and EMI',
+      'Carpet area and loading under RERA',
+      'EV/EBITDA and enterprise value',
     ],
   };
 }
@@ -398,6 +418,45 @@ export function articleLd(guide: {
         logo: { '@type': 'ImageObject', url: absolute('/brand/icon-512.png') },
       },
       about: { '@id': absolute(`/tools/${guide.tool}#service`) },
+    },
+  ]);
+}
+
+/**
+ * A free calculator, as the web application it is.
+ *
+ * `isAccessibleForFree` and a zero-rupee offer are the plain truth here: every
+ * calculator works in the browser with no account, and nothing about it is
+ * sold. The rest is what the page itself says, word for word: the search
+ * description, and the short answer as the `abstract`.
+ */
+export function calculatorLd(c: {
+  slug: string;
+  name: string;
+  search: { title: string; description: string };
+  answer: string;
+  formulas: readonly string[];
+}) {
+  const url = absolute(`/calculators/${c.slug}`);
+  return graph([
+    {
+      '@type': 'WebApplication',
+      '@id': `${url}#app`,
+      name: c.name,
+      alternateName: c.search.title,
+      description: c.search.description,
+      abstract: c.answer,
+      url,
+      applicationCategory: 'FinanceApplication',
+      applicationSubCategory: 'Calculator',
+      operatingSystem: 'Any (runs in a web browser)',
+      browserRequirements: 'Requires JavaScript',
+      inLanguage: 'en-IN',
+      featureList: c.formulas,
+      isAccessibleForFree: true,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
+      isPartOf: { '@id': SITE_ID },
+      publisher: { '@id': ORG_ID, '@type': 'Organization', name: BRAND.name, url: absolute('/') },
     },
   ]);
 }

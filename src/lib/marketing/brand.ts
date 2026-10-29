@@ -23,6 +23,15 @@ export const BRAND = {
   /** One sentence, used in metadata and the footer. */
   blurb:
     'Tools that take care of the routine parts of finance work and keep a clear record of who approved what, and when.',
+  /**
+   * What it is, as one sentence that names it: the sentence an assistant asked
+   * "what is The Finance Intelligence" should be able to lift whole. Said the
+   * same way everywhere it appears (the footer, the Organization data, the
+   * llms files, the about page), because a name is learned from the sentence
+   * that keeps coming back with it.
+   */
+  definition:
+    'The Finance Intelligence is a set of web tools, free calculators and guides for finance work in India, built by chartered accountants.',
 } as const;
 
 export type AgentStage = 'live' | 'building' | 'planned';
@@ -44,6 +53,7 @@ export type ToolBrief = { slug: string; name: string; category: string; stage: A
 export const NAV = [
   { href: '/tools', label: 'Tools' },
   { href: '/guides', label: 'Guides' },
+  { href: '/calculators', label: 'Calculators' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ] as const;

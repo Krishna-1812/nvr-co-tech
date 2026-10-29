@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Calculator as CalculatorIcon, Clock } from 'lucide-react';
 import { ArrowLink, Container, Eyebrow, LineRise, Rise, Section } from '@/components/marketing/bits';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { JsonLd } from '@/components/marketing/JsonLd';
@@ -19,6 +19,8 @@ import { toCard } from '@/components/marketing/guides/summary';
 import { articleLd, faqLd, pageMeta } from '@/lib/marketing/seo';
 import { BRAND } from '@/lib/marketing/content';
 import { guideBySlug, guideWords, sectionId, visibleGuides, type Block } from '@/lib/guides';
+import { glossary } from '@/lib/guides/glossary';
+import { calculatorForGuide } from '@/lib/calculators';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -54,10 +56,16 @@ export default async function GuidePage({ params }: Params) {
   const next = index < all.length - 1 ? toCard(all[index + 1], index + 1) : null;
 
   const headings = guide.blocks.filter((b): b is Extract<Block, { t: 'h2' }> => b.t === 'h2');
+  // The calculator that does this guide's sum, and the glossary terms that
+  // point here: links both ways, so a reader (and a crawler) can move between
+  // the explanation, the sum and the definitions.
+  const calculator = calculatorForGuide(guide.slug);
+  const terms = glossary().filter((t) => t.guide === guide.slug);
   const sources = guide.sources ?? [];
   const workedExample = headings.some((h) => /worked example/i.test(h.text));
   const sections = [
     ...headings.map((h) => ({ id: sectionId(h.text), label: h.text })),
+    ...(terms.length > 0 ? [{ id: 'terms', label: 'Terms in this guide' }] : []),
     ...(sources.length > 0 ? [{ id: 'sources', label: 'Sources' }] : []),
     { id: 'questions', label: 'Questions' },
   ];
@@ -182,10 +190,49 @@ export default async function GuidePage({ params }: Params) {
                 </div>
               </Reveal>
 
+              {calculator && (
+                <Reveal>
+                  <Link
+                    href={`/calculators/${calculator.slug}`}
+                    className="m-card mt-4 flex items-center gap-4 rounded-2xl px-6 py-5 transition hover:bg-[var(--m-bg-2)]"
+                  >
+                    <CalculatorIcon className="size-6 shrink-0" style={{ color: card.colorText }} aria-hidden />
+                    <span className="min-w-0 flex-1">
+                      <span className="m-eyebrow block">Work it out on your own figures</span>{' '}
+                      <span className="mt-1 block t-4 font-semibold text-[var(--m-ink)]">{calculator.name}</span>
+                    </span>
+                    <ArrowRight className="size-5 shrink-0 text-[var(--m-ink)]" aria-hidden />
+                  </Link>
+                </Reveal>
+              )}
+
               {guide.blocks.map((b, i) => {
                 if (b.t === 'h2') n++;
                 return <GuideBlock key={i} block={b} number={n} color={card.color} />;
               })}
+
+              {terms.length > 0 && (
+                <Reveal>
+                  <section aria-labelledby="terms" className="mt-16">
+                    <h2 id="terms" className="m-display s-settle scroll-mt-28 t-h4">
+                      Terms in this guide
+                    </h2>
+                    <ul className="mt-5 flex flex-wrap gap-2">
+                      {terms.map((t) => (
+                        <li key={t.id}>
+                          <Link
+                            href={`/glossary#${t.id}`}
+                            title={t.definition}
+                            className="m-card inline-block rounded-full px-4 py-2 t-3 font-medium text-[var(--m-ink)] transition hover:bg-[var(--m-bg-2)]"
+                          >
+                            {t.term}
+                          </Link>{' '}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </Reveal>
+              )}
 
               {/*
                 What the guide rests on, linked, so a reader (or an assistant

@@ -136,7 +136,9 @@ roster entry, not a new shell.
 
 ```
 src/app/
-  (marketing)  /  /tools  /tools/[slug]  /about  /contact  /privacy  /terms   → public, light desert skin
+  (marketing)  /  /tools  /tools/[slug]  /guides  /guides/[slug]  /glossary
+               /calculators  /calculators/[slug]  /about  /contact  /privacy  /terms   → public, light desert skin
+  md/[...path] Markdown copies of the public pages, reached as /<page>.md or by Accept: text/markdown (§19e)
   (auth)       /login  /signup  /forgot-password  /reset-password  /onboarding
   (hub)        /hub                         → the workspace; where sign-in lands (AFTER_LOGIN)
   (app)        Voucher Desk: /dashboard  /vouchers  /vouchers/[id]  /vouchers/[id]/edit
@@ -1559,6 +1561,57 @@ The owner asked for the home page to be faster. Measured with Lighthouse 12 (mob
   `CHROME_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`. Ignore the first run after a
   server start (cold). Compare `observedLargestContentfulPaint` in the JSON with the simulated LCP:
   if the observed one is ~150 ms the page is fine and the simulated number is network modelling.
+
+## 19e. Calculators, Markdown copies and the name sentence (29 Oct 2026)
+
+The owner asked for the site to be "super easy for AI crawlers" and to rank at the top of search
+and AI answers. What was built in the same round as §19d:
+
+- **Free calculators** (`/calculators`, `/calculators/[slug]`): rental yield, carpet area and
+  loading, GST on an under-construction flat, pre-EMI vs full EMI, EV/EBITDA. One per published
+  guide whose sum people search for.
+  - The arithmetic is in `lib/calculators/math.ts` (pure, no imports). The fields, opening values
+    and `run()` are in `fields.ts`; the page copy (answer, formulas, FAQ, guide, glossary terms,
+    tool) is in `index.ts`.
+  - The opening values are each guide's own worked example. `calculators.test.ts` recalculates
+    every guide's example through the calculator, to the rupee.
+  - The browser part is `components/marketing/calculators/Calculator.tsx`, server-rendered with
+    the example, so the HTML already carries the answer. Under it, the page writes the example out
+    as a table, with the glossary definitions and the FAQ.
+  - Structured data: `calculatorLd` (WebApplication, `isAccessibleForFree`, zero-rupee offer:
+    true, they are free), FAQPage and BreadcrumbList.
+  - Linked from: the header nav ("Calculators"), a footer column, the guide it belongs to ("Work it
+    out on your own figures"), the tool page, the sitemap, llms.txt, llms-full and the chat's site
+    knowledge (`site-calculators`).
+  - Calculator inputs are captured by the site-wide form analytics like any field (lib/analytics/
+    capture), so the page does **not** claim "nothing leaves your browser".
+- **Markdown copies of every public page for agents.** `lib/marketing/markdown.ts` renders the home
+  page, the tools, guides and calculators indexes and pages, and the glossary from the same
+  constants as the pages. `app/md/[...path]` serves them (static, `text/markdown`, `Link: <page>;
+  rel="canonical"`, `Vary: Accept`).
+  - next.config rewrites `/<page>.md` (the home page is `/index.md`) and the page's own address
+    when asked with `Accept: text/markdown`. Browsers never send that header.
+  - Every page with a copy announces it with `<link rel="alternate" type="text/markdown">`
+    (`pageMeta`, `markdownCopy`). robots.txt disallows `/md/`, the internal address.
+- **One sentence that names the business**, `BRAND.definition` ("The Finance Intelligence is a set
+  of web tools, free calculators and guides for finance work in India, built by chartered
+  accountants."). It appears in the footer, as the Organization `description` (the old blurb is now
+  `disambiguatingDescription`), at the top of llms.txt and llms-full, and at the foot of every
+  Markdown copy. Keep it word for word wherever the business is described, profiles included.
+- **Guides link both ways:** each guide links to its calculator under the short answer, and lists
+  "Terms in this guide" (glossary terms whose guide it is), also in its contents rail.
+- **Form labels no longer scramble** (Play.tsx decode skips anything inside a `<form>`).
+- **AI crawler access checked live on 29 Oct:** GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot,
+  Claude-SearchBot, Claude-User, PerplexityBot, Perplexity-User, Google-Extended, Googlebot,
+  Bingbot, Applebot, meta-externalagent, CCBot, Bytespider, DuckAssistBot, MistralAI-User and YouBot
+  all get 200 with the full text. This was by user agent from here, so a Vercel firewall rule that
+  matches verified bot IPs would not show up. The owner should check the dashboard.
+- **Not done, on purpose:** hreflang. The site is in one language for one country, `lang="en-IN"`
+  and `og:locale en_IN` are set, and hreflang is for alternate-language versions, which there
+  are none of.
+- **The off-site half** (Search Console, Bing Webmaster Tools, profiles and `PROFILES`, where to be
+  mentioned, monthly checks, next pages to write, what never to do) is
+  `docs/llm-visibility-playbook.md`. It is for the owner; none of it can be done from the code.
 
 ---
 

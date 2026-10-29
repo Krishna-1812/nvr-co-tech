@@ -2,6 +2,7 @@ import { AGENTS, BRAND, CONTACT, HOME_FAQ, STAGE_LABEL, WALKTHROUGH_STEPS } from
 import { PRIVACY_CLAUSES, PRIVACY_UPDATED, TERMS_CLAUSES, TERMS_UPDATED, type Clause } from '@/lib/marketing/legal';
 import { blockText, publishedGuides, type Guide } from '@/lib/guides';
 import { glossary } from '@/lib/guides/glossary';
+import { CALCULATORS } from '@/lib/calculators';
 import { OPEN_TOOLS } from '@/lib/access';
 import { DOCS, type Doc } from './knowledge';
 import { createIndex } from './retrieve';
@@ -153,6 +154,8 @@ function publicDocs(): Doc[] {
               '- /guides/feed.xml is the guides as an RSS feed.',
             ]
           : []),
+        '- /calculators lists the free calculators. Each works out one sum on your own figures, with no account:',
+        ...CALCULATORS.map((c) => `  - ${c.name}: /calculators/${c.slug}`),
         '- /about is who built it and why.',
         '- /contact books a walkthrough.',
         `- /privacy is the privacy policy (updated ${PRIVACY_UPDATED}) and /terms the terms of use (updated ${TERMS_UPDATED}).`,
@@ -181,6 +184,19 @@ function publicDocs(): Doc[] {
         ]
       : []),
     ...guides.map(guideDoc),
+    {
+      id: 'site-calculators',
+      title: 'Free calculators',
+      agent: null,
+      kind: 'finance' as const,
+      href: '/calculators',
+      keywords: ['calculator', 'calculate', 'work out', 'compute', 'how much', 'rental yield', 'emi', 'gst', 'loading', 'ev/ebitda'],
+      body: [
+        'Free calculators, no account needed. Each opens on a worked example and links to the guide that explains it.',
+        '',
+        ...CALCULATORS.flatMap((c) => [`- ${c.name} (/calculators/${c.slug}): ${c.answer}`, ...c.formulas.map((f) => `  ${f}`)]),
+      ].join('\n'),
+    },
     ...(guides.length
       ? [
           {

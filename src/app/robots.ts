@@ -45,7 +45,9 @@ const ANSWER_ENGINES = [
 ];
 
 export default function robots(): MetadataRoute.Robots {
-  const disallow = [...[...PROTECTED_PREFIXES, ...WORKSPACE].map((p) => `${p}/`), ...WORKSPACE, '/auth/'];
+  // /md/ is where the Markdown copies live internally; they are reached as
+  // /<page>.md, and the internal address is not a page of its own.
+  const disallow = [...[...PROTECTED_PREFIXES, ...WORKSPACE].map((p) => `${p}/`), ...WORKSPACE, '/auth/', '/md/'];
   return {
     rules: [
       { userAgent: ANSWER_ENGINES, allow: '/', disallow },

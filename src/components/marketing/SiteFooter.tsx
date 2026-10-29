@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { AGENTS, BRAND, CONTACT } from '@/lib/marketing/content';
 import { publishedGuides } from '@/lib/guides';
+import { CALCULATORS } from '@/lib/calculators';
 import { Container } from './bits';
 import { Logo } from './Logo';
 import { Parliament } from '@/components/brand/Owl';
@@ -58,10 +59,11 @@ export function SiteFooter() {
       */}
       <Parliament seed="footer-parliament" className="top-0" />
       <Container wide className="pt-16 pb-10">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr]">
           <div className="max-w-xs">
             <Logo id="footer-mark" />
-            <p className="m-dim-2 mt-5 t-3">{BRAND.blurb}</p>
+            {/* What it is, in the one sentence used everywhere (brand.ts). */}
+            <p className="m-dim-2 mt-5 t-3">{BRAND.definition}</p>
             <a
               href={`mailto:${CONTACT.email}`}
               className="m-mono m-dim-2 mt-5 inline-block t-2 transition hover:text-[var(--m-ink)]"
@@ -101,6 +103,15 @@ export function SiteFooter() {
               <FooterLink href="/glossary">Glossary</FooterLink>
             </FooterCol>
           )}
+
+          <FooterCol title="Calculators">
+            {CALCULATORS.map((c) => (
+              <FooterLink key={c.slug} href={`/calculators/${c.slug}`}>
+                {c.short}
+              </FooterLink>
+            ))}
+            <FooterLink href="/calculators">All calculators</FooterLink>
+          </FooterCol>
 
           <FooterCol title="Company">
             {COMPANY.map((n) => (
