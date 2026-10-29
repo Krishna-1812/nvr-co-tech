@@ -748,6 +748,20 @@ sheet. ⌘J / Ctrl+J toggles it; anything can open it with `openChat(question?)`
 motion are the "Chat" block at the end of `globals.css` (own `--c-*` tokens: light desert on public
 pages, follows the app theme inside; all motion off under reduced motion).
 
+**The hello** (`ChatGreeting.tsx`, since 29 Oct; replaced the old one-line nudge): on the public
+site only, once a visit, a card rises over the owl about 4 s after a desktop page loads (6 s on a
+phone, later behind the intro curtain). It greets by the reader's own clock (Good morning /
+afternoon / evening, "Hello, night owl" from 9 pm to 5 am) over a small sky for that hour, with the
+weekday and time, a line and four picks that follow the page (`greetingFor`: tool page → what it
+does, access, data; guide → sum it up; calculator → explain it; elsewhere → find a tool,
+calculators, guides, a person; never a link to the page you are on; the home page names no tool),
+and a box whose question goes straight to the chat (`openChat`; the form is `data-private`, so
+capture skips it). It goes when the chat opens (`CHAT_OPENED` event, sent by both the shell and
+the full chat), on navigation, or after 28 s (16 s on a phone) unless hovered, focused or typed
+in; the cross keeps it away for 3 days (`localStorage` `tfi-chat-hello-off`). Never on sign-in
+pages or `/ask`. Drawn by the shell, so it needs no full-chat download. Tests:
+`ChatGreeting.test.ts`.
+
 Two modes, decided by the layout:
 
 - **Visitor** (not signed in, public pages, guests in the workspace) → `POST /api/chat`. It is sent

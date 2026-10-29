@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type ComponentType } from 'react';
 import { usePathname } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import type { ToolBrief } from '@/lib/marketing/brand';
+import { ChatGreeting } from './ChatGreeting';
 import { ChatOwl } from './ChatOwl';
 import type { ChatDockFull } from './ChatDockFull';
 
@@ -21,8 +22,11 @@ import type { ChatDockFull } from './ChatDockFull';
  *   - Clicking it, pressing ⌘J or Ctrl+J, or anything that dispatches the
  *     `tfi:ask` event loads it and opens it, with the question if one came.
  *   - On a desktop, it also loads by itself once the page has been idle for a
- *     few seconds, so the owl's eyes follow the pointer and the one-time hello
- *     still comes. On a phone it waits to be asked.
+ *     few seconds, so the owl's eyes follow the pointer. On a phone it waits
+ *     to be asked.
+ *
+ * The hello (ChatGreeting) is drawn from here rather than from the full chat,
+ * so it reaches phones too without bringing the full chat with it.
  *
  * Either way, none of it competes with the page's own first seconds, which is
  * what a reader and a search engine's measurements are made of.
@@ -35,6 +39,12 @@ export const ASK_EVENT = 'tfi:ask';
 export function openChat(question?: string) {
   window.dispatchEvent(new CustomEvent(ASK_EVENT, { detail: { question } }));
 }
+
+/** Sent whenever the chat opens, by whichever of the two is on the page. */
+export const CHAT_OPENED = 'tfi:chat-opened';
+
+/** Set for the visit once the chat has been opened or the hello has been seen. */
+export const NUDGED = 'tfi-chat-nudged';
 
 /** What the reader asked for before the full chat had loaded. */
 export type ChatStart = { open: boolean; question?: string };
@@ -57,6 +67,7 @@ export function ChatDock(props: Props) {
   const ask = useCallback(
     (question?: string) => {
       setStart({ open: true, question });
+      window.dispatchEvent(new Event(CHAT_OPENED));
       load();
     },
     [load],
@@ -90,33 +101,46 @@ export function ChatDock(props: Props) {
   }, [Full, ask, load]);
 
   if (hidden) return null;
-  if (Full) return <Full {...props} start={start} />;
+
+  // The public site only: in the workspace the reader already knows it is there.
+  const greet = props.mode === 'visitor' && props.placement === 'site' ? <ChatGreeting open={props.open} tools={props.tools} /> : null;
+
+  if (Full)
+    return (
+      <>
+        {greet}
+        <Full {...props} start={start} />
+      </>
+    );
 
   // The launcher as the full chat draws it (ChatDockFull, the last button), so
   // nothing moves when that takes over.
   return (
-    <div className="chat" data-chat-skin={props.skin} data-placement={props.placement}>
-      <button
-        type="button"
-        onClick={() => ask()}
-        onPointerEnter={load}
-        onFocus={load}
-        onTouchStart={load}
-        className="chat-launcher"
-        aria-expanded={false}
-        aria-label="Ask a question"
-        aria-keyshortcuts="Control+J Meta+J"
-      >
-        <span className="chat-launcher-glow" aria-hidden />
-        <span className="chat-launcher-ring" aria-hidden />
-        <span className="chat-launcher-face" aria-hidden>
-          <ChatOwl halo={false} mood="idle" />
-        </span>
-        <ChevronDown className="chat-launcher-close" aria-hidden />
-        <span className="chat-launcher-label" aria-hidden>
-          Ask anything
-        </span>
-      </button>
-    </div>
+    <>
+      {greet}
+      <div className="chat" data-chat-skin={props.skin} data-placement={props.placement}>
+        <button
+          type="button"
+          onClick={() => ask()}
+          onPointerEnter={load}
+          onFocus={load}
+          onTouchStart={load}
+          className="chat-launcher"
+          aria-expanded={false}
+          aria-label="Ask a question"
+          aria-keyshortcuts="Control+J Meta+J"
+        >
+          <span className="chat-launcher-glow" aria-hidden />
+          <span className="chat-launcher-ring" aria-hidden />
+          <span className="chat-launcher-face" aria-hidden>
+            <ChatOwl halo={false} mood="idle" />
+          </span>
+          <ChevronDown className="chat-launcher-close" aria-hidden />
+          <span className="chat-launcher-label" aria-hidden>
+            Ask anything
+          </span>
+        </button>
+      </div>
+    </>
   );
 }

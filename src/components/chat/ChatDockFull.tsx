@@ -24,7 +24,7 @@ import type { AssistEvent, Source, ToolTrace, TurnNote } from '@/lib/assist/type
 import { visitorSuggestions } from '@/lib/assist/visitor-suggestions';
 import type { ToolBrief } from '@/lib/marketing/brand';
 import { cn } from '@/lib/utils';
-import { ASK_EVENT, type ChatStart } from './ChatDock';
+import { ASK_EVENT, CHAT_OPENED, NUDGED, type ChatStart } from './ChatDock';
 import { ChatMarkdown } from './ChatMarkdown';
 import { ChatOwl, type OwlMood } from './ChatOwl';
 
@@ -67,7 +67,6 @@ type Msg = {
 type Saved = { messages: Msg[]; conversationId: string | null };
 
 const STORE = (mode: Mode) => `tfi-chat-v1-${mode}`;
-const NUDGED = 'tfi-chat-nudged';
 
 /** How many messages are kept for a reload. Enough to pick up where you were. */
 const KEEP = 40;
@@ -178,7 +177,6 @@ export function ChatDockFull({
   const [focused, setFocused] = useState(false);
   const [happy, setHappy] = useState(false);
   const [unread, setUnread] = useState(false);
-  const [nudge, setNudge] = useState(false);
   const [atBottom, setAtBottom] = useState(true);
   const [working, setWorking] = useState(0);
   const [announce, setAnnounce] = useState('');
@@ -230,7 +228,7 @@ export function ChatDockFull({
     setOpen(true);
     setClosing(false);
     setUnread(false);
-    setNudge(false);
+    window.dispatchEvent(new Event(CHAT_OPENED));
     try {
       sessionStorage.setItem(NUDGED, '1');
     } catch {
@@ -474,33 +472,6 @@ export function ChatDockFull({
       window.removeEventListener('pointermove', onMove);
     };
   }, [hidden, open]);
-
-  // ── A hello, once a visit, for a visitor who has not found it ─────────────
-  useEffect(() => {
-    if (mode !== 'visitor' || hidden) return;
-    if (!window.matchMedia('(min-width: 768px) and (pointer: fine)').matches) return;
-    try {
-      if (sessionStorage.getItem(NUDGED)) return;
-    } catch {
-      return;
-    }
-    const start = window.setTimeout(() => {
-      if (openRef.current) return;
-      setNudge(true);
-      try {
-        sessionStorage.setItem(NUDGED, '1');
-      } catch {
-        // Then it may say hello again next page, which is harmless.
-      }
-    }, 9000);
-    return () => window.clearTimeout(start);
-  }, [mode, hidden]);
-
-  useEffect(() => {
-    if (!nudge) return;
-    const t = window.setTimeout(() => setNudge(false), 9000);
-    return () => window.clearTimeout(t);
-  }, [nudge]);
 
   if (hidden) return null;
 
@@ -764,17 +735,6 @@ export function ChatDockFull({
             {announce}
           </p>
         </section>
-      )}
-
-      {nudge && !open && (
-        <div className="chat-nudge" role="status">
-          <button type="button" className="chat-nudge-text" onClick={show}>
-            Questions about a tool or a guide? <strong>Ask me.</strong>
-          </button>
-          <button type="button" className="chat-nudge-x" onClick={() => setNudge(false)} aria-label="Dismiss">
-            <X className="size-3.5" aria-hidden />
-          </button>
-        </div>
       )}
 
       <button
