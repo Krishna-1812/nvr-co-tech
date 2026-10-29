@@ -2,6 +2,8 @@ import { AGENTS, BRAND, CONTACT, HOME_FAQ, STAGE_LABEL, toolFaq, type Agent } fr
 import { absolute } from '@/lib/marketing/seo';
 import { blockText, publishedGuides, type Guide } from '@/lib/guides';
 import { TOPICS, glossary } from '@/lib/guides/glossary';
+import { CALCULATORS, workedExample, type Calculator } from '@/lib/calculators';
+import { FIELDS, shownValue } from '@/lib/calculators/fields';
 
 /**
  * /llms-full.txt: everything /llms.txt links to, in one file.
@@ -61,6 +63,31 @@ function guideSection(g: Guide): string[] {
   return out;
 }
 
+/** A calculator as plain text: what it answers, its formulas, its worked example, its questions. */
+function calculatorSection(c: Calculator): string[] {
+  const example = workedExample(c);
+  return [
+    `## ${c.name}`,
+    '',
+    absolute(`/calculators/${c.slug}`),
+    '',
+    c.answer,
+    '',
+    'Formulas:',
+    '',
+    ...c.formulas.map((f) => `- ${f}`),
+    '',
+    'Worked example (the figures the calculator opens with):',
+    '',
+    ...FIELDS[c.kind].map((f) => `- ${f.label}: ${shownValue(f)}`),
+    ...example.lines.map((l) => `- ${l.label}: ${l.value}`),
+    '',
+    'Questions:',
+    '',
+    ...c.faq.flatMap((f) => [`Q: ${f.q}`, `A: ${f.a}`, '']),
+  ];
+}
+
 export function GET(): Response {
   const live = AGENTS.filter((a) => a.stage === 'live');
   const coming = AGENTS.filter((a) => a.stage !== 'live');
@@ -69,6 +96,8 @@ export function GET(): Response {
     `# ${BRAND.name}: every tool in full`,
     '',
     `> ${BRAND.blurb}`,
+    '',
+    BRAND.definition,
     '',
     `The short index is ${absolute('/llms.txt')}. Contact: ${CONTACT.email}.`,
     '',
@@ -81,6 +110,9 @@ export function GET(): Response {
     ...live.flatMap(section),
     ...(coming.length > 0 ? ['# Not built yet', '', ...coming.flatMap(section)] : []),
     ...(publishedGuides().length > 0 ? ['# Guides', '', ...publishedGuides().flatMap(guideSection)] : []),
+    '# Free calculators',
+    '',
+    ...CALCULATORS.flatMap(calculatorSection),
     ...(publishedGuides().length > 0
       ? [
           '# Glossary',

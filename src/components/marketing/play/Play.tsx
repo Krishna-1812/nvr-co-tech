@@ -152,7 +152,10 @@ export function Play({
           el.firstChild?.nodeType === Node.TEXT_NODE &&
           // The ticker's labels are already moving; scrambling them as well
           // is noise rather than a reveal.
-          !el.closest('.m-ticker'),
+          !el.closest('.m-ticker') &&
+          // A form's labels are what somebody is reading while they type, and
+          // what a screen reader announces for the field; they stay still.
+          !el.closest('form'),
       ),
     );
     if (!waiting.size) return;

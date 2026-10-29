@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { faqLd, pageMeta, serviceLd } from '@/lib/marketing/seo';
 import { guidesForTool, visibleGuides } from '@/lib/guides';
+import { CALCULATORS } from '@/lib/calculators';
 import { toCard } from '@/components/marketing/guides/summary';
 import { FaqAccordion } from '@/components/marketing/rich/FaqAccordion';
 import { MotionTitle } from '@/components/marketing/rich/MotionTitle';
@@ -346,6 +347,25 @@ export default async function AgentPage({ params }: Params) {
                 );
               })}
             </ul>
+            {/* The one-sum versions of what this tool does, free and with no
+                account: what a reader who is not ready for the tool can use today. */}
+            {CALCULATORS.some((c) => c.tool === agent.slug) && (
+              <div className="mt-10">
+                <p className="m-eyebrow">Free calculators</p>
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {CALCULATORS.filter((c) => c.tool === agent.slug).map((c) => (
+                    <li key={c.slug}>
+                      <Link
+                        href={`/calculators/${c.slug}`}
+                        className="m-card inline-flex items-center gap-2 rounded-full px-4 py-2 t-3 font-medium text-[var(--m-ink)] transition hover:bg-[var(--m-bg-2)]"
+                      >
+                        {c.name}
+                      </Link>{' '}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </Container>
         </Section>
       )}

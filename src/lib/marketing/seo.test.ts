@@ -10,11 +10,13 @@ import {
   cardPath,
   collectionLd,
   ldJson,
+  markdownCopy,
   pageMeta,
   profilePageLd,
   serviceLd,
   siteLd,
 } from './seo';
+import { markdownPages } from './markdown';
 
 /**
  * Structured data is a set of claims made to a machine that will never read the
@@ -252,10 +254,19 @@ describe('pageMeta', () => {
     expect(meta.alternates).toMatchObject({ canonical: '/tools' });
   });
 
-  it('announces the guides feed from every page', () => {
+  it('announces the guides feed from every page, and the page’s Markdown copy', () => {
     expect(meta.alternates?.types).toEqual({
       'application/rss+xml': [{ url: '/guides/feed.xml', title: `${BRAND.name}: guides` }],
+      'text/markdown': '/tools.md',
     });
+    // A page with no copy announces only the feed.
+    expect(pageMeta({ title: 'Privacy', description: 'x', path: '/privacy' }).alternates?.types).not.toHaveProperty('text/markdown');
+  });
+
+  it('names a Markdown copy for exactly the pages app/md serves', () => {
+    const pages = markdownPages();
+    for (const p of pages) expect(markdownCopy(p), p).toBe(p === '/' ? '/index.md' : `${p}.md`);
+    for (const p of ['/privacy', '/terms', '/about', '/contact', '/hub', '/glossary/x', '/tools/a/b']) expect(markdownCopy(p), p).toBeNull();
   });
 
   it('does not add the brand twice to a title that already has it', () => {

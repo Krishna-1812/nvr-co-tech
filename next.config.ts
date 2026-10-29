@@ -72,6 +72,29 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  /*
+   * The Markdown copy of each public page (app/md, lib/marketing/markdown.ts),
+   * for assistants and agents that read a page rather than look at it.
+   *
+   * Two ways in. A `.md` on the end of any public address (the home page is
+   * /index.md), which is the convention llms.txt proposes. Or the page's own
+   * address with `Accept: text/markdown`, which is how a growing number of
+   * agents ask. Browsers never send that header, so nobody looking at the site
+   * is affected. Only the pages that have a copy are rewritten; anything else
+   * asked for as Markdown gets the ordinary page.
+   */
+  async rewrites() {
+    const markdown = [{ type: 'header' as const, key: 'accept', value: '(.*)text/markdown(.*)' }];
+    return {
+      beforeFiles: [
+        { source: '/:path+.md', destination: '/md/:path+' },
+        { source: '/', has: markdown, destination: '/md/index' },
+        { source: '/:section(tools|guides|calculators|glossary)', has: markdown, destination: '/md/:section' },
+        { source: '/:section(tools|guides|calculators)/:slug', has: markdown, destination: '/md/:section/:slug' },
+      ],
+    };
+  },
+
   images: {
     /*
      * The only external image this site loads, and it is admin-only.

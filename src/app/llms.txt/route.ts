@@ -1,6 +1,7 @@
 import { AGENTS, BRAND, CONTACT, STAGE_LABEL } from '@/lib/marketing/content';
 import { absolute } from '@/lib/marketing/seo';
 import { publishedGuides } from '@/lib/guides';
+import { CALCULATORS } from '@/lib/calculators';
 
 /**
  * /llms.txt — the site, written for something that is going to read it rather
@@ -40,6 +41,8 @@ export function GET(): Response {
     '',
     `> ${BRAND.blurb}`,
     '',
+    BRAND.definition,
+    '',
     `${BRAND.name} builds one tool for each job an Indian finance team repeats every month.`,
     'Each one does the mechanical part of the work and then puts the decision in front of a',
     'person. The rules the tools enforce are held in the database rather than in the screens,',
@@ -66,6 +69,12 @@ export function GET(): Response {
           '',
         ]
       : []),
+    // Free, no account, worked on the reader's own figures: the pages most
+    // likely to be the answer to "is there a calculator for…".
+    '## Free calculators',
+    '',
+    ...CALCULATORS.map((c) => `- [${c.name}](${absolute(`/calculators/${c.slug}`)}): ${c.answer}`),
+    '',
     '## The site',
     '',
     `- [Home](${absolute('/')}): what the platform is and who it is for.`,
@@ -77,6 +86,7 @@ export function GET(): Response {
           `- [Guides feed](${absolute('/guides/feed.xml')}): the guides as RSS, newest first.`,
         ]
       : []),
+    `- [Calculators](${absolute('/calculators')}): every free calculator, each with its formulas and a worked example.`,
     `- [About](${absolute('/about')}): who is building this, and the four rules it is built to.`,
     `- [Book a walkthrough](${absolute('/contact')}): half an hour with the people who built it.`,
     `- [Every tool in full](${absolute('/llms-full.txt')}): each tool's page as plain text, with its questions and answers.`,
