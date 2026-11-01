@@ -35,9 +35,12 @@ import type { ChatDockFull } from './ChatDockFull';
 /** The event the rest of the app opens the chat with. */
 export const ASK_EVENT = 'tfi:ask';
 
-/** Open the chat from anywhere, optionally with a question to send. */
-export function openChat(question?: string) {
-  window.dispatchEvent(new CustomEvent(ASK_EVENT, { detail: { question } }));
+/**
+ * Open the chat from anywhere, optionally with a question to send, and what
+ * the question came from (filed with it for the Admin screen: lib/analytics/chat).
+ */
+export function openChat(question?: string, via?: string) {
+  window.dispatchEvent(new CustomEvent(ASK_EVENT, { detail: { question, via } }));
 }
 
 /** Sent whenever the chat opens, by whichever of the two is on the page. */
@@ -47,7 +50,7 @@ export const CHAT_OPENED = 'tfi:chat-opened';
 export const NUDGED = 'tfi-chat-nudged';
 
 /** What the reader asked for before the full chat had loaded. */
-export type ChatStart = { open: boolean; question?: string };
+export type ChatStart = { open: boolean; question?: string; via?: string };
 
 type Props = Omit<Parameters<typeof ChatDockFull>[0], 'start'> & { tools?: readonly ToolBrief[] };
 
@@ -65,8 +68,8 @@ export function ChatDock(props: Props) {
   }, []);
 
   const ask = useCallback(
-    (question?: string) => {
-      setStart({ open: true, question });
+    (question?: string, via?: string) => {
+      setStart({ open: true, question, via });
       window.dispatchEvent(new Event(CHAT_OPENED));
       load();
     },
@@ -75,7 +78,10 @@ export function ChatDock(props: Props) {
 
   useEffect(() => {
     if (Full) return;
-    const onAsk = (e: Event) => ask((e as CustomEvent<{ question?: string }>).detail?.question);
+    const onAsk = (e: Event) => {
+      const detail = (e as CustomEvent<{ question?: string; via?: string }>).detail;
+      ask(detail?.question, detail?.via);
+    };
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === 'j' && (e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
         e.preventDefault();

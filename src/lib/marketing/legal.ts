@@ -15,7 +15,7 @@ export type Clause = {
   body: string | string[];
 };
 
-export const PRIVACY_UPDATED = '28 October 2026';
+export const PRIVACY_UPDATED = '1 November 2026';
 
 /**
  * Rewritten on 20 Oct 2026 at the owner's request, broad rather than specific.
@@ -32,21 +32,25 @@ export const PRIVACY_CLAUSES: Clause[] = [
   },
   {
     title: 'Information collected automatically',
-    body: 'When you use the website we record how it is used: for example the pages you open, how long you spend on them, how you arrived, and technical details such as your device, browser, approximate location and IP address. If you sign in, this may be linked to your account.',
+    body: [
+      'When you use the website we record how it is used: the pages you open and how long you spend on them, what you type into its forms and tools, the buttons and links you press, the questions you ask the assistant and its answers, how you arrived, and technical details such as your device, browser, approximate location and IP address. We keep a random identifier in a cookie so that a returning browser is recognised.',
+      'If you sign in, all of this is linked to your account, including what was recorded from the same browser before you signed in. If your browser asks sites not to track it (Do Not Track or Global Privacy Control), none of it is recorded.',
+    ],
   },
   {
     title: 'Information you enter into the tools',
     body: 'Depending on the tool, what you enter may be kept in your own browser, saved to your account when you are signed in, or processed on our servers to produce a result. Some tools work entirely within your browser.',
   },
   /*
-   * Added 28 Oct 2026 with the chat on every page (app/api/chat). Each sentence
-   * is what the code does: questions go to Anthropic to be answered; a
-   * visitor's are kept in their own browser tab only, and a signed-in person's
-   * are saved to their history (migration 0009), which they can delete.
+   * Added 28 Oct 2026 with the chat on every page (app/api/chat); changed
+   * 1 Nov 2026 when every question began to be recorded (migration 0039).
+   * Each sentence is what the code does: questions go to Anthropic to be
+   * answered; every question and answer is filed with the usage records; a
+   * signed-in person's are also in their history (0009), which they can delete.
    */
   {
     title: 'The assistant',
-    body: 'When you ask the assistant a question, what you type and the conversation so far are sent to Anthropic, whose Claude model writes the answer. If you are not signed in, we do not keep your questions: the conversation stays in that browser tab. If you are signed in, it is saved to your account so you can come back to it, and you can delete it. Please do not type anything into it that you would not want to share.',
+    body: 'When you ask the assistant a question, what you type and the conversation so far are sent to Anthropic, whose Claude model writes the answer. We record every question and the answer it was given, with the page you asked it on, as part of the usage records described above. If you are signed in, your conversations are also saved to your account so you can come back to them; deleting one there removes it from your history, not from our records. Please do not type anything into it that you would not want to share.',
   },
   // Only once Will Maker is public: this page should not describe a tool that is not there.
   ...(willMakerPublic()

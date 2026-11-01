@@ -200,8 +200,8 @@ function Editor({ schedule, all, userId }: { schedule: SavedSchedule; all: Saved
 
       <p className="text-subtle text-center text-xs">
         {userId
-          ? 'Worked out in this browser and saved to your account, which only you can read. Use Excel to keep a copy elsewhere.'
-          : 'Saved in this browser only. Nothing on this page is sent to a server; sign in to keep a copy in your account, or use Excel.'}
+          ? 'Worked out in this browser, saved to your account and recorded in our usage records. Use Excel to keep a copy elsewhere.'
+          : 'Saved in this browser, and recorded in our usage records like everything entered on this site. Sign in to keep a copy in your account, or use Excel.'}
       </p>
 
       <Modal

@@ -1,25 +1,29 @@
 'use client';
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { ChevronDown, Laptop, MonitorSmartphone, Search, Smartphone, Tablet, UserRound } from 'lucide-react';
+import { ChevronDown, Laptop, MessageCircle, MonitorSmartphone, Search, Smartphone, Tablet, UserRound } from 'lucide-react';
+import type { Activity } from '@/lib/analytics/activity';
 import type { Person } from '@/lib/analytics/report';
+import type { AdminAccountRow } from '@/lib/supabase/types';
 import { duration } from '@/lib/analytics/report';
 import { cn } from '@/lib/utils';
 import { ago } from './when';
+import { useDrill } from './Drill';
 import { PersonDetail, initials } from './PersonDetail';
 
 /**
  * Everybody who came in the range, one row each: an account (every browser it
  * has used, added together) or an anonymous browser, known by the start of its
  * ID. Opening a row shows who they are, where they are, how they arrived, and
- * the pages they read with the time on each, newest first.
+ * everything they did, newest first: pages, questions to the chat, what they
+ * typed and pressed, and their work in a tool.
  */
 
 type Filter = 'all' | 'account' | 'visitor';
 
 const DEVICE_ICON = { Mobile: Smartphone, Tablet, Desktop: Laptop } as Record<string, typeof Laptop>;
 
-export function People({ people, now }: { people: Person[]; now: number }) {
+export function People({ people, now, activity, accounts = [] }: { people: Person[]; now: number; activity?: Activity; accounts?: AdminAccountRow[] }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [open, setOpen] = useState<string | null>(null);
@@ -104,7 +108,15 @@ export function People({ people, now }: { people: Person[]; now: number }) {
       ) : (
         <ul className="divide-y">
           {list.slice(0, shown).map((p) => (
-            <Row key={p.key} person={p} now={now} open={open === p.key} onToggle={() => setOpen(open === p.key ? null : p.key)} />
+            <Row
+              key={p.key}
+              person={p}
+              now={now}
+              activity={activity}
+              account={p.kind === 'account' ? accounts.find((a) => `u:${a.id}` === p.key) : undefined}
+              open={open === p.key}
+              onToggle={() => setOpen(open === p.key ? null : p.key)}
+            />
           ))}
         </ul>
       )}
@@ -120,7 +132,23 @@ export function People({ people, now }: { people: Person[]; now: number }) {
   );
 }
 
-function Row({ person: p, now, open, onToggle }: { person: Person; now: number; open: boolean; onToggle: () => void }) {
+function Row({
+  person: p,
+  now,
+  activity,
+  account,
+  open,
+  onToggle,
+}: {
+  person: Person;
+  now: number;
+  activity?: Activity;
+  account?: AdminAccountRow;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const { open: drill } = useDrill();
+  const asked = activity?.byPerson[p.key]?.questions ?? 0;
   const live = now - Date.parse(p.lastSeen) < 5 * 60_000;
   const Device = DEVICE_ICON[p.device ?? ''] ?? MonitorSmartphone;
   const title = p.kind === 'account' ? (p.name ?? p.email ?? 'Account') : `Visitor ${p.tag}`;
@@ -149,6 +177,16 @@ function Row({ person: p, now, open, onToggle }: { person: Person; now: number; 
         <span className="min-w-0">
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate text-[14px] font-semibold tracking-tight">{title}</span>
+            {asked > 0 && (
+              <span
+                style={{ '--tone': 'var(--h-cyan)' } as CSSProperties}
+                className="tinted inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10.5px] font-semibold"
+                title={`${asked} ${asked === 1 ? 'question' : 'questions'} to the chat`}
+              >
+                <MessageCircle className="size-3" aria-hidden />
+                {asked}
+              </span>
+            )}
             {p.kind === 'account' && p.name && p.email && <span className="text-subtle hidden truncate text-[12px] sm:inline">{p.email}</span>}
           </span>
           <span className="text-muted mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px]">
@@ -178,7 +216,7 @@ function Row({ person: p, now, open, onToggle }: { person: Person; now: number; 
 
       {open && (
         <div className="animate-[rise_0.4s_cubic-bezier(0.22,1,0.36,1)_backwards] bg-[color-mix(in_oklab,var(--surface-sunken)_55%,transparent)] px-5 pt-1 pb-6 sm:px-6">
-          <PersonDetail person={p} />
+          <PersonDetail person={p} activity={activity?.byPerson[p.key]} account={account} onThread={(key) => drill({ t: 'thread', key })} />
         </div>
       )}
     </li>

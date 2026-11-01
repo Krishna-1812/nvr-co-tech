@@ -178,6 +178,9 @@ function onChange(e: Event) {
   const el = e.target;
   if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement)) return;
   if (neverCaptured(location.pathname) || under(location.pathname, TOOL_PATHS) || isPrivateField(el)) return;
+  // The chat files its own questions, with their answers (lib/analytics/chat);
+  // the same words again as a loose field would only be noise.
+  if (el.closest('.chat')) return;
   const value = fieldValue(el);
   if (value === null) return;
   // A radio button's label is its choice; the question is the group's legend.

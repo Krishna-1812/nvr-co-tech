@@ -109,6 +109,9 @@ describe('asking', () => {
       // Null rather than absent on a first question: the server decides where
       // the exchange is filed, and it is told plainly that there is nowhere yet.
       conversationId: null,
+      // What the chat log files beside the question (lib/analytics/chat). No
+      // page or session outside a browser.
+      meta: { conversation: null, via: null, sid: null, path: null },
     });
   });
 

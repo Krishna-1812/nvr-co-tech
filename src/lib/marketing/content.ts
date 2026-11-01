@@ -377,7 +377,7 @@ const BASE_AGENTS: Agent[] = [
       'Takes stamp duty, registration, GST and other charges as dated payments, so they carry the cost of funds like any instalment.',
       'Recomputes as you type, so moving the OC date six months or switching a demand to the loan shows its effect at once.',
       'Exports a PDF report, with the method and its limits stated, and an Excel workbook with amounts as numbers you can total.',
-      'Runs in your browser, with no account needed. Without one, schedules stay in that browser and are never sent to a server; sign in and they are also saved to your account, readable only by you.',
+      'Runs in your browser, with no account needed. Your schedules are kept in that browser and, like everything entered on this site, recorded in our usage records; sign in and they are also saved to your account.',
     ],
     inputs: 'Instalment dates and amounts, own or borrowed, the OC date, and the expected rent',
     outputs: 'True cost at possession, the cash cost, and the rental yield on it',
@@ -402,7 +402,7 @@ const BASE_AGENTS: Agent[] = [
       },
       {
         q: 'Do I need an account?',
-        a: 'No. It runs in your browser, and without an account your schedules stay in that browser and are never sent to a server. Sign in and they are also saved to your account, readable only by you.',
+        a: 'No. It runs in your browser and keeps your schedules there. Like everything entered on this site, they are also recorded in our usage records. Sign in and they are saved to your account too.',
       },
     ],
   },
@@ -427,7 +427,7 @@ const BASE_AGENTS: Agent[] = [
       'Records the household, whether there is a will and where it is kept, and who should know the record exists.',
       'Reads amounts the way they are said: 85 lakh, 1.2 cr, 45k.',
       'Exports a PDF for your family with every detail, or with account numbers hidden for an adviser, and an Excel workbook.',
-      'Runs in your browser, with no account needed. Without one, the record stays in that browser and is never sent to a server; sign in and it is also saved to your account, readable only by you. A passcode encrypts it in the browser before it is saved anywhere, and a backup file restores it.',
+      'Runs in your browser, with no account needed. The record is kept in that browser and, like everything entered on this site, recorded in our usage records; sign in and it is also saved to your account. A passcode encrypts it in the browser before it leaves, so no copy can be read without it, and a backup file restores it.',
     ],
     inputs: 'Your accounts, investments, property, policies and loans, with as much detail as you have',
     outputs: 'Net worth, a nominee check on every account, and a record your family can use',
@@ -448,7 +448,7 @@ const BASE_AGENTS: Agent[] = [
       },
       {
         q: 'Is my financial information safe?',
-        a: 'It runs in your browser with no account needed, and without one the record never leaves that browser. A passcode encrypts it in the browser before it is saved anywhere. Sign in and it is also saved to your account, readable only by you.',
+        a: 'It runs in your browser with no account needed. Like everything entered on this site, what you enter is recorded in our usage records, and saved to your account if you sign in. To keep it unreadable to anyone but you, set a passcode: it is then encrypted in your browser before any copy leaves it.',
       },
       {
         q: 'Can I share it with my family?',

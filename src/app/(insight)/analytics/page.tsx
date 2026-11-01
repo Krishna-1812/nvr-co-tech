@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
-import { Activity, ChevronRight, Clock3, Globe2, KeyRound, LayoutList, MonitorSmartphone, Radio, Route, UserCheck, Users } from 'lucide-react';
+import { Activity, ChevronRight, Clock3, Globe2, KeyRound, LayoutList, MessagesSquare, MonitorSmartphone, Radio, Route, UserCheck, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { istToday } from '@/lib/fiscal';
 import { SITE_URL } from '@/lib/marketing/content';
 import { RANGES, buildReport, duration, type Range } from '@/lib/analytics/report';
-import type { AdminAccountRow, SiteViewRow, SiteVisitorRow } from '@/lib/supabase/types';
+import { buildActivity } from '@/lib/analytics/activity';
+import type { AdminAccountRow, SiteChatRow, SiteEventRow, SiteToolDataRow, SiteViewRow, SiteVisitorRow } from '@/lib/supabase/types';
 import { ADMIN_EMAILS } from '@/lib/access';
 import { cn } from '@/lib/utils';
 import { Figure } from '@/components/app/Figure';
@@ -18,6 +19,7 @@ import { People } from '@/components/admin/People';
 import { Requests } from '@/components/admin/Requests';
 import { Accounts } from '@/components/admin/Accounts';
 import { Drill, DrillProvider, type Focus } from '@/components/admin/Drill';
+import { ThreadCard } from '@/components/admin/ThreadCard';
 
 export const metadata: Metadata = { title: 'Admin' };
 
@@ -30,6 +32,11 @@ export const metadata: Metadata = { title: 'Admin' };
  * lasting ID if they did not, the time each spent, every request, and the
  * accounts with their sign-ins. The tracker is components/Tracker, the tables
  * are migration 0033, and the arithmetic is lib/analytics/report (tested).
+ *
+ * Since 29 Oct it also reads everything else people did (migration 0039 and
+ * lib/analytics/activity): every question put to the chat with its answer,
+ * every field filled and button pressed, and the work in the open tools, all
+ * filed under the same person as their pages, by name once they sign in.
  *
  * Reads the rows for the chosen range and works everything out here. Supabase
  * hands back at most a thousand rows a request, so the two big tables are read
@@ -60,7 +67,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const since = days === null ? null : new Date(Date.parse(`${today}T00:00:00+05:30`) - (days - 1) * 86_400_000).toISOString();
 
   const supabase = await createClient();
-  const [views, visitors, accounts, access, roadmap, settings, dbAdmins] = await Promise.all([
+  const [views, visitors, accounts, access, roadmap, settings, dbAdmins, chats, events, toolWork, chatTable] = await Promise.all([
     readAll<SiteViewRow>((from, to) => {
       const q = supabase.from('site_views').select('*').order('started_at', { ascending: false });
       return (since ? q.gte('started_at', since) : q).range(from, to);
@@ -71,6 +78,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     supabase.from('feature_requests').select('*').order('created_at', { ascending: false }).limit(1000),
     supabase.from('platform_settings').select('key, value'),
     supabase.from('analytics_admins').select('email'),
+    readAll<SiteChatRow>((from, to) => {
+      const q = supabase.from('site_chats').select('*').order('at', { ascending: false });
+      return (since ? q.gte('at', since) : q).range(from, to);
+    }),
+    readAll<SiteEventRow>((from, to) => {
+      const q = supabase.from('site_events').select('*').order('at', { ascending: false });
+      return (since ? q.gte('at', since) : q).range(from, to);
+    }),
+    // The tools' records themselves can be megabytes each; the timeline needs only when and how often.
+    readAll<SiteToolDataRow>((from, to) => {
+      const q = supabase.from('site_tool_data').select('visitor_id, tool, user_id, sealed, first_at, updated_at, saves').order('updated_at', { ascending: false });
+      return (since ? q.gte('updated_at', since) : q).range(from, to) as unknown as PromiseLike<{ data: SiteToolDataRow[] | null }>;
+    }),
+    supabase.from('site_chats').select('id', { head: true, count: 'exact' }),
   ]);
 
   /*
@@ -86,6 +107,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     ? views.rows.filter((v) => !(v.user_id && adminIds.has(v.user_id)) && !adminBrowsers.has(v.visitor_id))
     : views.rows;
   const keptVisitors = excludeAdmins ? visitors.rows.filter((v) => !adminBrowsers.has(v.id)) : visitors.rows;
+  const notAdmin = (r: { user_id: string | null; visitor_id: string | null }) =>
+    !excludeAdmins || (!(r.user_id && adminIds.has(r.user_id)) && !(r.visitor_id && adminBrowsers.has(r.visitor_id)));
+
+  const activity = buildActivity({
+    visitors: visitors.rows,
+    accounts: accounts.data ?? [],
+    chats: chats.rows.filter(notAdmin),
+    events: events.rows.filter(notAdmin),
+    tools: toolWork.rows.filter(notAdmin),
+  });
+  // Until migration 0039 runs there is no chat table to read.
+  const noChatLog = !!chatTable.error;
 
   const report = buildReport({
     visitors: keptVisitors,
@@ -115,7 +148,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   };
 
   return (
-    <DrillProvider report={report} accounts={accounts.data ?? []} since={since} now={now}>
+    <DrillProvider report={report} activity={activity} accounts={accounts.data ?? []} since={since} now={now}>
     <div className="space-y-6">
       <ToolHero
         id="admin-hero"
@@ -148,6 +181,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               [{ t: 'people', which: 'live' }, `Here now · ${liveNow}`],
               [{ t: 'people', which: 'visitor' }, `Without an account · ${t.anonymous}`],
               [{ t: 'views' }, `Pages opened · ${t.views.toLocaleString('en-IN')}`],
+              [{ t: 'chats', which: 'all' }, `Questions asked · ${activity.totals.questions.toLocaleString('en-IN')}`],
             ] as [Focus, string][]
           ).map(([focus, text]) => (
             <Drill key={text} focus={focus} label={text} className="w-auto rounded-full [&>svg]:hidden">
@@ -190,7 +224,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </div>
       </ToolHero>
 
-      {(views.capped || visitors.capped) && (
+      {(views.capped || visitors.capped || chats.capped || events.capped) && (
         <p className="tinted rounded-2xl border px-4 py-3 text-sm [--tone:var(--status-warn)]">
           This period has more than {CEILING.toLocaleString('en-IN')} rows, and only the most recent are counted. Pick a shorter period for exact figures.
         </p>
@@ -235,7 +269,21 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           description="Signed-in people with every browser they used, and visitors known by an ID. Open one to see their pages."
           action={<Live count={liveNow} />}
         />
-        <People people={report.people} now={now} />
+        <People people={report.people} now={now} activity={activity} accounts={accounts.data ?? []} />
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardTitle
+          icon={<MessagesSquare className="size-4" />}
+          title="Conversations"
+          description={
+            noChatLog
+              ? 'The chat log needs migration 0039 in Supabase. Until it runs, questions are answered but not kept.'
+              : `${count(activity.totals.questions, 'question')} in ${count(activity.totals.threads, 'chat')} from ${count(activity.totals.askers, 'person', 'people')}${activity.totals.unanswered ? `, ${activity.totals.unanswered} not answered` : ''}. Open one to read it as they did.`
+          }
+          action={<SeeAll focus={{ t: 'chats', which: 'all' }} />}
+        />
+        <ThreadCard threads={activity.threads.slice(0, 6)} now={now} />
       </Card>
 
       <Card className="overflow-hidden">
@@ -273,6 +321,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
  * it is behind a function only because the purity rule cannot tell a request
  * render from a re-render.
  */
+/** "1 chat", "3 chats". */
+function count(n: number, one: string, many = `${one}s`): string {
+  return `${n.toLocaleString('en-IN')} ${n === 1 ? one : many}`;
+}
+
 function readClock(): number {
   return Date.now();
 }

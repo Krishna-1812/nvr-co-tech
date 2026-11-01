@@ -123,7 +123,8 @@ export async function AppShell({ user, admin = false, section: given, children }
       {/*
         The chat in the corner. Signed in, it is the assistant that knows the
         tool on screen and keeps a history; a visitor in the open workspace
-        gets the public chat, which keeps nothing. Not on /ask, which is it.
+        gets the public chat. Both file every question for the Admin screen
+        (lib/analytics/chat). Not on /ask, which is it.
       */}
       <ChatDock
         mode={user ? 'member' : 'visitor'}

@@ -1,66 +1,73 @@
 'use client';
 
-import { Globe } from 'lucide-react';
+import type { PersonActivity } from '@/lib/analytics/activity';
+import { TOOL_NAMES } from '@/lib/analytics/activity';
 import type { Person } from '@/lib/analytics/report';
 import { duration } from '@/lib/analytics/report';
+import type { AdminAccountRow } from '@/lib/supabase/types';
 import { cn } from '@/lib/utils';
+import { Timeline } from './Chats';
 import { stamp } from './when';
 
 /**
- * Everything known about one person: the facts on the left, the pages they
- * opened (newest first, with the time on each) on the right. Shared by the
- * People list, where a row opens to it, and the detail panel.
+ * Everything known about one person: the facts on the left, and on the right
+ * everything they did, day by day (pages, questions to the chat, what they
+ * typed and pressed, their work in a tool). Shared by the People list, where a
+ * row opens to it, and the detail panel.
+ *
+ * A browser that later signed in is already filed under the account here, so
+ * what they did before they had a name shows under their name.
  */
-export function PersonDetail({ person: p, onPage }: { person: Person; onPage?: (path: string) => void }) {
+export function PersonDetail({
+  person: p,
+  activity,
+  account,
+  onPage,
+  onThread,
+}: {
+  person: Person;
+  activity?: PersonActivity;
+  account?: AdminAccountRow;
+  onPage?: (path: string) => void;
+  onThread?: (key: string) => void;
+}) {
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
       <dl className="grid grid-cols-2 content-start gap-2.5">
+        {p.kind === 'account' && (
+          <>
+            <Fact label="Name" value={p.name ?? 'Not given'} />
+            <Fact label="Email" value={p.email ?? 'Unknown'} />
+            {account?.organization && <Fact label="Organisation" value={account.organization} />}
+            {account?.role && <Fact label="Role" value={account.role} />}
+            {account?.phone && <Fact label="Phone" value={account.phone} />}
+            <Fact label="Account created" value={p.joined ? stamp(p.joined) : 'Unknown'} />
+            <Fact label="Last sign-in" value={p.lastSignIn ? `${stamp(p.lastSignIn)}${p.provider ? ` · ${provider(p.provider)}` : ''}` : 'Unknown'} />
+            {account && <Fact label="Email confirmed" value={account.confirmed_at ? stamp(account.confirmed_at) : 'Not yet'} />}
+          </>
+        )}
         <Fact label="First seen" value={stamp(p.firstSeen)} />
         <Fact label="Last seen" value={stamp(p.lastSeen)} />
         <Fact label="Visits" value={String(p.visits)} />
         <Fact label="Time spent" value={duration(p.seconds)} />
         <Fact label="Pages opened" value={String(p.views)} />
+        <Fact label="Questions asked" value={String(activity?.questions ?? 0)} />
+        <Fact label="Fields filled" value={String(activity?.fields ?? 0)} />
+        <Fact label="Buttons pressed" value={String(activity?.clicks ?? 0)} />
+        {activity?.tools.map((w) => (
+          <Fact key={w.tool} label={TOOL_NAMES[w.tool]} value={`${w.saves} saves · last ${stamp(w.last, false)}${w.sealed ? ' · locked' : ''}`} wide />
+        ))}
         <Fact label="Browsers" value={String(p.browsers)} />
+        <Fact label="Requests" value={String(p.requests)} />
         <Fact label="Arrived from" value={p.source} />
         <Fact label="Location" value={p.place ?? 'Unknown'} />
         <Fact label="Device" value={[p.device, p.browser, p.os].filter(Boolean).join(' · ') || 'Unknown'} />
         <Fact label="Screen · language" value={[p.screen, p.language].filter(Boolean).join(' · ') || 'Unknown'} />
-        <Fact label="IP address" value={p.ip ?? 'Unknown'} />
-        <Fact label="Requests" value={String(p.requests)} />
-        {p.kind === 'account' && (
-          <>
-            <Fact label="Account created" value={p.joined ? stamp(p.joined) : 'Unknown'} />
-            <Fact label="Last sign-in" value={p.lastSignIn ? `${stamp(p.lastSignIn)}${p.provider ? ` · ${provider(p.provider)}` : ''}` : 'Unknown'} />
-          </>
-        )}
+        <Fact label="IP address" value={p.ip ?? 'Unknown'} wide />
         {p.kind === 'visitor' && <Fact label="Visitor ID" value={p.key.slice(2)} wide />}
       </dl>
 
-      <div className="min-w-0">
-        <p className="a-label flex items-center gap-1.5">
-          <Globe className="size-3" aria-hidden /> Pages, newest first
-        </p>
-        <ol className="relative mt-3 space-y-0.5 border-l border-dashed pl-4">
-          {p.journey.map((j, i) => (
-            <li key={`${j.at}-${i}`} className="relative">
-              <span aria-hidden className="absolute top-3.5 -left-[21px] size-2 rounded-full border-2 border-[var(--surface-raised)] bg-[var(--color-brand-500)]" />
-              <button
-                type="button"
-                disabled={!onPage}
-                onClick={() => onPage?.(j.path)}
-                className="flex w-full items-baseline justify-between gap-3 rounded-lg px-2 py-1.5 text-left text-[13px] transition enabled:hover:bg-[var(--surface-sunken)]"
-              >
-                <span className="min-w-0 truncate font-medium" title={j.title ?? j.path}>
-                  {j.path}
-                </span>
-                <span className="text-subtle shrink-0 text-[11.5px] tabular-nums">
-                  {duration(j.seconds)} · {stamp(j.at)}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ol>
-      </div>
+      <Timeline person={p} activity={activity} account={account} onPage={onPage} onThread={onThread} />
     </div>
   );
 }

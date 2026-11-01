@@ -85,8 +85,7 @@ export function History({
             <p className="text-subtle px-2.5 py-3 text-[13px] leading-relaxed">{problem}</p>
           ) : conversations.length === 0 ? (
             <p className="text-subtle px-2.5 py-3 text-[13px] leading-relaxed">
-              Nothing saved yet. A conversation is kept once it has an answer in it, and only you
-              can see it.
+              Nothing saved yet. A conversation is kept here once it has an answer in it.
             </p>
           ) : (
             <ul className="max-h-[19rem] overflow-y-auto">

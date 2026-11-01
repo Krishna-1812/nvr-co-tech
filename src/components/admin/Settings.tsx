@@ -291,10 +291,22 @@ export function DataCard({ visitors, views }: { visitors: number; views: number 
             <Download className="size-4" aria-hidden /> Download
           </a>
         </div>
+        <div className="surface-sunken flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-4 py-3.5">
+          <span className="min-w-0">
+            <span className="block text-[14px] font-semibold">Download every chat</span>
+            <span className="text-muted block text-[13px]">A spreadsheet (CSV) with one row per question: who asked, on which page, and the answer they were given.</span>
+          </span>
+          <a
+            href="/analytics/export?what=chats"
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--action)] px-4 py-2 text-[13px] font-semibold text-[var(--on-action)] shadow-[var(--elev-brand)]"
+          >
+            <Download className="size-4" aria-hidden /> Download
+          </a>
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed px-4 py-3.5">
           <span className="min-w-0">
             <span className="block text-[14px] font-semibold">Clear the visit data</span>
-            <span className="text-muted block text-[13px]">Deletes every visitor and page view so the figures start from zero. Accounts and requests are kept.</span>
+            <span className="text-muted block text-[13px]">Deletes every visitor, page view, chat, field and click so the figures start from zero. Accounts and requests are kept.</span>
           </span>
           <Button variant="ghost" className="text-[var(--status-rejected)]" onClick={() => setConfirming(true)}>
             <Trash2 className="size-4" aria-hidden /> Clear

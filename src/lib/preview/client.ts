@@ -82,6 +82,9 @@ const TABLES: Tables = (globalForPreview.__fiPreviewTables ??= {
   // What people entered (0036), filled the same way through `track_input`.
   site_tool_data: [],
   site_events: [],
+  // Questions to the chat and their answers (0039), filled through `track_chat`
+  // by asking the chat in preview, where the answers are the offline samples.
+  site_chats: [],
   access_requests: [],
   // Admin settings (0035).
   analytics_admins: [],
@@ -658,6 +661,7 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
       TABLES.platform_settings = [...TABLES.platform_settings.filter((r) => r.key !== args.p_key), { key: args.p_key, value: args.p_value, updated_at: nowIso() }];
       return ok();
     case 'reset_site_analytics':
+      TABLES.site_chats.length = 0;
       TABLES.site_events.length = 0;
       TABLES.site_tool_data.length = 0;
       TABLES.site_views.length = 0;
@@ -716,7 +720,9 @@ function previewTrack(p: Row, who: { id: string; email: string } | null) {
   if (who) {
     v.user_id = who.id;
     v.email = who.email;
-    for (const view of TABLES.site_views) if (view.visitor_id === vid && !view.user_id) view.user_id = who.id;
+    // claim_visitor (0039): everything this browser did before is theirs now.
+    for (const t of [TABLES.site_views, TABLES.site_events, TABLES.site_tool_data, TABLES.site_chats])
+      for (const r of t) if (r.visitor_id === vid && !r.user_id) r.user_id = who.id;
   }
   if (p.type === 'view' && p.view_id && !TABLES.site_views.some((r) => r.id === p.view_id)) {
     TABLES.site_views.push({
@@ -769,6 +775,38 @@ function previewInput(p: Row, who: { id: string; email: string } | null) {
   return null;
 }
 
+/** `track_chat` (0039) in memory: one question and its answer. */
+function previewChat(p: Row, who: { id: string; email: string } | null) {
+  const vid = p.vid ? String(p.vid) : null;
+  if (!p.id || !p.question || (!vid && !who)) return null;
+  const now = nowIso();
+  if (vid && !TABLES.site_visitors.some((r) => r.id === vid)) {
+    TABLES.site_visitors.push({ id: vid, first_seen: now, last_seen: now, user_id: who?.id ?? null, email: who?.email ?? null });
+  }
+  if (TABLES.site_chats.some((r) => r.id === p.id)) return null;
+  TABLES.site_chats.push({
+    id: p.id,
+    visitor_id: vid,
+    user_id: who?.id ?? null,
+    session_id: p.sid ?? null,
+    conversation: p.conversation ?? null,
+    mode: p.mode === 'member' ? 'member' : 'visitor',
+    path: p.path ?? null,
+    via: p.via ?? null,
+    question: p.question,
+    answer: p.answer ?? null,
+    sources: Array.isArray(p.sources) ? p.sources : [],
+    tools: Array.isArray(p.tools) ? p.tools : [],
+    outcome: p.outcome ?? 'answered',
+    error: p.error ?? null,
+    model: p.model ?? null,
+    first_ms: p.first_ms ?? null,
+    total_ms: p.total_ms ?? null,
+    at: now,
+  });
+  return null;
+}
+
 // ─── The client ──────────────────────────────────────────────────────────────
 
 /**
@@ -788,7 +826,9 @@ export function createPreviewClient(as: 'admin' | 'member' | 'guest' = 'admin') 
           ? Promise.resolve(ok(previewTrack((args?.p ?? {}) as Row, as === 'guest' ? null : { id: PREVIEW_USER_ID, email: String(email) })))
           : fn === 'track_input'
             ? Promise.resolve(ok(previewInput((args?.p ?? {}) as Row, as === 'guest' ? null : { id: PREVIEW_USER_ID, email: String(email) })))
-            : rpc(fn, args),
+            : fn === 'track_chat'
+              ? Promise.resolve(ok(previewChat((args?.p ?? {}) as Row, as === 'guest' ? null : { id: PREVIEW_USER_ID, email: String(email) })))
+              : rpc(fn, args),
     auth: {
       getUser: async () => ({
         data: { user: as === 'guest' ? null : { id: PREVIEW_USER_ID, email } },
