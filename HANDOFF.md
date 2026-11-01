@@ -755,8 +755,8 @@ afternoon / evening, "Hello, night owl" from 9 pm to 5 am) over a small sky for 
 weekday and time, a line and four picks that follow the page (`greetingFor`: tool page → what it
 does, access, data; guide → sum it up; calculator → explain it; elsewhere → find a tool,
 calculators, guides, a person; never a link to the page you are on; the home page names no tool),
-and a box whose question goes straight to the chat (`openChat`; the form is `data-private`, so
-capture skips it). It goes when the chat opens (`CHAT_OPENED` event, sent by both the shell and
+and a box whose question goes straight to the chat (`openChat(question, via)`; it is filed as a
+chat question with its answer, not also as a loose field: capture skips anything inside `.chat`). It goes when the chat opens (`CHAT_OPENED` event, sent by both the shell and
 the full chat), on navigation, or after 28 s (16 s on a phone) unless hovered, focused or typed
 in; the cross keeps it away for 3 days (`localStorage` `tfi-chat-hello-off`). Never on sign-in
 pages or `/ask`. Drawn by the shell, so it needs no full-chat download. Tests:
@@ -771,7 +771,8 @@ Two modes, decided by the layout:
   they cannot drift; ~116k chars ≈ 30k tokens) as one system block with `cache_control`, then a
   small second block with the page they are on and the date (`lib/assist/visitor.ts`;
   `pageLabel` only names known paths, never echoes the browser's string). Calculators allowed, 2
-  rounds. Nothing is stored: the conversation lives in the tab's `sessionStorage`. Guards, in
+  rounds. The conversation lives in the tab's `sessionStorage`, and **every question and its
+  answer is recorded for the Admin screen since 1 Nov 2026** (§12, "The chat log"). Guards, in
   order: same-origin only (`lib/assist/request.ts`), question ≤ 1,000 chars, 12 questions per
   address per 10 min and 400 per instance per hour (`ratelimit.ts`, in-memory, a cost control),
   answers ≤ 4,000 tokens at effort `low`. All limits are `CHAT_*` in `lib/assist/config.ts`.
@@ -871,6 +872,48 @@ used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
   shows your own preview browsing; access requests are kept too. Use a normal user agent in
   Playwright (HeadlessChrome is dropped as a bot).
 - Nav: one item, "Admin" (`analyticsSection`); account menu says "Admin".
+- **The chat log and everything else people did (1 Nov 2026, migration 0039).** The owner asked
+  for everything to be recorded: which visitor asked the chat what and what it answered, and all of
+  a visitor's earlier data put under their name once they sign in. They were told this reverses
+  what the chat and the Privacy page said; the wording changed in the same release (below).
+  - **Recording.** `/api/chat` and `/api/assist` file every question server-side once the answer
+    has finished (`lib/analytics/chat.ts`: `readChatMeta`, `tally`, `chatPayload`, tested;
+    `chat-server.ts`: `recordChat` → RPC `track_chat`). Kept: question, the answer exactly as
+    streamed, pages it used, calculations, outcome (`answered`, `stopped`, `error`, `offline`,
+    `limited`, `unavailable`), error text, time to first word and whole answer, model, page, mode
+    (public chat or workspace assistant), chat id, session, and how it was asked (`via`: typed,
+    suggestion, retry, greeting, greeting-pick, ask-button, link). Rate-limited and no-key
+    questions are recorded too. Never recorded: crawlers, DNT/GPC browsers, anything asked on
+    `/will-maker` (`neverCaptured`). The browser sends only `meta` (chat id from `ChatDockFull`'s
+    saved state or `Conversation`'s thread ref, `fi_sid`, path, via); the visitor is the `fi_vid`
+    cookie and the account is `auth.uid()`.
+  - **Schema 0039** (`0039_chat_log.sql`, **NOT YET APPLIED — the owner pastes it**): `site_chats`;
+    `claim_visitor(vid, uid)` (internal) moves a browser's views, events, tool data and chats under
+    the account, called by `track_hit`, `track_input` and `track_chat` whenever the session is
+    signed in, and run once over existing rows at the end of the file; `admin_accounts()` now also
+    returns photo, organisation, role, phone and email-confirmed (dropped and recreated: new return
+    type); `reset_site_analytics()` empties chats too. **0039 repeats 0036's tables and
+    `track_input` (guarded)**, because 0036 was never recorded as applied — so until 0039 runs,
+    fields, clicks and tool work may not have been reaching the database either. Verify with the
+    query at the end of the file (five non-null values).
+  - **Screen.** `lib/analytics/activity.ts` (`buildActivity`, tested) files chats into threads and
+    every chat, field, click and tool save into a per-person timeline, keyed exactly like the report
+    (account if the browser ever signed in). New: hero chip "Questions asked", a **Conversations**
+    card (`ThreadCard`), drill focuses `chats` and `thread` (`components/admin/Chats.tsx`:
+    `ThreadList`, `ThreadView` — the chat as the reader saw it, with pages used, sums, timings, copy
+    — and `Timeline` — day-by-day pages, questions, typed-in, pressed, tool work, sign-up and
+    sign-in, with filters). `PersonDetail` shows every known account detail and the timeline; the
+    People list shows a question count. CSV: `/analytics/export?what=chats` ("Download every chat"
+    in Admin settings). Until 0039 runs the card says so.
+  - **Wording changed with it:** privacy policy (updated 1 Nov 2026: what is recorded, linking on
+    sign-in, DNT; the assistant clause), the chat's fine print ("Chats are recorded."), the
+    assistant's own knowledge (`knowledge.ts`), `/ask/history` and its empty state, the `/ask`
+    hero chip, and Wealth Tracker / True Property Cost copy that promised "never sent to a server"
+    or "readable only by you" (their work is recorded by capture since 0036; a passcode still keeps
+    it unreadable).
+  - **Trust level:** like `track_hit`/`track_input`, `track_chat` is callable with the public anon
+    key, so a determined person could insert made-up chat rows. Same as the existing analytics;
+    flagged, not fixed.
 
 ---
 
@@ -957,6 +1000,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0034 | `drop_old_analytics.sql` | Drops the 0010/0024 analytics tables and the old analytics and `operator_*` functions; keeps `analytics_admins`; empties `product_events` (§12) |
 | 0035 | `admin_settings.sql` | Admin settings: `tool_grants`, `platform_settings`, `admin_add/remove`, `grant_tool/revoke_tool`, `set_platform_setting`, `reset_site_analytics` (§12) |
 | 0038 | `will_maker_saves.sql` | **Not yet applied.** `tool_saves.tool` also allows `'will-maker'`, and constraint `tool_saves_will_is_sealed` makes the database refuse any Will Maker row that is not a sealed (encrypted) blob (§10c) |
+| 0039 | `chat_log.sql` | **Not yet applied.** `site_chats`, `track_chat()`, `claim_visitor()`; `track_hit`/`track_input` claim a browser's earlier rows on sign-in; `admin_accounts()` with photo, organisation, role, phone; repeats 0036 guarded (§12) |
 | 0037 | `itd_notices.sql` | Tax notice watch: `itd_*` tables, `itd_set_handled()`, private bucket `itd-notices` (§12b). Numbered 0037 because 0036 (input capture) exists unapplied on the session branch only |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied

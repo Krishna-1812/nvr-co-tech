@@ -722,6 +722,29 @@ export type SiteEventRow = {
   at: string;
 };
 
+/** 0039 — one question to the chat and its answer, filed on the server. */
+export type SiteChatRow = {
+  id: string;
+  visitor_id: string | null;
+  user_id: string | null;
+  session_id: string | null;
+  /** The browser's own id for one chat, so the questions in it read as a thread. */
+  conversation: string | null;
+  mode: 'visitor' | 'member';
+  path: string | null;
+  via: string | null;
+  question: string;
+  answer: string | null;
+  sources: { id: string; title: string; href?: string }[];
+  tools: { label: string; summary: string; ok: boolean; args?: Record<string, unknown> }[];
+  outcome: 'answered' | 'stopped' | 'error' | 'offline' | 'refused' | 'limited' | 'unavailable';
+  error: string | null;
+  model: string | null;
+  first_ms: number | null;
+  total_ms: number | null;
+  at: string;
+};
+
 /** 0035 — a locked tool opened for one person by an admin. */
 export type ToolGrantRow = {
   email: string;
@@ -742,6 +765,12 @@ export type AdminAccountRow = {
   created_at: string;
   last_sign_in_at: string | null;
   provider: string | null;
+  /** 0039 onwards; absent until it runs. */
+  avatar_url?: string | null;
+  organization?: string | null;
+  role?: string | null;
+  phone?: string | null;
+  confirmed_at?: string | null;
 };
 
 /** 0032 — what a browser-side tool keeps, saved for its signed-in owner. */
@@ -876,6 +905,7 @@ export type Database = {
       site_views: Table<SiteViewRow>;
       site_tool_data: Table<SiteToolDataRow>;
       site_events: Table<SiteEventRow>;
+      site_chats: Table<SiteChatRow>;
       tool_grants: Table<ToolGrantRow>;
       platform_settings: Table<PlatformSettingRow>;
 
@@ -978,6 +1008,7 @@ export type Database = {
       is_analytics_admin: { Args: Record<string, never>; Returns: boolean };
       track_hit: { Args: { p: Record<string, unknown> }; Returns: void };
       track_input: { Args: { p: Record<string, unknown> }; Returns: void };
+      track_chat: { Args: { p: Record<string, unknown> }; Returns: void };
       admin_accounts: { Args: Record<string, never>; Returns: AdminAccountRow[] };
       admin_add: { Args: { p_email: string; p_note?: string | null }; Returns: void };
       admin_remove: { Args: { p_email: string }; Returns: void };

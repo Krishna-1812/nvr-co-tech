@@ -65,6 +65,23 @@ export async function* readEvents(body: ReadableStream<Uint8Array>): AsyncGenera
   }
 }
 
+/**
+ * What the server files alongside a question for the Admin screen
+ * (lib/analytics/chat): which chat it belongs to, the visit, the page and how
+ * it was asked. The answer itself is recorded from the stream, not from here.
+ */
+export type AskMeta = { conversation?: string | null; via?: string | null };
+
+function meta(m: AskMeta = {}) {
+  let sid: string | null = null;
+  try {
+    sid = sessionStorage.getItem('fi_sid');
+  } catch {
+    // No session storage: the question is still filed, without its visit.
+  }
+  return { conversation: m.conversation ?? null, via: m.via ?? null, sid, path: typeof location === 'undefined' ? null : location.pathname };
+}
+
 /** Ask the signed-in assistant a question and get the events back. */
 export async function* ask(
   turns: { role: 'user' | 'assistant'; content: string }[],
@@ -72,20 +89,19 @@ export async function* ask(
   signal?: AbortSignal,
   /** The saved conversation to append to, or null to begin one. */
   conversationId?: string | null,
+  about?: AskMeta,
 ): AsyncGenerator<AssistEvent> {
-  yield* post('/api/assist', { turns, agent, conversationId: conversationId ?? null }, signal);
+  yield* post('/api/assist', { turns, agent, conversationId: conversationId ?? null, meta: meta(about) }, signal);
 }
 
-/**
- * Ask the chat anybody can use (app/api/chat), from the page the reader is on.
- * Nothing is saved, so there is no conversation id to carry.
- */
+/** Ask the chat anybody can use (app/api/chat), from the page the reader is on. */
 export async function* askSite(
   turns: { role: 'user' | 'assistant'; content: string }[],
   page: string,
   signal?: AbortSignal,
+  about?: AskMeta,
 ): AsyncGenerator<AssistEvent> {
-  yield* post('/api/chat', { turns, page }, signal);
+  yield* post('/api/chat', { turns, page, meta: meta(about) }, signal);
 }
 
 /**

@@ -16,7 +16,7 @@ export function AskButton({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      onClick={() => openChat()}
+      onClick={() => openChat(undefined, 'ask-button')}
       aria-label="Ask the assistant"
       aria-keyshortcuts="Control+J Meta+J"
       title="Ask (⌘J)"

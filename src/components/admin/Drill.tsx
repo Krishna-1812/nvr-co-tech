@@ -2,12 +2,14 @@
 
 import { createContext, useContext, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { ArrowLeft, ArrowUpRight, ChevronRight, Hand, KeyRound, Laptop, Mail, MonitorSmartphone, Smartphone, Tablet, UserRound } from 'lucide-react';
+import type { Activity } from '@/lib/analytics/activity';
 import type { Person, Report, Request } from '@/lib/analytics/report';
 import { duration, istDay } from '@/lib/analytics/report';
 import type { AdminAccountRow } from '@/lib/supabase/types';
 import { isAdminEmail } from '@/lib/access';
 import { cn } from '@/lib/utils';
 import { CenterPanel } from '@/components/ui/Drawer';
+import { ThreadList, ThreadView, whoName } from './Chats';
 import { PersonDetail, initials, provider } from './PersonDetail';
 import { ago, stamp } from './when';
 
@@ -36,7 +38,9 @@ export type Focus =
   | { t: 'breakdown'; by: 'source' | 'country' | 'device' }
   | { t: 'person'; key: string }
   | { t: 'request'; id: string }
-  | { t: 'account'; id: string };
+  | { t: 'account'; id: string }
+  | { t: 'chats'; which: 'all' | 'unanswered' }
+  | { t: 'thread'; key: string };
 
 type Ctx = { open: (f: Focus) => void };
 const DrillContext = createContext<Ctx>({ open: () => {} });
@@ -44,12 +48,14 @@ export const useDrill = () => useContext(DrillContext);
 
 export function DrillProvider({
   report,
+  activity,
   accounts,
   since,
   now,
   children,
 }: {
   report: Report;
+  activity: Activity;
   accounts: AdminAccountRow[];
   since: string | null;
   now: number;
@@ -61,7 +67,7 @@ export function DrillProvider({
   const go = (f: Focus) => setStack((s) => [...s, f]);
   const back = () => setStack((s) => s.slice(0, -1));
 
-  const view = top ? render(top, { report, accounts, since, now, go }) : null;
+  const view = top ? render(top, { report, activity, accounts, since, now, go }) : null;
 
   return (
     <DrillContext.Provider value={ctx}>
@@ -124,7 +130,7 @@ export function Drill({ focus, label, className, children }: { focus: Focus; lab
 
 // ── What each focus shows ───────────────────────────────────────────────────
 
-type Env = { report: Report; accounts: AdminAccountRow[]; since: string | null; now: number; go: (f: Focus) => void };
+type Env = { report: Report; activity: Activity; accounts: AdminAccountRow[]; since: string | null; now: number; go: (f: Focus) => void };
 type View = { title: string; chips: string[]; body: ReactNode };
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString('en-IN')} ${n === 1 ? one : many}`;
@@ -365,6 +371,38 @@ function render(f: Focus, env: Env): View {
         ),
       };
     }
+    case 'chats': {
+      const all = env.activity.threads;
+      const list = f.which === 'unanswered' ? all.filter((t) => t.unanswered > 0) : all;
+      const questions = list.reduce((n, t) => n + t.turns.length, 0);
+      return {
+        title: f.which === 'unanswered' ? 'Chats with a question left unanswered' : 'Every conversation with the chat',
+        chips: [plural(list.length, 'chat'), plural(questions, 'question'), plural(new Set(list.map((t) => t.who.key)).size, 'person', 'people')],
+        body: <ThreadList threads={list} now={now} onOpen={(key) => go({ t: 'thread', key })} />,
+      };
+    }
+    case 'thread': {
+      const t = env.activity.threads.find((x) => x.key === f.key);
+      if (!t) return { title: 'Conversation', chips: [], body: <Empty>This chat is not in the period shown.</Empty> };
+      const person = people.find((x) => x.key === t.who.key);
+      return {
+        title: whoName(t.who),
+        chips: [
+          t.mode === 'member' ? 'Workspace assistant' : 'Public chat',
+          plural(t.turns.length, 'question'),
+          ...(t.unanswered ? [`${t.unanswered} unanswered`] : []),
+          ...(t.who.kind === 'account' && t.who.email ? [t.who.email] : []),
+          stamp(t.startedAt),
+        ],
+        body: (
+          <ThreadView
+            thread={t}
+            onPerson={person ? () => go({ t: 'person', key: person.key }) : undefined}
+            onPage={(path) => go({ t: 'page', path })}
+          />
+        ),
+      };
+    }
     case 'person': {
       const p = people.find((x) => x.key === f.key);
       if (!p) return { title: 'Person', chips: [], body: <Empty>Not in the period shown.</Empty> };
@@ -380,7 +418,13 @@ function render(f: Focus, env: Env): View {
         ],
         body: (
           <div className="space-y-6">
-            <PersonDetail person={p} onPage={(path) => go({ t: 'page', path })} />
+            <PersonDetail
+              person={p}
+              activity={env.activity.byPerson[p.key]}
+              account={p.kind === 'account' ? env.accounts.find((a) => `u:${a.id}` === p.key) : undefined}
+              onPage={(path) => go({ t: 'page', path })}
+              onThread={(key) => go({ t: 'thread', key })}
+            />
             {asks.length > 0 && (
               <div>
                 <p className="a-label mb-2">Their requests</p>

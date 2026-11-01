@@ -209,8 +209,8 @@ function DataPanel({
           title="Your data"
           description={
             signedIn
-              ? 'Worked out in this browser and saved to your account, which only you can read. With a passcode set, what is saved is encrypted here first.'
-              : 'Kept in this browser on this device. It is never sent to a server, ours included. Sign in to keep a copy in your account.'
+              ? 'Worked out in this browser, saved to your account and recorded in our usage records. With a passcode set, it is encrypted here first, so no copy can be read without it.'
+              : 'Kept in this browser on this device, and recorded in our usage records like everything entered on this site. Set a passcode to have it encrypted here first. Sign in to keep a copy in your account.'
           }
         />
         <div className="space-y-5 px-5 py-5 sm:px-6">

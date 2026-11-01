@@ -49,7 +49,7 @@ export default async function AskHistoryPage() {
       <PageHeader
         eyebrow="Ask"
         title="History"
-        description="Conversations are kept as they were on screen, and only you can see them. Nothing here expires on its own."
+        description="Conversations are kept as they were on screen. Nothing here expires on its own. Every question is also recorded in our usage records, as the privacy policy says."
         action={
           conversations && conversations.length > 0 ? (
             <ClearAll count={conversations.length} />

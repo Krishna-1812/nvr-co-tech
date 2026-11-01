@@ -58,13 +58,13 @@ export function Welcome({
             <ul className="mt-6 flex flex-wrap gap-2">
               {(signedIn
                 ? [
-                    { icon: HardDrive, text: 'Saved to your account, readable only by you' },
-                    { icon: EyeOff, text: 'With a passcode, encrypted before it is saved' },
+                    { icon: HardDrive, text: 'Saved to your account' },
+                    { icon: EyeOff, text: 'With a passcode, encrypted before it leaves' },
                     { icon: LockKeyhole, text: 'Lock it with a passcode if you like' },
                   ]
                 : [
-                    { icon: HardDrive, text: 'Kept only in this browser' },
-                    { icon: EyeOff, text: 'Never sent to a server, including ours' },
+                    { icon: HardDrive, text: 'Kept in this browser, no account needed' },
+                    { icon: EyeOff, text: 'With a passcode, encrypted before it leaves' },
                     { icon: LockKeyhole, text: 'Lock it with a passcode if you like' },
                   ]
               ).map(({ icon: Icon, text }) => (

@@ -77,8 +77,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           decode. Renders nothing. See play/Play. */}
       <Play />
 
-      {/* The chat in the corner, for anybody: it answers from this website and
-          keeps nothing. See components/chat/ChatDock and app/api/chat. */}
+      {/* The chat in the corner, for anybody: it answers from this website, and
+          each question is filed for the Admin screen. See components/chat/ChatDock and app/api/chat. */}
       <ChatDock mode="visitor" skin="desert" placement="site" open={OPEN_TOOLS} tools={toolBriefs()} />
 
     </div>

@@ -36,8 +36,9 @@ import { ChatOwl, type OwlMood } from './ChatOwl';
  * public pages into the workspace should meet the same assistant in the same
  * place. What differs is who answers:
  *
- *   visitor  /api/chat, which anybody may use. It is given the whole website
- *            and keeps nothing; the conversation lives in this tab only.
+ *   visitor  /api/chat, which anybody may use. It is given the whole website.
+ *            The conversation lives in this tab, and every question and its
+ *            answer is filed for the Admin screen (lib/analytics/chat).
  *   member   /api/assist, the signed-in assistant, which knows the tool on
  *            screen, does its sums with the app's own calculators and saves
  *            each exchange to the reader's history (opened in full at /ask).
@@ -64,7 +65,10 @@ type Msg = {
   pending?: boolean;
 };
 
-type Saved = { messages: Msg[]; conversationId: string | null };
+/** `chat`: this chat's own id, so the questions in it are filed as one thread. */
+type Saved = { messages: Msg[]; conversationId: string | null; chat?: string };
+
+const newChat = () => `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
 const STORE = (mode: Mode) => `tfi-chat-v1-${mode}`;
 
@@ -90,7 +94,11 @@ function load(mode: Mode): Saved | null {
     const messages = saved.messages
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
       .map((m) => (m.pending ? { ...m, pending: false, note: m.content ? m.note : ('error' as const), content: m.content || 'That answer was interrupted.' } : m));
-    return { messages, conversationId: typeof saved.conversationId === 'string' ? saved.conversationId : null };
+    return {
+      messages,
+      conversationId: typeof saved.conversationId === 'string' ? saved.conversationId : null,
+      chat: typeof saved.chat === 'string' ? saved.chat : undefined,
+    };
   } catch {
     return null;
   }
@@ -172,6 +180,7 @@ export function ChatDockFull({
   const [conversationId, setConversationId] = useState<string | null>(() =>
     typeof window === 'undefined' ? null : (load(mode)?.conversationId ?? null),
   );
+  const [chat, setChat] = useState<string>(() => (typeof window === 'undefined' ? '' : load(mode)?.chat) || newChat());
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -202,8 +211,8 @@ export function ChatDockFull({
   // ── Keeping the conversation across a reload ──────────────────────────────
   useEffect(() => {
     if (streaming) return;
-    save(mode, { messages, conversationId });
-  }, [mode, messages, conversationId, streaming]);
+    save(mode, { messages, conversationId, chat });
+  }, [mode, messages, conversationId, chat, streaming]);
 
   // ── Opening and closing ───────────────────────────────────────────────────
   const close = useCallback(() => {
@@ -265,7 +274,7 @@ export function ChatDockFull({
   }, []);
 
   const send = useCallback(
-    async (text: string, base?: Msg[]) => {
+    async (text: string, base?: Msg[], via = 'typed') => {
       const question = text.trim().slice(0, limit);
       if (!question || abort.current) return;
 
@@ -286,8 +295,8 @@ export function ChatDockFull({
 
       const events: AsyncGenerator<AssistEvent> =
         mode === 'member'
-          ? ask(turns, agent, controller.signal, conversationId)
-          : askSite(turns, pathname, controller.signal);
+          ? ask(turns, agent, controller.signal, conversationId, { conversation: chat, via })
+          : askSite(turns, pathname, controller.signal, { conversation: chat, via });
 
       let answer = '';
       let failed = false;
@@ -342,7 +351,7 @@ export function ChatDockFull({
         }
       }
     },
-    [agent, conversationId, limit, messages, mode, pathname, patch],
+    [agent, chat, conversationId, limit, messages, mode, pathname, patch],
   );
 
   const stop = useCallback(() => abort.current?.abort(), []);
@@ -351,6 +360,7 @@ export function ChatDockFull({
     abort.current?.abort();
     setMessages([]);
     setConversationId(null);
+    setChat(newChat());
     setInput('');
     setAnnounce('');
     try {
@@ -366,7 +376,7 @@ export function ChatDockFull({
       const at = messages.findIndex((m) => m.id === failedId);
       const question = messages[at - 1];
       if (at < 1 || question?.role !== 'user') return;
-      void send(question.content, messages.slice(0, at - 1));
+      void send(question.content, messages.slice(0, at - 1), 'retry');
     },
     [messages, send],
   );
@@ -384,9 +394,9 @@ export function ChatDockFull({
   // ── The rest of the page can open it ──────────────────────────────────────
   useEffect(() => {
     const onAsk = (e: Event) => {
-      const question = (e as CustomEvent<{ question?: string }>).detail?.question;
+      const detail = (e as CustomEvent<{ question?: string; via?: string }>).detail;
       show();
-      if (question) void send(question);
+      if (detail?.question) void send(detail.question, undefined, detail.via ?? 'link');
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === 'j' && (e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
@@ -400,7 +410,7 @@ export function ChatDockFull({
     // carry it out now, once, as if the request had arrived just now.
     const pending = startRef.current;
     startRef.current = null;
-    if (pending?.open) queueMicrotask(() => onAsk(new CustomEvent(ASK_EVENT, { detail: { question: pending.question } })));
+    if (pending?.open) queueMicrotask(() => onAsk(new CustomEvent(ASK_EVENT, { detail: { question: pending.question, via: pending.via } })));
     return () => {
       window.removeEventListener(ASK_EVENT, onAsk);
       window.removeEventListener('keydown', onKey);
@@ -576,7 +586,7 @@ export function ChatDockFull({
                 <ul className="chat-suggest" aria-label="Suggested questions">
                   {suggestions.map((s, i) => (
                     <li key={s.label} style={{ '--i': i + 2 } as CSSProperties}>
-                      <button type="button" onClick={() => void send(s.question)} disabled={streaming}>
+                      <button type="button" onClick={() => void send(s.question, undefined, 'suggestion')} disabled={streaming}>
                         <span className="chat-suggest-dot" aria-hidden />
                         <span className="min-w-0 flex-1 truncate">{s.label}</span>
                         <ArrowUpRight className="chat-suggest-arrow size-4" aria-hidden />
@@ -721,7 +731,7 @@ export function ChatDockFull({
                 <span className={cn(left < 20 && 'text-[var(--c-accent)]')}>{left} characters left</span>
               ) : (
                 <>
-                  Answers can be wrong, and are not financial advice.{' '}
+                  Chats are recorded. Answers can be wrong, and are not financial advice.{' '}
                   <Link href="/privacy" className="underline decoration-[var(--c-line-2)] underline-offset-2 hover:text-[var(--c-ink)]">
                     Privacy
                   </Link>

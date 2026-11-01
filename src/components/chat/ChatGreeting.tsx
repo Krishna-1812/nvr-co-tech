@@ -348,7 +348,7 @@ export function ChatGreeting({ open = [], tools = [] }: { open?: readonly string
             return (
               <li key={p.label} style={{ '--i': i } as CSSProperties}>
                 {'ask' in p ? (
-                  <button type="button" className="chat-greet-pick" onClick={() => openChat(p.ask)}>
+                  <button type="button" className="chat-greet-pick" onClick={() => openChat(p.ask, 'greeting-pick')}>
                     {inner}
                   </button>
                 ) : (
@@ -361,14 +361,13 @@ export function ChatGreeting({ open = [], tools = [] }: { open?: readonly string
           })}
         </ul>
 
-        {/* Handed to the chat rather than recorded on the way: what somebody
-            types here is a question for the assistant, not a form field. */}
+        {/* What is typed here is filed as the chat question it becomes, with
+            its answer (lib/analytics/chat), not also as a loose form field. */}
         <form
           className="chat-greet-ask"
-          data-private
           onSubmit={(e) => {
             e.preventDefault();
-            openChat(text.trim() || undefined);
+            openChat(text.trim() || undefined, 'greeting');
           }}
         >
           <label htmlFor="chat-greet-q" className="sr-only">

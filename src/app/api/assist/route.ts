@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { recordRun } from '@/lib/analytics/meter';
 import { PREVIEW } from '@/lib/preview';
-import { MAX_QUESTION_CHARS, apiKey } from '@/lib/assist/config';
+import { MAX_QUESTION_CHARS, MODEL, apiKey } from '@/lib/assist/config';
+import { readChatMeta, tally } from '@/lib/analytics/chat';
+import { recordChat } from '@/lib/analytics/chat-server';
 import { NO_KEY } from '@/lib/assist/errors';
 import { runOffline } from '@/lib/assist/offline';
 import { runAssist } from '@/lib/assist/anthropic';
@@ -43,6 +45,8 @@ type Body = {
   turns?: unknown;
   agent?: unknown;
   conversationId?: unknown;
+  /** Which chat, session, page and button the question came from (lib/analytics/chat). */
+  meta?: unknown;
 };
 
 /**
@@ -86,14 +90,15 @@ export async function POST(request: Request) {
   const read = readTurns(body.turns, { maxQuestionChars: MAX_QUESTION_CHARS, maxPostedTurns: MAX_POSTED_TURNS });
   if ('error' in read) return NextResponse.json({ error: read.error }, { status: 400 });
 
+  // Every question is also filed for the Admin screen, with its answer, under
+  // this person (lib/analytics/chat, migration 0039), as the public chat's are.
+  const record = { id: crypto.randomUUID(), mode: 'member' as const, meta: readChatMeta(body.meta), question: latestQuestion(read.turns) };
+
   const rate = checkRate(user.id);
   if (!rate.allowed) {
-    return NextResponse.json(
-      {
-        error: `That is a lot of questions in a short time. Try again in ${rate.retryAfterSeconds} seconds.`,
-      },
-      { status: 429, headers: { 'retry-after': String(rate.retryAfterSeconds) } },
-    );
+    const error = `That is a lot of questions in a short time. Try again in ${rate.retryAfterSeconds} seconds.`;
+    await recordChat(request, { ...record, model: null, outcome: 'limited', error });
+    return NextResponse.json({ error }, { status: 429, headers: { 'retry-after': String(rate.retryAfterSeconds) } });
   }
 
   const agent = typeof body.agent === 'string' && body.agent ? body.agent : null;
@@ -125,6 +130,7 @@ export async function POST(request: Request) {
 
   // Nothing to answer with, and no sample to fall back on.
   if (!key && !offline) {
+    await recordChat(request, { ...record, model: null, outcome: 'unavailable', error: NO_KEY });
     return NextResponse.json({ error: NO_KEY }, { status: 503 });
   }
 
@@ -154,6 +160,7 @@ export async function POST(request: Request) {
     : runAssist(system, turns, request.signal);
 
   const encoder = new TextEncoder();
+  const seen = tally();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -166,6 +173,7 @@ export async function POST(request: Request) {
        * answer to file away.
        */
       const send = (event: AssistEvent) => {
+        seen.see(event);
         try {
           controller.enqueue(encoder.encode(frame(event)));
         } catch {
@@ -246,6 +254,8 @@ export async function POST(request: Request) {
           note: 'error',
         });
       } finally {
+        // Filed before the stream closes, when the function may be frozen.
+        await recordChat(request, { ...record, model: offline ? 'offline sample' : MODEL, ...seen.result(request.signal.aborted) });
         // Same reason as `send`: closing a stream the reader has already walked
         // away from throws, and there is nothing left to do about it.
         try {

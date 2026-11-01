@@ -51,6 +51,8 @@ export function Conversation({
    * rows in the history.
    */
   const [conversationId, setConversationId] = useState<string | null>(initial?.id ?? null);
+  /** This thread's key in the Admin screen's chat log: fixed when it starts, so its questions stay together. */
+  const thread = useRef(initial?.id ?? '');
 
   const abort = useRef<AbortController | null>(null);
   // Turns read out of the history are prefixed differently (see turnsFromRows),
@@ -157,7 +159,8 @@ export function Conversation({
         );
 
       try {
-        for await (const event of ask(history, agent, controller.signal, conversationId)) {
+        thread.current ||= `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+        for await (const event of ask(history, agent, controller.signal, conversationId, { conversation: thread.current, via: 'typed' })) {
           switch (event.type) {
             case 'sources':
               patch({ sources: event.sources });
@@ -247,6 +250,7 @@ export function Conversation({
     setTurns([]);
     setDraft('');
     setConversationId(null);
+    thread.current = '';
   }, []);
 
   /** Open one from the history, in place, wherever this is being rendered. */
@@ -254,6 +258,7 @@ export function Conversation({
     abort.current?.abort();
     setTurns(conversation.turns);
     setConversationId(conversation.id);
+    thread.current = conversation.id;
     setDraft('');
     // Opened at the end, where the conversation was left, not at the beginning.
     stickToBottom.current = true;
@@ -406,11 +411,11 @@ function Opening({
 
         {/* What it promises, each of which the answer screen then shows:
             the working under the answer, the documents under that, and a
-            history nobody else can read (migration 0009). */}
+            history saved to their account (migration 0009). */}
         <div className="mt-6 flex flex-wrap gap-2">
           <HeroChip icon={Sigma}>Sums done by the app&rsquo;s own calculators</HeroChip>
           <HeroChip icon={BookOpen}>Sources under every answer</HeroChip>
-          <HeroChip icon={Lock}>Your history is yours alone</HeroChip>
+          <HeroChip icon={Lock}>Your history, saved to your account</HeroChip>
         </div>
       </ToolHero>
     );
