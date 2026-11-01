@@ -887,7 +887,7 @@ used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
     `/will-maker` (`neverCaptured`). The browser sends only `meta` (chat id from `ChatDockFull`'s
     saved state or `Conversation`'s thread ref, `fi_sid`, path, via); the visitor is the `fi_vid`
     cookie and the account is `auth.uid()`.
-  - **Schema 0039** (`0039_chat_log.sql`, **NOT YET APPLIED — the owner pastes it**): `site_chats`;
+  - **Schema 0039** (`0039_chat_log.sql`, **applied by the owner on 1 Nov 2026**; check returned all five objects): `site_chats`;
     `claim_visitor(vid, uid)` (internal) moves a browser's views, events, tool data and chats under
     the account, called by `track_hit`, `track_input` and `track_chat` whenever the session is
     signed in, and run once over existing rows at the end of the file; `admin_accounts()` now also
@@ -895,7 +895,8 @@ used by access requests), `meter.ts` + `aliases.ts` (tool run caps), `ua.ts`.
     type); `reset_site_analytics()` empties chats too. **0039 repeats 0036's tables and
     `track_input` (guarded)**, because 0036 was never recorded as applied — so until 0039 runs,
     fields, clicks and tool work may not have been reaching the database either. Verify with the
-    query at the end of the file (five non-null values).
+    query at the end of the file (five non-null values; alias each column, or Supabase shows only
+    the last of each repeated name).
   - **Screen.** `lib/analytics/activity.ts` (`buildActivity`, tested) files chats into threads and
     every chat, field, click and tool save into a per-person timeline, keyed exactly like the report
     (account if the browser ever signed in). New: hero chip "Questions asked", a **Conversations**
@@ -1000,7 +1001,7 @@ are described one by one in `Context file.md` §4. Since then:
 | 0034 | `drop_old_analytics.sql` | Drops the 0010/0024 analytics tables and the old analytics and `operator_*` functions; keeps `analytics_admins`; empties `product_events` (§12) |
 | 0035 | `admin_settings.sql` | Admin settings: `tool_grants`, `platform_settings`, `admin_add/remove`, `grant_tool/revoke_tool`, `set_platform_setting`, `reset_site_analytics` (§12) |
 | 0038 | `will_maker_saves.sql` | **Not yet applied.** `tool_saves.tool` also allows `'will-maker'`, and constraint `tool_saves_will_is_sealed` makes the database refuse any Will Maker row that is not a sealed (encrypted) blob (§10c) |
-| 0039 | `chat_log.sql` | **Not yet applied.** `site_chats`, `track_chat()`, `claim_visitor()`; `track_hit`/`track_input` claim a browser's earlier rows on sign-in; `admin_accounts()` with photo, organisation, role, phone; repeats 0036 guarded (§12) |
+| 0039 | `chat_log.sql` | Applied 1 Nov 2026 (owner; verification returned `site_chats`, `site_events`, `site_tool_data`, `track_chat`, `claim_visitor`). `site_chats`, `track_chat()`, `claim_visitor()`; `track_hit`/`track_input` claim a browser's earlier rows on sign-in; `admin_accounts()` with photo, organisation, role, phone; repeats 0036 guarded (§12) |
 | 0037 | `itd_notices.sql` | Tax notice watch: `itd_*` tables, `itd_set_handled()`, private bucket `itd-notices` (§12b). Numbered 0037 because 0036 (input capture) exists unapplied on the session branch only |
 
 **Applied status (as far as known — verify, don't assume):** 0001–0027 verified applied
@@ -1008,7 +1009,7 @@ are described one by one in `Context file.md` §4. Since then:
 missing once and the owner was told to run 0029 then 0030; they were later giving feedback on the
 structured brief's content, so both are very likely applied — confirm with
 `select column_name from information_schema.columns where table_name = 'company_briefs';` (expect
-`content`). 0031: owner confirmed applied. 0032: owner ran it 18 Oct 2026; verification returned 5 admins and `tool_saves`. 0033: owner ran it 18 Oct 2026; verification returned `site_visitors`, `site_views` and `track_hit`. 0034 and 0035: owner ran both on 18 Oct 2026 (old analytics dropped, test accounts removed, Admin settings live). 0037: owner ran it 20 Oct 2026; verification returned 6 `itd_*` tables, the `itd-notices` bucket and `itd_set_handled`.
+`content`). 0031: owner confirmed applied. 0032: owner ran it 18 Oct 2026; verification returned 5 admins and `tool_saves`. 0033: owner ran it 18 Oct 2026; verification returned `site_visitors`, `site_views` and `track_hit`. 0034 and 0035: owner ran both on 18 Oct 2026 (old analytics dropped, test accounts removed, Admin settings live). 0037: owner ran it 20 Oct 2026; verification returned 6 `itd_*` tables, the `itd-notices` bucket and `itd_set_handled`. 0039: owner ran it 1 Nov 2026; verification returned all five objects (which also brings 0036's tables into being if 0036 had never run).
 
 **Rules:** apply the migration **before** pushing code that needs it; write paste scripts
 re-runnable (`if not exists`, `create or replace`, guarded constraints) because drift is normal;
