@@ -46,13 +46,19 @@ export function Hero() {
               words and belong to the rest of the page, where every section is
               introduced exactly this way.
             */}
+            {/*
+              The page's <h1> is this label, not the big line under it: a
+              search for the name looks for the name in the main heading, and
+              "We handle the repetitive work" says what we do but not who we
+              are (2 Nov). The big line keeps its look as the slogan it is.
+            */}
             <Rise>
-              <span className="flex items-center gap-3.5">
-                <span aria-hidden className="h-px w-10 bg-[var(--m-gold)]" />
+              <h1 className="flex items-center gap-3.5">
+                <span aria-hidden className="h-px w-10 shrink-0 bg-[var(--m-gold)]" />
                 <span className="m-mono t-1 font-medium t-caps text-[var(--m-gold)] uppercase">
-                  AI tools for finance teams
+                  The Finance Intelligence · AI tools for finance teams
                 </span>
-              </span>
+              </h1>
             </Rise>
 
             {/*
@@ -67,7 +73,7 @@ export function Hero() {
               drawn behind it once it has risen — the claim the page is making,
               marked the way a reader marks the line that matters.
             */}
-            <Springy as="h1" className="m-display mt-7 t-hero" delay={1500}>
+            <Springy as="p" className="m-display mt-7 t-hero" delay={1500}>
               <LineRise delay={60}>
                 <Letters text="We handle the" />
               </LineRise>

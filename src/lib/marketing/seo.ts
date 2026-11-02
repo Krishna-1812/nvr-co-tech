@@ -160,6 +160,7 @@ function organization() {
     '@type': 'Organization',
     '@id': ORG_ID,
     name: BRAND.name,
+    alternateName: SITE_ALTERNATES,
     url: absolute('/'),
     // What it is, as the sentence the footer and the llms files also carry.
     description: BRAND.definition,
@@ -227,12 +228,18 @@ function localBusiness() {
   };
 }
 
+/** Other ways the name is written, for the site-name and organisation data. */
+const SITE_ALTERNATES = ['Finance Intelligence', 'TFI', 'thefinanceintelligence.com'];
+
 /** The site itself, so a search engine has something to hang the name on. */
 function website() {
   return {
     '@type': 'WebSite',
     '@id': SITE_ID,
     name: BRAND.name,
+    // Google's site names read these from the home page: the name first, then
+    // the other ways people write it (developers.google.com/search/docs/appearance/site-names).
+    alternateName: SITE_ALTERNATES,
     url: absolute('/'),
     description: BRAND.blurb,
     inLanguage: 'en-IN',
