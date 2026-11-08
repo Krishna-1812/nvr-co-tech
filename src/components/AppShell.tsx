@@ -12,6 +12,7 @@ import { Toasts } from './app/Toasts';
 import { ThemeColor } from './app/ThemeColor';
 import { RouteStage } from './app/RouteStage';
 import { Play } from './marketing/play/Play';
+import { Delight } from './marketing/play/Delight';
 import { ChatDock } from './chat/ChatDock';
 import { AGENTS } from '@/lib/marketing/content';
 import { OPEN_TOOLS } from '@/lib/access';
@@ -140,6 +141,7 @@ export async function AppShell({ user, admin = false, section: given, children }
           buttons that flood from the pointer, labels marked data-decode, and
           confetti only where data-celebrate marks a real moment of success. */}
       <Play decode="[data-decode]" throwOn="[data-celebrate]" spotlight=".surface-lit" />
+      <Delight side="app" />
     </div>
   );
 }

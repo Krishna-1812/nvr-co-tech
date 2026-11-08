@@ -8,6 +8,7 @@ import { HubBar } from '@/components/hub/HubBar';
 import { Toasts } from '@/components/app/Toasts';
 import { RouteStage } from '@/components/app/RouteStage';
 import { Play } from '@/components/marketing/play/Play';
+import { Delight } from '@/components/marketing/play/Delight';
 import { ChatDock } from '@/components/chat/ChatDock';
 import { OPEN_TOOLS } from '@/lib/access';
 
@@ -73,6 +74,7 @@ export default async function HubLayout({ children }: { children: React.ReactNod
         open={OPEN_TOOLS}
       />
       <Play decode="[data-decode]" throwOn="[data-celebrate]" spotlight=".surface-lit" />
+      <Delight side="app" />
     </div>
   );
 }

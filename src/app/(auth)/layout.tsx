@@ -11,6 +11,7 @@ import { HeroStage } from '@/components/marketing/play/HeroStage';
 import { agentBySlug, toolBriefs } from '@/lib/marketing/content';
 import { OPEN_TOOLS } from '@/lib/access';
 import { ChatDock } from '@/components/chat/ChatDock';
+import { Delight } from '@/components/marketing/play/Delight';
 
 /**
  * Shell for /login and /signup.
@@ -78,6 +79,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
       {/* The public chat, for a question asked before signing in. */}
       <ChatDock mode="visitor" skin="desert" placement="site" open={OPEN_TOOLS} tools={toolBriefs()} />
+      <Delight side="site" />
     </div>
   );
 }

@@ -52,10 +52,61 @@ const store = {
 
 export function setTheme(t: Theme) {
   const root = document.documentElement;
-  if (t === 'system') root.removeAttribute('data-theme');
-  else root.setAttribute('data-theme', t);
-  localStorage.setItem('theme', t);
-  listeners.forEach((l) => l());
+  const apply = () => {
+    if (t === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', t);
+    localStorage.setItem('theme', t);
+    listeners.forEach((l) => l());
+  };
+
+  /*
+   * The new theme spreads out as a circle from wherever it was chosen — the
+   * account menu, the settings screen, the command palette's row — over the old
+   * one, using the browser's own view transition: it photographs the page as
+   * it was, applies the change underneath, and this only says how the new
+   * picture is uncovered. Without the API, under reduced motion, or when
+   * nothing would visibly change, the theme simply changes.
+   */
+  const dark = () => root.getAttribute('data-theme') === 'dark' ||
+    (!root.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const was = dark();
+  const willBe = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if (
+    was === willBe ||
+    typeof document.startViewTransition !== 'function' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    apply();
+    return;
+  }
+  const x = lastPress?.x ?? window.innerWidth / 2;
+  const y = lastPress?.y ?? window.innerHeight / 2;
+  const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+  root.classList.add('d-theming');
+  const vt = document.startViewTransition(apply);
+  vt.ready
+    .then(() =>
+      root.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+        { duration: 700, easing: 'cubic-bezier(0.65, 0, 0.25, 1)', pseudoElement: '::view-transition-new(root)' },
+      ),
+    )
+    .catch(() => {});
+  vt.finished.finally(() => root.classList.remove('d-theming'));
+}
+
+/** Where the last press landed, so a theme change can spread out from it. */
+let lastPress: { x: number; y: number } | null = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'pointerdown',
+    (e) => {
+      lastPress = { x: e.clientX, y: e.clientY };
+    },
+    { capture: true, passive: true },
+  );
+  // A keyboard choice has no point to spread from; it opens from the middle.
+  window.addEventListener('keydown', () => (lastPress = null), { capture: true, passive: true });
 }
 
 export function useTheme(): Theme {

@@ -1439,6 +1439,29 @@ last request ("check the website in dark mode and fix errors") is done, pushed a
   plays when scrolled to (count pops, letters rise, rule draws). The voucher status filters have one
   tint that slides between pills (`.w-pill`). CSS block "WORKSPACE" at the end of globals.css; all of
   it is off under reduced motion and hides nothing without scripting.
+- **Delight layer** (8 Nov 2026, owner asked for "a lot of animations and cool transitions" on both
+  sides). One delegated component, `play/Delight.tsx` (`side="site" | "app"`), mounted beside `Play`
+  in PublicShell, the auth layout, AppShell and the hub layout; CSS block "DELIGHT" at the end of
+  globals.css. It adds: a **halo** that trails the mouse on public and sign-in pages (swells over
+  anything pressable, says "Drag" over `[data-grab]` or whatever a `data-cursor` attribute says, steps
+  aside over fields and the chat panel; not in the app, on purpose); **magnetic buttons** (every
+  `.m-flood` or `[data-magnet]` under 380px wide leans up to 6px towards the mouse, through
+  `transform` so it composes with the buttons' `scale` press and `translate` lift); a **tap ripple**
+  on `.m-flood` for touch (`::after`, `data-tap`); **cards arriving** one after another on a new app
+  screen (`main .surface-lit` or `[data-rise-card]` without an entrance of their own, behind the
+  curtain, client navigations only); **icons that act out what they show** on hover or focus of
+  their link or button (arrows step, bells ring, cogs turn, plus turns to x, bins shake, charts grow,
+  eyes blink; keyed by lucide class names in the `--d-icon` table, never on an icon that already has
+  an `animate-*` class); and the **owl**: typing "hoot" (or the Konami code) outside a field flies the
+  logo owl across the screen with confetti. The arch scenes also got air: `.m-stars` is now three
+  layers (stars on `::before`; warm dust drifting up by day and a shooting star about every 11s at
+  night on `::after`), and every arch's far layer (`.m-drift-far`, the sun or moon) **sinks as the
+  page scrolls** its first screen (`scroll(root)` timeline; `view()` cannot work there because the
+  arch's overflow clip makes it its own scroll container). Theme changes (`setTheme` in
+  `lib/theme.ts`) now **spread from the click** in a growing circle via `document.startViewTransition`
+  (`html.d-theming` scopes the CSS); keyboard choices open from the middle; skipped when nothing
+  visibly changes, without the API, or under reduced motion. Everything is off under reduced motion,
+  writes only into hydrated nodes or its own body-level elements, and adds no dependency.
 - **Owner instruction (28 Oct 2026): merge without asking.** Once the checks and the Vercel build
   are green on a PR from the working branch, merge it into `main`; do not ask first.
 - **Site-wide audit (28 Oct 2026):** every public page crawled at 1440 and 390 (links, console
