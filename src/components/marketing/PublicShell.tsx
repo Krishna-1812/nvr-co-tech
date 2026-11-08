@@ -2,6 +2,7 @@ import { SiteHeader } from './SiteHeader';
 import { SiteFooter } from './SiteFooter';
 import { DESERT_FONTS } from '@/lib/brand/fonts';
 import { Play } from './play/Play';
+import { Delight } from './play/Delight';
 import { ChatDock } from '@/components/chat/ChatDock';
 import { OPEN_TOOLS } from '@/lib/access';
 import { toolBriefs } from '@/lib/marketing/content';
@@ -76,6 +77,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           from the pointer, calls to action that throw confetti, labels that
           decode. Renders nothing. See play/Play. */}
       <Play />
+      {/* The halo, magnetic buttons, tap ripples and the owl. See play/Delight. */}
+      <Delight side="site" />
 
       {/* The chat in the corner, for anybody: it answers from this website, and
           each question is filed for the Admin screen. See components/chat/ChatDock and app/api/chat. */}

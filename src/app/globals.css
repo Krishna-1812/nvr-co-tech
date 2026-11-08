@@ -3289,11 +3289,25 @@ html[data-sky='night'] .m-sun {
   mask: radial-gradient(circle at 72% 30%, transparent 0 36%, #000 37.5%);
 }
 
-/* Stars: a scatter of points on a fixed pattern, shown only at night. */
+/* The air inside the arch. Three layers on one empty span:
+     - ::before, the stars: a scatter of points on a fixed pattern, out only
+       at night, twinkling;
+     - ::after by day (and at dawn and dusk), motes of dust drifting up
+       through the light, a tile of points twice the window's height sliding
+       up by half of itself, so it never runs out;
+     - ::after at night, a shooting star now and then, crossing high.
+   The span itself stays visible so the day layer can be; the stars carry
+   the night's opacity. Every one of them is still under reduced motion. */
 .m-stars {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   pointer-events: none;
+}
+.m-stars::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   opacity: 0;
   transition: opacity 3s ease;
   background-image:
@@ -3308,10 +3322,71 @@ html[data-sky='night'] .m-sun {
     radial-gradient(1px 1px at 92% 22%, #F6EFE4 50%, transparent 51%),
     radial-gradient(1.5px 1.5px at 34% 56%, #F6EFE4 50%, transparent 51%);
 }
-html[data-sky='night'] .m-stars { opacity: 0.85; }
+html[data-sky='night'] .m-stars::before { opacity: 0.85; }
 @keyframes m-twinkle { 50% { opacity: 0.45; } }
+
+/* Dust by day: warm motes in the sun's own colour, so they read on the pale
+   sand of a day sky and on the dusk wash alike. */
+.m-stars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 200%;
+  opacity: 0.8;
+  background-size: 100% 50%;
+  background-image:
+    radial-gradient(3px 3px at 14% 22%, rgb(233 180 76 / 0.95) 50%, transparent 52%),
+    radial-gradient(2px 2px at 31% 64%, rgb(255 248 236 / 0.95) 50%, transparent 52%),
+    radial-gradient(3.5px 3.5px at 47% 38%, rgb(233 180 76 / 0.85) 50%, transparent 52%),
+    radial-gradient(2px 2px at 62% 82%, rgb(255 248 236 / 0.9) 50%, transparent 52%),
+    radial-gradient(3px 3px at 78% 28%, rgb(233 180 76 / 0.9) 50%, transparent 52%),
+    radial-gradient(2.5px 2.5px at 88% 58%, rgb(255 248 236 / 0.85) 50%, transparent 52%),
+    radial-gradient(3px 3px at 24% 92%, rgb(233 180 76 / 0.85) 50%, transparent 52%),
+    radial-gradient(2px 2px at 55% 12%, rgb(255 248 236 / 0.9) 50%, transparent 52%),
+    radial-gradient(2.5px 2.5px at 6% 50%, rgb(233 180 76 / 0.8) 50%, transparent 52%),
+    radial-gradient(2px 2px at 40% 76%, rgb(233 180 76 / 0.9) 50%, transparent 52%),
+    radial-gradient(3px 3px at 70% 6%, rgb(255 248 236 / 0.85) 50%, transparent 52%),
+    radial-gradient(2px 2px at 95% 86%, rgb(233 180 76 / 0.85) 50%, transparent 52%),
+    radial-gradient(2.5px 2.5px at 82% 44%, rgb(255 248 236 / 0.8) 50%, transparent 52%),
+    radial-gradient(2px 2px at 20% 8%, rgb(233 180 76 / 0.8) 50%, transparent 52%);
+}
+@keyframes m-dust {
+  from { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(6px, -25%, 0); }
+  to   { transform: translate3d(0, -50%, 0); }
+}
+@keyframes m-dust-glint { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.4; } }
+
+/* A shooting star at night: a short streak, high in the window, crossing in
+   under a second about every eleven. */
+html[data-sky='night'] .m-stars::after {
+  top: 14%;
+  left: 18%;
+  right: auto;
+  width: 90px;
+  height: 1.5px;
+  opacity: 0;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, #F6EFE4);
+  background-size: auto;
+  transform: rotate(-24deg);
+}
+@keyframes m-shoot {
+  0%, 88%  { opacity: 0; transform: rotate(-24deg) translateX(0); }
+  90%      { opacity: 1; }
+  96%      { opacity: 0; transform: rotate(-24deg) translateX(180px); }
+  100%     { opacity: 0; transform: rotate(-24deg) translateX(180px); }
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  html[data-sky='night'] .m-stars { animation: m-twinkle 4.5s ease-in-out infinite; }
+  html[data-sky='night'] .m-stars::before { animation: m-twinkle 4.5s ease-in-out infinite; }
+  .m-stars::after { animation: m-dust 26s linear infinite, m-dust-glint 5s ease-in-out infinite; }
+  html[data-sky='night'] .m-stars::after { animation: m-shoot 11s ease-in infinite 3s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .m-stars::after { display: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -5132,5 +5207,260 @@ html[data-sky='night'] .m-stars { opacity: 0.85; }
 @keyframes chat-fade {
   from {
     opacity: 0;
+  }
+}
+
+/* ═══ DELIGHT — what a hand notices (play/Delight.tsx) ══════════════════════
+ *
+ * Added 8 Nov 2026 when the owner asked for the site to feel more alive on
+ * both sides. Four things, all delegated from one component that renders
+ * nothing: a halo that keeps the pointer company on the public site, buttons
+ * that lean towards the pointer, a ripple where a finger lands, cards that
+ * arrive one after another on a new app screen, every icon in a link or a
+ * button doing its own small thing when pointed at, and an owl for anybody
+ * who types "hoot". All transform and opacity; all off under reduced motion.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── The halo (public site, mouse only) ──
+   Its colours are read from the desert skin when it is made, because it lives
+   on <body>, outside [data-skin]. */
+.d-halo {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 95;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.d-halo[data-on] { opacity: 1; }
+.d-halo::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: -18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in oklab, var(--d-ink, #2B211B) 42%, transparent);
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.25, 1.25),
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    opacity 0.25s ease;
+}
+.d-halo span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  scale: 0.5;
+  opacity: 0;
+  font: 700 11px/1 var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--d-on, #F6EFE4);
+  transition: opacity 0.2s ease, scale 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.25);
+}
+.d-halo[data-state='press']::before {
+  transform: scale(1.6);
+  border-color: transparent;
+  background: color-mix(in oklab, var(--d-sun, #E7B04E) 30%, transparent);
+}
+.d-halo[data-state='word']::before {
+  transform: scale(2.3);
+  border-color: transparent;
+  background: var(--d-ink, #2B211B);
+}
+.d-halo[data-state='word'] span { opacity: 1; scale: 1; }
+.d-halo[data-state='away']::before { transform: scale(0.3); opacity: 0; }
+.d-halo[data-down]::before { transform: scale(0.75); }
+.d-halo[data-down][data-state='press']::before { transform: scale(1.25); }
+@media (prefers-reduced-motion: reduce) { .d-halo { display: none; } }
+
+/* ── Buttons that lean towards the pointer ──
+   Delight writes --mg-x/--mg-y while the pointer is over a flooding button.
+   `transform`, which none of these buttons uses for anything else (their
+   press is the `scale` property, their hover lift `translate`), so the three
+   compose. Buttons that declare no transition of their own get one. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .m-flood,
+  [data-magnet] { transform: translate3d(var(--mg-x, 0px), var(--mg-y, 0px), 0); }
+  .m-flood:not([class*='transition']),
+  [data-magnet]:not([class*='transition']) { transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+}
+
+/* ── A ripple where a finger lands (touch) ── */
+@keyframes d-tap {
+  0%   { transform: scale(0); opacity: 1; }
+  55%  { opacity: 0.9; }
+  100% { transform: scale(36); opacity: 0; }
+}
+.m-flood[data-tap]::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: var(--tx, 50%);
+  top: var(--ty, 50%);
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 9999px;
+  background: var(--flood, var(--action-hover));
+  pointer-events: none;
+  animation: d-tap 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) { .m-flood[data-tap]::after { display: none; } }
+
+/* ── Cards arriving on a new app screen ──
+   Delight sets data-d-rise and --d-i (its place in the order) on the cards in
+   view, behind the curtain, and takes the attribute off again once played. */
+@keyframes d-rise {
+  from { opacity: 0; translate: 0 22px; scale: 0.985; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-d-rise] {
+    animation: d-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(0.5s + var(--d-i, 0) * 70ms);
+  }
+}
+
+/* ── Icons with a life of their own ──
+   Point at a link or a button and its icon does the thing it is a picture
+   of: an arrow steps the way it points, a bell rings, a cog turns, a plus
+   turns into its own cross, a bin shakes, a moon rocks. Played once per
+   arrival, by keyboard focus as well as the pointer, and never on an icon
+   that is already animating (a spinner keeps spinning). Keyed by lucide's
+   own class names, so every icon in the product joins in without an edit. */
+@keyframes d-i-right { 0%, 100% { transform: none; } 35% { transform: translateX(4px); } 60% { transform: translateX(-1px); } 80% { transform: translateX(2px); } }
+@keyframes d-i-left  { 0%, 100% { transform: none; } 35% { transform: translateX(-4px); } 60% { transform: translateX(1px); } 80% { transform: translateX(-2px); } }
+@keyframes d-i-down  { 0%, 100% { transform: none; } 35% { transform: translateY(3px); } 60% { transform: translateY(-1px); } 80% { transform: translateY(1.5px); } }
+@keyframes d-i-up    { 0%, 100% { transform: none; } 35% { transform: translateY(-3px); } 60% { transform: translateY(1px); } 80% { transform: translateY(-1.5px); } }
+@keyframes d-i-out   { 0%, 100% { transform: none; } 40% { transform: translate(3px, -3px); } 70% { transform: translate(-1px, 1px); } }
+@keyframes d-i-ring  { 0%, 100% { transform: none; } 15% { transform: rotate(16deg); } 30% { transform: rotate(-14deg); } 45% { transform: rotate(10deg); } 60% { transform: rotate(-6deg); } 75% { transform: rotate(3deg); } }
+@keyframes d-i-spin  { from { transform: none; } to { transform: rotate(360deg); } }
+@keyframes d-i-back  { from { transform: none; } to { transform: rotate(-360deg); } }
+@keyframes d-i-turn  { 0% { transform: none; } 60% { transform: rotate(100deg); } 100% { transform: rotate(90deg); } }
+@keyframes d-i-pop   { 0%, 100% { transform: none; } 40% { transform: scale(1.28); } 70% { transform: scale(0.92); } }
+@keyframes d-i-star  { 0%, 100% { transform: none; } 30% { transform: rotate(-14deg) scale(1.22); } 60% { transform: rotate(10deg) scale(0.94); } }
+@keyframes d-i-shake { 0%, 100% { transform: none; } 20%, 60% { transform: rotate(-9deg); } 40%, 80% { transform: rotate(9deg); } }
+@keyframes d-i-tilt  { 0%, 100% { transform: none; } 45% { transform: rotate(-16deg) scale(1.14); } }
+@keyframes d-i-rock  { 0%, 100% { transform: none; } 30% { transform: rotate(-22deg); } 65% { transform: rotate(10deg); } }
+@keyframes d-i-hop   { 0%, 100% { transform: none; } 30% { transform: translateY(-4px); } 55% { transform: none; } 75% { transform: translateY(-1.5px); } }
+@keyframes d-i-fly   { 0%, 100% { transform: none; } 45% { transform: translate(5px, -4px) rotate(-8deg); opacity: 0.4; } 46% { transform: translate(-5px, 4px); opacity: 0.4; } }
+@keyframes d-i-grow  { 0%, 100% { transform: none; } 40% { transform: scaleY(0.55); } 70% { transform: scaleY(1.12); } }
+@keyframes d-i-blink { 0%, 100% { transform: none; } 45% { transform: scaleY(0.12); } }
+@keyframes d-i-write { 0%, 100% { transform: none; } 25% { transform: rotate(-12deg) translateX(-1px); } 50% { transform: rotate(6deg) translateX(1px); } 75% { transform: rotate(-4deg); } }
+@keyframes d-i-wave  { 0%, 100% { transform: none; } 25% { transform: rotate(-18deg); } 50% { transform: rotate(14deg); } 75% { transform: rotate(-8deg); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(a, button, [role='button'], summary, label):is(:hover, :focus-visible) svg.lucide:not([class*='animate-']) {
+    animation: var(--d-icon, none) 0.7s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+  }
+  .lucide-arrow-right, .lucide-chevron-right, .lucide-chevrons-right, .lucide-move-right, .lucide-corner-down-left, .lucide-log-in { --d-icon: d-i-right; }
+  .lucide-arrow-left, .lucide-chevron-left, .lucide-undo-2, .lucide-log-out, .lucide-panel-left-close { --d-icon: d-i-left; }
+  .lucide-panel-left-open { --d-icon: d-i-right; }
+  .lucide-arrow-down, .lucide-chevron-down, .lucide-download, .lucide-arrow-down-up { --d-icon: d-i-down; }
+  .lucide-arrow-up, .lucide-upload, .lucide-cloud-upload, .lucide-folder-up { --d-icon: d-i-up; }
+  .lucide-arrow-up-right, .lucide-external-link { --d-icon: d-i-out; }
+  .lucide-bell, .lucide-bell-ring, .lucide-alarm-clock { --d-icon: d-i-ring; }
+  .lucide-settings, .lucide-settings-2, .lucide-sun, .lucide-refresh-cw, .lucide-rotate-cw, .lucide-sliders-horizontal { --d-icon: d-i-spin; }
+  .lucide-rotate-ccw, .lucide-refresh-ccw, .lucide-history { --d-icon: d-i-back; }
+  .lucide-plus, .lucide-x, .lucide-circle-plus, .lucide-user-plus, .lucide-mail-plus { --d-icon: d-i-turn; }
+  .lucide-check, .lucide-check-check, .lucide-circle-check, .lucide-circle-check-big, .lucide-copy, .lucide-clipboard, .lucide-file-check-2, .lucide-mail-check, .lucide-shield-check, .lucide-user-check, .lucide-gem, .lucide-gift { --d-icon: d-i-pop; }
+  .lucide-sparkles, .lucide-sparkle, .lucide-wand-sparkles, .lucide-star, .lucide-zap, .lucide-lightbulb { --d-icon: d-i-star; }
+  .lucide-trash, .lucide-trash-2, .lucide-lock, .lucide-lock-keyhole, .lucide-key-round, .lucide-triangle-alert, .lucide-circle-alert, .lucide-shield-alert { --d-icon: d-i-shake; }
+  .lucide-search, .lucide-user-search, .lucide-scale { --d-icon: d-i-tilt; }
+  .lucide-moon, .lucide-hourglass, .lucide-timer, .lucide-clock, .lucide-clock-3 { --d-icon: d-i-rock; }
+  .lucide-house, .lucide-wallet, .lucide-landmark, .lucide-building, .lucide-building-2, .lucide-coins, .lucide-piggy-bank, .lucide-banknote, .lucide-hand-coins, .lucide-briefcase, .lucide-package, .lucide-inbox, .lucide-book-open, .lucide-file-text, .lucide-scroll-text, .lucide-file-spreadsheet, .lucide-sheet, .lucide-printer, .lucide-calculator, .lucide-calendar-days, .lucide-calendar-clock, .lucide-users, .lucide-user, .lucide-user-round, .lucide-mail, .lucide-at-sign, .lucide-layout-dashboard, .lucide-layout-grid, .lucide-layers, .lucide-database, .lucide-bot { --d-icon: d-i-hop; }
+  .lucide-send, .lucide-send-horizontal, .lucide-route { --d-icon: d-i-fly; }
+  .lucide-chart-line, .lucide-chart-column, .lucide-chart-bar, .lucide-trending-up, .lucide-activity, .lucide-sigma { --d-icon: d-i-grow; }
+  .lucide-eye, .lucide-eye-off { --d-icon: d-i-blink; }
+  .lucide-pencil, .lucide-pen-line, .lucide-square-pen, .lucide-palette { --d-icon: d-i-write; }
+  .lucide-hand, .lucide-hand-helping, .lucide-message-circle, .lucide-message-circle-question, .lucide-messages-square, .lucide-info { --d-icon: d-i-wave; }
+  .lucide-chart-line, .lucide-chart-column, .lucide-chart-bar { transform-origin: 50% 90%; }
+  .lucide-bell, .lucide-bell-ring { transform-origin: 50% 12%; }
+  .lucide-pencil, .lucide-pen-line { transform-origin: 15% 85%; }
+}
+
+/* ── The owl (type "hoot") ──
+   Comes in low from the left, loops up over the middle of the screen, calls,
+   and leaves high on the right. */
+@keyframes d-owl-fly {
+  0%   { transform: translate(-20vw, 70vh) rotate(-12deg) scale(0.8); }
+  30%  { transform: translate(38vw, 30vh) rotate(8deg) scale(1.05); }
+  42%  { transform: translate(44vw, 26vh) rotate(-4deg) scale(1.15); }
+  58%  { transform: translate(48vw, 27vh) rotate(4deg) scale(1.15); }
+  100% { transform: translate(115vw, -20vh) rotate(18deg) scale(0.7); }
+}
+@keyframes d-owl-flap {
+  0%, 100% { scale: 1 1; }
+  50%      { scale: 1.08 0.9; }
+}
+@keyframes d-owl-call {
+  0%, 30%  { opacity: 0; transform: translate(-50%, 6px) scale(0.6); }
+  38%, 60% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  70%, 100% { opacity: 0; transform: translate(-50%, -8px) scale(0.9); }
+}
+.d-owl {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 96;
+  pointer-events: none;
+  animation: d-owl-fly 2.8s cubic-bezier(0.45, 0.05, 0.4, 1) forwards;
+}
+.d-owl img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  filter: drop-shadow(0 18px 22px rgb(43 33 27 / 0.35));
+  animation: d-owl-flap 0.32s ease-in-out infinite;
+}
+.d-owl b {
+  position: absolute;
+  left: 50%;
+  bottom: 104%;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: #2B211B;
+  color: #F6EFE4;
+  font: 700 15px/1 var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  white-space: nowrap;
+  animation: d-owl-call 2.8s ease forwards;
+}
+
+/* ── A new theme spreading out from where it was chosen (lib/theme.ts) ──
+   The browser's view transition photographs the old page and the new; the
+   script uncovers the new one in a growing circle, so neither picture is to
+   fade or blend while it does. Scoped to the theme change alone. */
+html.d-theming::view-transition-old(root),
+html.d-theming::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+
+/* ── The sun sets as you leave ──
+   Scrubbed by the page's scroll: over the first screen's worth of scrolling,
+   an arch's far layer (the sun, the moon) sinks behind the scene, and rises
+   again on the way back up. Every arch with a far layer is a hero, in the
+   first screen of its page, so the page's own scroll is the right clock —
+   and the only one available: the arch clips its contents, which makes it
+   its own (unscrolling) scroll container, so a view() timeline inside it
+   would never move. `transform`, so it composes with the pointer drift,
+   which is `translate`. Only the far layer moves: the near one stands on the
+   floor of the window and would lift off it. */
+@keyframes d-sunset { to { transform: translateY(64px); } }
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .m-drift-far {
+      animation: d-sunset linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
   }
 }
